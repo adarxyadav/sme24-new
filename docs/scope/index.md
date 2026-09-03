@@ -15,7 +15,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 |---|---------|-------|--------|
 | 1 | Stack & architecture | Foundation | in-progress |
 | 2 | Coding standards & tooling | Foundation | done |
-| 3 | Data model | Foundation | planned |
+| 3 | Data model | Foundation | in-progress |
 | 4 | Design system & UI foundation | Foundation | planned |
 | 5 | Localization (German & English) | Foundation | planned |
 | 6 | Auth, organizations & roles | Slice 1 | planned |
