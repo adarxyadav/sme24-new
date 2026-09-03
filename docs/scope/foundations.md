@@ -19,13 +19,13 @@ spec [0001](../specs/0001-stack-architecture/index.md) · code in `src/`, `supab
 - [ ] Review it (fresh model): `/check review stack & architecture`
 - [ ] Document it: `/document stack & architecture`
 
-### 2. Coding standards & tooling · in-progress
+### 2. Coding standards & tooling · done
 Capture conventions and tooling choices from the real scaffolded project into root `AGENTS.md`, then install lint, format, strict types, `pre-commit` hooks and CI so every later feature follows them.
 **Done when:** root `AGENTS.md` reflects the real stack and conventions, and lint, format, typecheck and `pre-commit` run clean locally and in CI.
 spec [0001](../specs/0001-stack-architecture/index.md) · code in `lefthook.yml`, `scripts/check-commit-message.mts`, `biome.json`, `.github/workflows/ci.yml`
-- [ ] Capture conventions + tooling choices: `/audit`
+- [x] Capture conventions + tooling choices: `/audit`
 - [x] Install the tooling: `/develop tooling`
-- [ ] Check it runs clean: `/test tooling`
+- [x] Check it runs clean: `/test tooling`
 
 ### 3. Data model · needs a decision
 Core entities every slice builds on: users, organizations and memberships with roles (client member, expert, ops), assessed companies, research runs and extracted safety KPIs, peer benchmarks, packages and orders, assessments and their structured answers, gap findings, expert profiles, programs and progress entries, notifications. Row level access rules are part of the model, not an afterthought, because three user types share one database.
