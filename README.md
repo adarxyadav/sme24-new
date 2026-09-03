@@ -10,7 +10,7 @@ the plan is in [docs/scope](docs/scope/index.md).
 You need Node 22 (`.nvmrc`), pnpm, Docker (for the local Supabase stack) and the Supabase CLI.
 
 ```sh
-pnpm install
+pnpm install                      # also installs the git hooks (see below)
 cp .env.example .env.local        # then paste the two keys `supabase status -o env` prints
 supabase start                    # Postgres, Auth, Storage, Realtime, Studio on 127.0.0.1:5432x
 pnpm dev                          # http://localhost:3000 redirects to /de
@@ -43,6 +43,21 @@ add the keys to `.env.local`.
 | `pnpm db:diff <name>` | Write a migration from the declarative schema in `supabase/schemas/` |
 | `pnpm db:types` | Regenerate `src/lib/supabase/database.types.ts` (CI fails when it is stale) |
 | `pnpm trigger:dev` | Run Trigger.dev tasks locally |
+
+## Git hooks
+
+`pnpm install` installs two git hooks through [lefthook](https://lefthook.dev) (`lefthook.yml`);
+the `prepare` script skips this when `CI` is set. The commit message check runs on Node directly,
+so use Node 22.18 or newer (`nvm install 22` gives you that).
+
+- `pre-commit`: Biome fixes lint, format and import order on the staged files and re-stages them,
+  then `pnpm typecheck` runs on the whole project.
+- `commit-msg`: the subject must start with a type, one of `feat`, `fix`, `chore`, `docs`,
+  `test`, `refactor`, `ci`, as in `feat(auth): add magic link sign in`. Messages git writes
+  itself (merge, revert, fixup, squash) pass. CI runs the same check on every pull request commit.
+
+Skip both once with `LEFTHOOK=0 git commit ...`. Hooks missing after a clone? Run
+`pnpm exec lefthook install`.
 
 ## Change the database
 
@@ -85,9 +100,10 @@ Three fixed environments, no per branch databases:
 | `main` | preview + `staging.<domain>` | staging, migrated by CI | staging, deployed by CI |
 | `production` | production | prod, migrated by CI | prod, deployed by CI |
 
-GitHub Actions: `ci.yml` (typecheck, Biome, Vitest, generated types check) on pull requests and
-pushes; `deploy.yml` (Supabase migrations, then Trigger.dev tasks) on pushes to `main` and
-`production`; `e2e.yml` (Playwright + axe) on every successful Vercel deployment.
+GitHub Actions: `ci.yml` (typecheck, Biome, Vitest, generated types check, commit messages on pull
+requests) on pull requests and pushes; `deploy.yml` (Supabase migrations, then Trigger.dev tasks)
+on pushes to `main` and `production`; `e2e.yml` (Playwright + axe) on every successful Vercel
+deployment.
 
 One time setup, outside the repo:
 
@@ -108,5 +124,25 @@ One time setup, outside the repo:
 4. **Sentry (EU) and PostHog (EU)**: create the projects in the EU regions; DSN and key go to
    Vercel and Trigger.dev; `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` go to the repo
    secrets and the Vercel build for source maps.
-5. **GitHub**: branch protection on `main` and `production` requiring the `check` job (feature 2).
-   Promotion to production is a pull request from `main` into `production`.
+5. **GitHub**: create the repository and push, then protect `main` and `production` so every change
+   arrives through a pull request that passed the `check` job. Its status context is the job's
+   display name, `Typecheck, lint, unit tests`, not the key `check`. Run once from the repo root
+   with the GitHub CLI signed in:
+
+   ```sh
+   for branch in main production; do
+     gh api --method PUT "repos/{owner}/{repo}/branches/$branch/protection" \
+       -F 'required_status_checks[strict]=false' \
+       -F 'required_status_checks[contexts][]=Typecheck, lint, unit tests' \
+       -F 'required_pull_request_reviews[required_approving_review_count]=0' \
+       -F 'enforce_admins=true' \
+       -F 'restrictions=null' \
+       -F 'allow_force_pushes=false' \
+       -F 'allow_deletions=false'
+   done
+   ```
+
+   `enforce_admins=true` makes the rules apply to you too; switch it to `false` while you are the
+   only committer if you want to push straight to `main` now and then. Zero required approvals
+   still requires a pull request, which is what a solo maintainer needs. Promotion to production is
+   a pull request from `main` into `production`.

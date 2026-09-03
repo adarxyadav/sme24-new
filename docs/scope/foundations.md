@@ -19,11 +19,12 @@ spec [0001](../specs/0001-stack-architecture/index.md) · code in `src/`, `supab
 - [ ] Review it (fresh model): `/check review stack & architecture`
 - [ ] Document it: `/document stack & architecture`
 
-### 2. Coding standards & tooling
+### 2. Coding standards & tooling · in-progress
 Capture conventions and tooling choices from the real scaffolded project into root `AGENTS.md`, then install lint, format, strict types, `pre-commit` hooks and CI so every later feature follows them.
 **Done when:** root `AGENTS.md` reflects the real stack and conventions, and lint, format, typecheck and `pre-commit` run clean locally and in CI.
+spec [0001](../specs/0001-stack-architecture/index.md) · code in `lefthook.yml`, `scripts/check-commit-message.mts`, `biome.json`, `.github/workflows/ci.yml`
 - [ ] Capture conventions + tooling choices: `/audit`
-- [ ] Install the tooling: `/develop tooling`
+- [x] Install the tooling: `/develop tooling`
 - [ ] Check it runs clean: `/test tooling`
 
 ### 3. Data model · needs a decision
