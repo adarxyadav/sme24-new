@@ -60,3 +60,59 @@ describe("organizationIdFromClaims (spec 0002, AC-2)", () => {
     ).toBe("client");
   });
 });
+
+describe("organizationIdFromClaims rejects what the hook never writes (spec 0002, AC-2)", () => {
+  const organizationId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+  it("returns null when app_metadata is missing or not an object", () => {
+    expect(organizationIdFromClaims({})).toBeNull();
+    expect(organizationIdFromClaims({ app_metadata: null })).toBeNull();
+    expect(organizationIdFromClaims({ app_metadata: organizationId })).toBeNull();
+    expect(organizationIdFromClaims(undefined)).toBeNull();
+    expect(organizationIdFromClaims("claims")).toBeNull();
+  });
+
+  it("rejects malformed uuids", () => {
+    const malformed = [
+      "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa", // one character short
+      "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaaa", // one character long
+      "aaaaaaaaaaaa4aaa8aaaaaaaaaaaaaaa", // no hyphens
+      "gggggggg-gggg-4ggg-8ggg-gggggggggggg", // non hex characters
+      ` ${organizationId}`, // surrounding whitespace
+      `${organizationId}
+`,
+      `${organizationId}; drop table organizations`,
+    ];
+    for (const value of malformed) {
+      expect(organizationIdFromClaims({ app_metadata: { organization_id: value } })).toBeNull();
+    }
+  });
+
+  it("returns null for non string values even when they look like ids", () => {
+    expect(organizationIdFromClaims({ app_metadata: { organization_id: null } })).toBeNull();
+    expect(organizationIdFromClaims({ app_metadata: { organization_id: true } })).toBeNull();
+    expect(
+      organizationIdFromClaims({ app_metadata: { organization_id: [organizationId] } }),
+    ).toBeNull();
+    expect(
+      organizationIdFromClaims({ app_metadata: { organization_id: { id: organizationId } } }),
+    ).toBeNull();
+  });
+
+  it("never lets a top level role or organization_id override app_metadata", () => {
+    const claims = {
+      role: "ops",
+      organization_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      app_metadata: { role: "client", organization_id: organizationId },
+    };
+    expect(roleFromClaims(claims)).toBe("client");
+    expect(organizationIdFromClaims(claims)).toBe(organizationId);
+    expect(roleFromClaims({ role: "ops", app_metadata: {} })).toBeNull();
+    expect(
+      organizationIdFromClaims({
+        organization_id: organizationId,
+        app_metadata: { role: "client" },
+      }),
+    ).toBeNull();
+  });
+});
