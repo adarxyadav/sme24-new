@@ -1,0 +1,20 @@
+# Git hooks for SME24, managed by lefthook (https://lefthook.dev).
+# `pnpm install` installs them through the `prepare` script in package.json.
+# Skip them once with `LEFTHOOK=0 git commit ...` when you really need to.
+
+pre-commit:
+  jobs:
+    # Lint, format and sort imports on the staged files only, then stage the fixes.
+    - name: biome
+      glob: "*.{js,jsx,cjs,mjs,ts,tsx,cts,mts,json,jsonc,css}"
+      run: pnpm exec biome check --write --no-errors-on-unmatched {staged_files}
+      stage_fixed: true
+    # Types are checked on the whole project: a staged file can break a file that is not staged.
+    - name: typecheck
+      run: pnpm typecheck
+
+commit-msg:
+  jobs:
+    # Conventional Commits: feat, fix, chore, docs, test, refactor, ci. {1} is the message file.
+    - name: conventional-commit
+      run: node scripts/check-commit-message.mts {1}
