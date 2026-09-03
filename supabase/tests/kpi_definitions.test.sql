@@ -1,7 +1,7 @@
 -- kpi_definitions: every signed in user reads, only ops write (spec 0002 AC-3).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(9);
+select plan(10);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -104,6 +104,11 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.kpi_definitions (key, name, unit, direction) values ('bad', '{"de":"x","en":"x"}', 'x', 'sideways') $$,
   '23514', null, 'an unknown direction is rejected');
+
+-- Reference data is not audited (spec 0002, kind G): the ops insert and update above left no row.
+select pg_temp.as_postgres();
+select is((select count(*) from public.audit_log where table_name = 'kpi_definitions'), 0::bigint,
+  'no audit row is written for kpi_definitions');
 
 select * from finish();
 rollback;

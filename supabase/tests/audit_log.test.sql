@@ -3,7 +3,7 @@
 -- (spec 0002 AC-3, AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(25);
+select plan(26);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -114,6 +114,19 @@ select results_eq(
      where table_name = 'organization_members' and action = 'insert' and new_data ->> 'user_id' = 'a0000000-0000-4000-8000-000000000002' $$,
   $$ values ('a0000000-0000-4000-8000-000000000001'::uuid, 'client', '0a000000-0000-4000-8000-000000000000'::uuid) $$,
   'a membership insert is recorded with the organization');
+
+-- changed_columns is exactly the keys whose value differs. now() is constant inside one
+-- transaction, so this row is created an hour in the past to let updated_at move on the rename.
+insert into public.organizations (id, name, created_by, created_at, updated_at) values
+  ('0a000000-0000-4000-8000-000000000001', 'Org A2', 'a0000000-0000-4000-8000-000000000001', now() - interval '1 hour', now() - interval '1 hour');
+select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
+update public.organizations set name = 'Org A2 renamed' where id = '0a000000-0000-4000-8000-000000000001';
+select pg_temp.as_postgres();
+select results_eq(
+  $$ select changed_columns from public.audit_log
+     where table_name = 'organizations' and row_id = '0a000000-0000-4000-8000-000000000001' and action = 'update' $$,
+  $$ values (array['name', 'updated_at']) $$,
+  'a rename records exactly {name, updated_at} as changed columns');
 
 -- Ops writes and reads
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');

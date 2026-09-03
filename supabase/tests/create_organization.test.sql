@@ -2,7 +2,7 @@
 -- organization; refuses non clients, existing members and anon (spec 0002 AC-6).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(12);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -83,6 +83,13 @@ select is(
 select is(
   (select organization_id from public.profiles where id = 'd0000000-0000-4000-8000-000000000001'),
   (select id from created), 'the caller''s current organization is the new one');
+create function pg_temp.hook(user_id uuid)
+returns jsonb language sql as $$
+  select public.custom_access_token_hook(jsonb_build_object('user_id', user_id,
+    'claims', '{"role":"authenticated","app_metadata":{"provider":"email"}}'::jsonb)) -> 'claims';
+$$;
+select is(pg_temp.hook('d0000000-0000-4000-8000-000000000001') -> 'app_metadata' ->> 'organization_id', (select id::text from created),
+  'the next token issued by the hook carries the new organization_id');
 
 -- Second call and other roles
 select pg_temp.impersonate('d0000000-0000-4000-8000-000000000001', 'client', (select id from created));
@@ -97,6 +104,9 @@ select throws_ok($$ select public.create_organization('Expert AG') $$, 'P0001', 
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
 select throws_ok($$ select public.create_organization('Ops AG') $$, 'P0001', 'not_a_client',
   'ops raise not_a_client');
+select pg_temp.as_service_role();
+select throws_ok($$ select public.create_organization('Service AG') $$, 'P0001', 'not_a_client',
+  'the service key has no caller and raises not_a_client');
 select pg_temp.as_anon();
 select throws_ok($$ select public.create_organization('Anon AG') $$, '42501', null,
   'anon may not execute create_organization');

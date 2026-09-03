@@ -3,7 +3,7 @@
 -- and ops read (spec 0002 AC-3, AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(22);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -127,6 +127,10 @@ select throws_ok(
   $$ insert into public.company_kpis (organization_id, company_id, kpi_key, period_year, value, source, created_by)
      values ('0b000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000b', 'ltifr', 2024, 2.6, 'client', 'a0000000-0000-4000-8000-000000000002') $$,
   '42501', null, 'a member cannot insert into another organization');
+select throws_ok(
+  $$ insert into public.company_kpis (organization_id, company_id, kpi_key, period_year, value, source, created_by)
+     values ('0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000b', 'ltifr', 2024, 2.6, 'client', 'a0000000-0000-4000-8000-000000000002') $$,
+  '42501', null, 'a member cannot name another organization''s company under their own organization');
 select lives_ok($$ update public.company_kpis set value = 2.4 where id = '0f000000-0000-4000-8000-000000000002' $$,
   'a member updates their client row');
 select is(pg_temp.affected($$ update public.company_kpis set value = 0 where id = '0f000000-0000-4000-8000-000000000001' $$), 0::bigint,
@@ -143,6 +147,21 @@ select pg_temp.impersonate('b0000000-0000-4000-8000-000000000001', 'client', '0b
 select is((select count(*) from public.company_kpi_current), 0::bigint, 'a member of B sees nothing of A through the view');
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');
 select is((select count(*) from public.company_kpis), 1::bigint, 'the assigned expert reads A''s KPI rows');
+
+-- Among research rows the newest wins; a client row wins even over a newer research row.
+-- now() is constant inside one transaction, so created_at is set by hand on both rows.
+select pg_temp.as_service_role();
+insert into public.research_runs (id, organization_id, company_id, status) values
+  ('0d000000-0000-4000-8000-000000000002', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'succeeded');
+insert into public.company_kpis (id, organization_id, company_id, research_run_id, kpi_key, period_year, value, source, created_at)
+  values ('0f000000-0000-4000-8000-000000000003', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', '0d000000-0000-4000-8000-000000000002', 'ltifr', 2025, 4.1, 'research', now() + interval '1 day');
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select is((select value from public.company_kpi_current where company_id = '0c000000-0000-4000-8000-00000000000a' and kpi_key = 'ltifr' and period_year = 2025), 4.1,
+  'without a client row the newest research row is current');
+insert into public.company_kpis (id, organization_id, company_id, kpi_key, period_year, value, source, created_by, created_at)
+  values ('0f000000-0000-4000-8000-000000000004', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'ltifr', 2025, 2.0, 'client', 'a0000000-0000-4000-8000-000000000002', now() - interval '1 day');
+select is((select value from public.company_kpi_current where company_id = '0c000000-0000-4000-8000-00000000000a' and kpi_key = 'ltifr' and period_year = 2025), 2.0,
+  'the client row wins over a newer research row');
 
 -- Audit
 select pg_temp.as_postgres();

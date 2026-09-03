@@ -3,7 +3,7 @@
 -- publication (spec 0002 AC-3, AC-4, AC-5, AC-10).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(23);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -106,6 +106,8 @@ select throws_ok(
   '42501', null, 'a member cannot request a run for another organization''s company');
 select is(pg_temp.affected($$ update public.research_runs set status = 'running' where id = '0d000000-0000-4000-8000-000000000001' $$), 0::bigint,
   'a member cannot progress a run (zero rows)');
+select is(pg_temp.affected($$ delete from public.research_runs where id = '0d000000-0000-4000-8000-000000000001' $$), 0::bigint,
+  'a member cannot delete a run (zero rows)');
 
 -- The task, as the service key
 select pg_temp.as_service_role();
@@ -127,6 +129,33 @@ select throws_ok($$ update public.research_runs set status = 'succeeded' where i
   '23514', null, 'queued → succeeded raises');
 select lives_ok($$ update public.research_runs set status = 'failed', error_code = 'no_sources' where id = '0d000000-0000-4000-8000-000000000002' $$,
   'queued → failed');
+
+-- The full transition matrix (AC-10). Each attempt starts from a fresh run inserted in the from
+-- state (an insert does not fire the update trigger) and removes it again; a raise rolls the
+-- attempt back inside the function, so the table is unchanged afterwards either way.
+create function pg_temp.try_transition(from_state text, to_state text)
+returns text language plpgsql as $$
+declare run_id uuid;
+begin
+  insert into public.research_runs (organization_id, company_id, status)
+  values ('0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', from_state)
+  returning id into run_id;
+  update public.research_runs set status = to_state where id = run_id;
+  delete from public.research_runs where id = run_id;
+  return 'ok';
+exception when others then
+  return sqlstate;
+end $$;
+create temp table transitions as
+  select f.s as from_state, t.s as to_state, pg_temp.try_transition(f.s, t.s) as outcome
+  from unnest(array['queued', 'running', 'succeeded', 'empty', 'failed']) f(s)
+  cross join unnest(array['queued', 'running', 'succeeded', 'empty', 'failed']) t(s);
+select results_eq(
+  $$ select from_state, to_state from transitions where outcome = 'ok' order by 1, 2 $$,
+  $$ values ('queued', 'failed'), ('queued', 'running'), ('running', 'empty'), ('running', 'failed'), ('running', 'succeeded') $$,
+  'exactly five transitions are allowed: queued → running | failed, running → succeeded | empty | failed');
+select is((select count(*) from transitions where outcome = '23514'), 20::bigint,
+  'every other pair, including a repeat of the same state, raises 23514');
 
 -- Expert and ops
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');

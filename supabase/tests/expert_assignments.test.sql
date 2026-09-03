@@ -3,7 +3,7 @@
 -- them; active → ended is the only transition (spec 0002 AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(22);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -136,6 +136,19 @@ select results_eq(
             ('c0000000-0000-4000-8000-000000000001'::uuid, 'ops', '0a000000-0000-4000-8000-000000000000'::uuid, 'update') $$,
   'the insert and the end are each audited once with the ops actor');
 select is((select count(*) from public.audit_log where table_name = 'expert_assignments'), 2::bigint, 'no other audit row for the table');
+
+-- A new assignment after the end: the unique index only covers active rows, and an ended_at
+-- given by the caller is kept rather than overwritten with now()
+select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
+select lives_ok(
+  $$ insert into public.expert_assignments (id, organization_id, expert_id, assigned_by)
+     values ('0e000000-0000-4000-8000-000000000002', '0a000000-0000-4000-8000-000000000000', 'e0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001') $$,
+  'ops assign the same expert to A again once the old assignment is ended');
+select lives_ok(
+  $$ update public.expert_assignments set status = 'ended', ended_at = '2026-01-01T00:00:00Z' where id = '0e000000-0000-4000-8000-000000000002' $$,
+  'ops end it with an explicit ended_at');
+select is((select ended_at from public.expert_assignments where id = '0e000000-0000-4000-8000-000000000002'), '2026-01-01T00:00:00Z'::timestamptz,
+  'an ended_at given by the caller is kept');
 
 select * from finish();
 rollback;
