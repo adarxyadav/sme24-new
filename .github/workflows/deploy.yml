@@ -19,11 +19,27 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'production' && 'production' || 'staging' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+      # Until the Supabase project exists and its connection string is a repo secret (README, one
+      # time setup), skip instead of failing. The push starts working the moment the secret is set.
+      - name: Check the database secret
+        id: check
+        env:
+          DB_URL: ${{ github.ref_name == 'production' && secrets.PROD_SUPABASE_DB_URL || secrets.STAGING_SUPABASE_DB_URL }}
+        run: |
+          if [ -n "$DB_URL" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Migrations skipped::The Supabase database URL secret for this branch is not set yet. See README, one time setup, Supabase."
+          fi
+      - if: steps.check.outputs.configured == 'true'
+        uses: actions/checkout@v4
+      - if: steps.check.outputs.configured == 'true'
+        uses: supabase/setup-cli@v1
         with:
           version: 2.116.0 # keep in step with the `supabase` dev dependency; `latest` can resolve to a prerelease
       - name: supabase db push
+        if: steps.check.outputs.configured == 'true'
         env:
           DB_URL: ${{ github.ref_name == 'production' && secrets.PROD_SUPABASE_DB_URL || secrets.STAGING_SUPABASE_DB_URL }}
         run: supabase db push --db-url "$DB_URL"
@@ -34,14 +50,31 @@ jobs:
     needs: migrate
     environment: ${{ github.ref_name == 'production' && 'production' || 'staging' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      # Same idea: no Trigger.dev access token yet means skip, not fail.
+      - name: Check the Trigger.dev secret
+        id: check
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+        run: |
+          if [ -n "$TRIGGER_ACCESS_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Task deploy skipped::TRIGGER_ACCESS_TOKEN is not set yet. See README, one time setup, Trigger.dev."
+          fi
+      - if: steps.check.outputs.configured == 'true'
+        uses: actions/checkout@v4
+      - if: steps.check.outputs.configured == 'true'
+        uses: pnpm/action-setup@v4
+      - if: steps.check.outputs.configured == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - if: steps.check.outputs.configured == 'true'
+        run: pnpm install --frozen-lockfile
       - name: trigger.dev deploy
+        if: steps.check.outputs.configured == 'true'
         env:
           TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
