@@ -118,3 +118,7 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+create trigger profiles_audit
+  after insert or update or delete on public.profiles
+  for each row execute function private.audit_row();

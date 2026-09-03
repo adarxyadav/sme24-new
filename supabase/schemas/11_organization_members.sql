@@ -68,6 +68,10 @@ create trigger organization_members_set_updated_at
   before update on public.organization_members
   for each row execute function public.set_updated_at();
 
+create trigger organization_members_audit
+  after insert or update or delete on public.organization_members
+  for each row execute function private.audit_row();
+
 -- Keep profiles.organization_id (the current organization) in step with memberships: after an
 -- insert, set it when it is null; after a delete, clear it when it pointed at that organization.
 create or replace function private.sync_profile_organization()

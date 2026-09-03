@@ -53,3 +53,7 @@ create policy "organizations: ops full access"
 create trigger organizations_set_updated_at
   before update on public.organizations
   for each row execute function public.set_updated_at();
+
+create trigger organizations_audit
+  after insert or update or delete on public.organizations
+  for each row execute function private.audit_row();
