@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare": "[ -n \"$CI\" ] || lefthook install",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -17,7 +18,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:diff": "supabase db schema declarative sync --no-apply --name",
-    "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts && biome format --write src/lib/supabase/database.types.ts",
+    "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
     "trigger:dev": "trigger.dev dev --env-file .env.local",
     "trigger:deploy:staging": "trigger.dev deploy --env staging",
     "trigger:deploy:prod": "trigger.dev deploy --env prod"
@@ -60,6 +61,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "dotenv": "^17.4.2",
     "jsdom": "^30.0.1",
+    "lefthook": "^2.1.12",
     "supabase": "^2.116.0",
     "tailwindcss": "^4",
     "typescript": "^5",

@@ -16,11 +16,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the commit message check reads the pull request's commits
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
+      - name: Commit messages follow Conventional Commits (same check as the commit-msg hook)
+        if: github.event_name == 'pull_request'
+        run: |
+          status=0
+          while IFS= read -r subject; do
+            printf '%s\n' "$subject" | node scripts/check-commit-message.mts || status=1
+          done < <(git log --format=%s ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          exit "$status"
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm exec biome ci .
@@ -37,18 +47,16 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      # The Supabase CLI comes from the `supabase` dev dependency, so CI and `pnpm db:types` run the
+      # same version. A different CLI version formats the generated types differently.
       - name: Start the local database with the checked in migrations
-        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,storage-api,mailpit
+        run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,storage-api,mailpit
       - name: Regenerate types and compare
         run: |
-          supabase gen types typescript --local --schema public > /tmp/database.types.ts
-          pnpm exec biome format --write /tmp/database.types.ts >/dev/null 2>&1 || true
-          if ! diff -u src/lib/supabase/database.types.ts /tmp/database.types.ts; then
+          pnpm db:types
+          if ! git diff --exit-code -- src/lib/supabase/database.types.ts; then
             echo "::error::src/lib/supabase/database.types.ts is stale. Run: pnpm db:types"
             exit 1
           fi
       - if: always()
-        run: supabase stop --no-backup
+        run: pnpm exec supabase stop --no-backup
