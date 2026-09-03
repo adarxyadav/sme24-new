@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.116.0 # keep in step with the `supabase` dev dependency; `latest` can resolve to a prerelease
       - name: supabase db push
         env:
           DB_URL: ${{ github.ref_name == 'production' && secrets.PROD_SUPABASE_DB_URL || secrets.STAGING_SUPABASE_DB_URL }}

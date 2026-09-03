@@ -18,7 +18,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:diff": "supabase db schema declarative sync --no-apply --name",
-    "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts && biome format --write src/lib/supabase/database.types.ts",
+    "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
     "trigger:dev": "trigger.dev dev --env-file .env.local",
     "trigger:deploy:staging": "trigger.dev deploy --env staging",
     "trigger:deploy:prod": "trigger.dev deploy --env prod"
