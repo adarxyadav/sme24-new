@@ -1,0 +1,7 @@
+allowBuilds:
+  sharp: false
+  unrs-resolver: false
+  core-js: false
+  "@sentry/cli": true
+  "@swc/core": true
+  "@parcel/watcher": true

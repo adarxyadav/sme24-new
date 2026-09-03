@@ -1,0 +1,58 @@
+{
+  "common": {
+    "appName": "SME24",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "language": "Sprache",
+    "german": "Deutsch",
+    "english": "English"
+  },
+  "landing": {
+    "title": "SME24 Grundgerüst",
+    "lead": "Die technische Basis läuft: Next.js, Supabase, Trigger.dev, zwei Sprachen. Alles Weitere kommt Funktion für Funktion dazu.",
+    "signInCta": "Zum Login"
+  },
+  "signIn": {
+    "title": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "submit": "Anmelden",
+    "invalid": "E-Mail oder Passwort ist falsch."
+  },
+  "forbidden": {
+    "title": "Kein Zugriff",
+    "body": "Ihr Konto hat für diesen Bereich keine Berechtigung.",
+    "back": "Zur Startseite"
+  },
+  "areas": {
+    "app": {
+      "title": "Kundenbereich",
+      "body": "Hier entsteht das Dashboard für Kundenunternehmen."
+    },
+    "expert": {
+      "title": "Expertenbereich",
+      "body": "Hier entsteht der Arbeitsbereich für EHS Expertinnen und Experten."
+    },
+    "admin": { "title": "Ops Admin", "body": "Interner Bereich für das Betriebsteam." },
+    "signedInAs": "Angemeldet als {email} ({role})"
+  },
+  "scaffold": {
+    "heading": "Grundgerüst prüfen",
+    "intro": "Diese Aktionen belegen, dass Hintergrundjobs, Fehlerüberwachung und Analytics angeschlossen sind.",
+    "runTask": "Hintergrundjob starten",
+    "runFailingTask": "Fehlschlagenden Job starten (Sentry Test)",
+    "sentryError": "Testfehler an Sentry senden",
+    "posthogEvent": "Testereignis an PostHog senden",
+    "checksTitle": "Letzte Jobläufe",
+    "empty": "Noch keine Läufe. Starten Sie einen Hintergrundjob.",
+    "columns": { "message": "Nachricht", "status": "Status", "run": "Lauf", "time": "Zeit" },
+    "result": {
+      "taskQueued": "Job eingereiht: {runId}",
+      "taskUnavailable": "Trigger.dev ist nicht konfiguriert (TRIGGER_SECRET_KEY fehlt).",
+      "sentrySent": "Testfehler an Sentry gesendet.",
+      "sentryUnavailable": "Sentry ist nicht konfiguriert (SENTRY_DSN fehlt).",
+      "posthogSent": "Testereignis an PostHog gesendet.",
+      "posthogUnavailable": "PostHog ist nicht konfiguriert (NEXT_PUBLIC_POSTHOG_KEY fehlt)."
+    }
+  }
+}

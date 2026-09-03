@@ -1,0 +1,55 @@
+"use server";
+
+import { hasLocale } from "next-intl";
+import { redirect } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import { ROLE_HOME, roleFromClaims } from "@/lib/auth/roles";
+import { log } from "@/lib/logger";
+import { createActionClient } from "@/lib/supabase/action";
+import { signInSchema } from "./schema";
+
+/**
+ * Scaffold sign in (email + password) so the role gate can be exercised with the seeded users.
+ * Feature 6 owns the real sign in methods and the organization model.
+ */
+export async function signIn(formData: FormData) {
+  const requestedLocale = formData.get("locale");
+  const locale = hasLocale(routing.locales, requestedLocale)
+    ? requestedLocale
+    : routing.defaultLocale;
+  const next = formData.get("next");
+
+  const parsed = signInSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) {
+    return redirect({ href: { pathname: "/sign-in", query: { error: "invalid" } }, locale });
+  }
+
+  const supabase = await createActionClient();
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  if (error) {
+    log.info("sign in rejected", { reason: error.code ?? error.message });
+    return redirect({ href: { pathname: "/sign-in", query: { error: "invalid" } }, locale });
+  }
+
+  const { data } = await supabase.auth.getClaims();
+  const role = roleFromClaims(data?.claims);
+
+  if (typeof next === "string" && next.startsWith(`/${locale}/`)) {
+    return redirect({ href: next.slice(locale.length + 1), locale });
+  }
+  return redirect({ href: role ? ROLE_HOME[role] : "/", locale });
+}
+
+export async function signOut(formData: FormData) {
+  const requestedLocale = formData.get("locale");
+  const locale = hasLocale(routing.locales, requestedLocale)
+    ? requestedLocale
+    : routing.defaultLocale;
+
+  const supabase = await createActionClient();
+  await supabase.auth.signOut();
+  return redirect({ href: "/", locale });
+}

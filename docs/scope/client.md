@@ -1,0 +1,44 @@
+# Client funnel · SME24
+
+Part of the [SME24 scope](index.md). The free half of the promise: a client signs in, enters a company name, and sees its EHS risk benchmarked in CHF. Slice 1 is the walking skeleton, the thinnest real thread through auth, database, background jobs, AI and UI. Later slices thicken it.
+
+## Slice 1: Core loop (the walking skeleton)
+
+### 6. Auth, organizations & roles · needs a decision
+Real sign in from day one. A client signs up and lands in an organization for their company; experts and ops sign in to their own areas. Roles (client member, expert, ops) gate every route and every row. One member per organization for now; invitations arrive in Slice 8.
+**Done when:** a new client can sign up, sign in and sign out; each role sees only its own area; a signed out visitor is redirected; sessions survive a refresh.
+- [ ] Design it (spec): `/architect auth, organizations & roles`
+
+### 7. Transactional email & ops alerts · needs a decision
+The messages every step of the flow relies on: sign in links if auth uses them, benchmark ready, payment receipt, expert assigned, gap report ready, all in the recipient's language. Plus alerts to your team when a payment lands, a research run fails, or a retainer enquiry arrives.
+**Done when:** each event in the flow sends the right email in German or English within a minute; ops alerts reach your team channel; failed sends are visible to ops.
+- [ ] Design it (spec): `/architect transactional email & ops alerts`
+
+### 8. Company lookup & research pipeline · needs a decision
+The core thread. A client enters a company name, a background pipeline researches public disclosures, extracts safety KPIs with sources, and stores them. The dashboard shows the run's progress and the extracted KPIs when it finishes. Real database, real jobs, real AI, narrow scope: KPIs only, no benchmark yet.
+**Done when:** entering a company name starts a background run visible in the dashboard; within a few minutes the run stores KPIs with source references and the dashboard renders them; a failed or empty run shows a clear state the client can act on.
+- [ ] Design it (spec): `/architect company lookup & research pipeline`
+
+## Slice 2: Show the opportunity
+
+### 9. Peer benchmark & CHF opportunity · needs a decision
+Thickens the dashboard segment. Extracted KPIs are compared against industry peers, the highest priority gaps are ranked, and the annual cost of incidents is estimated in CHF so the client sees the size of the saving. The peer data set, the cost model and how confidence is shown are the decisions.
+**Done when:** the dashboard shows the company's position against peers per KPI, a ranked list of priority gaps, and an annual incident cost estimate in CHF with its assumptions visible; the numbers are traceable to stored inputs.
+- [ ] Design it (spec): `/architect peer benchmark & CHF opportunity`
+
+### 10. Self assessment fallback · Beta
+When the pipeline finds little or nothing, or the client wants to correct it, the client fills in the same KPIs by hand and the benchmark recalculates. Extends the KPI schema and dashboard from features 8 and 9.
+**Done when:** a client can enter or edit each KPI in a form with validation, the benchmark and CHF estimate update, and the dashboard shows which values came from research and which from the client.
+- [ ] Build it: `/develop self assessment fallback`
+
+## Slice 8: Thicken the accounts
+
+### 22. Client team invitations
+Several people per client company. A member invites colleagues by email, they join the same organization with a role, and an owner can remove them.
+**Done when:** an invited colleague joins the inviting company's organization through the emailed link, sees the same dashboard, and an owner can change roles or remove members; expired or reused links fail safely.
+- [ ] Build it: `/develop client team invitations`
+
+### 23. In app notification center · Beta
+A bell in the dashboard with unread items mirroring the emails: benchmark ready, assessment scheduled, expert assigned, gap report ready, program updated. Works for clients and experts.
+**Done when:** each notified event appears in the bell with an unread count, opening an item marks it read and deep links to the right page, and the list is scoped to the user's organization.
+- [ ] Build it: `/develop in app notification center`

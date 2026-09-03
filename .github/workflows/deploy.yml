@@ -1,0 +1,50 @@
+name: Deploy database and tasks
+
+# Vercel deploys the app from GitHub on its own. This workflow applies migrations to the matching
+# Supabase project and deploys Trigger.dev tasks to the matching environment (spec 0001):
+#   main       -> staging
+#   production -> prod
+
+on:
+  push:
+    branches: [main, production]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply migrations
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'production' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: supabase db push
+        env:
+          DB_URL: ${{ github.ref_name == 'production' && secrets.PROD_SUPABASE_DB_URL || secrets.STAGING_SUPABASE_DB_URL }}
+        run: supabase db push --db-url "$DB_URL"
+
+  tasks:
+    name: Deploy Trigger.dev tasks
+    runs-on: ubuntu-latest
+    needs: migrate
+    environment: ${{ github.ref_name == 'production' && 'production' || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: trigger.dev deploy
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: pnpm dlx trigger.dev@latest deploy --env ${{ github.ref_name == 'production' && 'prod' || 'staging' }}

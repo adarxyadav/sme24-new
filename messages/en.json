@@ -1,0 +1,52 @@
+{
+  "common": {
+    "appName": "SME24",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "language": "Language",
+    "german": "Deutsch",
+    "english": "English"
+  },
+  "landing": {
+    "title": "SME24 scaffold",
+    "lead": "The technical base is running: Next.js, Supabase, Trigger.dev, two languages. Everything else arrives feature by feature.",
+    "signInCta": "Go to sign in"
+  },
+  "signIn": {
+    "title": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "invalid": "Email or password is wrong."
+  },
+  "forbidden": {
+    "title": "No access",
+    "body": "Your account has no permission for this area.",
+    "back": "Back to the start page"
+  },
+  "areas": {
+    "app": { "title": "Client area", "body": "The dashboard for client companies grows here." },
+    "expert": { "title": "Expert area", "body": "The workspace for EHS experts grows here." },
+    "admin": { "title": "Ops admin", "body": "Internal area for the operations team." },
+    "signedInAs": "Signed in as {email} ({role})"
+  },
+  "scaffold": {
+    "heading": "Check the scaffold",
+    "intro": "These actions prove that background jobs, error monitoring and analytics are wired up.",
+    "runTask": "Run background task",
+    "runFailingTask": "Run failing task (Sentry test)",
+    "sentryError": "Send test error to Sentry",
+    "posthogEvent": "Send test event to PostHog",
+    "checksTitle": "Latest task runs",
+    "empty": "No runs yet. Run a background task.",
+    "columns": { "message": "Message", "status": "Status", "run": "Run", "time": "Time" },
+    "result": {
+      "taskQueued": "Task queued: {runId}",
+      "taskUnavailable": "Trigger.dev is not configured (TRIGGER_SECRET_KEY missing).",
+      "sentrySent": "Test error sent to Sentry.",
+      "sentryUnavailable": "Sentry is not configured (SENTRY_DSN missing).",
+      "posthogSent": "Test event sent to PostHog.",
+      "posthogUnavailable": "PostHog is not configured (NEXT_PUBLIC_POSTHOG_KEY missing)."
+    }
+  }
+}

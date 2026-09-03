@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, production]
+  push:
+    branches: [main, production]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck, lint, unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm exec biome ci .
+      - run: pnpm test
+
+  types:
+    name: Generated database types match the schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start the local database with the checked in migrations
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,storage-api,mailpit
+      - name: Regenerate types and compare
+        run: |
+          supabase gen types typescript --local --schema public > /tmp/database.types.ts
+          pnpm exec biome format --write /tmp/database.types.ts >/dev/null 2>&1 || true
+          if ! diff -u src/lib/supabase/database.types.ts /tmp/database.types.ts; then
+            echo "::error::src/lib/supabase/database.types.ts is stale. Run: pnpm db:types"
+            exit 1
+          fi
+      - if: always()
+        run: supabase stop --no-backup
