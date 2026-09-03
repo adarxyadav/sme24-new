@@ -36,7 +36,7 @@ spec [0002](../specs/0002-data-model/index.md) · code in `supabase/schemas/`, `
   - [x] Tenancy core: `private` helpers, organizations, memberships, `create_organization`, profiles extension, organization claim in the hook, seeded organizations (AC-2, AC-3, AC-6, AC-8)
   - [x] Policy test harness: pgTAP in `supabase/tests/`, `pnpm test:db`, CI database job, first migration with hand checked grants and regenerated types (AC-1, AC-7, AC-9)
   - [x] Audit log: append only table, guards, row trigger on the core tables (AC-5)
-  - [ ] Expert assignments and the assigned expert helper (AC-4)
+  - [x] Expert assignments and the assigned expert helper (AC-4)
   - [ ] Slice 1 and 2 tables: KPI definitions, companies, research runs with transitions and realtime, company KPIs with the current view, claim helper in `roles.ts`, second migration (AC-1, AC-2, AC-3, AC-4, AC-5, AC-10)
 - [ ] Verify it: `/check verify data model`
 - [ ] Test it: `/test data model`

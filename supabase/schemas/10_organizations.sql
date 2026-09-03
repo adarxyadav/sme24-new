@@ -43,6 +43,12 @@ create policy "organizations: owners update their organization"
   using ((select private.is_org_owner(id)))
   with check ((select private.is_org_owner(id)));
 
+create policy "organizations: assigned experts read"
+  on public.organizations
+  for select
+  to authenticated
+  using ((select private.is_assigned_expert(id)));
+
 create policy "organizations: ops full access"
   on public.organizations
   for all
