@@ -18,13 +18,15 @@ pnpm dlx trigger.dev@latest dev --env-file .env.local   # optional, needs a Trig
 ```
 
 `supabase start` applies `supabase/migrations/` and `supabase/seed.sql`. The seed creates one user
-per role, all with the password `sme24-local-password`:
+per role plus a second client, all with the password `sme24-local-password`, and one organization
+per client so you can check that organizations never see each other's rows:
 
-| Email | Role | Area |
-|---|---|---|
-| `client@example.com` | client | `/de/app` |
-| `expert@example.com` | expert | `/de/expert` |
-| `ops@example.com` | ops | `/de/admin` |
+| Email | Role | Area | Organization |
+|---|---|---|---|
+| `client@example.com` | client | `/de/app` | Musterfirma AG (owner) |
+| `client2@example.com` | client | `/de/app` | Beispiel GmbH (owner) |
+| `expert@example.com` | expert | `/de/expert` | none |
+| `ops@example.com` | ops | `/de/admin` | none |
 
 Sign in at `/de/sign-in`. The ops admin page has buttons that trigger the smoke test task and send
 a test error to Sentry and a test event to PostHog; locally they report "not configured" until you
@@ -40,6 +42,7 @@ add the keys to `.env.local`.
 | `pnpm test` | Vitest (unit and component tests in `tests/`) |
 | `pnpm test:e2e` | Playwright with axe (`e2e/`), against `PLAYWRIGHT_BASE_URL` or a local dev server |
 | `pnpm db:reset` | Recreate the local database from migrations and seed |
+| `pnpm test:db` | Run the pgTAP policy tests in `supabase/tests/` against the local database |
 | `pnpm db:diff <name>` | Write a migration from the declarative schema in `supabase/schemas/` |
 | `pnpm db:types` | Regenerate `src/lib/supabase/database.types.ts` (CI fails when it is stale) |
 | `pnpm trigger:dev` | Run Trigger.dev tasks locally |
@@ -66,12 +69,17 @@ Edit the SQL in `supabase/schemas/` (tables, policies, functions, triggers live 
 ```sh
 pnpm db:diff add_thing      # generates supabase/migrations/<timestamp>_add_thing.sql
 pnpm db:reset               # applies everything locally and reseeds
+pnpm test:db                # pgTAP policy tests: every table, every role, the cross tenant deny cases
 pnpm db:types               # refresh the generated types
 ```
 
-Every table enables RLS in the same file that creates it. Migrations must stay backward
-compatible (add, then switch, then remove in a later change) because previews share the staging
-database. Function grants are not tracked by the diff engine; check them by hand in the migration.
+Every table enables RLS in the same file that creates it, together with its indexes, policies
+and triggers. A client owned table copies the tenant table contract from
+[spec 0002](docs/specs/0002-data-model/index.md) and gets a pgTAP file in `supabase/tests/`.
+Migrations must stay backward compatible (add, then switch, then remove in a later change)
+because previews share the staging database. Check the grants in the generated migration by
+hand: the diff engine misses what Supabase's default privileges add at creation (for example
+execute for `anon` on a new `public` function) and a table level revoke also drops column grants.
 
 ## Where things live
 

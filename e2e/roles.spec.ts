@@ -29,6 +29,13 @@ test("a client reaches /app but not /expert or /admin", async ({ page }) => {
   await expect(page).toHaveURL(/\/de\/forbidden$/);
 });
 
+test("the second seeded client (own organization) reaches /app as well", async ({ page }) => {
+  await signIn(page, "client2@example.com");
+  await expect(page).toHaveURL(/\/de\/app$/);
+  await page.goto("/de/admin");
+  await expect(page).toHaveURL(/\/de\/forbidden$/);
+});
+
 test("an expert reaches /expert but not /app or /admin", async ({ page }) => {
   await signIn(page, "expert@example.com");
   await expect(page).toHaveURL(/\/de\/expert$/);

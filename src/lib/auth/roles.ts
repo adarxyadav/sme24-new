@@ -37,6 +37,23 @@ export function roleFromClaims(claims: unknown): AppRole | null {
   return isAppRole(role) ? role : null;
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Reads the current organization id from decoded JWT claims (`app_metadata.organization_id`,
+ * written by the access token hook), or null when the user has none (experts, ops, a client who
+ * has not created or joined an organization yet). Runs in the proxy and in server components.
+ */
+export function organizationIdFromClaims(claims: unknown): string | null {
+  if (!claims || typeof claims !== "object") return null;
+  const appMetadata = (claims as { app_metadata?: unknown }).app_metadata;
+  if (!appMetadata || typeof appMetadata !== "object") return null;
+  const organizationId = (appMetadata as { organization_id?: unknown }).organization_id;
+  return typeof organizationId === "string" && UUID_PATTERN.test(organizationId)
+    ? organizationId
+    : null;
+}
+
 /** Matches `/de/admin/...` style paths and returns the protected area, or null for public paths. */
 export function areaFromPathname(pathname: string): Area | null {
   const match = pathname.match(/^\/[a-z]{2}(?:\/(app|expert|admin))(?:\/|$)/);
