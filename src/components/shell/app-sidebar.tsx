@@ -64,7 +64,12 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild tooltip={t("common.appName")}>
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              tooltip={t("common.appName")}
+              className="group-data-[collapsible=icon]:justify-center"
+            >
               <Link href={items[0]?.href ?? "/"}>
                 <BrandMark className="h-7 w-8" />
                 <span className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
