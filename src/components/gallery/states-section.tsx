@@ -16,8 +16,8 @@ export function StatesSection() {
   const error = useTranslations("states.error");
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="grid gap-6 lg:grid-cols-3">
+    <div className="flex flex-col gap-12">
+      <div className="grid gap-8 lg:grid-cols-3">
         <Example label={t("skeleton")}>
           <div className="flex w-full flex-col gap-3 rounded-lg border p-6" aria-busy="true">
             <Skeleton className="h-4 w-32" />

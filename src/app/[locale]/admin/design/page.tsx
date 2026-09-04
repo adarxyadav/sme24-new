@@ -38,7 +38,7 @@ export default async function DesignGalleryPage() {
   const nav = await getTranslations("nav.admin");
 
   return (
-    <PageStack>
+    <PageStack className="gap-12 lg:gap-16">
       <PageHeader
         title={t("title")}
         description={t("description")}

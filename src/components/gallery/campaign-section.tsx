@@ -25,7 +25,7 @@ const WALL = [
 export function CampaignSection() {
   const t = useTranslations("gallery.campaign");
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <Example label={t("single")}>
         <CampaignPiece statement={t("singleStatement")} subline={t("singleSubline")}>
           <CampaignFrame aspect="landscape" className="max-w-xl">

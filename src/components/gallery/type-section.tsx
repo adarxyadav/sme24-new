@@ -8,7 +8,7 @@ import { Example } from "@/components/gallery/gallery-section";
 export function TypeSection() {
   const t = useTranslations("gallery.type");
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <Example label="display · text-display-lg · 800 · −3%">
         <p className="text-display-lg">{t("display")}</p>
       </Example>

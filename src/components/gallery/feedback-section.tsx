@@ -46,7 +46,7 @@ const ALERTS = [
 export function FeedbackSection() {
   const t = useTranslations("gallery.feedback");
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <Example label={t("alerts")}>
         <div className="flex w-full max-w-2xl flex-col gap-3">
           {ALERTS.map(({ variant, icon: Icon }) => (

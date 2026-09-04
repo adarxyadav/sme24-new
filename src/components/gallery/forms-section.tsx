@@ -67,7 +67,7 @@ export function FormsSection() {
   const errorText = (key: string | undefined) => (key ? t(`errors.${key}`) : undefined);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,42rem)_minmax(0,20rem)]">
+    <div className="grid gap-12 lg:grid-cols-[minmax(0,42rem)_minmax(0,20rem)]">
       <form
         noValidate
         onSubmit={form.handleSubmit(() => {

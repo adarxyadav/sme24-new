@@ -24,7 +24,7 @@ const ROWS = [
 export function TableSection() {
   const t = useTranslations("gallery.table");
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <Example label={t("default")}>
         <DemoTable density="default" />
       </Example>

@@ -21,7 +21,7 @@ const LEVELS = ["critical", "high", "medium", "low"] as const;
 export function ButtonsSection() {
   const t = useTranslations("gallery.buttons");
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <Example label={t("variants")}>
         {VARIANTS.map((variant) => (
           <Button key={variant} variant={variant}>

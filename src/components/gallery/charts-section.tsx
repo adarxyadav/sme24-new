@@ -34,7 +34,7 @@ export function ChartsSection() {
   const data = DATA.map((row) => ({ ...row, label: t(`months.${row.month}`) }));
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    <div className="grid gap-12 lg:grid-cols-2">
       <Example label={t("bar")}>
         <ChartContainer config={config} className="h-64 w-full">
           <BarChart data={data} accessibilityLayer>

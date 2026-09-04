@@ -22,9 +22,9 @@ export function BrandSection() {
   const t = useTranslations("gallery.brand");
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12">
       <Example label={t("variants")}>
-        <ul className="grid w-full grid-cols-2 gap-3 md:grid-cols-4">
+        <ul className="grid w-full grid-cols-2 gap-4 md:grid-cols-4">
           {VARIANTS.map((item) => (
             <li
               key={item.key}
@@ -38,7 +38,7 @@ export function BrandSection() {
       </Example>
 
       <Example label={t("lockups")}>
-        <div className="flex flex-wrap items-center gap-10">
+        <div className="flex flex-wrap items-center gap-12">
           <Logo size="lg" descriptor />
           <Logo variant="badge" size="lg" descriptor />
           <Logo size="sm" />
@@ -46,9 +46,9 @@ export function BrandSection() {
       </Example>
 
       <Example label={t("palette")}>
-        <ul className="grid w-full gap-3 sm:grid-cols-3">
+        <ul className="grid w-full gap-4 sm:grid-cols-3">
           {BRAND_COLORS.map((color) => (
-            <li key={color.token} className="flex flex-col gap-2 border p-3">
+            <li key={color.token} className="flex flex-col gap-3 border p-4">
               <span aria-hidden="true" className={`h-16 border bg-${color.token}`} />
               <span className="font-semibold text-sm">{color.name}</span>
               <code className="font-mono text-muted-foreground text-xs">
@@ -64,7 +64,7 @@ export function BrandSection() {
       </Example>
 
       <Example label={t("inverse")}>
-        <div className="dark flex w-full flex-col gap-4 bg-background p-6 text-foreground">
+        <div className="dark flex w-full flex-col gap-6 bg-background p-8 text-foreground sm:p-10">
           <p className="eyebrow text-muted-foreground">{t("eyebrowText")}</p>
           <Statement text={t("inverseText")} className="text-display-sm" />
           <p className="max-w-prose text-muted-foreground text-sm">{t("inverseBody")}</p>
