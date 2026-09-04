@@ -38,10 +38,10 @@ spec [0002](../specs/0002-data-model/index.md) · code in `supabase/schemas/`, `
   - [x] Audit log: append only table, guards, row trigger on the core tables (AC-5)
   - [x] Expert assignments and the assigned expert helper (AC-4)
   - [x] Slice 1 and 2 tables: KPI definitions, companies, research runs with transitions and realtime, company KPIs with the current view, claim helper in `roles.ts`, second migration (AC-1, AC-2, AC-3, AC-4, AC-5, AC-10)
-- [ ] Verify it: `/check verify data model`
-- [ ] Test it: `/test data model`
-- [ ] Review it (fresh model): `/check review data model`
-- [ ] Document it: `/document data model`
+- [x] Verify it: `/check verify data model`
+- [x] Test it: `/test data model`
+- [x] Review it (fresh model): `/check review data model`
+- [x] Document it: `/document data model`
 
 ### 4. Design system & UI foundation · needs a decision
 Visual language, layout primitives and base components for a serious B2B product: typography, color with accessible contrast, spacing, forms, tables, cards, charts styling, empty and error states. Every page in the client dashboard, admin and marketing site depends on it.
