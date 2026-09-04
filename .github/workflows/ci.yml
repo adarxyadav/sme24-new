@@ -36,8 +36,8 @@ jobs:
       - run: pnpm exec biome ci .
       - run: pnpm test
 
-  types:
-    name: Generated database types match the schema
+  database:
+    name: Policy tests and generated database types
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,6 +51,9 @@ jobs:
       # same version. A different CLI version formats the generated types differently.
       - name: Start the local database with the checked in migrations
         run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,storage-api,mailpit
+      # pgTAP policy tests (spec 0002): a wrong RLS policy fails the pull request here.
+      - name: Run the database policy tests
+        run: pnpm test:db
       - name: Regenerate types and compare
         run: |
           pnpm db:types

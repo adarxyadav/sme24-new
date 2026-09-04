@@ -27,3 +27,8 @@ create policy "scaffold_checks: ops read"
 create trigger scaffold_checks_set_updated_at
   before update on public.scaffold_checks
   for each row execute function public.set_updated_at();
+
+-- TRUNCATE walks around RLS and fires no row trigger; Supabase's default privileges hand it to
+-- all three app roles at creation. The other write verbs are left to RLS, which already filters
+-- them: only the service key writes this table and there is no write policy.
+revoke truncate on public.scaffold_checks from anon, authenticated, service_role;
