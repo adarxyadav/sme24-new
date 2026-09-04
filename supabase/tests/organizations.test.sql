@@ -1,8 +1,8 @@
--- organizations: members see only their own organization, owners rename it, nobody inserts
--- directly, ops see everything (spec 0002 AC-3, AC-4).
+-- organizations: members see only their own organization, owners rename it and set its language,
+-- nobody inserts directly, ops see everything (spec 0002 AC-3, AC-4; spec 0004 AC-9).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(18);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -108,6 +108,14 @@ select is(
 select throws_ok(
   $$ insert into public.organizations (name) values ('Direct insert') $$,
   '42501', null, 'members cannot insert an organization directly (create_organization is the only path)');
+select lives_ok(
+  $$ update public.organizations set locale = 'en' where id = '0a000000-0000-4000-8000-000000000000' $$,
+  'owner of A sets the organization language (spec 0004 AC-9)');
+select is((select locale from public.organizations where id = '0a000000-0000-4000-8000-000000000000'), 'en',
+  'the language change is visible to the owner');
+select throws_ok(
+  $$ update public.organizations set archived_at = now() where id = '0a000000-0000-4000-8000-000000000000' $$,
+  '23514', null, 'owner of A still cannot archive the organization (archived_at stays pinned)');
 
 -- Member (not owner) of A
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
@@ -115,6 +123,9 @@ select is((select count(*) from public.organizations), 1::bigint, 'member of A r
 select is(
   pg_temp.affected($$ update public.organizations set name = 'Member rename' where id = '0a000000-0000-4000-8000-000000000000' $$),
   0::bigint, 'a plain member cannot rename the organization (zero rows)');
+select is(
+  pg_temp.affected($$ update public.organizations set locale = 'de' where id = '0a000000-0000-4000-8000-000000000000' $$),
+  0::bigint, 'a plain member cannot change the organization language either (zero rows)');
 
 -- Expert without an assignment, anon
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');
@@ -129,6 +140,9 @@ select is((select count(*) from public.organizations where id in ('0a000000-0000
 select lives_ok(
   $$ update public.organizations set archived_at = now() where id = '0b000000-0000-4000-8000-000000000000' $$,
   'ops update organization B');
+select throws_ok(
+  $$ update public.organizations set locale = 'fr' where id = '0b000000-0000-4000-8000-000000000000' $$,
+  '23514', null, 'an unknown language is refused by the check constraint');
 select pg_temp.as_postgres();
 select isnt((select archived_at from public.organizations where id = '0b000000-0000-4000-8000-000000000000'), null,
   'the ops update landed');

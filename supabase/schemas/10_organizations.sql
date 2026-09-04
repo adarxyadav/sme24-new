@@ -9,12 +9,16 @@ create table public.organizations (
   name text not null check (char_length(name) between 1 and 200),
   created_by uuid null references public.profiles (id) on delete set null,
   archived_at timestamptz null,
+  -- The organisation's language (spec 0004): reports and organisation wide mail use it even when
+  -- a colleague works in the other language. Mirrors the short codes in src/i18n/routing.ts.
+  locale text not null default 'de' check (locale in ('de', 'en')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 comment on table public.organizations is 'A client company account, the tenant every kind T table belongs to. Insert only through create_organization.';
 comment on column public.organizations.archived_at is 'A closed account that keeps its data until an erasure request (feature 14).';
+comment on column public.organizations.locale is 'Language of the organisation''s documents and organisation wide mail: de or en. Copied from the creator''s profile, editable by an owner.';
 
 create index organizations_created_by_idx on public.organizations (created_by);
 
@@ -34,7 +38,7 @@ create policy "organizations: members read their organization"
   to authenticated
   using (id = (select private.jwt_org_id()));
 
--- Owners rename their organization. Narrowing this to `name` cannot be done in the policy (a
+-- Owners rename their organization and set its language. Narrowing this cannot be done in the policy (a
 -- with check that reads organizations recurses) nor with a column grant (the `authenticated`
 -- role is shared with ops, so it would restrict ops too), so the trigger below pins the columns
 -- an owner must not move.
@@ -58,7 +62,7 @@ create policy "organizations: ops full access"
   using ((select private.is_ops()))
   with check ((select private.is_ops()));
 
--- An owner may rename their organization and nothing else. archived_at is the column that
+-- An owner may change the name and the locale and nothing else. archived_at is the column that
 -- matters: it will mean "closed account" to feature 14, so it is pinned before that feature
 -- exists rather than after. Ops and the service client are unaffected, which is why this is a
 -- trigger keyed on the caller's role rather than a column grant.
@@ -74,7 +78,7 @@ begin
   if new.archived_at is distinct from old.archived_at
      or new.created_by is distinct from old.created_by
      or new.id is distinct from old.id then
-    raise exception 'only name is editable by an owner'
+    raise exception 'only name and locale are editable by an owner'
       using errcode = 'check_violation';
   end if;
   return new;
