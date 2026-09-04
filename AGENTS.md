@@ -34,6 +34,7 @@ pnpm typecheck               # next typegen + tsc --noEmit
 pnpm lint / pnpm lint:fix    # Biome: lint, format, import order, a11y rules
 pnpm test                    # Vitest + Testing Library (tests/, src/**/*.test.*)
 pnpm test:e2e                # Playwright + axe (e2e/); starts its own dev server on port 3100
+pnpm test:db                 # pgTAP policy tests in supabase/tests/; needs the local stack running
 pnpm db:diff <name>          # migration from supabase/schemas/ (declarative sync)
 pnpm db:reset && pnpm db:types   # reapply locally, then regenerate src/lib/supabase/database.types.ts (CI fails when stale)
 pnpm trigger:dev             # Trigger.dev tasks locally (needs a project ref)
@@ -53,7 +54,8 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md` (decision and 
 - **Document every exported function** with a one line JSDoc: what it does and which context runs it (server component, action, proxy, task, browser).
 - **Feature folders.** `src/features/<domain>/{ui/,actions.ts,queries.ts,schema.ts}`; shared infrastructure in `src/lib/`; shadcn primitives in `src/components/ui/`; routes stay thin.
 - **Data access through the four client factories** in `src/lib/supabase/`, one per execution context. RLS is the real boundary; the proxy only gates areas. The service client (bypasses RLS) is allowed only in `src/trigger/` and server only code, enforced by Biome; tasks take explicit ids and filter by them.
-- **Database changes** start in `supabase/schemas/*.sql` (table, RLS and policies in the same file), then `pnpm db:diff`, `db:reset`, `db:types`. Migrations stay backward compatible (add, switch, remove later) because previews share staging. Function grants are not diffed; check them by hand.
+- **Database changes** start in `supabase/schemas/*.sql` (table, RLS and policies in the same file), then `pnpm db:diff`, `db:reset`, `test:db`, `db:types`. Migrations stay backward compatible (add, switch, remove later) because previews share staging. The diff misses three things that must be re-added by hand in the migration: column grants dropped by a table level `REVOKE ALL`, the `anon` execute revoke on a new `public` function, and a view body rewritten from `select *` to a column list. Every new kind T (tenant) table copies the tenant table contract from spec 0002 and gets a pgTAP file in `supabase/tests/`.
+- **Membership rows are never inserted directly.** Direct `INSERT` on `organization_members` is revoked for the app roles; an owner adds a member through `public.add_organization_member`, which checks the target consented. Nothing in `src/` calls it yet; feature 22 (client team invitations) does.
 - **Authenticated areas are `force-dynamic`**; static rendering only under `(marketing)`. Every user facing string goes through next-intl (`messages/<locale>.json`, `de` and `en`). The app role lives in `app_metadata.role`, never a top level `role` claim.
 - **Accessibility WCAG 2.2 AA**: Biome a11y rules in the editor, axe in Playwright as the second net. No ESLint.
 - **Conventional commit messages** (`feat:`, `fix:`, `chore:`, `docs:`, `test:`).
@@ -64,7 +66,7 @@ Chosen by `/audit` on 2026-09-03; `/develop tooling` installs what is not yet th
 - Lint and format: Biome (installed, `biome.json`). ESLint jsx-a11y declined; Biome plus axe instead.
 - Pre-commit: **lefthook** (not installed yet) running Biome check on staged files plus `pnpm typecheck` on every commit.
 - Tests: Vitest with Testing Library, Playwright with axe (both installed).
-- CI: GitHub Actions (installed): `ci.yml` check and types jobs, `deploy.yml` migrate then tasks, `e2e.yml` on every Vercel deployment. Branch protection on `main` and `production` requiring `check` is still to set.
+- CI: GitHub Actions (installed): `ci.yml` check and database jobs (database starts the local stack, runs pgTAP, then compares the generated types), `deploy.yml` migrate then tasks, `e2e.yml` on every Vercel deployment. Branch protection on `main` and `production` requiring `check` and `database` is still to set.
 
 ## Git
 

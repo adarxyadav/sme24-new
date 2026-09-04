@@ -27,7 +27,7 @@ spec [0001](../specs/0001-stack-architecture/index.md) · code in `lefthook.yml`
 - [x] Install the tooling: `/develop tooling`
 - [x] Check it runs clean: `/test tooling`
 
-### 3. Data model · in-progress
+### 3. Data model · done
 Core entities every slice builds on: users, organizations and memberships with roles (client member, expert, ops), assessed companies, research runs and extracted safety KPIs, peer benchmarks, packages and orders, assessments and their structured answers, gap findings, expert profiles, programs and progress entries, notifications. Row level access rules are part of the model, not an afterthought, because three user types share one database.
 **Done when:** entities, relationships and access rules support Slices 1 to 8 without a breaking migration, and every table is readable only by the organization or role that owns it.
 spec [0002](../specs/0002-data-model/index.md) · code in `supabase/schemas/`, `supabase/tests/`, `supabase/migrations/`, `src/lib/auth/roles.ts`
