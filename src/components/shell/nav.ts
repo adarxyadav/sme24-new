@@ -22,7 +22,13 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
   ],
 };
 
-/** True when `pathname` (without the locale prefix) is the item or a page below it. */
+/**
+ * True when `pathname` (without the locale prefix) is the item or a page below it. The area root
+ * (`/app`, `/expert`, `/admin`, a single segment) only matches exactly: every page in the area
+ * sits below it, so a prefix match would keep "Overview" lit on all of them.
+ */
 export function isNavItemActive(pathname: string, item: NavItem): boolean {
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+  if (pathname === item.href) return true;
+  const isAreaRoot = !item.href.slice(1).includes("/");
+  return !isAreaRoot && pathname.startsWith(`${item.href}/`);
 }
