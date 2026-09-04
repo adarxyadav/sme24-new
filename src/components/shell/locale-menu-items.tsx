@@ -9,20 +9,21 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Link, usePathname } from "@/i18n/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { type Locale, routing } from "@/i18n/routing";
 
 const LABEL_KEY = { de: "german", en: "english" } as const;
 
 /**
- * Language submenu for the sidebar user menu: one radio item per locale, each a real link to the
- * same page in the other language (next-intl writes the locale cookie on the change, spec 0001).
- * Runs in the browser inside a `DropdownMenuContent`.
+ * Language submenu for the sidebar user menu: one radio item per locale that replaces the current
+ * page with the same page in the other language (next-intl writes the locale cookie on the change,
+ * spec 0001). Runs in the browser inside a `DropdownMenuContent`.
  */
 export function LocaleMenuItems() {
   const t = useTranslations("common");
   const locale = useLocale() as Locale;
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <DropdownMenuSub>
@@ -34,10 +35,13 @@ export function LocaleMenuItems() {
       <DropdownMenuSubContent>
         <DropdownMenuRadioGroup value={locale}>
           {routing.locales.map((target) => (
-            <DropdownMenuRadioItem key={target} value={target} asChild>
-              <Link href={pathname} locale={target} hrefLang={target}>
-                {t(LABEL_KEY[target])}
-              </Link>
+            <DropdownMenuRadioItem
+              key={target}
+              value={target}
+              lang={target}
+              onSelect={() => router.replace(pathname, { locale: target })}
+            >
+              {t(LABEL_KEY[target])}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
