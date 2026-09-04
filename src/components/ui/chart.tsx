@@ -10,6 +10,14 @@ import { cn } from "@/lib/utils";
 const THEMES = { light: "", dark: ".dark" } as const;
 
 const INITIAL_DIMENSION = { width: 320, height: 200 } as const;
+
+/**
+ * Recharts re-renders a chart on every ResizeObserver tick. While the sidebar animates its width
+ * (200ms) that is one full re-render per frame per chart, which made the collapse stutter on pages
+ * with charts. Throttling to this window keeps a chart within one or two renders of the animation
+ * and still lands on the final size (trailing call).
+ */
+const RESIZE_THROTTLE_MS = 100;
 type TooltipNameType = number | string;
 
 export type ChartConfig = Record<
@@ -45,6 +53,7 @@ function ChartContainer({
   children,
   config,
   initialDimension = INITIAL_DIMENSION,
+  resizeThrottleMs = RESIZE_THROTTLE_MS,
   ...props
 }: React.ComponentProps<"div"> & {
   config: ChartConfig;
@@ -53,6 +62,8 @@ function ChartContainer({
     width: number;
     height: number;
   };
+  /** Minimum ms between size driven re-renders; 0 re-renders on every resize tick. */
+  resizeThrottleMs?: number;
 }) {
   const uniqueId = React.useId();
   const chartId = `chart-${id ?? uniqueId.replace(/:/g, "")}`;
@@ -69,7 +80,10 @@ function ChartContainer({
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer initialDimension={initialDimension}>
+        <RechartsPrimitive.ResponsiveContainer
+          initialDimension={initialDimension}
+          debounce={resizeThrottleMs}
+        >
           {children}
         </RechartsPrimitive.ResponsiveContainer>
       </div>
