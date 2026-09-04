@@ -355,15 +355,15 @@
       "invalidExample": "Invalid field",
       "disabledExample": "Disabled field",
       "disabledHint": "This value comes from the commercial register.",
-      "disabledCheckbox": "Disabled choice",
-      "errors": {
-        "companyShort": "Please enter at least 2 characters.",
-        "emailInvalid": "Please enter a valid email address.",
-        "cantonRequired": "Please choose a canton.",
-        "planRequired": "Please choose a plan.",
-        "messageLong": "At most 200 characters.",
-        "consentRequired": "Please accept the terms of use."
-      }
+      "disabledCheckbox": "Disabled choice"
+    },
+    "validation": {
+      "companyShort": "Please enter at least 2 characters.",
+      "emailInvalid": "Please enter a valid email address.",
+      "cantonRequired": "Please choose a canton.",
+      "planRequired": "Please choose a plan.",
+      "messageLong": "At most 200 characters.",
+      "consentRequired": "Please accept the terms of use."
     },
     "formatting": {
       "numbers": "Numbers",

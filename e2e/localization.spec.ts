@@ -79,6 +79,27 @@ test.describe("signed in", () => {
     await expect(page).toHaveURL(/\/de\/admin$/);
   });
 
+  test("the gallery form shows its errors in the page language: built in and custom (AC-8)", async ({
+    page,
+  }) => {
+    await signIn(page, SEED_USERS.ops);
+    await page.goto("/de/admin/design");
+    const form = page.getByRole("region", { name: "Formulare" }).locator("form");
+    await form.getByRole("button", { name: "Absenden" }).click();
+    await expect(form.locator("#demo-company-error")).toHaveText(
+      "Bitte geben Sie mindestens 2 Zeichen ein.",
+    );
+    await expect(form.locator("#demo-email-error")).toHaveText(/E-Mail/);
+
+    await page.goto("/en/admin/design");
+    const formEn = page.getByRole("region", { name: "Forms" }).locator("form");
+    await formEn.getByRole("button", { name: "Submit" }).click();
+    await expect(formEn.locator("#demo-company-error")).toHaveText(
+      "Please enter at least 2 characters.",
+    );
+    await expect(formEn.locator("#demo-email-error")).toHaveText(/email/i);
+  });
+
   test("the gallery shows CHF 4’900.00 for 4900 in the real browser (AC-3, AC-11)", async ({
     page,
   }) => {

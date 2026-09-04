@@ -355,15 +355,15 @@
       "invalidExample": "Ungültiges Feld",
       "disabledExample": "Deaktiviertes Feld",
       "disabledHint": "Dieser Wert wird aus dem Handelsregister übernommen.",
-      "disabledCheckbox": "Deaktivierte Auswahl",
-      "errors": {
-        "companyShort": "Bitte geben Sie mindestens 2 Zeichen ein.",
-        "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
-        "cantonRequired": "Bitte wählen Sie einen Kanton.",
-        "planRequired": "Bitte wählen Sie ein Paket.",
-        "messageLong": "Höchstens 200 Zeichen.",
-        "consentRequired": "Bitte akzeptieren Sie die Nutzungsbedingungen."
-      }
+      "disabledCheckbox": "Deaktivierte Auswahl"
+    },
+    "validation": {
+      "companyShort": "Bitte geben Sie mindestens 2 Zeichen ein.",
+      "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      "cantonRequired": "Bitte wählen Sie einen Kanton.",
+      "planRequired": "Bitte wählen Sie ein Paket.",
+      "messageLong": "Höchstens 200 Zeichen.",
+      "consentRequired": "Bitte akzeptieren Sie die Nutzungsbedingungen."
     },
     "formatting": {
       "numbers": "Zahlen",

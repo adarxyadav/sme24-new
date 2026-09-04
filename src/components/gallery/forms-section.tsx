@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type Messages, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -28,14 +28,19 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { issueMessage, zodLocaleError } from "@/lib/validation";
 
-/** Error messages are keys under `gallery.forms.errors`, translated where they render. */
+/**
+ * Custom rules carry a key of `gallery.validation`, translated where they render; `email` and
+ * `message` keep Zod's built in messages, which arrive in the request language through the
+ * resolver's locale map (spec 0004, AC-8).
+ */
 const demoSchema = z.object({
   company: z.string().min(2, "companyShort"),
-  email: z.email("emailInvalid"),
+  email: z.email(),
   canton: z.string().min(1, "cantonRequired"),
   plan: z.enum(["starter", "growth", "enterprise"], "planRequired"),
-  message: z.string().max(200, "messageLong"),
+  message: z.string().max(200),
   notify: z.boolean(),
   consent: z.boolean().refine((value) => value === true, "consentRequired"),
 });
@@ -52,8 +57,10 @@ const CANTONS = ["ZH", "BE", "LU", "BS", "GE", "VD"] as const;
  */
 export function FormsSection() {
   const t = useTranslations("gallery.forms");
+  const v = useTranslations("gallery.validation");
+  const locale = useLocale();
   const form = useForm<DemoInput, unknown, DemoValues>({
-    resolver: zodResolver(demoSchema),
+    resolver: zodResolver(demoSchema, { error: zodLocaleError(locale) }),
     defaultValues: {
       company: "",
       email: "",
@@ -64,8 +71,7 @@ export function FormsSection() {
     },
   });
   const { errors, isSubmitting } = form.formState;
-  const errorText = (key: string | undefined) =>
-    key ? t(`errors.${key as keyof Messages["gallery"]["forms"]["errors"]}`) : undefined;
+  const errorText = (message: string | undefined) => issueMessage(message, v);
 
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,42rem)_minmax(0,20rem)]">
@@ -231,7 +237,7 @@ export function FormsSection() {
             aria-invalid
             aria-describedby="demo-invalid-error"
           />
-          <FieldError id="demo-invalid-error">{t("errors.emailInvalid")}</FieldError>
+          <FieldError id="demo-invalid-error">{v("emailInvalid")}</FieldError>
         </Field>
         <Field data-disabled>
           <FieldLabel htmlFor="demo-disabled">{t("disabledExample")}</FieldLabel>

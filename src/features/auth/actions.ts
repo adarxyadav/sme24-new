@@ -7,6 +7,7 @@ import { LOCALE_CODE, routing } from "@/i18n/routing";
 import { ROLE_HOME, roleFromClaims } from "@/lib/auth/roles";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
+import { parseWith } from "@/lib/validation";
 import { signInSchema } from "./schema";
 
 /**
@@ -20,10 +21,11 @@ export async function signIn(formData: FormData) {
     : routing.defaultLocale;
   const next = formData.get("next");
 
-  const parsed = signInSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
+  const parsed = parseWith(
+    signInSchema,
+    { email: formData.get("email"), password: formData.get("password") },
+    locale,
+  );
   if (!parsed.success) {
     return redirect({ href: { pathname: "/sign-in", query: { error: "invalid" } }, locale });
   }
