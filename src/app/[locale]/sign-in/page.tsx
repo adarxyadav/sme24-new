@@ -1,58 +1,90 @@
 import { getTranslations } from "next-intl/server";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { Wordmark } from "@/components/shell/wordmark";
+import { SkipLink } from "@/components/skip-link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { signIn } from "@/features/auth/actions";
+import { Link } from "@/i18n/navigation";
 
 export default async function SignInPage({ params, searchParams }: PageProps<"/[locale]/sign-in">) {
   const { locale } = await params;
   const query = await searchParams;
-  const t = await getTranslations("signIn");
+  const t = await getTranslations();
   const invalid = query.error === "invalid";
   const next = typeof query.next === "string" ? query.next : "";
 
   return (
-    <main id="main" className="mx-auto flex max-w-sm flex-col gap-6 px-6 py-24">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <LocaleSwitcher />
+    <>
+      <SkipLink />
+      <div className="flex min-h-dvh flex-col">
+        <header className="flex h-16 items-center justify-between px-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-2 rounded-md font-semibold">
+            <Wordmark />
+            <span>{t("common.appName")}</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <LocaleSwitcher />
+            <ThemeToggle />
+          </div>
+        </header>
+        <main
+          id="main"
+          tabIndex={-1}
+          className="flex flex-1 items-center justify-center px-4 py-12 outline-none sm:px-6"
+        >
+          <Card className="w-full max-w-sm">
+            <CardHeader>
+              <CardTitle className="text-2xl">{t("signIn.title")}</CardTitle>
+              <CardDescription>{t("signIn.lead")}</CardDescription>
+            </CardHeader>
+            <form action={signIn}>
+              <CardContent className="flex flex-col gap-6">
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="next" value={next} />
+                {invalid ? (
+                  <Alert variant="destructive">
+                    <AlertTitle>{t("signIn.invalid")}</AlertTitle>
+                  </Alert>
+                ) : null}
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="email">{t("signIn.email")}</FieldLabel>
+                    <Input id="email" name="email" type="email" autoComplete="email" required />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="password">{t("signIn.password")}</FieldLabel>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      minLength={6}
+                    />
+                  </Field>
+                </FieldGroup>
+              </CardContent>
+              <CardFooter className="mt-6">
+                <Button type="submit" className="w-full" size="lg">
+                  {t("signIn.submit")}
+                </Button>
+              </CardFooter>
+            </form>
+          </Card>
+        </main>
       </div>
-      <form action={signIn} className="flex flex-col gap-4">
-        <input type="hidden" name="locale" value={locale} />
-        <input type="hidden" name="next" value={next} />
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-sm font-medium">
-            {t("email")}
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            className="rounded-md border bg-background px-3 py-2"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password" className="text-sm font-medium">
-            {t("password")}
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            minLength={6}
-            className="rounded-md border bg-background px-3 py-2"
-          />
-        </div>
-        {invalid ? (
-          <p role="alert" className="text-sm text-destructive">
-            {t("invalid")}
-          </p>
-        ) : null}
-        <Button type="submit">{t("submit")}</Button>
-      </form>
-    </main>
+    </>
   );
 }

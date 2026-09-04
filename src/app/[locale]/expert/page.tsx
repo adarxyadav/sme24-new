@@ -1,11 +1,19 @@
+import { BriefcaseIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { EmptyState } from "@/components/empty-state";
+import { PageHeader } from "@/components/page-header";
+import { PageStack } from "@/components/page-stack";
 
 export default async function ExpertPage() {
   const t = await getTranslations("areas.expert");
   return (
-    <section className="flex flex-col gap-2">
-      <h1 className="text-2xl font-semibold">{t("title")}</h1>
-      <p className="text-muted-foreground">{t("body")}</p>
-    </section>
+    <PageStack>
+      <PageHeader title={t("title")} description={t("body")} />
+      <EmptyState
+        icon={BriefcaseIcon}
+        title={t("empty.title")}
+        description={t("empty.description")}
+      />
+    </PageStack>
   );
 }

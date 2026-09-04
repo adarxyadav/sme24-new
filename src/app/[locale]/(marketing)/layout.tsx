@@ -1,29 +1,20 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import { LocaleSwitcher } from "@/components/locale-switcher";
-import { Link } from "@/i18n/navigation";
+import { setRequestLocale } from "next-intl/server";
+import { MarketingHeader } from "@/components/marketing-header";
+import { SkipLink } from "@/components/skip-link";
 
 /** Public pages: statically rendered (setRequestLocale in every layout and page on this path). */
 export default async function MarketingLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("common");
 
+  // Navigation links arrive with feature 13 (marketing site); the header already collapses them.
   return (
     <>
-      <header className="border-b">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/" className="font-semibold">
-            {t("appName")}
-          </Link>
-          <div className="flex items-center gap-4">
-            <LocaleSwitcher />
-            <Link href="/sign-in" className="text-sm underline-offset-4 hover:underline">
-              {t("signIn")}
-            </Link>
-          </div>
-        </div>
-      </header>
-      <main id="main">{children}</main>
+      <SkipLink />
+      <MarketingHeader links={[]} />
+      <main id="main" tabIndex={-1} className="outline-none">
+        {children}
+      </main>
     </>
   );
 }

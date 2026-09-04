@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import { PageHeader } from "@/components/page-header";
+import { PageStack } from "@/components/page-stack";
 import { listScaffoldChecks } from "@/features/scaffold/queries";
 import { ScaffoldActions } from "@/features/scaffold/ui/scaffold-actions";
 import { ScaffoldChecksLive } from "@/features/scaffold/ui/scaffold-checks-live";
@@ -10,13 +12,10 @@ export default async function AdminPage() {
   const checks = await listScaffoldChecks(supabase);
 
   return (
-    <>
-      <section className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold">{t("title")}</h1>
-        <p className="text-muted-foreground">{t("body")}</p>
-      </section>
+    <PageStack>
+      <PageHeader title={t("title")} description={t("body")} />
       <ScaffoldActions />
       <ScaffoldChecksLive initialRows={checks} />
-    </>
+    </PageStack>
   );
 }
