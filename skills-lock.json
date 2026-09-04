@@ -13,6 +13,12 @@
       "skillPath": "skills/architect/SKILL.md",
       "computedHash": "ff57c65a06ca4047420113d1eaa18e5002bc657224688b9350a1f06d77204327"
     },
+    "ask-sonner": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/ask-sonner/SKILL.md",
+      "computedHash": "23f724e97247b2003ccc479f3a9b3af8e4191a0e133b94ee6b73f8405349687f"
+    },
     "audit": {
       "source": "jsmastery-pro/skills",
       "sourceType": "github",
@@ -55,6 +61,12 @@
       "skillPath": "skills/frontend/next-intl-app-router/SKILL.md",
       "computedHash": "77c01d0a058c9560a949ed039d5c400ab1767d327322049ec8f9c956ca778078"
     },
+    "next-themes": {
+      "source": "pharbuz/ai-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/next-themes/SKILL.md",
+      "computedHash": "3e035072868abd98b3c85c70ec7b65ac08a78033cdf1b54facd8b500c49da895"
+    },
     "playwright-skill": {
       "source": "testdino-hq/playwright-skill",
       "sourceType": "github",
@@ -72,6 +84,12 @@
       "sourceType": "github",
       "skillPath": "skills/react-email/SKILL.md",
       "computedHash": "ff40e3355c318e5ef203eb1118cab574454ce65dae01bb268b05a2e244b8041b"
+    },
+    "recharts": {
+      "source": "andy-spike/skills",
+      "sourceType": "github",
+      "skillPath": "skills/recharts/SKILL.md",
+      "computedHash": "a34ecf6ee1664a089e800a7cec095e114c6c3e8a11a06d3dfe98a39aac13f70c"
     },
     "resend": {
       "source": "resend/resend-skills",

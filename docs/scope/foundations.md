@@ -43,10 +43,20 @@ spec [0002](../specs/0002-data-model/index.md) · code in `supabase/schemas/`, `
 - [x] Review it (fresh model): `/check review data model`
 - [x] Document it: `/document data model`
 
-### 4. Design system & UI foundation · needs a decision
+### 4. Design system & UI foundation · in-progress
 Visual language, layout primitives and base components for a serious B2B product: typography, color with accessible contrast, spacing, forms, tables, cards, charts styling, empty and error states. Every page in the client dashboard, admin and marketing site depends on it.
 **Done when:** `design.md` covers type, color, spacing and components; base components pass keyboard, focus and screen reader checks at WCAG 2.2 AA; light and dark both render.
-- [ ] Design it (spec): `/architect design system & UI foundation`
+spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.css`, `src/components/`, `src/components/ui/`, `src/app/[locale]/admin/design/`, `docs/design.md`
+- [x] Design it (spec): `/architect design system & UI foundation`
+- [ ] Build it: `/develop design system & UI foundation`
+  - [ ] Tokens, theme and the accessibility pipeline: brand and full token set in light and dark, font fix, next-themes with the toggle, gallery stub, contrast test, axe on the gallery (AC-1, AC-2, AC-3, AC-10)
+  - [ ] Sidebar shell and page primitives: `AppSidebar` with user menu and skip links, `PageHeader`, empty, error and loading states, toaster, responsive marketing header (AC-4, AC-5, AC-7, AC-8, AC-12)
+  - [ ] Component inventory and charts in the gallery: forms, data, overlays, feedback, compact table, badge levels, Recharts (AC-6, AC-8, AC-9, AC-10)
+  - [ ] Tests and `docs/design.md`: component and message parity tests, keyboard and mobile scenarios, the design reference (AC-10, AC-11, AC-12)
+- [ ] Verify it: `/check verify design system & UI foundation`
+- [ ] Test it: `/test design system & UI foundation`
+- [ ] Review it (fresh model): `/check review design system & UI foundation`
+- [ ] Document it: `/document design system & UI foundation`
 
 ### 5. Localization (German & English) · needs a decision
 Two languages from the first screen: routing per language, translated strings, number, date and CHF formatting, and translated content in generated emails and reports. Built now so French and Italian later cost only translation.
