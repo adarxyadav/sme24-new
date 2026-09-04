@@ -2,7 +2,7 @@
   <title>SME24</title>
   <mask id="m" maskUnits="userSpaceOnUse">
     <rect width="64" height="64" fill="white"/>
-    <path fill="black" transform="translate(18.5 14) scale(0.9)" d="M0 0h9v23H0zM21 0h9v23h-9zM12 5h6v6h-6zM9 15h12v8H9zM12 23h6v9h-6zM0 32h30v8H0z"/>
+    <path fill="black" transform="translate(18.5 14) scale(0.9)" d="M0 0h9v23H0zM21 0h9v23h-9zM12 5h6v6h-6zM9 15h12v8H9zM11 23h8v9h-8zM0 32h30v8H0z"/>
   </mask>
   <circle cx="32" cy="32" r="32" fill="#000000" mask="url(#m)"/>
 </svg>

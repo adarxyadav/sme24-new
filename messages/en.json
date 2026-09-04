@@ -235,31 +235,50 @@
       "single": "Single piece: object, statement, subline, signature",
       "singleStatement": "Company dinner.",
       "singleSubline": "(Vegan too).",
-      "singleObject": "Object: meatloaf roll, cut out",
+      "singleAlt": "Meatloaf in a bread roll, cut out on white",
       "contrast": "Contrast: empty frame against a photo",
       "contrastStatement": "Results delivered.",
       "contrastLeft": "AI",
       "contrastRight": "Philipp",
-      "contrastObject": "Photo: expert on site, cut out",
+      "contrastAlt": "Philipp in a high visibility vest and helmet in front of a ladle in a steelworks",
       "pair": "Pair: two objects, one statement",
       "pairStatement": "Our SMEs.",
       "pairLeft": "Grey hair.",
       "pairRight": "No hair.",
-      "pairObject": "Portrait, cut out",
+      "pairLeftAlt": "Expert with grey hair in a navy blazer, arms crossed",
+      "pairRightAlt": "Bald expert in a dark suit, smiling",
       "strip": "Four panel strip",
       "stripStatement": "No crawling. Own ways.",
-      "panel": "Panel {number}",
+      "stripAlt": "Four pictures: two executives crawl through a tunnel, see nothing, turn back; a man stands upright at a window above the city",
       "type": "Type only piece",
       "typeStatement": "No slides. Results.",
       "wall": "Wall: pieces with hairlines, one signature per page",
-      "wallOne": "Team event.",
-      "wallObjectOne": "Object: beer crate",
-      "wallTwo": "Company car.",
-      "wallObjectTwo": "Object: road bike",
-      "wallThree": "Dress code.",
-      "wallObjectThree": "Object: coverall",
-      "wallFour": "Annual bonus.",
-      "wallObjectFour": "Object: mountain path"
+      "wallItems": {
+        "teamevent": {
+          "statement": "Team event.",
+          "alt": "Green beer crate with bottles on ice"
+        },
+        "firmenwagen": {
+          "statement": "Company car.",
+          "alt": "Blue road bike, cut out"
+        },
+        "dresscode": {
+          "statement": "Dress code.",
+          "alt": "Navy coverall with reflective stripes"
+        },
+        "jahresbonus": {
+          "statement": "Annual bonus.",
+          "alt": "Mountain path with a view of the Matterhorn"
+        },
+        "noCosmetics": {
+          "statement": "No cosmetics.",
+          "alt": "Heavily made up woman with oversized red lips"
+        },
+        "noOverhead": {
+          "statement": "No overhead.",
+          "alt": "Man in a suit with champagne between a private jet, a convertible and a pool"
+        }
+      }
     },
     "type": {
       "display": "Operational excellence",

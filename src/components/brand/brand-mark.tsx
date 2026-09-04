@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  * changes.
  */
 export const MARK_PATH =
-  "M0 0h9v23H0zM21 0h9v23h-9zM12 5h6v6h-6zM9 15h12v8H9zM12 23h6v9h-6zM0 32h30v8H0z";
+  "M0 0h9v23H0zM21 0h9v23h-9zM12 5h6v6h-6zM9 15h12v8H9zM11 23h8v9h-8zM0 32h30v8H0z";
 
 export const MARK_VIEWBOX = "0 0 30 40";
 

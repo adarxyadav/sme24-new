@@ -235,31 +235,50 @@
       "single": "Einzelstück: Objekt, Statement, Nebenzeile, Signatur",
       "singleStatement": "Geschäftsessen.",
       "singleSubline": "(Auch vegan).",
-      "singleObject": "Objekt: Fleischkäse-Brötchen, freigestellt",
+      "singleAlt": "Fleischkäse im Brötchen, freigestellt auf Weiss",
       "contrast": "Kontrast: leerer Rahmen gegen Foto",
       "contrastStatement": "Resultate geliefert.",
       "contrastLeft": "KI",
       "contrastRight": "Philipp",
-      "contrastObject": "Foto: Experte vor Ort, freigestellt",
+      "contrastAlt": "Philipp in Warnweste und Helm vor einer Giesspfanne im Stahlwerk",
       "pair": "Paar: zwei Objekte, ein Statement",
       "pairStatement": "Unsere SMEs.",
       "pairLeft": "Graue Haare.",
       "pairRight": "Keine Haare.",
-      "pairObject": "Porträt, freigestellt",
+      "pairLeftAlt": "Expertin mit grauen Haaren im dunkelblauen Blazer, Arme verschränkt",
+      "pairRightAlt": "Experte mit Glatze im dunklen Anzug, lächelnd",
       "strip": "Vierer-Strip",
       "stripStatement": "Kein Kriechen. Eigene Wege.",
-      "panel": "Panel {number}",
+      "stripAlt": "Vier Bilder: zwei Führungskräfte kriechen durch einen Tunnel, sehen nichts, kehren um; ein Mann steht aufrecht am Fenster über der Stadt",
       "type": "Reines Typo-Stück",
       "typeStatement": "Keine Slides. Resultate.",
       "wall": "Wand: Stücke mit Haarlinien, eine Signatur pro Seite",
-      "wallOne": "Teamevent.",
-      "wallObjectOne": "Objekt: Bierharass",
-      "wallTwo": "Firmenwagen.",
-      "wallObjectTwo": "Objekt: Rennrad",
-      "wallThree": "Dresscode.",
-      "wallObjectThree": "Objekt: Overall",
-      "wallFour": "Jahresbonus.",
-      "wallObjectFour": "Objekt: Bergweg"
+      "wallItems": {
+        "teamevent": {
+          "statement": "Teamevent.",
+          "alt": "Grüner Bierharass mit Flaschen auf Eis"
+        },
+        "firmenwagen": {
+          "statement": "Firmenwagen.",
+          "alt": "Blaues Rennrad, freigestellt"
+        },
+        "dresscode": {
+          "statement": "Dresscode.",
+          "alt": "Dunkelblauer Arbeitsoverall mit Reflexstreifen"
+        },
+        "jahresbonus": {
+          "statement": "Jahresbonus.",
+          "alt": "Bergweg mit Blick auf das Matterhorn"
+        },
+        "noCosmetics": {
+          "statement": "Keine Kosmetik.",
+          "alt": "Stark geschminkte Frau mit übergrossen roten Lippen"
+        },
+        "noOverhead": {
+          "statement": "Kein Overhead.",
+          "alt": "Mann im Anzug mit Champagner zwischen Privatjet, Cabrio und Pool"
+        }
+      }
     },
     "type": {
       "display": "Operative Exzellenz",
