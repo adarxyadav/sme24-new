@@ -455,7 +455,8 @@
       "breadcrumb": "Breadcrumb",
       "crumbs": {
         "root": "Ops admin",
-        "companies": "Companies"
+        "companies": "Companies",
+        "current": "Muster AG"
       },
       "tabs": "Tabs",
       "tab": {

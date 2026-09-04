@@ -1,4 +1,5 @@
-import { getTranslations } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages, getTranslations } from "next-intl/server";
 import { BrandSection } from "@/components/gallery/brand-section";
 import { ButtonsSection } from "@/components/gallery/buttons-section";
 import { CampaignSection } from "@/components/gallery/campaign-section";
@@ -15,6 +16,7 @@ import { TypeSection } from "@/components/gallery/type-section";
 import { PageHeader } from "@/components/page-header";
 import { PageStack } from "@/components/page-stack";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { clientMessages } from "@/i18n/client-messages";
 
 const SECTIONS = [
   ["brand", BrandSection],
@@ -38,6 +40,9 @@ const SECTIONS = [
 export default async function DesignGalleryPage() {
   const t = await getTranslations("gallery");
   const nav = await getTranslations("nav.admin");
+  // The client sections read `gallery` (and the states example reads `areas`), which leave the
+  // shared bundle (spec 0004, AC-6); this provider hands them to this page only.
+  const messages = clientMessages(await getMessages(), ["gallery", "areas"]);
 
   return (
     <PageStack className="gap-12 lg:gap-16">
@@ -58,16 +63,18 @@ export default async function DesignGalleryPage() {
           </a>
         ))}
       </nav>
-      {SECTIONS.map(([id, Section]) => (
-        <GallerySection
-          key={id}
-          id={id}
-          title={t(`sections.${id}.title`)}
-          description={t(`sections.${id}.description`)}
-        >
-          <Section />
-        </GallerySection>
-      ))}
+      <NextIntlClientProvider messages={messages}>
+        {SECTIONS.map(([id, Section]) => (
+          <GallerySection
+            key={id}
+            id={id}
+            title={t(`sections.${id}.title`)}
+            description={t(`sections.${id}.description`)}
+          >
+            <Section />
+          </GallerySection>
+        ))}
+      </NextIntlClientProvider>
     </PageStack>
   );
 }
