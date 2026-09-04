@@ -1,4 +1,7 @@
 {
+  "metadata": {
+    "description": "EHS-Beratung zum Fixpreis für regulierte Unternehmen in der Schweiz."
+  },
   "common": {
     "appName": "SME24",
     "signIn": "Anmelden",

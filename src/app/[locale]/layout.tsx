@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -18,10 +18,20 @@ const geistSans = Geist({
 });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: { default: "SME24", template: "%s · SME24" },
-  description: "Fixed-price EHS consulting for regulated companies in Switzerland.",
-};
+/** Site title and the localized description (AC-12); an unknown locale gets the default one. */
+export async function generateMetadata({
+  params,
+}: Pick<LayoutProps<"/[locale]">, "params">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({
+    locale: hasLocale(routing.locales, locale) ? locale : routing.defaultLocale,
+    namespace: "metadata",
+  });
+  return {
+    title: { default: "SME24", template: "%s · SME24" },
+    description: t("description"),
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));

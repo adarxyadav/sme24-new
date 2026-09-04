@@ -86,13 +86,10 @@ describe("ChartContainer resize throttling (spec 0003, AC-9)", () => {
   // The observer callbacks Recharts registered; a test fires them like the browser would.
   const observed: ResizeObserverCallback[] = [];
 
-  class FakeResizeObserver {
-    constructor(callback: ResizeObserverCallback) {
-      observed.push(callback);
-    }
-    observe() {}
-    unobserve() {}
-    disconnect() {}
+  // Recharts calls `new ResizeObserver(cb)`; a function that returns an object satisfies `new`.
+  function FakeResizeObserver(callback: ResizeObserverCallback): ResizeObserver {
+    observed.push(callback);
+    return { observe() {}, unobserve() {}, disconnect() {} };
   }
 
   function tick(width: number, height = 300) {
@@ -125,6 +122,8 @@ describe("ChartContainer resize throttling (spec 0003, AC-9)", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.useRealTimers();
+    // `clearMocks` resets calls only; the `getBoundingClientRect` spy must not leak into later files.
+    vi.restoreAllMocks();
   });
 
   it("collapses resize ticks inside the default 100ms window into one trailing update at the final size", () => {
@@ -209,10 +208,11 @@ describe("ChartTooltipContent and ChartLegendContent (spec 0003, AC-9)", () => {
   });
 
   it("tooltip content refuses to render outside a ChartContainer", () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
 
     expect(() => render(<ChartTooltipContent active payload={payload} />)).toThrow(
       "useChart must be used within a <ChartContainer />",
     );
+    error.mockRestore();
   });
 });

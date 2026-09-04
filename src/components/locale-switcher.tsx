@@ -1,16 +1,39 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { Suspense } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
+import { type Query, searchParamsToQuery } from "@/i18n/query";
 import { routing } from "@/i18n/routing";
 
 const labelKey = { de: "german", en: "english" } as const;
 
-/** Explicit language switch; next-intl writes the locale cookie on the change (spec 0001). */
+/**
+ * Explicit language switch; next-intl writes the locale cookie on the change (spec 0001). The
+ * marketing pages are prerendered, and reading the search params would bail the tree out of
+ * prerendering, so the query aware links sit behind a Suspense boundary whose fallback renders
+ * the same links without the query: the static HTML carries the switcher, the browser then swaps
+ * in the version that keeps the query string. Runs in the browser.
+ */
 export function LocaleSwitcher() {
+  return (
+    <Suspense fallback={<LocaleLinks />}>
+      <LocaleLinksWithQuery />
+    </Suspense>
+  );
+}
+
+function LocaleLinksWithQuery() {
+  const query = searchParamsToQuery(useSearchParams());
+  return <LocaleLinks query={query} />;
+}
+
+function LocaleLinks({ query }: { query?: Query }) {
   const t = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
+  const href = query ? { pathname, query } : pathname;
 
   return (
     <nav aria-label={t("language")} className="flex items-center gap-2 text-sm">
@@ -19,7 +42,7 @@ export function LocaleSwitcher() {
         return (
           <Link
             key={target}
-            href={pathname}
+            href={href}
             locale={target}
             hrefLang={target}
             aria-current={active ? "true" : undefined}

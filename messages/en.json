@@ -1,4 +1,7 @@
 {
+  "metadata": {
+    "description": "Fixed-price EHS consulting for regulated companies in Switzerland."
+  },
   "common": {
     "appName": "SME24",
     "signIn": "Sign in",

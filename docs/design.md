@@ -119,7 +119,7 @@ Beside every area `layout.tsx`: `loading.tsx` renders `PageSkeleton` shaped like
 ## State patterns
 
 - **Loading**: `Skeleton` blocks in the shape of the content, container marked `aria-busy`. Never a blank area.
-- **Empty**: `EmptyState` with an icon, a title, one sentence and at most one action. Used by every empty list or placeholder.
+- **Empty**: `EmptyState` with an icon, a title, one sentence and at most one action. Used by every empty list or placeholder. The title is a paragraph under the page's own `h1`; pass `titleAs="h1"` when the state is the whole page (the forbidden page).
 - **Error**: `ErrorState` with a message, a retry button and a reference id. Report to Sentry before showing it.
 - **Success or progress feedback**: a toast for transient outcomes, an `Alert` for anything the user must still see after a reload.
 - **Validation**: inline under the field, `role="alert"` on the error, control marked `aria-invalid`.

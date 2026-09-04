@@ -13,13 +13,14 @@ const SLOTS = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
 /**
  * The `loading.tsx` body for a signed in area (spec 0003, AC-7): a header, summary tiles and an
- * optional list drawn as skeletons so the page keeps its shape while it streams. Announced once
- * as busy. Server component.
+ * optional list drawn as skeletons so the page keeps its shape while it streams. Marked busy with
+ * a visually hidden label (a live region that mounts with its content announces nothing). Server
+ * component.
  */
 export function PageSkeleton({ tiles = 3, rows = 0 }: PageSkeletonProps) {
   const t = useTranslations("states");
   return (
-    <PageStack aria-busy="true" aria-live="polite">
+    <PageStack aria-busy="true">
       <span className="sr-only">{t("loading")}</span>
       <div className="flex flex-col gap-3">
         <Skeleton className="h-8 w-64" />

@@ -25,7 +25,6 @@ const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = "16rem";
 const SIDEBAR_WIDTH_MOBILE = "18rem";
 const SIDEBAR_WIDTH_ICON = "3rem";
-const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
 type SidebarContextProps = {
   state: "expanded" | "collapsed";
@@ -39,6 +38,7 @@ type SidebarContextProps = {
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 
+/** Reads the sidebar state and toggles from the nearest `SidebarProvider`; throws outside one. Browser. */
 function useSidebar() {
   const context = React.useContext(SidebarContext);
   if (!context) {
@@ -48,6 +48,7 @@ function useSidebar() {
   return context;
 }
 
+/** Holds the open, collapsed and mobile state of the shell sidebar and persists it in a cookie. Browser. */
 function SidebarProvider({
   defaultOpen = true,
   open: openProp,
@@ -78,7 +79,7 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax`;
     },
     [setOpenProp, open],
   );
@@ -88,18 +89,8 @@ function SidebarProvider({
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
   }, [isMobile, setOpen]);
 
-  // Adds a keyboard shortcut to toggle the sidebar.
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar]);
+  // shadcn's global Cmd/Ctrl+B shortcut is left out: it collides with the bookmarks sidebar in
+  // Firefox, and the trigger button and the rail already toggle the sidebar from the keyboard.
 
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
@@ -141,6 +132,7 @@ function SidebarProvider({
   );
 }
 
+/** The sidebar itself: a sheet below `md`, a collapsible panel above; `collapsible="none"` renders a plain column. Browser. */
 function Sidebar({
   side = "left",
   variant = "sidebar",
@@ -253,6 +245,7 @@ function Sidebar({
   );
 }
 
+/** Icon button that toggles the sidebar, labelled through the `ui` messages. Browser. */
 function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar();
   const t = useTranslations("ui");
@@ -276,6 +269,7 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
   );
 }
 
+/** Thin clickable rail on the sidebar edge that toggles it; skipped by the tab order. Browser. */
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   const { toggleSidebar } = useSidebar();
   const t = useTranslations("ui");
@@ -302,6 +296,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   );
 }
 
+/** The `main` region beside the sidebar that holds the page. Browser. */
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
@@ -315,6 +310,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   );
 }
 
+/** An `Input` styled for the sidebar header, for a search box. Browser. */
 function SidebarInput({ className, ...props }: React.ComponentProps<typeof Input>) {
   return (
     <Input
@@ -326,6 +322,7 @@ function SidebarInput({ className, ...props }: React.ComponentProps<typeof Input
   );
 }
 
+/** Top block of the sidebar, usually the brand mark and area name. Browser. */
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -337,6 +334,7 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/** Bottom block of the sidebar, usually the user menu. Browser. */
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -348,6 +346,7 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/** A `Separator` inset to the sidebar padding. Browser. */
 function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof Separator>) {
   return (
     <Separator
@@ -359,6 +358,7 @@ function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof S
   );
 }
 
+/** Scrollable middle of the sidebar that holds the groups. Browser. */
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -373,6 +373,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/** A titled block of menu items inside the content. Browser. */
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -384,6 +385,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/** Heading of a group; fades out when the sidebar collapses to icons. Browser. */
 function SidebarGroupLabel({
   className,
   asChild = false,
@@ -404,6 +406,7 @@ function SidebarGroupLabel({
   );
 }
 
+/** Small action button in the top right of a group, hidden when collapsed. Browser. */
 function SidebarGroupAction({
   className,
   asChild = false,
@@ -424,6 +427,7 @@ function SidebarGroupAction({
   );
 }
 
+/** Wrapper for the items of a group. Browser. */
 function SidebarGroupContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -435,6 +439,7 @@ function SidebarGroupContent({ className, ...props }: React.ComponentProps<"div"
   );
 }
 
+/** The `ul` that lists the items of a group. Browser. */
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -446,6 +451,7 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   );
 }
 
+/** One `li` of a menu; positions its action and badge. Browser. */
 function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
@@ -479,6 +485,7 @@ const sidebarMenuButtonVariants = cva(
   },
 );
 
+/** The item itself, a button or an `asChild` link, with an optional tooltip shown when collapsed. Browser. */
 function SidebarMenuButton({
   asChild = false,
   isActive = false,
@@ -529,6 +536,7 @@ function SidebarMenuButton({
   );
 }
 
+/** Secondary button on the right of an item, optionally shown on hover only. Browser. */
 function SidebarMenuAction({
   className,
   asChild = false,
@@ -555,6 +563,7 @@ function SidebarMenuAction({
   );
 }
 
+/** Count or status chip on the right of an item. Browser. */
 function SidebarMenuBadge({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -569,6 +578,7 @@ function SidebarMenuBadge({ className, ...props }: React.ComponentProps<"div">) 
   );
 }
 
+/** Placeholder row with a random text width for a menu that is still loading. Browser. */
 function SidebarMenuSkeleton({
   className,
   showIcon = false,
@@ -602,6 +612,7 @@ function SidebarMenuSkeleton({
   );
 }
 
+/** Indented `ul` of sub items under an item; hidden when collapsed. Browser. */
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -616,6 +627,7 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   );
 }
 
+/** One `li` of a sub menu. Browser. */
 function SidebarMenuSubItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
@@ -627,6 +639,7 @@ function SidebarMenuSubItem({ className, ...props }: React.ComponentProps<"li">)
   );
 }
 
+/** The link of a sub item, an anchor or an `asChild` link. Browser. */
 function SidebarMenuSubButton({
   asChild = false,
   size = "md",

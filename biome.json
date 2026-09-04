@@ -76,16 +76,45 @@
       }
     },
     {
-      "includes": ["src/components/ui/**"],
+      "includes": ["src/components/ui/sidebar.tsx"],
       "linter": {
         "rules": {
           "suspicious": {
-            "noDocumentCookie": "off",
+            "noDocumentCookie": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/ui/chart.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
             "noArrayIndexKey": "off"
           },
           "security": {
             "noDangerouslySetInnerHtml": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/ui/field.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noArrayIndexKey": "off"
           },
+          "a11y": {
+            "useSemanticElements": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/ui/breadcrumb.tsx"],
+      "linter": {
+        "rules": {
           "a11y": {
             "useFocusableInteractive": "off",
             "useSemanticElements": "off"

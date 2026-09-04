@@ -7,6 +7,8 @@ export type EmptyStateProps = {
   readonly description: string;
   /** At most one action, usually a `Button`. */
   readonly action?: React.ReactNode;
+  /** The title element; `h1` when the state is the whole page (the forbidden page), `p` by default. */
+  readonly titleAs?: "h1" | "h2" | "p";
   readonly className?: string;
 };
 
@@ -14,7 +16,14 @@ export type EmptyStateProps = {
  * What an empty list or a not yet built area shows instead of blank space (spec 0003): icon,
  * title, one sentence, one action. Server component.
  */
-export function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  titleAs: Title = "p",
+  className,
+}: EmptyStateProps) {
   return (
     <div
       data-slot="empty-state"
@@ -30,7 +39,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
         <Icon className="size-5" />
       </span>
       <div className="flex max-w-prose flex-col gap-1">
-        <p className="font-medium text-base">{title}</p>
+        <Title className="font-medium text-base">{title}</Title>
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       {action ? <div className="flex items-center gap-2">{action}</div> : null}

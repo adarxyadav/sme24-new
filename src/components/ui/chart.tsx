@@ -47,6 +47,7 @@ function useChart() {
   return context;
 }
 
+/** Recharts wrapper that scopes the series colors from `config` to one chart and throttles resize driven re-renders. Browser. */
 function ChartContainer({
   id,
   className,
@@ -91,6 +92,7 @@ function ChartContainer({
   );
 }
 
+/** Emits the per chart `--color-<series>` variables for the light and the dark theme. Browser. */
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(([, config]) => config.theme ?? config.color);
 
@@ -120,8 +122,10 @@ ${colorConfig
   );
 };
 
+/** Recharts `Tooltip`, re-exported so charts import everything from here. Browser. */
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+/** Tooltip body that reads labels, icons and colors from the chart config. Browser. */
 function ChartTooltipContent({
   active,
   payload,
@@ -213,7 +217,7 @@ function ChartTooltipContent({
                       !hideIndicator && (
                         <div
                           className={cn(
-                            "shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)",
+                            "shrink-0 rounded-xs border-(--color-border) bg-(--color-bg)",
                             {
                               "h-2.5 w-2.5": indicator === "dot",
                               "w-1": indicator === "line",
@@ -261,8 +265,10 @@ function ChartTooltipContent({
   );
 }
 
+/** Recharts `Legend`, re-exported so charts import everything from here. Browser. */
 const ChartLegend = RechartsPrimitive.Legend;
 
+/** Legend body that reads labels and icons from the chart config and skips hidden series. Browser. */
 function ChartLegendContent({
   className,
   hideIcon = false,
@@ -304,7 +310,7 @@ function ChartLegendContent({
                 <itemConfig.icon />
               ) : (
                 <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
+                  className="h-2 w-2 shrink-0 rounded-xs"
                   style={{
                     backgroundColor: item.color,
                   }}

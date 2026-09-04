@@ -18,9 +18,9 @@ export default async function ForbiddenPage({ params }: PageProps<"/[locale]/for
         tabIndex={-1}
         className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-24 outline-none sm:px-6"
       >
-        <h1 className="font-bold text-2xl tracking-headline">{t("title")}</h1>
         <EmptyState
           icon={ShieldOffIcon}
+          titleAs="h1"
           title={t("title")}
           description={t("body")}
           action={

@@ -11,11 +11,11 @@ import { Example } from "@/components/gallery/gallery-section";
 /** The campaign deck's objects, converted to web sizes under `public/campaign/`. */
 const WALL = [
   { key: "teamevent", src: "/campaign/teamevent.jpg" },
-  { key: "firmenwagen", src: "/campaign/firmenwagen.png" },
+  { key: "firmenwagen", src: "/campaign/firmenwagen.webp" },
   { key: "dresscode", src: "/campaign/dresscode.jpg" },
-  { key: "jahresbonus", src: "/campaign/jahresbonus.jpg" },
+  { key: "jahresbonus", src: "/campaign/jahresbonus.webp" },
   { key: "noCosmetics", src: "/campaign/no-cosmetics.jpg" },
-  { key: "noOverhead", src: "/campaign/no-overhead.jpg" },
+  { key: "noOverhead", src: "/campaign/no-overhead.webp" },
 ] as const;
 
 /**
@@ -39,7 +39,7 @@ export function CampaignSection() {
           <CampaignGrid>
             <CampaignFrame caption={t("contrastLeft")} aspect="portrait" empty />
             <CampaignFrame caption={t("contrastRight")} aspect="portrait">
-              <CampaignImage src="/campaign/philipp.jpg" alt={t("contrastAlt")} />
+              <CampaignImage src="/campaign/philipp.webp" alt={t("contrastAlt")} />
             </CampaignFrame>
           </CampaignGrid>
         </CampaignPiece>
@@ -61,7 +61,7 @@ export function CampaignSection() {
       <Example label={t("strip")}>
         <CampaignPiece statement={t("stripStatement")}>
           <CampaignFrame aspect="landscape" className="max-w-3xl">
-            <CampaignImage src="/campaign/eigene-wege.jpg" alt={t("stripAlt")} />
+            <CampaignImage src="/campaign/eigene-wege.webp" alt={t("stripAlt")} />
           </CampaignFrame>
         </CampaignPiece>
       </Example>

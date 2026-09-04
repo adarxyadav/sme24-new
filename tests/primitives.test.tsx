@@ -69,6 +69,19 @@ describe("EmptyState (spec 0003, AC-7)", () => {
     expect(screen.getByRole("button", { name: "Starten" })).toBeInTheDocument();
     expect(document.querySelector("svg")?.closest("[aria-hidden=true]")).not.toBeNull();
   });
+
+  it("renders the title as a paragraph by default and as the page heading on request", () => {
+    const { unmount } = renderDe(
+      <EmptyState icon={InboxIcon} title="Leer" description="Nichts." />,
+    );
+    expect(screen.queryByRole("heading")).toBeNull();
+    unmount();
+
+    renderDe(
+      <EmptyState icon={InboxIcon} title="Kein Zugriff" description="Nichts." titleAs="h1" />,
+    );
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Kein Zugriff");
+  });
 });
 
 describe("ErrorState (spec 0003, AC-7)", () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { contrastRatio, formatRatio, parseColor } from "@/lib/contrast";
 import { BOUNDARY_MINIMUM, CONTRAST_PAIRS, type ContrastPair } from "@/lib/design-tokens";
@@ -13,21 +13,38 @@ type Measured = { readonly ratio: number; readonly pass: boolean };
  * come from the browser after mount, so the section reflects the active theme. Runs in the browser.
  */
 export function TokensSection() {
+  const theme = useThemeTick();
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {CONTRAST_PAIRS.map((pair) => (
-        <Swatch key={`${pair.foreground}-${pair.background}`} pair={pair} />
+        <Swatch key={`${pair.foreground}-${pair.background}`} pair={pair} theme={theme} />
       ))}
     </ul>
   );
 }
 
-function Swatch({ pair }: { pair: ContrastPair }) {
+/**
+ * A counter that advances whenever the `class` attribute of `html` changes (next-themes toggles
+ * `dark` there), so one observer serves every swatch instead of one per swatch.
+ */
+function useThemeTick() {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const observer = new MutationObserver(() => setTick((value) => value + 1));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return tick;
+}
+
+function Swatch({ pair, theme }: { pair: ContrastPair; theme: number }) {
   const t = useTranslations("gallery.tokens");
   const sample = useRef<HTMLSpanElement>(null);
   const [measured, setMeasured] = useState<Measured | null>(null);
 
-  const measure = useCallback(() => {
+  // Re-measured after mount and on every theme tick: the computed colors change with the theme.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `theme` is the trigger, not an input
+  useEffect(() => {
     const element = sample.current;
     if (!element) return;
     const style = getComputedStyle(element);
@@ -36,14 +53,7 @@ function Swatch({ pair }: { pair: ContrastPair }) {
     if (!foreground || !background) return;
     const ratio = contrastRatio(foreground, background);
     setMeasured({ ratio, pass: ratio >= pair.minimum });
-  }, [pair.minimum]);
-
-  useEffect(() => {
-    measure();
-    const observer = new MutationObserver(measure);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, [measure]);
+  }, [pair.minimum, theme]);
 
   return (
     <li className="flex flex-col gap-2 rounded-lg border p-3">
