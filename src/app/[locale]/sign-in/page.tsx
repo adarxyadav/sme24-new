@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { Wordmark } from "@/components/shell/wordmark";
 import { SkipLink } from "@/components/skip-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -30,9 +30,8 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
       <SkipLink />
       <div className="flex min-h-dvh flex-col">
         <header className="flex h-16 items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 rounded-md font-semibold">
-            <Wordmark />
-            <span>{t("common.appName")}</span>
+          <Link href="/" className="rounded-md">
+            <Logo size="md" />
           </Link>
           <div className="flex items-center gap-2">
             <LocaleSwitcher />
@@ -46,7 +45,7 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
         >
           <Card className="w-full max-w-sm">
             <CardHeader>
-              <CardTitle className="text-2xl">{t("signIn.title")}</CardTitle>
+              <CardTitle className="text-2xl tracking-headline">{t("signIn.title")}</CardTitle>
               <CardDescription>{t("signIn.lead")}</CardDescription>
             </CardHeader>
             <form action={signIn}>

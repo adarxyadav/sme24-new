@@ -3,8 +3,8 @@
 import { MenuIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { Wordmark } from "@/components/shell/wordmark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,9 +30,8 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
   return (
     <header className="border-b bg-background">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 rounded-md font-semibold">
-          <Wordmark />
-          <span>{t("common.appName")}</span>
+        <Link href="/" className="rounded-md">
+          <Logo size="md" />
         </Link>
 
         <nav aria-label={t("shell.mainNavigation")} className="hidden items-center gap-6 md:flex">
@@ -40,7 +39,7 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
             <Link
               key={link.href}
               href={link.href}
-              className="text-muted-foreground text-sm underline-offset-4 hover:text-foreground hover:underline"
+              className="font-medium text-muted-foreground text-sm underline-offset-4 hover:text-foreground hover:underline"
             >
               {link.label}
             </Link>

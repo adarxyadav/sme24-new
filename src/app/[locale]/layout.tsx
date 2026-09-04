@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Urbanist } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -10,12 +10,17 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { routing } from "@/i18n/routing";
 import { AnalyticsProvider } from "@/lib/analytics/client";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+// Urbanist is the one brand typeface (brand guidelines v1.0); Helvetica and Arial are its fallback.
+const urbanist = Urbanist({
+  variable: "--font-urbanist",
+  subsets: ["latin"],
+  fallback: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+});
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: { default: "SME24", template: "%s · SME24" },
-  description: "EHS consulting marketplace for regulated companies in Switzerland.",
+  description: "Fixed-price EHS consulting for regulated companies in Switzerland.",
 };
 
 export function generateStaticParams() {
@@ -31,7 +36,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${urbanist.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-dvh antialiased">

@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { BrandSection } from "@/components/gallery/brand-section";
 import { ButtonsSection } from "@/components/gallery/buttons-section";
 import { ChartsSection } from "@/components/gallery/charts-section";
 import { FeedbackSection } from "@/components/gallery/feedback-section";
@@ -14,6 +15,7 @@ import { PageStack } from "@/components/page-stack";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const SECTIONS = [
+  ["brand", BrandSection],
   ["tokens", TokensSection],
   ["type", TypeSection],
   ["buttons", ButtonsSection],

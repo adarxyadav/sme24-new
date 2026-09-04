@@ -17,8 +17,18 @@ export type ContrastPair = {
   readonly minimum: typeof TEXT_MINIMUM | typeof BOUNDARY_MINIMUM;
 };
 
-/** The surfaces text and controls sit on. */
-export const GROUNDS = ["background", "card", "muted", "sidebar"] as const;
+/** The three brand colors (brand guidelines v1.0, section 04), fixed in both themes. */
+export const BRAND_COLORS = [
+  { name: "Jet Black", hex: "#000000", token: "jet" },
+  { name: "Pure White", hex: "#FFFFFF", token: "pure-white" },
+  { name: "Obsidian Black", hex: "#141414", token: "obsidian" },
+] as const;
+
+/** The surfaces page text and controls sit on. The sidebar is its own ground, see below. */
+export const GROUNDS = ["background", "card", "muted"] as const;
+
+/** The sidebar carries its own text tokens because it is jet black while the page is white. */
+export const SIDEBAR_GROUNDS = ["sidebar", "sidebar-accent"] as const;
 
 /** Status tokens: each has a fill, a `-foreground` for text on the fill and a `-subtle` tint. */
 export const STATUS_TOKENS = ["success", "warning", "info", "destructive"] as const;
@@ -34,8 +44,11 @@ export const SEVERITY_TOKENS = [
 /** Every token with the `x`, `x-foreground`, `x-subtle` shape. */
 export const SEMANTIC_FILLS = [...STATUS_TOKENS, ...SEVERITY_TOKENS] as const;
 
-/** Text tokens that must read on every ground. */
+/** Text tokens that must read on every page ground. */
 const TEXT_ON_GROUNDS = ["foreground", "muted-foreground", "primary"] as const;
+
+/** Text tokens that must read on every sidebar ground. */
+const TEXT_ON_SIDEBAR = ["sidebar-foreground", "sidebar-muted-foreground"] as const;
 
 /** Control boundaries and the focus ring must stand out from every ground at 3:1. */
 const BOUNDARIES_ON_GROUNDS = ["ring", "input"] as const;
@@ -47,7 +60,6 @@ const SURFACE_PAIRS = [
   ["accent-foreground", "accent"],
   ["card-foreground", "card"],
   ["popover-foreground", "popover"],
-  ["sidebar-foreground", "sidebar"],
   ["sidebar-primary-foreground", "sidebar-primary"],
   ["sidebar-accent-foreground", "sidebar-accent"],
 ] as const;
@@ -65,10 +77,10 @@ const boundary = (foreground: string, background: string): ContrastPair => ({
 });
 
 /**
- * The full pair list. Hairline dividers (`--border`) are decorative and are deliberately not in it:
- * WCAG 1.4.11 applies to boundaries that identify a control, which is what `--input` and `--ring`
- * are for. Text on a `-subtle` tint is the fill color itself (`text-success` on
- * `bg-success-subtle`), so that is the pair checked.
+ * The full pair list. Hairline dividers (`--border`, `--sidebar-border`) are decorative and are
+ * deliberately not in it: WCAG 1.4.11 applies to boundaries that identify a control, which is what
+ * `--input` and the rings are for. Text on a `-subtle` tint is the fill color itself
+ * (`text-success` on `bg-success-subtle`), so that is the pair checked.
  */
 export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ...SURFACE_PAIRS.map(([foreground, background]) => text(foreground, background)),
@@ -79,6 +91,8 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ]),
   ...TEXT_ON_GROUNDS.flatMap((token) => GROUNDS.map((ground) => text(token, ground))),
   ...BOUNDARIES_ON_GROUNDS.flatMap((token) => GROUNDS.map((ground) => boundary(token, ground))),
+  ...TEXT_ON_SIDEBAR.flatMap((token) => SIDEBAR_GROUNDS.map((ground) => text(token, ground))),
+  ...SIDEBAR_GROUNDS.map((ground) => boundary("sidebar-ring", ground)),
 ];
 
 /** Chart series tokens in the order the gallery and `ChartContainer` use them. */

@@ -63,7 +63,7 @@ export function PageHeader({
       ) : null}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
-          <h1 className="font-semibold text-2xl tracking-tight">{title}</h1>
+          <h1 className="font-bold text-2xl tracking-headline">{title}</h1>
           {description ? (
             <p className="max-w-prose text-muted-foreground text-sm">{description}</p>
           ) : null}

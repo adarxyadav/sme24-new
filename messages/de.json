@@ -7,6 +7,12 @@
     "german": "Deutsch",
     "english": "English"
   },
+  "brand": {
+    "descriptor": "EHS Consulting",
+    "signature": "Einfach. Anders.",
+    "tagline": "EHS-Beratung zum Fixpreis",
+    "domain": "sme24.ch"
+  },
   "ui": {
     "close": "Schliessen",
     "sidebar": "Navigation",
@@ -26,13 +32,24 @@
     "openMenu": "Menü öffnen",
     "menuDescription": "Sprache, Darstellung und Anmeldung.",
     "mainNavigation": "Hauptnavigation",
-    "role": { "client": "Kundenunternehmen", "expert": "EHS Expertin/Experte", "ops": "Ops Team" }
+    "role": {
+      "client": "Kundenunternehmen",
+      "expert": "EHS Expertin/Experte",
+      "ops": "Ops Team"
+    }
   },
   "nav": {
     "label": "Navigation",
-    "app": { "overview": "Übersicht" },
-    "expert": { "overview": "Übersicht" },
-    "admin": { "overview": "Übersicht", "design": "Design Galerie" }
+    "app": {
+      "overview": "Übersicht"
+    },
+    "expert": {
+      "overview": "Übersicht"
+    },
+    "admin": {
+      "overview": "Übersicht",
+      "design": "Design Galerie"
+    }
   },
   "theme": {
     "label": "Darstellung",
@@ -51,9 +68,25 @@
     }
   },
   "landing": {
-    "title": "SME24 Grundgerüst",
-    "lead": "Die technische Basis läuft: Next.js, Supabase, Trigger.dev, zwei Sprachen. Alles Weitere kommt Funktion für Funktion dazu.",
-    "signInCta": "Zum Login"
+    "eyebrow": "EHS-Beratung zum Fixpreis",
+    "title": "Senior-Experten. Keine Slides. Nur Resultate.",
+    "lead": "Ein benchmarktes Risikoprofil, eine Shortlist erfahrener Expertinnen und Experten und ein Fixpreis-Angebot, bevor Sie sich festlegen.",
+    "signInCta": "Anmelden",
+    "pointsLabel": "Warum SME24",
+    "points": {
+      "price": {
+        "title": "Fixpreis.",
+        "body": "Kein Verhandeln, keine Überraschungen auf der Rechnung."
+      },
+      "negotiation": {
+        "title": "Kein Projekt-Setup.",
+        "body": "Vier Schritte. Keine Kickoff-Folien."
+      },
+      "kickoff": {
+        "title": "Start in derselben Woche.",
+        "body": "Benchmark sehen, Expertin wählen, loslegen."
+      }
+    }
   },
   "signIn": {
     "title": "Anmelden",
@@ -85,7 +118,10 @@
         "description": "Zugewiesene Prüfungen und Berichte erscheinen hier, sobald die ersten Kundenunternehmen an Bord sind."
       }
     },
-    "admin": { "title": "Ops Admin", "body": "Interner Bereich für das Betriebsteam." },
+    "admin": {
+      "title": "Ops Admin",
+      "body": "Interner Bereich für das Betriebsteam."
+    },
     "signedInAs": "Angemeldet als {email} ({role})"
   },
   "scaffold": {
@@ -100,7 +136,12 @@
     "emptyTitle": "Noch keine Läufe",
     "live": "Echtzeit",
     "polling": "Abfrage",
-    "columns": { "message": "Nachricht", "status": "Status", "run": "Lauf", "time": "Zeit" },
+    "columns": {
+      "message": "Nachricht",
+      "status": "Status",
+      "run": "Lauf",
+      "time": "Zeit"
+    },
     "result": {
       "taskQueued": "Job eingereiht: {runId}",
       "taskUnavailable": "Trigger.dev ist nicht konfiguriert (TRIGGER_SECRET_KEY fehlt).",
@@ -115,13 +156,17 @@
     "description": "Jedes Grundelement in jedem Zustand. Hier prüfen wir Tastatur, Fokus, Screenreader und Kontrast in Hell und Dunkel.",
     "sectionsNav": "Abschnitte",
     "sections": {
+      "brand": {
+        "title": "Marke",
+        "description": "Zeichen, Lockups, Palette und die Kampagnensprache: Statement mit eckigem Punkt, Inversfläche und Signatur."
+      },
       "tokens": {
         "title": "Farben und Kontrast",
         "description": "Jedes garantierte Farbpaar mit dem live gemessenen Kontrastverhältnis im aktiven Theme."
       },
       "type": {
         "title": "Schrift",
-        "description": "Geist Sans für Text und Titel, Geist Mono für Kennungen, Tabellenziffern für Zahlen."
+        "description": "Urbanist in fünf Rollen (Display, Headline, Subhead, Body, Caption), Geist Mono für Kennungen, Tabellenziffern für Zahlen."
       },
       "buttons": {
         "title": "Buttons und Badges",
@@ -152,11 +197,42 @@
         "description": "Recharts auf den Diagrammfarben. Tooltip und Legende folgen dem Theme."
       }
     },
-    "tokens": { "on": "auf", "minimum": "Minimum {ratio}" },
+    "tokens": {
+      "on": "auf",
+      "minimum": "Minimum {ratio}"
+    },
+    "brand": {
+      "variants": "Freigegebene Varianten",
+      "variant": {
+        "bareOnWhite": "Bare · Schwarz auf Weiss",
+        "bareOnJet": "Bare · Weiss auf Jet",
+        "badgeOnWhite": "Badge · Schwarz auf Weiss",
+        "badgeOnObsidian": "Badge · Weiss auf Obsidian"
+      },
+      "lockups": "Lockups (primär bare, alternativ Badge, klein)",
+      "palette": "Palette · Weiss 60 % · Jet 30 % · Obsidian 10 %",
+      "statement": "Statement mit eckigem Punkt",
+      "statementText": "Weniger sagen. Mehr meinen.",
+      "inverse": "Inversfläche (className=\"dark\")",
+      "eyebrowText": "Vier Schritte",
+      "inverseText": "Fixpreis. Kein Verhandeln. Start in derselben Woche.",
+      "inverseBody": "Jede Komponente funktioniert auf der Jet-Fläche, weil der Block die Tokens für seinen Teilbaum umstellt.",
+      "signature": "Signatur",
+      "rules": "Regeln",
+      "rule": {
+        "clearSpace": "Schutzraum: 30 px auf jeder Seite, bei jeder Grösse.",
+        "minimum": "Mindestgrösse: 80 px Breite, darunter geht die Klarheit verloren.",
+        "noRecolor": "Nie umfärben: nur Schwarz auf Weiss oder Weiss auf Jet/Obsidian.",
+        "noEffects": "Keine Effekte, Schatten, Drehungen oder Verzerrungen.",
+        "noRedraw": "Wortmarke nie neu zeichnen; die Datei aus dem Asset-Kit ersetzt den Pfad in brand-mark.tsx."
+      }
+    },
     "type": {
-      "display": "Sicherheit, die man belegen kann.",
-      "heading": "Bewertung Arbeitssicherheit 2026",
-      "body": "SME24 verbindet regulierte Unternehmen in der Schweiz mit geprüften EHS Expertinnen und Experten. Jede Lücke wird benannt, priorisiert und mit einem Programm geschlossen."
+      "display": "Operative Exzellenz",
+      "headline": "Risiko, Innovation, Transformation",
+      "subhead": "Senior-Experten auf Abruf",
+      "body": "Massgeschneiderte, sachliche Lösungen für Organisationen, die nachhaltig wachsen wollen.",
+      "caption": "EHS-Beratung zum Fixpreis · sme24.ch"
     },
     "buttons": {
       "variants": "Varianten",
@@ -176,7 +252,12 @@
         "destructive": "Löschen",
         "link": "Link"
       },
-      "size": { "xs": "Extra klein", "sm": "Klein", "default": "Standard", "lg": "Gross" },
+      "size": {
+        "xs": "Extra klein",
+        "sm": "Klein",
+        "default": "Standard",
+        "lg": "Gross"
+      },
       "badge": {
         "default": "Standard",
         "secondary": "Sekundär",
@@ -198,7 +279,11 @@
       "canton": "Kanton",
       "cantonPlaceholder": "Kanton wählen",
       "plan": "Paket",
-      "plans": { "starter": "Starter", "growth": "Wachstum", "enterprise": "Enterprise" },
+      "plans": {
+        "starter": "Starter",
+        "growth": "Wachstum",
+        "enterprise": "Enterprise"
+      },
       "message": "Nachricht",
       "notify": "Über neue Befunde benachrichtigen",
       "consent": "Ich akzeptiere die Nutzungsbedingungen.",
@@ -266,7 +351,10 @@
     "feedback": {
       "alerts": "Hinweise",
       "alert": {
-        "default": { "title": "Hinweis", "description": "Ein neutraler Hinweis ohne Farbe." },
+        "default": {
+          "title": "Hinweis",
+          "description": "Ein neutraler Hinweis ohne Farbe."
+        },
         "info": {
           "title": "Information",
           "description": "Die Vorschriften wurden im August aktualisiert."
@@ -294,9 +382,16 @@
       "separatorA": "Zürich",
       "separatorB": "Bern",
       "breadcrumb": "Pfad",
-      "crumbs": { "root": "Ops Admin", "companies": "Unternehmen" },
+      "crumbs": {
+        "root": "Ops Admin",
+        "companies": "Unternehmen"
+      },
       "tabs": "Tabs",
-      "tab": { "overview": "Übersicht", "findings": "Befunde", "history": "Verlauf" },
+      "tab": {
+        "overview": "Übersicht",
+        "findings": "Befunde",
+        "history": "Verlauf"
+      },
       "tabBody": {
         "overview": "Zusammenfassung der Bewertung.",
         "findings": "Alle Befunde nach Schweregrad.",
@@ -325,7 +420,14 @@
       "line": "Liniendiagramm",
       "assessments": "Bewertungen",
       "findings": "Offene Befunde",
-      "months": { "m1": "Jan", "m2": "Feb", "m3": "Mär", "m4": "Apr", "m5": "Mai", "m6": "Jun" }
+      "months": {
+        "m1": "Jan",
+        "m2": "Feb",
+        "m3": "Mär",
+        "m4": "Apr",
+        "m5": "Mai",
+        "m6": "Jun"
+      }
     }
   }
 }

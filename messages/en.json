@@ -7,6 +7,12 @@
     "german": "Deutsch",
     "english": "English"
   },
+  "brand": {
+    "descriptor": "EHS Consulting",
+    "signature": "Just. Different.",
+    "tagline": "Fixed-price EHS consulting",
+    "domain": "sme24.ch"
+  },
   "ui": {
     "close": "Close",
     "sidebar": "Navigation",
@@ -26,13 +32,24 @@
     "openMenu": "Open menu",
     "menuDescription": "Language, appearance and sign in.",
     "mainNavigation": "Main navigation",
-    "role": { "client": "Client company", "expert": "EHS expert", "ops": "Ops team" }
+    "role": {
+      "client": "Client company",
+      "expert": "EHS expert",
+      "ops": "Ops team"
+    }
   },
   "nav": {
     "label": "Navigation",
-    "app": { "overview": "Overview" },
-    "expert": { "overview": "Overview" },
-    "admin": { "overview": "Overview", "design": "Design gallery" }
+    "app": {
+      "overview": "Overview"
+    },
+    "expert": {
+      "overview": "Overview"
+    },
+    "admin": {
+      "overview": "Overview",
+      "design": "Design gallery"
+    }
   },
   "theme": {
     "label": "Appearance",
@@ -51,9 +68,25 @@
     }
   },
   "landing": {
-    "title": "SME24 scaffold",
-    "lead": "The technical base is running: Next.js, Supabase, Trigger.dev, two languages. Everything else arrives feature by feature.",
-    "signInCta": "Go to sign in"
+    "eyebrow": "Fixed-price EHS consulting",
+    "title": "Senior experts. No slides. Just results.",
+    "lead": "A benchmarked risk profile, a ranked shortlist of senior experts and a fixed-price proposal, before you commit.",
+    "signInCta": "Sign in",
+    "pointsLabel": "Why SME24",
+    "points": {
+      "price": {
+        "title": "Fixed price.",
+        "body": "No negotiation, no surprises on the invoice."
+      },
+      "negotiation": {
+        "title": "No project setup.",
+        "body": "Four steps. No kickoff slides."
+      },
+      "kickoff": {
+        "title": "Kick off the same week.",
+        "body": "See your benchmark, pick your expert, start."
+      }
+    }
   },
   "signIn": {
     "title": "Sign in",
@@ -85,7 +118,10 @@
         "description": "Assigned reviews and reports appear here once the first client companies are on board."
       }
     },
-    "admin": { "title": "Ops admin", "body": "Internal area for the operations team." },
+    "admin": {
+      "title": "Ops admin",
+      "body": "Internal area for the operations team."
+    },
     "signedInAs": "Signed in as {email} ({role})"
   },
   "scaffold": {
@@ -100,7 +136,12 @@
     "emptyTitle": "No runs yet",
     "live": "realtime",
     "polling": "polling",
-    "columns": { "message": "Message", "status": "Status", "run": "Run", "time": "Time" },
+    "columns": {
+      "message": "Message",
+      "status": "Status",
+      "run": "Run",
+      "time": "Time"
+    },
     "result": {
       "taskQueued": "Task queued: {runId}",
       "taskUnavailable": "Trigger.dev is not configured (TRIGGER_SECRET_KEY missing).",
@@ -115,13 +156,17 @@
     "description": "Every primitive in every state. This is where keyboard, focus, screen reader and contrast are checked in light and dark.",
     "sectionsNav": "Sections",
     "sections": {
+      "brand": {
+        "title": "Brand",
+        "description": "Mark, lockups, palette and the campaign language: statement with the square stop, inverse block and signature."
+      },
       "tokens": {
         "title": "Color and contrast",
         "description": "Every guaranteed color pair with its contrast ratio measured live in the active theme."
       },
       "type": {
         "title": "Type",
-        "description": "Geist Sans for text and headings, Geist Mono for identifiers, tabular figures for numbers."
+        "description": "Urbanist in five roles (display, headline, subhead, body, caption), Geist Mono for identifiers, tabular figures for numbers."
       },
       "buttons": {
         "title": "Buttons and badges",
@@ -152,11 +197,42 @@
         "description": "Recharts on the chart tokens. Tooltip and legend follow the theme."
       }
     },
-    "tokens": { "on": "on", "minimum": "Minimum {ratio}" },
+    "tokens": {
+      "on": "on",
+      "minimum": "Minimum {ratio}"
+    },
+    "brand": {
+      "variants": "Approved variants",
+      "variant": {
+        "bareOnWhite": "Bare · black on white",
+        "bareOnJet": "Bare · white on jet",
+        "badgeOnWhite": "Badge · black on white",
+        "badgeOnObsidian": "Badge · white on obsidian"
+      },
+      "lockups": "Lockups (primary bare, alternate badge, small)",
+      "palette": "Palette · white 60% · jet 30% · obsidian 10%",
+      "statement": "Statement with the square stop",
+      "statementText": "Say less. Mean more.",
+      "inverse": "Inverse block (className=\"dark\")",
+      "eyebrowText": "Four steps",
+      "inverseText": "Fixed price. No negotiation. Kick off the same week.",
+      "inverseBody": "Every component works on the jet ground because the block switches the tokens for its subtree.",
+      "signature": "Signature",
+      "rules": "Rules",
+      "rule": {
+        "clearSpace": "Clear space: 30 px on each side, at every reproduction size.",
+        "minimum": "Minimum size: 80 px wide, below that clarity is lost.",
+        "noRecolor": "Never recolor: black on white or white on jet/obsidian only.",
+        "noEffects": "No effects, shadows, rotation or distortion.",
+        "noRedraw": "Never redraw the wordmark; the asset kit file replaces the path in brand-mark.tsx."
+      }
+    },
     "type": {
-      "display": "Safety you can prove.",
-      "heading": "Occupational safety assessment 2026",
-      "body": "SME24 connects regulated companies in Switzerland with vetted EHS experts. Every gap is named, prioritized and closed with a program."
+      "display": "Operational excellence",
+      "headline": "Risk, innovation, transformation",
+      "subhead": "Senior experts, on demand",
+      "body": "Tailored, no-nonsense solutions for organizations pursuing sustainable growth.",
+      "caption": "Fixed-price EHS consulting · sme24.ch"
     },
     "buttons": {
       "variants": "Variants",
@@ -176,7 +252,12 @@
         "destructive": "Delete",
         "link": "Link"
       },
-      "size": { "xs": "Extra small", "sm": "Small", "default": "Default", "lg": "Large" },
+      "size": {
+        "xs": "Extra small",
+        "sm": "Small",
+        "default": "Default",
+        "lg": "Large"
+      },
       "badge": {
         "default": "Default",
         "secondary": "Secondary",
@@ -198,7 +279,11 @@
       "canton": "Canton",
       "cantonPlaceholder": "Choose a canton",
       "plan": "Plan",
-      "plans": { "starter": "Starter", "growth": "Growth", "enterprise": "Enterprise" },
+      "plans": {
+        "starter": "Starter",
+        "growth": "Growth",
+        "enterprise": "Enterprise"
+      },
       "message": "Message",
       "notify": "Notify me about new findings",
       "consent": "I accept the terms of use.",
@@ -266,17 +351,26 @@
     "feedback": {
       "alerts": "Alerts",
       "alert": {
-        "default": { "title": "Notice", "description": "A neutral notice without color." },
+        "default": {
+          "title": "Notice",
+          "description": "A neutral notice without color."
+        },
         "info": {
           "title": "Information",
           "description": "The regulations were updated in August."
         },
-        "success": { "title": "Completed", "description": "The report was approved and sent." },
+        "success": {
+          "title": "Completed",
+          "description": "The report was approved and sent."
+        },
         "warning": {
           "title": "Needs attention",
           "description": "Two findings have been overdue for 30 days."
         },
-        "destructive": { "title": "Error", "description": "The upload could not be saved." }
+        "destructive": {
+          "title": "Error",
+          "description": "The upload could not be saved."
+        }
       },
       "card": "Card",
       "cardTitle": "Compliance rate",
@@ -288,9 +382,16 @@
       "separatorA": "Zurich",
       "separatorB": "Bern",
       "breadcrumb": "Breadcrumb",
-      "crumbs": { "root": "Ops admin", "companies": "Companies" },
+      "crumbs": {
+        "root": "Ops admin",
+        "companies": "Companies"
+      },
       "tabs": "Tabs",
-      "tab": { "overview": "Overview", "findings": "Findings", "history": "History" },
+      "tab": {
+        "overview": "Overview",
+        "findings": "Findings",
+        "history": "History"
+      },
       "tabBody": {
         "overview": "Summary of the assessment.",
         "findings": "All findings by severity.",
@@ -319,7 +420,14 @@
       "line": "Line chart",
       "assessments": "Assessments",
       "findings": "Open findings",
-      "months": { "m1": "Jan", "m2": "Feb", "m3": "Mar", "m4": "Apr", "m5": "May", "m6": "Jun" }
+      "months": {
+        "m1": "Jan",
+        "m2": "Feb",
+        "m3": "Mar",
+        "m4": "Apr",
+        "m5": "May",
+        "m6": "Jun"
+      }
     }
   }
 }

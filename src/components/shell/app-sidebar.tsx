@@ -3,9 +3,9 @@
 import { ChevronsUpDownIcon, LogOutIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRef } from "react";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { LocaleMenuItems } from "@/components/shell/locale-menu-items";
 import { AREA_NAV, isNavItemActive } from "@/components/shell/nav";
-import { Wordmark } from "@/components/shell/wordmark";
 import { ThemeSubmenu } from "@/components/theme-toggle";
 import {
   DropdownMenu,
@@ -66,10 +66,12 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tooltip={t("common.appName")}>
               <Link href={items[0]?.href ?? "/"}>
-                <Wordmark />
+                <BrandMark className="h-7 w-8" />
                 <span className="flex flex-col leading-tight">
-                  <span className="font-semibold">{t("common.appName")}</span>
-                  <span className="text-muted-foreground text-xs">{t(`areas.${area}.title`)}</span>
+                  <span className="font-extrabold tracking-display">{t("common.appName")}</span>
+                  <span className="text-sidebar-muted-foreground text-xs">
+                    {t(`areas.${area}.title`)}
+                  </span>
                 </span>
               </Link>
             </SidebarMenuButton>
@@ -116,13 +118,15 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
                 >
                   <span
                     aria-hidden="true"
-                    className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-primary font-medium text-sidebar-primary-foreground text-xs"
+                    className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-primary font-semibold text-sidebar-primary-foreground text-xs"
                   >
                     {initials(email)}
                   </span>
                   <span className="flex min-w-0 flex-col leading-tight">
                     <span className="truncate font-medium text-sm">{email}</span>
-                    <span className="truncate text-muted-foreground text-xs">{roleLabel}</span>
+                    <span className="truncate text-sidebar-muted-foreground text-xs">
+                      {roleLabel}
+                    </span>
                   </span>
                   <ChevronsUpDownIcon aria-hidden="true" className="ml-auto" />
                 </SidebarMenuButton>

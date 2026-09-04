@@ -10,7 +10,7 @@ export function GallerySection({ id, title, description, children }: GallerySect
   return (
     <section id={id} aria-labelledby={`${id}-heading`} className="flex scroll-mt-20 flex-col gap-6">
       <div className="flex flex-col gap-1">
-        <h2 id={`${id}-heading`} className="font-semibold text-lg">
+        <h2 id={`${id}-heading`} className="font-bold text-lg tracking-headline">
           {title}
         </h2>
         <p className="max-w-prose text-muted-foreground text-sm">{description}</p>

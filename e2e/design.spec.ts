@@ -19,7 +19,7 @@ async function forceTheme(page: Page, theme: "light" | "dark") {
 
 for (const theme of ["light", "dark"] as const) {
   for (const locale of ["de", "en"] as const) {
-    test(`gallery in ${theme} / ${locale}: Geist body font, theme class, no WCAG 2.2 AA violations (AC-2, AC-3, AC-10)`, async ({
+    test(`gallery in ${theme} / ${locale}: Urbanist body font, theme class, no WCAG 2.2 AA violations (AC-2, AC-3, AC-10)`, async ({
       page,
     }) => {
       await forceTheme(page, theme);
@@ -33,7 +33,7 @@ for (const theme of ["light", "dark"] as const) {
       expect(await html.evaluate((el) => getComputedStyle(el).colorScheme)).toBe(theme);
 
       const fontFamily = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
-      expect(fontFamily.replace(/^["']/, "")).toMatch(/^Geist/);
+      expect(fontFamily.replace(/^["']/, "")).toMatch(/^Urbanist/);
 
       // Recharts draws SVG text axe cannot judge; the spec checks charts by eye in the gallery.
       const results = await new AxeBuilder({ page })

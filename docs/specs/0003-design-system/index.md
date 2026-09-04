@@ -208,12 +208,25 @@ Ordered as Tracer Bullet slices: the first slice threads tokens, theme and the g
 - Number, date and CHF formatting are deliberately left to feature 5; the tokens only make the figures align.
 - `docs/design.md` becomes the design source of truth that `/develop` reads for every UI feature; a change in direction updates it and this spec together.
 
+## Amendment 2026-09-04: brand identity
+
+The SME24 Brand Identity Guidelines v1.0 and the campaign decks ("SME24. Einfach. Anders." / "SME24. Just. Different.") arrived after this spec was accepted and supersede the direction, palette and typeface above. Recorded here for `/architect`; `docs/design.md` is updated in full.
+
+- **Direction**: "authoritative, industrial, minimalist, high contrast" replaces "Swiss precision" with a teal accent. There is no accent hue; status and severity hues stay as functional colors.
+- **Palette**: Jet Black `#000000`, Pure White `#FFFFFF`, Obsidian Black `#141414` (white 60, jet 30, obsidian 10). Light theme: white page, jet sidebar. Dark theme: jet page, obsidian cards, popovers and sidebar. `--primary` and `--ring` are jet on white and white on jet. Chart series are monochrome first (ink, mid gray, light gray) then slate blue and amber. The neutral hue tint (220) is gone; all grays are `oklch(L 0 0)`. New tokens: `--sidebar-muted-foreground` and the brand constants `--color-jet`, `--color-pure-white`, `--color-obsidian`.
+- **Typeface (AC-2 changes)**: Urbanist replaces Geist Sans for all text; Geist Mono stays for identifiers. The Playwright assertion expects the computed `body` font to start with `Urbanist`. The brand hierarchy replaces the app scale weights: Display 800 −3% (`text-display-*` now carry weight and tracking), Headline 700 −2% (`tracking-headline`), Subhead 600, Body 400, Caption 500 caps (`eyebrow` utility, `tracking-caps`), plus `tracking-lockup` (+34%) for the descriptor.
+- **Radius**: `0.125rem` instead of `0.375rem`, matching the block forms of the mark.
+- **Contrast pairs**: `sidebar` leaves the shared grounds; the sidebar gets its own text pairs (`sidebar-foreground`, `sidebar-muted-foreground` on `sidebar` and `sidebar-accent`) and `sidebar-ring` at 3:1.
+- **New primitives** in `src/components/brand/`: `BrandMark` (bare, badge, keyline; traced path, to be replaced by the asset kit file), `Logo` (lockup in the guide's proportions, replaces `Wordmark`), `Statement` with `SquareStop` (campaign sentences with the square full stop), `Signature` (campaign sign-off), the inverse block pattern (`className="dark"` on a section) and `src/app/icon.svg` (replaces `favicon.ico`). The gallery gains a Brand section; the landing hero and the marketing footer use them.
+- **Messages**: new `brand` namespace (`descriptor`, `signature`, `tagline`, `domain`), `landing` rewritten in the brand voice, `gallery.brand` and `gallery.type` extended.
+- **Follow-up for `/architect`**: fold this amendment into `## Feature design` (token table, typography, direction) and `## Decision`; decide whether the marketing site (feature 13) adopts the campaign format (one object, one statement, the signature) as its section pattern.
+
 ## Follow-up
 
 - [ ] Feature 5 (localization): decide number, date and CHF formatting; the tabular figure rule here assumes it.
 - [ ] Feature 13 (marketing site): the hero and section patterns compose from `MarketingHeader`, the display scale and the tokens; add marketing specific blocks there, not here.
 - [ ] Feature 18 (gap report): pick a server side chart rendering path for PDF and email, since Recharts is client only.
-- [ ] Replace the text wordmark with a real logo in the reserved `<svg>` slot once brand assets exist; tokens do not change.
+- [ ] Replace the traced path in `src/components/brand/brand-mark.tsx` with the SVG from the brand asset kit (service@sme24.ch); nothing else changes.
 - [ ] Forced colors mode (Windows high contrast) is not tested automatically; check the gallery by hand once and note any component that loses its borders.
 - [ ] After merge, `/sync` records in root `AGENTS.md`: `docs/design.md` as the design reference, the rule that new primitives land with a gallery section, and the three new dependencies.
 - [ ] `next-themes`, `recharts` and `ask-sonner` conventions are installed but not yet in root `AGENTS.md` `## Agent skills`; they apply to every UI feature and belong at root level, with `defi-naly/skillbank@shadcn-charts` and `laguagu/claude-code-nextjs-skills@nextjs-shadcn` on the `Declined:` line.

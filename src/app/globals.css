@@ -4,16 +4,22 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design tokens (spec 0003). Colors are oklch so lightness steps are perceptually even. The
- * contrast gate in tests/contrast.test.ts reads the :root and .dark blocks below and fails the
- * build when a pair listed in src/lib/design-tokens.ts drops under its threshold. Nudge a value if
- * you must, keep the hue, and let the test decide.
+ * Design tokens (spec 0003, brand amendment 2026-09-04). The palette is the SME24 brand: Jet Black
+ * #000000, Pure White #FFFFFF and Obsidian Black #141414, written as oklch so lightness steps stay
+ * perceptually even. Status and severity hues are functional colors outside the brand palette and
+ * always sit next to a label or icon. The contrast gate in tests/contrast.test.ts reads the :root
+ * and .dark blocks below and fails the build when a pair listed in src/lib/design-tokens.ts drops
+ * under its threshold. Nudge a value if you must and let the test decide.
+ *
+ * Inverse block: a section with `className="dark bg-background text-foreground"` renders on the
+ * jet black ground in both themes (the brand's 30% jet), and every component inside keeps working
+ * because the `.dark` block redefines the tokens for its subtree.
  */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-urbanist), "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -22,6 +28,7 @@
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
   --color-chart-5: var(--chart-5);
@@ -77,35 +84,62 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Marketing display scale (spec 0003): used only under (marketing). */
+/*
+ * Brand constants and the type scale (brand guidelines v1.0). The three brand colors are fixed in
+ * both themes: use them only where the brand guide fixes the ground (logo variants, the campaign
+ * signature); everything else goes through the semantic tokens above.
+ */
 @theme {
-  --text-display-lg: 3.5rem;
-  --text-display-lg--line-height: 1.05;
-  --text-display-lg--letter-spacing: -0.02em;
-  --text-display: 2.75rem;
-  --text-display--line-height: 1.1;
-  --text-display--letter-spacing: -0.02em;
-  --text-display-sm: 2.25rem;
-  --text-display-sm--line-height: 1.15;
-  --text-display-sm--letter-spacing: -0.015em;
+  --color-jet: oklch(0 0 0);
+  --color-obsidian: oklch(0.19 0 0);
+  --color-pure-white: oklch(1 0 0);
+
+  /* Display · 800 · −3% tracking. Marketing statements and the wordmark. */
+  --text-display-lg: 4.5rem;
+  --text-display-lg--line-height: 1;
+  --text-display-lg--letter-spacing: -0.03em;
+  --text-display-lg--font-weight: 800;
+  --text-display: 3.5rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+  --text-display-sm: 2.5rem;
+  --text-display-sm--line-height: 1.08;
+  --text-display-sm--letter-spacing: -0.03em;
+  --text-display-sm--font-weight: 800;
+
+  /* Tracking: headline −2%, captions and the lockup descriptor tracked wide in caps. */
+  --tracking-display: -0.03em;
+  --tracking-headline: -0.02em;
+  --tracking-caps: 0.18em;
+  --tracking-lockup: 0.34em;
+}
+
+/* Caption · 500 · caps: eyebrows, lockup descriptors, section labels. Pair with a color utility. */
+@utility eyebrow {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
 }
 
 :root {
   color-scheme: light;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.18 0.004 220);
+  --foreground: oklch(0 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.004 220);
+  --card-foreground: oklch(0 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.004 220);
-  --primary: oklch(0.48 0.09 185);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.004 220);
-  --secondary-foreground: oklch(0.18 0.004 220);
-  --muted: oklch(0.965 0.003 220);
-  --muted-foreground: oklch(0.5 0.01 220);
-  --accent: oklch(0.955 0.004 220);
-  --accent-foreground: oklch(0.18 0.004 220);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.955 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.955 0 0);
+  --accent-foreground: oklch(0 0 0);
   --destructive: oklch(0.55 0.22 27);
   --destructive-foreground: oklch(0.99 0 0);
   --destructive-subtle: color-mix(in oklch, var(--destructive) 12%, var(--background));
@@ -130,40 +164,42 @@
   --severity-low: oklch(0.5 0.13 150);
   --severity-low-foreground: oklch(0.99 0 0);
   --severity-low-subtle: color-mix(in oklch, var(--severity-low) 12%, var(--background));
-  --border: oklch(0.9 0.004 220);
-  --input: oklch(0.62 0.01 220);
-  --ring: oklch(0.55 0.1 185);
-  --chart-1: oklch(0.48 0.09 185);
-  --chart-2: oklch(0.52 0.1 250);
-  --chart-3: oklch(0.7 0.14 75);
-  --chart-4: oklch(0.5 0.12 320);
-  --chart-5: oklch(0.6 0.01 220);
-  --radius: 0.375rem;
-  --sidebar: oklch(0.985 0.003 220);
-  --sidebar-foreground: oklch(0.18 0.004 220);
-  --sidebar-primary: oklch(0.48 0.09 185);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.945 0.004 220);
-  --sidebar-accent-foreground: oklch(0.18 0.004 220);
-  --sidebar-border: oklch(0.9 0.004 220);
-  --sidebar-ring: oklch(0.55 0.1 185);
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.6 0 0);
+  --ring: oklch(0 0 0);
+  --chart-1: oklch(0 0 0);
+  --chart-2: oklch(0.55 0 0);
+  --chart-3: oklch(0.78 0 0);
+  --chart-4: oklch(0.52 0.12 250);
+  --chart-5: oklch(0.7 0.14 75);
+  --radius: 0.125rem;
+  /* The sidebar is jet black in the light theme: the brand's 30% jet beside a white page. */
+  --sidebar: oklch(0 0 0);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-muted-foreground: oklch(0.72 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.25 0 0);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 15%);
+  --sidebar-ring: oklch(1 0 0);
 }
 
 .dark {
   color-scheme: dark;
-  --background: oklch(0.16 0.004 220);
+  --background: oklch(0 0 0);
   --foreground: oklch(0.97 0 0);
-  --card: oklch(0.21 0.004 220);
+  --card: oklch(0.19 0 0);
   --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.21 0.004 220);
+  --popover: oklch(0.19 0 0);
   --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.74 0.1 185);
-  --primary-foreground: oklch(0.16 0.02 185);
-  --secondary: oklch(0.27 0.004 220);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.27 0 0);
   --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.26 0.004 220);
-  --muted-foreground: oklch(0.72 0.01 220);
-  --accent: oklch(0.27 0.004 220);
+  --muted: oklch(0.25 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.27 0 0);
   --accent-foreground: oklch(0.97 0 0);
   --destructive: oklch(0.7 0.19 22);
   --destructive-foreground: oklch(0.16 0 0);
@@ -189,22 +225,24 @@
   --severity-low: oklch(0.76 0.14 150);
   --severity-low-foreground: oklch(0.16 0 0);
   --severity-low-subtle: color-mix(in oklch, var(--severity-low) 12%, var(--background));
-  --border: oklch(1 0 0 / 12%);
-  --input: oklch(0.56 0.01 220);
-  --ring: oklch(0.74 0.1 185);
-  --chart-1: oklch(0.74 0.1 185);
-  --chart-2: oklch(0.76 0.11 250);
-  --chart-3: oklch(0.82 0.14 80);
-  --chart-4: oklch(0.74 0.12 320);
-  --chart-5: oklch(0.72 0.01 220);
-  --sidebar: oklch(0.19 0.004 220);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(0.56 0 0);
+  --ring: oklch(1 0 0);
+  --chart-1: oklch(1 0 0);
+  --chart-2: oklch(0.7 0 0);
+  --chart-3: oklch(0.45 0 0);
+  --chart-4: oklch(0.76 0.11 250);
+  --chart-5: oklch(0.8 0.15 75);
+  /* Obsidian surfaces on a jet page: cards, popovers and the sidebar share the 10% obsidian. */
+  --sidebar: oklch(0.19 0 0);
   --sidebar-foreground: oklch(0.97 0 0);
-  --sidebar-primary: oklch(0.74 0.1 185);
-  --sidebar-primary-foreground: oklch(0.16 0.02 185);
-  --sidebar-accent: oklch(0.27 0.004 220);
+  --sidebar-muted-foreground: oklch(0.72 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.28 0 0);
   --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.74 0.1 185);
+  --sidebar-border: oklch(1 0 0 / 14%);
+  --sidebar-ring: oklch(1 0 0);
 }
 
 @layer base {
