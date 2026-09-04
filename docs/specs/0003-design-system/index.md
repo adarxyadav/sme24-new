@@ -246,6 +246,17 @@ Found by `/check verify`: the installed forms primitive is shadcn `Field` (`src/
 
 - **Follow-up for `/architect`**: replace `Form` with `Field` in **AC-8** and the Forms row, and confirm **AC-6** counts the `Field` family as the installed base set.
 
+## Amendment 2026-09-04: hairlines leave the contrast gate, chart series join it
+
+Found by `/check review`: **AC-1** and the first key invariant name `--border` among the pairs that must reach 3:1, but the built gate (`src/lib/design-tokens.ts`) checks `--input` and `--ring` instead, and `docs/design.md` calls `border` the decorative hairline. Measured, the hairline sits at 1.3:1 on the page in both themes, so the contract as written cannot pass. Decision, on the reviewer's recommendation: the code and `design.md` are right and the contract changes.
+
+- **Hairlines are decorative.** `--border` and `--sidebar-border` draw dividers and card edges; no control is identified by them (every control is outlined by `--input` and focused by `--ring`, and tables carry their structure in markup). WCAG 2.2 SC 1.4.11 (non text contrast) applies to the visual boundary needed to identify a control and to graphics needed to understand content, so a divider that only separates is outside it. A hairline at 3:1 would be a heavy mid gray line (about `oklch(0.66 0 0)` on white) and would end the hairline look the brand guidelines ask for.
+- **AC-1, amended clause**: "... and fails below 4.5:1, except the `--input`, `--ring` and `--sidebar-ring` boundary pairs and the `--chart-1` to `--chart-5` series pairs, which must reach 3:1 (the WCAG tier for non text elements). `--border` and `--sidebar-border` are decorative hairlines and are not in the pair list."
+- **Key invariant, amended**: "Every color pair listed in the contrast test meets 4.5:1 (text) or 3:1 (control boundaries, the focus ring, chart series) in both themes; the test is the gate. Hairline dividers are decorative and outside it."
+- **Chart series join the gate.** Bars and lines carry information, so 1.4.11 applies to them; `--chart-1` to `--chart-5` are now checked at 3:1 on `--background`, `--card` and `--muted` in both themes (they were checked for existence only). The values that failed moved along the gray axis with the hue unchanged: light `--chart-2` `oklch(0.45 0 0)`, `--chart-3` `oklch(0.62 0 0)` and `--chart-5` `oklch(0.62 0.14 75)`; dark `--chart-3` `oklch(0.58 0 0)`.
+- **Consequence**: a hairline that must be perceived on its own (a table whose rows are told apart only by lines, a gridline that carries a value) is a design question to raise, not a token to darken; give it markup or a label instead.
+- **Follow-up for `/architect`**: fold the amended clause into **AC-1** and the invariant, and drop `--border` from the "Contrast pairs" paragraph of `## Feature design`.
+
 ## Follow-up
 
 - [ ] Feature 5 (localization): decide number, date and CHF formatting; the tabular figure rule here assumes it.
