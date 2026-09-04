@@ -7,6 +7,49 @@
     "german": "Deutsch",
     "english": "English"
   },
+  "ui": {
+    "close": "Close",
+    "sidebar": "Navigation",
+    "sidebarDescription": "Shows the navigation of this area.",
+    "toggleSidebar": "Show or hide the navigation",
+    "breadcrumb": "Breadcrumb",
+    "pagination": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "previousPage": "Go to the previous page",
+    "nextPage": "Go to the next page",
+    "morePages": "More pages"
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "userMenu": "User menu",
+    "openMenu": "Open menu",
+    "menuDescription": "Language, appearance and sign in.",
+    "mainNavigation": "Main navigation",
+    "role": { "client": "Client company", "expert": "EHS expert", "ops": "Ops team" }
+  },
+  "nav": {
+    "label": "Navigation",
+    "app": { "overview": "Overview" },
+    "expert": { "overview": "Overview" },
+    "admin": { "overview": "Overview", "design": "Design gallery" }
+  },
+  "theme": {
+    "label": "Appearance",
+    "toggle": "Change appearance",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "states": {
+    "loading": "Loading",
+    "error": {
+      "title": "Something went wrong",
+      "description": "The page could not be loaded. Try again. If the error stays, quote the reference to support.",
+      "retry": "Try again",
+      "reference": "Reference: {id}"
+    }
+  },
   "landing": {
     "title": "SME24 scaffold",
     "lead": "The technical base is running: Next.js, Supabase, Trigger.dev, two languages. Everything else arrives feature by feature.",
@@ -14,6 +57,7 @@
   },
   "signIn": {
     "title": "Sign in",
+    "lead": "Sign in with your work email.",
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
@@ -25,8 +69,22 @@
     "back": "Back to the start page"
   },
   "areas": {
-    "app": { "title": "Client area", "body": "The dashboard for client companies grows here." },
-    "expert": { "title": "Expert area", "body": "The workspace for EHS experts grows here." },
+    "app": {
+      "title": "Client area",
+      "body": "The dashboard for client companies grows here.",
+      "empty": {
+        "title": "Nothing here yet",
+        "description": "Your assessments, KPIs and programs appear here once the first features are switched on."
+      }
+    },
+    "expert": {
+      "title": "Expert area",
+      "body": "The workspace for EHS experts grows here.",
+      "empty": {
+        "title": "No assignments yet",
+        "description": "Assigned reviews and reports appear here once the first client companies are on board."
+      }
+    },
     "admin": { "title": "Ops admin", "body": "Internal area for the operations team." },
     "signedInAs": "Signed in as {email} ({role})"
   },
@@ -39,6 +97,9 @@
     "posthogEvent": "Send test event to PostHog",
     "checksTitle": "Latest task runs",
     "empty": "No runs yet. Run a background task.",
+    "emptyTitle": "No runs yet",
+    "live": "realtime",
+    "polling": "polling",
     "columns": { "message": "Message", "status": "Status", "run": "Run", "time": "Time" },
     "result": {
       "taskQueued": "Task queued: {runId}",
@@ -47,6 +108,218 @@
       "sentryUnavailable": "Sentry is not configured (SENTRY_DSN missing).",
       "posthogSent": "Test event sent to PostHog.",
       "posthogUnavailable": "PostHog is not configured (NEXT_PUBLIC_POSTHOG_KEY missing)."
+    }
+  },
+  "gallery": {
+    "title": "Design gallery",
+    "description": "Every primitive in every state. This is where keyboard, focus, screen reader and contrast are checked in light and dark.",
+    "sectionsNav": "Sections",
+    "sections": {
+      "tokens": {
+        "title": "Color and contrast",
+        "description": "Every guaranteed color pair with its contrast ratio measured live in the active theme."
+      },
+      "type": {
+        "title": "Type",
+        "description": "Geist Sans for text and headings, Geist Mono for identifiers, tabular figures for numbers."
+      },
+      "buttons": {
+        "title": "Buttons and badges",
+        "description": "Every variant and size, with icon, disabled, plus status and severity badges."
+      },
+      "forms": {
+        "title": "Forms",
+        "description": "React Hook Form with Zod. Errors sit under the field and are linked to it."
+      },
+      "table": {
+        "title": "Tables",
+        "description": "Default and compact density. Only table cells may truncate, and only with the full text in a tooltip."
+      },
+      "overlays": {
+        "title": "Overlays",
+        "description": "Dialog, sheet, menu, popover and tooltip. Focus is trapped and returned."
+      },
+      "feedback": {
+        "title": "Feedback and structure",
+        "description": "Alerts, progress, separator, breadcrumb, tabs, pagination and a card."
+      },
+      "states": {
+        "title": "States",
+        "description": "Loading, empty, error and toasts that every page reuses."
+      },
+      "charts": {
+        "title": "Charts",
+        "description": "Recharts on the chart tokens. Tooltip and legend follow the theme."
+      }
+    },
+    "tokens": { "on": "on", "minimum": "Minimum {ratio}" },
+    "type": {
+      "display": "Safety you can prove.",
+      "heading": "Occupational safety assessment 2026",
+      "body": "SME24 connects regulated companies in Switzerland with vetted EHS experts. Every gap is named, prioritized and closed with a program."
+    },
+    "buttons": {
+      "variants": "Variants",
+      "sizes": "Sizes",
+      "withIcon": "With icon",
+      "badges": "Status badges",
+      "levels": "Severity badges",
+      "disabled": "Disabled",
+      "create": "Create",
+      "export": "Export",
+      "settings": "Settings",
+      "variant": {
+        "default": "Primary",
+        "secondary": "Secondary",
+        "outline": "Outline",
+        "ghost": "Ghost",
+        "destructive": "Delete",
+        "link": "Link"
+      },
+      "size": { "xs": "Extra small", "sm": "Small", "default": "Default", "lg": "Large" },
+      "badge": {
+        "default": "Default",
+        "secondary": "Secondary",
+        "outline": "Outline",
+        "success": "Completed",
+        "warning": "Needs attention",
+        "info": "Notice",
+        "destructive": "Error",
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "forms": {
+      "company": "Company",
+      "email": "Email",
+      "emailHint": "We only write to work addresses.",
+      "canton": "Canton",
+      "cantonPlaceholder": "Choose a canton",
+      "plan": "Plan",
+      "plans": { "starter": "Starter", "growth": "Growth", "enterprise": "Enterprise" },
+      "message": "Message",
+      "notify": "Notify me about new findings",
+      "consent": "I accept the terms of use.",
+      "submit": "Submit",
+      "reset": "Reset",
+      "submitted": "Form is valid, thank you.",
+      "invalidExample": "Invalid field",
+      "disabledExample": "Disabled field",
+      "disabledHint": "This value comes from the commercial register.",
+      "disabledCheckbox": "Disabled choice",
+      "errors": {
+        "companyShort": "Please enter at least 2 characters.",
+        "emailInvalid": "Please enter a valid email address.",
+        "cantonRequired": "Please choose a canton.",
+        "planRequired": "Please choose a plan.",
+        "messageLong": "At most 200 characters.",
+        "consentRequired": "Please accept the terms of use."
+      }
+    },
+    "table": {
+      "default": "Default density",
+      "compact": "Compact (density=\"compact\")",
+      "longText": "Occupational safety audit report with 14 open findings, follow up agreed for the third quarter",
+      "columns": {
+        "company": "Company",
+        "canton": "Canton",
+        "kpi": "KPI (CHF)",
+        "level": "Severity",
+        "note": "Note"
+      }
+    },
+    "overlays": {
+      "label": "Every overlay with a trigger",
+      "cancel": "Cancel",
+      "close": "Close",
+      "dialog": {
+        "open": "Open dialog",
+        "title": "Delete this assessment?",
+        "description": "The assessment and all its findings are removed for good. This cannot be undone.",
+        "confirm": "Delete"
+      },
+      "sheet": {
+        "open": "Open sheet",
+        "title": "Filters",
+        "description": "Narrow the list by canton, industry and status.",
+        "body": "Filter fields appear here."
+      },
+      "menu": {
+        "open": "Open menu",
+        "label": "Actions",
+        "edit": "Edit",
+        "duplicate": "Duplicate",
+        "delete": "Delete"
+      },
+      "popover": {
+        "open": "Open popover",
+        "title": "What is a KPI?",
+        "description": "A KPI measures one aspect of safety performance, for example accidents per 1000 employees."
+      },
+      "tooltip": {
+        "label": "Learn more",
+        "text": "Tooltips explain an icon or show truncated text."
+      }
+    },
+    "feedback": {
+      "alerts": "Alerts",
+      "alert": {
+        "default": { "title": "Notice", "description": "A neutral notice without color." },
+        "info": {
+          "title": "Information",
+          "description": "The regulations were updated in August."
+        },
+        "success": { "title": "Completed", "description": "The report was approved and sent." },
+        "warning": {
+          "title": "Needs attention",
+          "description": "Two findings have been overdue for 30 days."
+        },
+        "destructive": { "title": "Error", "description": "The upload could not be saved." }
+      },
+      "card": "Card",
+      "cardTitle": "Compliance rate",
+      "cardDescription": "All sites, current quarter",
+      "cardAction": "Details",
+      "cardFooter": "Updated 2 hours ago",
+      "progressLabel": "Compliance rate",
+      "separator": "Separator",
+      "separatorA": "Zurich",
+      "separatorB": "Bern",
+      "breadcrumb": "Breadcrumb",
+      "crumbs": { "root": "Ops admin", "companies": "Companies" },
+      "tabs": "Tabs",
+      "tab": { "overview": "Overview", "findings": "Findings", "history": "History" },
+      "tabBody": {
+        "overview": "Summary of the assessment.",
+        "findings": "All findings by severity.",
+        "history": "Earlier assessments and actions."
+      },
+      "pagination": "Pagination"
+    },
+    "states": {
+      "skeleton": "Loading (skeleton)",
+      "empty": "Empty",
+      "emptyAction": "Start the first assessment",
+      "error": "Error",
+      "retried": "Retried.",
+      "toasts": "Toasts",
+      "toast": {
+        "successButton": "Show success",
+        "success": "Report saved.",
+        "infoButton": "Show info",
+        "info": "The review keeps running in the background.",
+        "errorButton": "Show error",
+        "error": "Saving failed. Please try again."
+      }
+    },
+    "charts": {
+      "bar": "Bar chart",
+      "line": "Line chart",
+      "assessments": "Assessments",
+      "findings": "Open findings",
+      "months": { "m1": "Jan", "m2": "Feb", "m3": "Mar", "m4": "Apr", "m5": "May", "m6": "Jun" }
     }
   }
 }
