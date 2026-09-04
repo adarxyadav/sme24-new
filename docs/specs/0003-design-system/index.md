@@ -222,6 +222,15 @@ The SME24 Brand Identity Guidelines v1.0 and the campaign decks ("SME24. Einfach
 - **Messages**: new `brand` namespace (`descriptor`, `signature`, `tagline`, `domain`), `landing` rewritten in the brand voice, `gallery.brand` and `gallery.type` extended.
 - **Follow-up for `/architect`**: fold this amendment into `## Feature design` (token table, typography, direction) and `## Decision`; decide whether the marketing site (feature 13) adopts the campaign format (one object, one statement, the signature) as its section pattern.
 
+## Amendment 2026-09-04: Geist as the brand face
+
+Owner decision, same day: Geist Sans stays the brand face and Urbanist is dropped. This supersedes the typeface bullet of the amendment above; everything else in it stands.
+
+- **Typeface (AC-2)**: Geist Sans for all text (`--font-geist-sans`, fallback Helvetica and Arial), Geist Mono for identifiers. The brand hierarchy (Display 800 −3%, Headline 700 −2%, Subhead 600, Body 400, Caption 500 caps, `tracking-lockup`) is unchanged and now set in Geist. The Playwright assertion expects the computed `body` font to start with `Geist` and not `Geist Mono`.
+- **Why**: the Geist pair is cleaner and reads as one system with the monospace face; Urbanist added a second vendor family for no gain in voice.
+- **Brand guidelines**: v1.0 names Urbanist. The guidelines diverge from the product until they are revised; `docs/design.md` is the source of truth for the app.
+- **Follow-up for `/architect`**: fold this into `### Typography` together with the amendment above.
+
 ## Follow-up
 
 - [ ] Feature 5 (localization): decide number, date and CHF formatting; the tabular figure rule here assumes it.

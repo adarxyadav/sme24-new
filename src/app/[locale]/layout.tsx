@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Urbanist } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -10,9 +10,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { routing } from "@/i18n/routing";
 import { AnalyticsProvider } from "@/lib/analytics/client";
 
-// Urbanist is the one brand typeface (brand guidelines v1.0); Helvetica and Arial are its fallback.
-const urbanist = Urbanist({
-  variable: "--font-urbanist",
+// Geist is the one brand typeface (spec 0003, amendment of 2026-09-04); Helvetica and Arial are its fallback.
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
   fallback: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
 });
@@ -36,7 +36,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   return (
     <html
       lang={locale}
-      className={`${urbanist.variable} ${geistMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-dvh antialiased">

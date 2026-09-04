@@ -24,7 +24,7 @@ The mark, the lockup and the campaign language live in `src/components/brand/` a
 | Element | Component | Rules |
 |---|---|---|
 | Mark | `BrandMark` (`variant="bare" \| "badge" \| "keyline"`) | Draws in `currentColor`; the badge knocks the mark out of the circle, so the four approved variants are pure `text-*` and `bg-*` choices: black on white (`text-jet` on `bg-pure-white`), white on jet, badge black on white, badge white on obsidian. Decorative (`aria-hidden`) unless you pass `title`. Never recolored, stretched, rotated, shadowed or placed on a busy ground. Keep 30px clear space and never render under 80px wide as a standalone badge; in lockups and the sidebar it sits next to the visible name. |
-| Lockup | `Logo` (`variant`, `size="sm" \| "md" \| "lg"`, `descriptor`) | Mark plus the wordmark "SME24" in Urbanist 800 with display tracking; `descriptor` adds "EHS CONSULTING" tracked at `tracking-lockup`. Primary lockup is bare, alternate is the badge. Used in the marketing header and sign in (`size="md"`); the sidebar shows the bare mark beside the name. |
+| Lockup | `Logo` (`variant`, `size="sm" \| "md" \| "lg"`, `descriptor`) | Mark plus the wordmark "SME24" in Geist 800 with display tracking; `descriptor` adds "EHS CONSULTING" tracked at `tracking-lockup`. Primary lockup is bare, alternate is the badge. Used in the marketing header and sign in (`size="md"`); the sidebar shows the bare mark beside the name. |
 | Statement | `Statement` (`text`, `as`) | Campaign copy: each sentence on its own line, closed by the square stop (`SquareStop`, a solid square on the baseline with an `sr-only` period). Pair with `text-display-*` or a headline size. "Senior experts. No slides. Just results." |
 | Signature | `Signature` | The badge beside "SME24. Einfach. Anders." / "SME24. Just. Different." (`brand.signature`). Closes marketing pages and campaign blocks. |
 | Inverse block | `className="dark bg-background text-foreground"` on a section | The jet black ground in both themes (the brand's 30% jet). The `.dark` token block applies to the subtree, so every component inside keeps working. The landing hero is one. |
@@ -39,7 +39,7 @@ The mark path in `brand-mark.tsx` is traced from the guidelines; the official fi
 
 ## Type
 
-One typeface: Urbanist (Google Fonts, self hosted through `next/font` in `src/app/[locale]/layout.tsx`, fallback Helvetica and Arial) for everything, Geist Mono for identifiers, run ids and code. The variables sit on `html`, so `font-sans` applies everywhere.
+One typeface: Geist (Google Fonts, self hosted through `next/font` in `src/app/[locale]/layout.tsx`, fallback Helvetica and Arial) for everything, Geist Mono for identifiers, run ids and code. The variables sit on `html`, so `font-sans` applies everywhere.
 
 | Role (brand hierarchy) | Classes |
 |---|---|

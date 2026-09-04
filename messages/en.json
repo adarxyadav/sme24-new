@@ -170,7 +170,7 @@
       },
       "type": {
         "title": "Type",
-        "description": "Urbanist in five roles (display, headline, subhead, body, caption), Geist Mono for identifiers, tabular figures for numbers."
+        "description": "Geist in five roles (display, headline, subhead, body, caption), Geist Mono for identifiers, tabular figures for numbers."
       },
       "buttons": {
         "title": "Buttons and badges",

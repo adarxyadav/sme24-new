@@ -2,7 +2,7 @@ import { useTranslations } from "next-intl";
 import { Example } from "@/components/gallery/gallery-section";
 
 /**
- * The type hierarchy (brand guidelines, section 03; spec 0003, AC-2): Urbanist in five roles,
+ * The type hierarchy (brand guidelines, section 03; spec 0003, AC-2): Geist in five roles,
  * Geist Mono for identifiers, tabular figures for numbers. Server.
  */
 export function TypeSection() {
