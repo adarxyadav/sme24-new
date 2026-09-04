@@ -3,7 +3,23 @@
 -- and ops read (spec 0002 AC-3, AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(24);
+
+-- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
+-- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
+-- left rows behind.
+do $$
+begin
+  if exists (select 1 from public.organizations
+             where id not in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'))
+     or exists (select 1 from public.companies)
+     or exists (select 1 from public.company_kpis)
+     or exists (select 1 from public.research_runs)
+     or exists (select 1 from public.kpi_definitions) then
+    raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
+  end if;
+end $$;
+
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -133,6 +149,17 @@ select throws_ok(
   '42501', null, 'a member cannot name another organization''s company under their own organization');
 select lives_ok($$ update public.company_kpis set value = 2.4 where id = '0f000000-0000-4000-8000-000000000002' $$,
   'a member updates their client row');
+-- The row's identity never moves. Without this the update policy would let a member repoint
+-- company_id at another organization's company, leaving organization_id and company_id
+-- disagreeing: no read leak today, but any later join from company to KPI would make it one.
+select throws_ok(
+  $$ update public.company_kpis set company_id = '0c000000-0000-4000-8000-00000000000b'
+     where id = '0f000000-0000-4000-8000-000000000002' $$,
+  '23514', null, 'a member cannot repoint their client row at another organization''s company');
+select throws_ok(
+  $$ update public.company_kpis set organization_id = '0b000000-0000-4000-8000-000000000000'
+     where id = '0f000000-0000-4000-8000-000000000002' $$,
+  '23514', null, 'a member cannot move their client row to another organization');
 select is(pg_temp.affected($$ update public.company_kpis set value = 0 where id = '0f000000-0000-4000-8000-000000000001' $$), 0::bigint,
   'a member cannot update a research row (zero rows)');
 select is(pg_temp.affected($$ delete from public.company_kpis where id = '0f000000-0000-4000-8000-000000000001' $$), 0::bigint,

@@ -6,7 +6,7 @@ create table public.companies (
   organization_id uuid not null references public.organizations (id) on delete cascade,
   name text not null,
   legal_name text null,
-  uid text null,
+  uid text null check (uid ~ '^CHE-[0-9]{3}\.[0-9]{3}\.[0-9]{3}$'),
   website text null,
   industry_code text null,
   employees_count integer null check (employees_count >= 0),
@@ -19,7 +19,7 @@ create table public.companies (
 );
 
 comment on table public.companies is 'An assessed company inside an organization.';
-comment on column public.companies.uid is 'The Swiss company identifier (CHE-…).';
+comment on column public.companies.uid is 'The Swiss company identifier, formatted CHE-123.456.789.';
 comment on column public.companies.industry_code is 'NOGA industry code.';
 
 create index companies_organization_id_created_at_idx on public.companies (organization_id, created_at desc);
@@ -67,3 +67,8 @@ create trigger companies_set_updated_at
 create trigger companies_audit
   after insert or update or delete on public.companies
   for each row execute function private.audit_row();
+
+-- TRUNCATE walks around RLS and fires no row trigger, so it would wipe every tenant at once
+-- and leave nothing in the audit log. Supabase's default privileges hand it to all three app
+-- roles at creation, so every table revokes it explicitly.
+revoke truncate on public.companies from anon, authenticated, service_role;

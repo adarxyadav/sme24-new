@@ -122,3 +122,8 @@ create trigger on_auth_user_created
 create trigger profiles_audit
   after insert or update or delete on public.profiles
   for each row execute function private.audit_row();
+
+-- TRUNCATE walks around RLS and fires no row trigger, so it would wipe every tenant at once
+-- and leave nothing in the audit log. Supabase's default privileges hand it to all three app
+-- roles at creation, so every table revokes it explicitly.
+revoke truncate on public.profiles from anon, authenticated, service_role;

@@ -95,3 +95,9 @@ create trigger research_runs_set_updated_at
 create trigger research_runs_audit
   after insert or update or delete on public.research_runs
   for each row execute function private.audit_row();
+
+-- TRUNCATE walks around RLS and fires no row trigger, so it would wipe every tenant at once and
+-- leave nothing in the audit log; Supabase's default privileges hand it to all three app roles
+-- at creation. DELETE is deliberately left alone: no policy grants it, so RLS already filters it
+-- to zero rows, and revoking the verb would turn that into a hard error instead.
+revoke truncate on public.research_runs from anon, authenticated, service_role;

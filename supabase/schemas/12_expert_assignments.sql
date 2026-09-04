@@ -61,7 +61,7 @@ begin
     new.ended_at := coalesce(new.ended_at, now());
     return new;
   end if;
-  raise exception 'invalid expert_assignments transition % -> %', old.status, new.status
+  raise exception 'invalid expert_assignments transition % -> % on %', old.status, new.status, old.id
     using errcode = 'check_violation';
 end;
 $$;
@@ -79,3 +79,8 @@ create trigger expert_assignments_set_updated_at
 create trigger expert_assignments_audit
   after insert or update or delete on public.expert_assignments
   for each row execute function private.audit_row();
+
+-- TRUNCATE walks around RLS and fires no row trigger, so it would wipe every tenant at once
+-- and leave nothing in the audit log. Supabase's default privileges hand it to all three app
+-- roles at creation, so every table revokes it explicitly.
+revoke truncate on public.expert_assignments from anon, authenticated, service_role;

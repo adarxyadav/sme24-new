@@ -44,3 +44,8 @@ create policy "kpi_definitions: ops update"
 create trigger kpi_definitions_set_updated_at
   before update on public.kpi_definitions
   for each row execute function public.set_updated_at();
+
+-- TRUNCATE walks around RLS and fires no row trigger, so it would wipe the catalogue and leave
+-- nothing in the audit log; Supabase's default privileges hand it to all three app roles at
+-- creation. DELETE is left to RLS, which already filters it: no policy allows one.
+revoke truncate on public.kpi_definitions from anon, authenticated, service_role;

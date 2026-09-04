@@ -4,9 +4,17 @@
 -- (kind I audit_log, kind G kpi_definitions, the spec 0001 scaffold table, kind U profiles).
 -- Sanity counts sit next to each catalog sweep so an empty result can never pass by accident
 -- (spec 0002 AC-1, AC-3, AC-5, AC-10).
+--
+-- What this file checks: structure (RLS on, audit trigger, organization_id shape, search_path,
+-- security_invoker views, realtime membership, grants) and, in the policy section, that every
+-- tenant table carries policies whose expressions actually name the tenant. The policy checks are
+-- text level over pg_get_expr, so they prove a policy mentions the tenancy predicate, not that it
+-- composes it correctly: a policy naming organization_id in a wrong way still passes here. Per
+-- table behaviour under a real token is what the twelve sibling test files are for; this file
+-- exists so a table that never got a policy at all cannot reach them unnoticed.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(31);
 
 -- Every table in public (regular and partitioned).
 create function pg_temp.public_tables()
@@ -109,14 +117,16 @@ select is_empty(
   'audit_log has no foreign key, so the trail outlives the user and the organization');
 
 -- Functions ------------------------------------------------------------------------------
--- Security definer stays inside private, plus the two public entry points that need it:
--- create_organization (the only insert path for organizations) and handle_new_user (the auth
--- trigger from spec 0001 that writes profiles as supabase_auth_admin).
+-- Security definer stays inside private, plus the three public entry points that need it:
+-- create_organization (the only insert path for organizations), add_organization_member (the only
+-- member facing insert path for memberships, which has to read the target's profile to check they
+-- consented) and handle_new_user (the auth trigger from spec 0001 that writes profiles as
+-- supabase_auth_admin).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('create_organization'::name), ('handle_new_user'::name) $$,
-  'the only security definer functions in public are create_organization and handle_new_user');
+  $$ values ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name) $$,
+  'the only security definer functions in public are the three recorded entry points');
 select is_empty(
   $$ select n.nspname || '.' || p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname in ('private', 'public')
@@ -141,10 +151,24 @@ select is_empty(
        and (c.reloptions is null or not c.reloptions @> array['security_invoker=true']) $$,
   'every view in public runs with security_invoker on, so the caller''s policies apply');
 -- Realtime membership is an explicit decision per table (spec 0001), so this list is by hand.
+-- A new table is not silently in or out: it has to be added here or to realtime_optional below.
 select results_eq(
   $$ select tablename from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' order by 1 $$,
   $$ values ('research_runs'::name), ('scaffold_checks'::name) $$,
   'research_runs and scaffold_checks are the tables in supabase_realtime');
+-- Tables deliberately outside the publication. A table that is on neither list fails, so the
+-- decision is forced rather than defaulted.
+create function pg_temp.realtime_optional()
+returns setof name language sql stable as $$
+  values ('audit_log'::name), ('companies'), ('company_kpis'), ('expert_assignments'),
+         ('kpi_definitions'), ('organization_members'), ('organizations'), ('profiles')
+$$;
+select is_empty(
+  $$ select t from pg_temp.public_tables() t
+     where t not in (select * from pg_temp.realtime_optional())
+       and t not in (select tablename from pg_publication_tables
+                     where pubname = 'supabase_realtime' and schemaname = 'public') $$,
+  'every table records a realtime decision, in the publication or on the recorded exception list');
 select is_empty(
   $$ select t from pg_temp.public_tables() t
      where exists (select 1 from pg_attribute a where a.attrelid = ('public.' || quote_ident(t))::regclass and a.attname = 'updated_at' and not a.attisdropped)
@@ -155,12 +179,73 @@ select is_empty(
            and g.tgtype = 19) $$,
   'every table with an updated_at column has a before update row trigger on set_updated_at');
 
--- Audit log grants -------------------------------------------------------------------------
+-- Grants ------------------------------------------------------------------------------------
 select is_empty(
   $$ select r || ' ' || p from unnest(array['anon', 'authenticated', 'service_role']) r
      cross join unnest(array['INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']) p
      where has_table_privilege(r, 'public.audit_log', p) $$,
   'anon, authenticated and service_role have no insert, update, delete or truncate on audit_log');
+-- TRUNCATE is not filtered by RLS and fires no row trigger, so it would wipe every tenant at once
+-- with nothing in the audit log. Supabase's default privileges grant it on every new table, so
+-- the sweep covers all of public rather than audit_log alone.
+select is_empty(
+  $$ select r || ' ' || t from unnest(array['anon', 'authenticated', 'service_role']) r
+     cross join pg_temp.public_tables() t
+     where has_table_privilege(r, ('public.' || quote_ident(t))::regclass::text, 'TRUNCATE') $$,
+  'no app role holds truncate on any table in public');
+-- The other write verbs are deliberately left to RLS rather than revoked: no policy grants them
+-- to anon, so a write is filtered to zero rows instead of raising, which is the behaviour the per
+-- table suites assert. TRUNCATE is the exception above because RLS cannot filter it at all.
+
+-- Policies -----------------------------------------------------------------------------------
+-- The structural checks above cannot tell a correct policy from `using (true)`, so these read the
+-- policy expressions themselves. A table with RLS on and no policy is invisible rather than leaky,
+-- but it is still a mistake, and it is the shape a half finished slice ships.
+create function pg_temp.tenant_policies()
+returns table (tbl name, polname name, cmd "char", qual text, withcheck text)
+language sql stable as $$
+  select c.relname, p.polname, p.polcmd,
+         pg_get_expr(p.polqual, p.polrelid),
+         pg_get_expr(p.polwithcheck, p.polrelid)
+  from pg_policy p
+  join pg_class c on c.oid = p.polrelid
+  where c.relname in (select * from pg_temp.tenant_tables())
+$$;
+
+select cmp_ok((select count(*) from pg_temp.tenant_policies()), '>=', 15::bigint,
+  'the policy sweep sees the policies of the five kind T tables');
+select is_empty(
+  $$ select t from pg_temp.tenant_tables() t
+     where not exists (select 1 from pg_temp.tenant_policies() p where p.tbl = t) $$,
+  'every kind T table carries at least one policy');
+-- Every tenancy predicate resolves the tenant one of three ways: the organization_id column, the
+-- assigned expert helper, or the ops bypass. A policy naming none of them is not a tenant policy.
+select is_empty(
+  $$ select tbl || '.' || polname from pg_temp.tenant_policies()
+     where coalesce(qual, withcheck) is not null
+       and coalesce(qual, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid'
+       and coalesce(withcheck, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid' $$,
+  'every policy on a kind T table names organization_id, a tenancy helper or auth.uid()');
+-- `using (true)` on a tenant table reads every tenant's rows. kpi_definitions is the recorded
+-- exception (kind G, global reference data) and is not in the tenant sweep.
+select is_empty(
+  $$ select tbl || '.' || polname from pg_temp.tenant_policies()
+     where qual = 'true' or withcheck = 'true' $$,
+  'no policy on a kind T table has a literal true qualifier');
+-- A select policy is where a read leak lives, so every kind T table must have one and it must
+-- filter on the tenant. polcmd 'r' is SELECT, '*' is ALL.
+select is_empty(
+  $$ select t from pg_temp.tenant_tables() t
+     where not exists (
+       select 1 from pg_temp.tenant_policies() p
+       where p.tbl = t and p.cmd in ('r', '*')
+         and p.qual ~ 'organization_id|is_assigned_expert|is_ops') $$,
+  'every kind T table has a select policy filtering on the tenant');
+-- An insert or update policy without a with check writes any row the using clause let through.
+select is_empty(
+  $$ select tbl || '.' || polname from pg_temp.tenant_policies()
+     where cmd in ('a', 'w', '*') and withcheck is null $$,
+  'every insert, update and all policy on a kind T table has a with check');
 
 select * from finish();
 rollback;

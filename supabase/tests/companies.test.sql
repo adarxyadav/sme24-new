@@ -2,7 +2,23 @@
 -- read; ops everything; every write audited (spec 0002 AC-3, AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(18);
+
+-- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
+-- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
+-- left rows behind.
+do $$
+begin
+  if exists (select 1 from public.organizations
+             where id not in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'))
+     or exists (select 1 from public.companies)
+     or exists (select 1 from public.company_kpis)
+     or exists (select 1 from public.research_runs)
+     or exists (select 1 from public.kpi_definitions) then
+    raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
+  end if;
+end $$;
+
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -93,6 +109,11 @@ select lives_ok(
 select throws_ok(
   $$ insert into public.companies (organization_id, name) values ('0b000000-0000-4000-8000-000000000000', 'Intruder') $$,
   '42501', null, 'an insert naming another organization is rejected');
+-- uid is checked the way canton is: the Swiss identifier has one canonical spelling.
+select throws_ok(
+  $$ insert into public.companies (organization_id, name, uid)
+     values ('0a000000-0000-4000-8000-000000000000', 'Malformed', 'CHE123456789') $$,
+  '23514', null, 'a uid that is not CHE-123.456.789 is rejected');
 select lives_ok(
   $$ update public.companies set employees_count = 42 where id = '0c000000-0000-4000-8000-000000000002' $$,
   'a member updates a company of their organization');

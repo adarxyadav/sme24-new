@@ -569,6 +569,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_organization_member: {
+        Args: { organization_id: string; role?: string; user_id: string }
+        Returns: string
+      }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
     }

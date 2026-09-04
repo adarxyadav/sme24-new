@@ -4,6 +4,22 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(14);
 
+-- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
+-- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
+-- left rows behind.
+do $$
+begin
+  if exists (select 1 from public.organizations
+             where id not in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'))
+     or exists (select 1 from public.companies)
+     or exists (select 1 from public.company_kpis)
+     or exists (select 1 from public.research_runs)
+     or exists (select 1 from public.kpi_definitions) then
+    raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
+  end if;
+end $$;
+
+
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
 -- way PostgREST does; `pg_temp.as_postgres()` returns to the superuser between scenarios.

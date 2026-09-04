@@ -3,7 +3,23 @@
 -- (spec 0002 AC-3, AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(26);
+select plan(30);
+
+-- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
+-- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
+-- left rows behind.
+do $$
+begin
+  if exists (select 1 from public.organizations
+             where id not in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'))
+     or exists (select 1 from public.companies)
+     or exists (select 1 from public.company_kpis)
+     or exists (select 1 from public.research_runs)
+     or exists (select 1 from public.kpi_definitions) then
+    raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
+  end if;
+end $$;
+
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -88,7 +104,9 @@ select is(
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
 update public.organizations set name = 'Org A renamed' where id = '0a000000-0000-4000-8000-000000000000';
 update public.profiles set full_name = 'Owner A' where id = 'a0000000-0000-4000-8000-000000000001';
-insert into public.organization_members (organization_id, user_id) values ('0a000000-0000-4000-8000-000000000000', 'a0000000-0000-4000-8000-000000000002');
+-- Owner adds go through the rpc: direct insert is revoked from authenticated so a policy can
+-- never be the only gate on who joins an organization.
+select public.add_organization_member('0a000000-0000-4000-8000-000000000000', 'a0000000-0000-4000-8000-000000000002');
 select is((select count(*) from public.audit_log), 0::bigint, 'a client reads no audit row');
 select throws_ok($$ insert into public.audit_log (actor_role, table_name, row_id, action) values ('client', 'x', '1', 'insert') $$,
   '42501', null, 'a client cannot insert an audit row');
@@ -148,6 +166,14 @@ select throws_ok($$ delete from public.audit_log $$, '42501', null, 'service_rol
 select pg_temp.as_anon();
 select is((select count(*) from public.audit_log), 0::bigint, 'anon reads no audit row');
 select throws_ok($$ delete from public.audit_log $$, '42501', null, 'anon cannot delete audit rows');
+-- TRUNCATE is the one DML verb RLS cannot filter: it ignores policies and fires no row trigger,
+-- so before the revoke a single request wiped every tenant and left the trail showing nothing.
+select throws_ok($$ truncate table public.company_kpis $$, '42501', null, 'anon cannot truncate a tenant table');
+select throws_ok($$ truncate table public.profiles $$, '42501', null, 'anon cannot truncate profiles');
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
+select throws_ok($$ truncate table public.companies $$, '42501', null, 'a client cannot truncate a tenant table');
+select pg_temp.as_service_role();
+select throws_ok($$ truncate table public.organizations $$, '42501', null, 'the service key cannot truncate a tenant table');
 
 select pg_temp.as_postgres();
 select results_eq(

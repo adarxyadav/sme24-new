@@ -2,7 +2,23 @@
 -- user with a current organization (spec 0002 AC-2).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(7);
+select plan(9);
+
+-- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
+-- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
+-- left rows behind.
+do $$
+begin
+  if exists (select 1 from public.organizations
+             where id not in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'))
+     or exists (select 1 from public.companies)
+     or exists (select 1 from public.company_kpis)
+     or exists (select 1 from public.research_runs)
+     or exists (select 1 from public.kpi_definitions) then
+    raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
+  end if;
+end $$;
+
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -85,9 +101,22 @@ select is(pg_temp.hook('e0000000-0000-4000-8000-000000000001') -> 'app_metadata'
 select is(
   pg_temp.hook('c0000000-0000-4000-8000-000000000001', '{"role":"authenticated","app_metadata":{"organization_id":"stale"}}') -> 'app_metadata' ? 'organization_id',
   false, 'a stale organization_id in the incoming app_metadata is stripped');
+-- The hook owns app_metadata.role and app_metadata.organization_id unconditionally. When no
+-- profile row exists it strips both rather than passing the incoming claims through, so a role a
+-- user influenced through raw_app_meta_data at sign up cannot reach the token. Unrelated keys
+-- (provider) are left alone.
 select is(
   pg_temp.hook('ffffffff-ffff-4fff-8fff-ffffffffffff') -> 'app_metadata',
-  '{"provider":"email"}'::jsonb, 'an unknown user id leaves the claims unchanged');
+  '{"provider":"email"}'::jsonb, 'an unknown user id keeps its unrelated claims');
+select is(
+  pg_temp.hook('ffffffff-ffff-4fff-8fff-ffffffffffff',
+    '{"role":"authenticated","app_metadata":{"role":"ops","organization_id":"0a000000-0000-4000-8000-000000000000"}}')
+    -> 'app_metadata',
+  '{}'::jsonb, 'a self supplied role and organization are stripped when there is no profile row');
+select is(
+  pg_temp.hook('a0000000-0000-4000-8000-000000000001',
+    '{"role":"authenticated","app_metadata":{"role":"ops"}}') -> 'app_metadata' ->> 'role',
+  'client', 'a self supplied role never overrides the profile role');
 
 select * from finish();
 rollback;

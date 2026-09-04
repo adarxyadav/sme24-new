@@ -34,8 +34,10 @@ create policy "organizations: members read their organization"
   to authenticated
   using (id = (select private.jwt_org_id()));
 
--- Owners rename their organization. Column narrowing to `name` is by policy intent: the
--- `authenticated` role is shared with ops, so a column grant would restrict ops as well.
+-- Owners rename their organization. Narrowing this to `name` cannot be done in the policy (a
+-- with check that reads organizations recurses) nor with a column grant (the `authenticated`
+-- role is shared with ops, so it would restrict ops too), so the trigger below pins the columns
+-- an owner must not move.
 create policy "organizations: owners update their organization"
   on public.organizations
   for update
@@ -56,6 +58,35 @@ create policy "organizations: ops full access"
   using ((select private.is_ops()))
   with check ((select private.is_ops()));
 
+-- An owner may rename their organization and nothing else. archived_at is the column that
+-- matters: it will mean "closed account" to feature 14, so it is pinned before that feature
+-- exists rather than after. Ops and the service client are unaffected, which is why this is a
+-- trigger keyed on the caller's role rather than a column grant.
+create or replace function private.check_organization_owner_columns()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null or private.is_ops() then
+    return new;
+  end if;
+  if new.archived_at is distinct from old.archived_at
+     or new.created_by is distinct from old.created_by
+     or new.id is distinct from old.id then
+    raise exception 'only name is editable by an owner'
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+revoke execute on function private.check_organization_owner_columns() from public;
+
+create trigger organizations_check_owner_columns
+  before update on public.organizations
+  for each row execute function private.check_organization_owner_columns();
+
 create trigger organizations_set_updated_at
   before update on public.organizations
   for each row execute function public.set_updated_at();
@@ -63,3 +94,8 @@ create trigger organizations_set_updated_at
 create trigger organizations_audit
   after insert or update or delete on public.organizations
   for each row execute function private.audit_row();
+
+-- TRUNCATE walks around RLS and fires no row trigger, so it would wipe every tenant at once
+-- and leave nothing in the audit log. Supabase's default privileges hand it to all three app
+-- roles at creation, so every table revokes it explicitly.
+revoke truncate on public.organizations from anon, authenticated, service_role;

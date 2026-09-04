@@ -7,6 +7,24 @@
 
 create extension if not exists pgcrypto with schema extensions;
 
+-- This file is documented as "apply by hand on staging once, never on prod". Make that
+-- enforceable rather than advisory: refuse when the database already holds a user that is not one
+-- of the four seed accounts, which is what a real environment looks like. `supabase db reset`
+-- runs against an empty database, so the local path is unaffected.
+do $$
+begin
+  if exists (
+    select 1 from auth.users
+    where id not in (
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+      '33333333-3333-4333-8333-333333333333',
+      '44444444-4444-4444-8444-444444444444')
+  ) then
+    raise exception 'refusing to seed: this database already holds non seed users';
+  end if;
+end $$;
+
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,

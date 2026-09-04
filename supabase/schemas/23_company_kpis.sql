@@ -58,6 +58,10 @@ create policy "company_kpis: members insert client rows"
     )
   );
 
+-- The with check repeats the insert policy's company check. Without it company_id is freely
+-- writable inside the row, so a member could repoint a KPI at another organization's company and
+-- leave organization_id and company_id disagreeing; the transition trigger below then pins the
+-- column so it cannot move at all.
 create policy "company_kpis: members update their client rows"
   on public.company_kpis
   for update
@@ -71,6 +75,10 @@ create policy "company_kpis: members update their client rows"
     organization_id = (select private.jwt_org_id())
     and source = 'client'
     and created_by = (select auth.uid())
+    and exists (
+      select 1 from public.companies c
+      where c.id = company_id and c.organization_id = company_kpis.organization_id
+    )
   );
 
 create policy "company_kpis: members delete their client rows"
@@ -96,6 +104,30 @@ create policy "company_kpis: ops full access"
   using ((select private.is_ops()))
   with check ((select private.is_ops()));
 
+-- A KPI row's identity (which organization, which company) never changes for its lifetime, so
+-- the columns are pinned rather than only policed by policy. This closes the same hole for the
+-- service client and ops, whose policies do not carry the company check.
+create or replace function private.check_company_kpi_identity()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.company_id is distinct from old.company_id
+     or new.organization_id is distinct from old.organization_id then
+    raise exception 'company_kpis identity is immutable'
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+revoke execute on function private.check_company_kpi_identity() from public;
+
+create trigger company_kpis_check_identity
+  before update of company_id, organization_id on public.company_kpis
+  for each row execute function private.check_company_kpi_identity();
+
 create trigger company_kpis_set_updated_at
   before update on public.company_kpis
   for each row execute function public.set_updated_at();
@@ -109,8 +141,15 @@ create trigger company_kpis_audit
 create view public.company_kpi_current
 with (security_invoker = true)
 as
-select distinct on (company_id, kpi_key, period_year) *
+select distinct on (company_id, kpi_key, period_year)
+  id, organization_id, company_id, research_run_id, kpi_key, period_year, value, source,
+  confidence, sources, note, created_by, created_at, updated_at
 from public.company_kpis
 order by company_id, kpi_key, period_year, (source = 'client') desc, created_at desc;
 
 comment on view public.company_kpi_current is 'One row per company, KPI and year: the client row when present, else the newest research row.';
+
+-- TRUNCATE walks around RLS and fires no row trigger, so it would wipe every tenant at once
+-- and leave nothing in the audit log. Supabase's default privileges hand it to all three app
+-- roles at creation, so every table revokes it explicitly.
+revoke truncate on public.company_kpis from anon, authenticated, service_role;
