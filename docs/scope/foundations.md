@@ -61,13 +61,13 @@ spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.cs
 ### 5. Localization (German & English) · in-progress
 Two languages from the first screen: routing per language, translated strings, number, date and CHF formatting, and translated content in generated emails and reports. Built now so French and Italian later cost only translation.
 **Done when:** every user facing string is translatable, a visitor can switch between German and English and the URL reflects it, and CHF amounts and dates format per language.
-spec [0004](../specs/0004-localization/index.md) · code in `src/i18n/`, `messages/`, `src/features/localization/`, `src/lib/validation.ts`, `src/proxy.ts`, `supabase/schemas/10_organizations.sql`, `docs/localization.md`
+spec [0004](../specs/0004-localization/index.md) · code in `src/i18n/`, `messages/`, `src/features/localization/`, `src/lib/validation.ts`, `src/proxy.ts`, `supabase/schemas/10_organizations.sql`, `docs/localization.md`, `tests/i18n/`, `e2e/localization.spec.ts`
 - [x] Design it (spec): `/architect localization`
-- [ ] Build it: `/develop localization`
-  - [ ] Locale tags and formats: `de-CH` and `en-CH` behind `/de` and `/en`, the formats module in `Europe/Zurich`, the standalone translator, the missing key handling, one formatted value through the scaffold task and the gallery (AC-1, AC-3, AC-7, AC-12)
-  - [ ] Typed route map, switch persistence and the organisation locale: `pathnames`, the proxy on `getPathname`, the `setLocale` action, `organizations.locale` with its migration and pgTAP (AC-2, AC-9, AC-13)
-  - [ ] Catalog conventions and gates: shared and feature namespaces, the explicit client messages, the literal scan, typed keys, `docs/localization.md`, localised Zod messages (AC-4, AC-5, AC-6, AC-8)
-  - [ ] Language alternates, sitemap and English coverage in Playwright (AC-10, AC-11)
+- [x] Build it: `/develop localization`
+  - [x] Locale tags and formats: `de-CH` and `en-CH` behind `/de` and `/en`, the formats module in `Europe/Zurich`, the standalone translator, the missing key handling, one formatted value through the scaffold task and the gallery (AC-1, AC-3, AC-7, AC-12)
+  - [x] Typed route map, switch persistence and the organisation locale: `pathnames`, the proxy on `getPathname`, the `setLocale` action, `organizations.locale` with its migration and pgTAP (AC-2, AC-9, AC-13)
+  - [x] Catalog conventions and gates: shared and feature namespaces, the explicit client messages, the literal scan, typed keys, `docs/localization.md`, localised Zod messages (AC-4, AC-5, AC-6, AC-8)
+  - [x] Language alternates, sitemap and English coverage in Playwright (AC-10, AC-11)
 - [ ] Verify it: `/check verify localization`
 - [ ] Test it: `/test localization`
 - [ ] Review it (fresh model): `/check review localization`
