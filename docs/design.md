@@ -28,6 +28,10 @@ The mark, the lockup and the campaign language live in `src/components/brand/` a
 | Statement | `Statement` (`text`, `as`) | Campaign copy: each sentence on its own line, closed by the square stop (`SquareStop`, a solid square on the baseline with an `sr-only` period). Pair with `text-display-*` or a headline size. "Senior experts. No slides. Just results." |
 | Signature | `Signature` | The badge beside "SME24. Einfach. Anders." / "SME24. Just. Different." (`brand.signature`). Closes marketing pages and campaign blocks. |
 | Inverse block | `className="dark bg-background text-foreground"` on a section | The jet black ground in both themes (the brand's 30% jet). The `.dark` token block applies to the subtree, so every component inside keeps working. The landing hero is one. |
+| Campaign piece | `CampaignPiece` (`statement`, `subline`, `as`, `signature`) | The campaign format from the decks: one object on pure white, the statement in display size closed by the square stop, an italic parenthetical subline ("(Auch vegan)."), the signature bottom left. Pieces are artifacts and stay white with jet ink in both themes. Without children it is the type only piece ("No slides. Results.") at the larger display size. |
+| Campaign frame | `CampaignFrame` (`caption`, `aspect`, `empty`, `placeholder`) | One object slot, optionally with a caption statement above it ("Graue Haare."; a caption without a period, like "AI", stays bare). `empty` draws the hairlined blank frame of the AI contrast; `placeholder` is for development only and never ships. Put a `CampaignImage` inside: `next/image` filling the frame, `object-contain`, `grayscale` for people and places (imagery rule), objects keep their color. |
+| Campaign grid | `CampaignGrid` (`columns` 2, 3, 4) | Frames side by side: a pair, the contrast, or four panels (two columns wrap to two rows). |
+| Campaign wall | `CampaignWall` | Pieces tiled with hairlines for a marketing section; pass `signature={false}` to the pieces and sign the page once in the footer. |
 | Eyebrow | `eyebrow` utility | Caption · 500 · caps · `tracking-caps`: section labels, descriptors, the footer line. Pair with `text-muted-foreground`. |
 | App icon | `src/app/icon.svg` | The circled badge, black on transparent. |
 
@@ -133,4 +137,5 @@ Nothing truncates except table cells. A truncated cell wraps its text in a `Tool
 - Do keep `className` for layout; don't override a component's colors or type.
 - Do add a gallery section with every new primitive; don't ship one axe never sees.
 - Do write campaign copy as short sentences and let `Statement` set the square stops; don't type the square yourself or end a statement with an exclamation mark.
+- Do build marketing sections from `CampaignPiece`, `CampaignFrame`, `CampaignGrid` and `CampaignWall` with real cut out photography; don't ship a `placeholder` frame.
 - Do use `BrandMark` and `Logo`; don't paste the path elsewhere, recolor the mark or set it on imagery.

@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it } from "vitest";
 import { BrandMark } from "@/components/brand/brand-mark";
+import { CampaignFrame, CampaignGrid, CampaignPiece } from "@/components/brand/campaign";
 import { Logo } from "@/components/brand/logo";
 import { Signature } from "@/components/brand/signature";
 import { Statement, splitSentences } from "@/components/brand/statement";
@@ -19,11 +20,11 @@ function withMessages(ui: React.ReactNode, locale: "de" | "en" = "de") {
 describe("Statement (brand campaign language)", () => {
   it("splits copy into sentences and drops the periods", () => {
     expect(splitSentences("Senior experts. No slides. Just results.")).toEqual([
-      "Senior experts",
-      "No slides",
-      "Just results",
+      { text: "Senior experts", stop: true },
+      { text: "No slides", stop: true },
+      { text: "Just results", stop: true },
     ]);
-    expect(splitSentences("One line")).toEqual(["One line"]);
+    expect(splitSentences("AI")).toEqual([{ text: "AI", stop: false }]);
   });
 
   it("renders one line per sentence with a hidden period so it still reads as prose", () => {
@@ -62,5 +63,36 @@ describe("Logo and Signature", () => {
     expect(screen.getByText(de.brand.signature)).toBeInTheDocument();
     withMessages(<Signature />, "en");
     expect(screen.getByText(en.brand.signature)).toBeInTheDocument();
+  });
+});
+
+describe("Campaign blocks", () => {
+  it("renders statement, subline and the signature on a white piece", () => {
+    const { container } = withMessages(
+      <CampaignPiece statement="Geschäftsessen." subline="(Auch vegan).">
+        <CampaignFrame placeholder="Objekt" />
+      </CampaignPiece>,
+    );
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Geschäftsessen.");
+    expect(screen.getByText("(Auch vegan).")).toBeInTheDocument();
+    expect(screen.getByText(de.brand.signature)).toBeInTheDocument();
+    expect(container.querySelector("[data-slot=campaign-piece]")).toHaveClass("bg-pure-white");
+  });
+
+  it("keeps a bare caption without the square stop and hides empty frames from AT", () => {
+    const { container } = withMessages(
+      <CampaignPiece statement="Results delivered." signature={false}>
+        <CampaignGrid>
+          <CampaignFrame caption="AI" empty />
+          <CampaignFrame caption="Philipp" placeholder="Photo" />
+        </CampaignGrid>
+      </CampaignPiece>,
+    );
+    const captions = screen.getAllByRole("heading", { level: 3 });
+    expect(captions[0]).toHaveTextContent(/^AI$/);
+    expect(
+      container.querySelectorAll("[data-slot=campaign-frame] [aria-hidden='true']"),
+    ).toHaveLength(2);
+    expect(screen.queryByText(de.brand.signature)).not.toBeInTheDocument();
   });
 });

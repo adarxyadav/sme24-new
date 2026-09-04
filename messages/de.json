@@ -160,6 +160,10 @@
         "title": "Marke",
         "description": "Zeichen, Lockups, Palette und die Kampagnensprache: Statement mit eckigem Punkt, Inversfläche und Signatur."
       },
+      "campaign": {
+        "title": "Kampagne",
+        "description": "Das Kampagnenformat als Marketing-Bausteine: ein Objekt auf Weiss, Statement mit eckigem Punkt, Nebenzeile, Signatur. Paar, Kontrast, Vierer-Strip, reines Typo-Stück und die Wand."
+      },
       "tokens": {
         "title": "Farben und Kontrast",
         "description": "Jedes garantierte Farbpaar mit dem live gemessenen Kontrastverhältnis im aktiven Theme."
@@ -226,6 +230,36 @@
         "noEffects": "Keine Effekte, Schatten, Drehungen oder Verzerrungen.",
         "noRedraw": "Wortmarke nie neu zeichnen; die Datei aus dem Asset-Kit ersetzt den Pfad in brand-mark.tsx."
       }
+    },
+    "campaign": {
+      "single": "Einzelstück: Objekt, Statement, Nebenzeile, Signatur",
+      "singleStatement": "Geschäftsessen.",
+      "singleSubline": "(Auch vegan).",
+      "singleObject": "Objekt: Fleischkäse-Brötchen, freigestellt",
+      "contrast": "Kontrast: leerer Rahmen gegen Foto",
+      "contrastStatement": "Resultate geliefert.",
+      "contrastLeft": "KI",
+      "contrastRight": "Philipp",
+      "contrastObject": "Foto: Experte vor Ort, freigestellt",
+      "pair": "Paar: zwei Objekte, ein Statement",
+      "pairStatement": "Unsere SMEs.",
+      "pairLeft": "Graue Haare.",
+      "pairRight": "Keine Haare.",
+      "pairObject": "Porträt, freigestellt",
+      "strip": "Vierer-Strip",
+      "stripStatement": "Kein Kriechen. Eigene Wege.",
+      "panel": "Panel {number}",
+      "type": "Reines Typo-Stück",
+      "typeStatement": "Keine Slides. Resultate.",
+      "wall": "Wand: Stücke mit Haarlinien, eine Signatur pro Seite",
+      "wallOne": "Teamevent.",
+      "wallObjectOne": "Objekt: Bierharass",
+      "wallTwo": "Firmenwagen.",
+      "wallObjectTwo": "Objekt: Rennrad",
+      "wallThree": "Dresscode.",
+      "wallObjectThree": "Objekt: Overall",
+      "wallFour": "Jahresbonus.",
+      "wallObjectFour": "Objekt: Bergweg"
     },
     "type": {
       "display": "Operative Exzellenz",

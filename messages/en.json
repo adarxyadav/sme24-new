@@ -160,6 +160,10 @@
         "title": "Brand",
         "description": "Mark, lockups, palette and the campaign language: statement with the square stop, inverse block and signature."
       },
+      "campaign": {
+        "title": "Campaign",
+        "description": "The campaign format as marketing blocks: one object on white, statement with the square stop, subline, signature. Pair, contrast, four panel strip, type only piece and the wall."
+      },
       "tokens": {
         "title": "Color and contrast",
         "description": "Every guaranteed color pair with its contrast ratio measured live in the active theme."
@@ -226,6 +230,36 @@
         "noEffects": "No effects, shadows, rotation or distortion.",
         "noRedraw": "Never redraw the wordmark; the asset kit file replaces the path in brand-mark.tsx."
       }
+    },
+    "campaign": {
+      "single": "Single piece: object, statement, subline, signature",
+      "singleStatement": "Company dinner.",
+      "singleSubline": "(Vegan too).",
+      "singleObject": "Object: meatloaf roll, cut out",
+      "contrast": "Contrast: empty frame against a photo",
+      "contrastStatement": "Results delivered.",
+      "contrastLeft": "AI",
+      "contrastRight": "Philipp",
+      "contrastObject": "Photo: expert on site, cut out",
+      "pair": "Pair: two objects, one statement",
+      "pairStatement": "Our SMEs.",
+      "pairLeft": "Grey hair.",
+      "pairRight": "No hair.",
+      "pairObject": "Portrait, cut out",
+      "strip": "Four panel strip",
+      "stripStatement": "No crawling. Own ways.",
+      "panel": "Panel {number}",
+      "type": "Type only piece",
+      "typeStatement": "No slides. Results.",
+      "wall": "Wall: pieces with hairlines, one signature per page",
+      "wallOne": "Team event.",
+      "wallObjectOne": "Object: beer crate",
+      "wallTwo": "Company car.",
+      "wallObjectTwo": "Object: road bike",
+      "wallThree": "Dress code.",
+      "wallObjectThree": "Object: coverall",
+      "wallFour": "Annual bonus.",
+      "wallObjectFour": "Object: mountain path"
     },
     "type": {
       "display": "Operational excellence",

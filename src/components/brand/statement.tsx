@@ -1,18 +1,21 @@
 import { cn } from "@/lib/utils";
 
 export type StatementProps = {
-  /** One or more sentences. Each sentence becomes a line that ends in the square stop. */
+  /** One or more sentences. Each becomes a line; a line that ended in "." gets the square stop. */
   readonly text: string;
   readonly as?: "h1" | "h2" | "h3" | "p";
   readonly className?: string;
 };
 
-/** Splits copy into its sentences, dropping the periods the square stops will carry. */
-export function splitSentences(text: string): readonly string[] {
+export type Sentence = { readonly text: string; readonly stop: boolean };
+
+/** Splits copy at its periods and remembers which lines carried one ("AI" stays bare). */
+export function splitSentences(text: string): readonly Sentence[] {
   return text
-    .split(".")
-    .map((sentence) => sentence.trim())
-    .filter((sentence) => sentence.length > 0);
+    .split(/(?<=\.)\s*/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0 && part !== ".")
+    .map((part) => ({ text: part.replace(/\.$/, ""), stop: part.endsWith(".") }));
 }
 
 /**
@@ -41,9 +44,9 @@ export function Statement({ text, as: Tag = "p", className }: StatementProps) {
   return (
     <Tag data-slot="statement" className={cn("text-balance", className)}>
       {sentences.map((sentence, index) => (
-        <span key={sentence} className="block">
-          {sentence}
-          <SquareStop />
+        <span key={sentence.text} className="block">
+          {sentence.text}
+          {sentence.stop ? <SquareStop /> : null}
           {index < sentences.length - 1 ? " " : null}
         </span>
       ))}
