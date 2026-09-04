@@ -22,7 +22,10 @@ describe("landing hero (AC-1)", () => {
       </NextIntlClientProvider>,
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(de.landing.title);
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/de/sign-in");
+    expect(screen.getByRole("link", { name: de.landing.signInCta })).toHaveAttribute(
+      "href",
+      "/de/sign-in",
+    );
   });
 
   it("renders English copy for en", () => {
@@ -32,6 +35,9 @@ describe("landing hero (AC-1)", () => {
       </NextIntlClientProvider>,
     );
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(en.landing.title);
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/en/sign-in");
+    expect(screen.getByRole("link", { name: en.landing.signInCta })).toHaveAttribute(
+      "href",
+      "/en/sign-in",
+    );
   });
 });

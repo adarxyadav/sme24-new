@@ -1,0 +1,4 @@
+interface:
+  display_name: "next-themes"
+  short_description: "Theme switching for Next.js apps"
+  default_prompt: "Use $next-themes to add hydration-safe theme switching to this Next.js app."

@@ -1,13 +1,25 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+
+/*
+ * Design tokens (spec 0003, brand amendment 2026-09-04). The palette is the SME24 brand: Jet Black
+ * #000000, Pure White #FFFFFF and Obsidian Black #141414, written as oklch so lightness steps stay
+ * perceptually even. Status and severity hues are functional colors outside the brand palette and
+ * always sit next to a label or icon. The contrast gate in tests/contrast.test.ts reads the :root
+ * and .dark blocks below and fails the build when a pair listed in src/lib/design-tokens.ts drops
+ * under its threshold. Nudge a value if you must and let the test decide.
+ *
+ * Inverse block: a section with `className="dark bg-background text-foreground"` renders on the
+ * jet black ground in both themes (the brand's 30% jet), and every component inside keeps working
+ * because the `.dark` block redefines the tokens for its subtree.
+ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -16,6 +28,7 @@
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
   --color-chart-5: var(--chart-5);
@@ -27,6 +40,29 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-subtle: var(--info-subtle);
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-critical-foreground: var(--severity-critical-foreground);
+  --color-severity-critical-subtle: var(--severity-critical-subtle);
+  --color-severity-high: var(--severity-high);
+  --color-severity-high-foreground: var(--severity-high-foreground);
+  --color-severity-high-subtle: var(--severity-high-subtle);
+  --color-severity-medium: var(--severity-medium);
+  --color-severity-medium-foreground: var(--severity-medium-foreground);
+  --color-severity-medium-subtle: var(--severity-medium-subtle);
+  --color-severity-low: var(--severity-low);
+  --color-severity-low-foreground: var(--severity-low-foreground);
+  --color-severity-low-subtle: var(--severity-low-subtle);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -48,83 +84,193 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * Brand constants and the type scale (brand guidelines v1.0). The three brand colors are fixed in
+ * both themes: use them only where the brand guide fixes the ground (logo variants, the campaign
+ * signature); everything else goes through the semantic tokens above.
+ */
+@theme {
+  --color-jet: oklch(0 0 0);
+  --color-obsidian: oklch(0.19 0 0);
+  --color-pure-white: oklch(1 0 0);
+
+  /* Display · 800 · −3% tracking. Marketing statements and the wordmark. */
+  --text-display-lg: 4.5rem;
+  --text-display-lg--line-height: 1;
+  --text-display-lg--letter-spacing: -0.03em;
+  --text-display-lg--font-weight: 800;
+  --text-display: 3.5rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.03em;
+  --text-display--font-weight: 800;
+  --text-display-sm: 2.5rem;
+  --text-display-sm--line-height: 1.08;
+  --text-display-sm--letter-spacing: -0.03em;
+  --text-display-sm--font-weight: 800;
+
+  /* Tracking: headline −2%, captions and the lockup descriptor tracked wide in caps. */
+  --tracking-display: -0.03em;
+  --tracking-headline: -0.02em;
+  --tracking-caps: 0.18em;
+  --tracking-lockup: 0.34em;
+}
+
+/* Caption · 500 · caps: eyebrows, lockup descriptors, section labels. Pair with a color utility. */
+@utility eyebrow {
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  font-weight: 500;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
 :root {
+  color-scheme: light;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0 0 0);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.955 0 0);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.965 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.955 0 0);
+  --accent-foreground: oklch(0 0 0);
+  --destructive: oklch(0.55 0.22 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --destructive-subtle: color-mix(in oklch, var(--destructive) 12%, var(--background));
+  --success: oklch(0.5 0.14 150);
+  --success-foreground: oklch(0.99 0 0);
+  --success-subtle: color-mix(in oklch, var(--success) 12%, var(--background));
+  --warning: oklch(0.52 0.14 70);
+  --warning-foreground: oklch(0.99 0 0);
+  --warning-subtle: color-mix(in oklch, var(--warning) 12%, var(--background));
+  --info: oklch(0.52 0.12 250);
+  --info-foreground: oklch(0.99 0 0);
+  --info-subtle: color-mix(in oklch, var(--info) 12%, var(--background));
+  --severity-critical: oklch(0.5 0.22 27);
+  --severity-critical-foreground: oklch(0.99 0 0);
+  --severity-critical-subtle: color-mix(in oklch, var(--severity-critical) 12%, var(--background));
+  --severity-high: oklch(0.54 0.18 45);
+  --severity-high-foreground: oklch(0.99 0 0);
+  --severity-high-subtle: color-mix(in oklch, var(--severity-high) 12%, var(--background));
+  --severity-medium: oklch(0.52 0.13 80);
+  --severity-medium-foreground: oklch(0.99 0 0);
+  --severity-medium-subtle: color-mix(in oklch, var(--severity-medium) 12%, var(--background));
+  --severity-low: oklch(0.5 0.13 150);
+  --severity-low-foreground: oklch(0.99 0 0);
+  --severity-low-subtle: color-mix(in oklch, var(--severity-low) 12%, var(--background));
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.6 0 0);
+  --ring: oklch(0 0 0);
+  --chart-1: oklch(0 0 0);
+  --chart-2: oklch(0.45 0 0);
+  --chart-3: oklch(0.62 0 0);
+  --chart-4: oklch(0.52 0.12 250);
+  --chart-5: oklch(0.62 0.14 75);
+  --radius: 0.125rem;
+  /* The sidebar is a light gray in the light theme (owner decision 2026-09-04): the page family
+     with a hairline border; jet stays with the mark, text and the active item. */
+  --sidebar: oklch(0.975 0 0);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-muted-foreground: oklch(0.5 0 0);
+  --sidebar-primary: oklch(0 0 0);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.92 0 0);
+  --sidebar-accent-foreground: oklch(0 0 0);
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: oklch(0 0 0);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
+  --background: oklch(0 0 0);
+  --foreground: oklch(0.97 0 0);
+  --card: oklch(0.19 0 0);
+  --card-foreground: oklch(0.97 0 0);
+  --popover: oklch(0.19 0 0);
+  --popover-foreground: oklch(0.97 0 0);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.27 0 0);
+  --secondary-foreground: oklch(0.97 0 0);
+  --muted: oklch(0.25 0 0);
+  --muted-foreground: oklch(0.72 0 0);
+  --accent: oklch(0.27 0 0);
+  --accent-foreground: oklch(0.97 0 0);
+  --destructive: oklch(0.7 0.19 22);
+  --destructive-foreground: oklch(0.16 0 0);
+  --destructive-subtle: color-mix(in oklch, var(--destructive) 12%, var(--background));
+  --success: oklch(0.75 0.15 150);
+  --success-foreground: oklch(0.16 0 0);
+  --success-subtle: color-mix(in oklch, var(--success) 12%, var(--background));
+  --warning: oklch(0.8 0.15 75);
+  --warning-foreground: oklch(0.2 0.02 70);
+  --warning-subtle: color-mix(in oklch, var(--warning) 12%, var(--background));
+  --info: oklch(0.76 0.11 250);
+  --info-foreground: oklch(0.16 0 0);
+  --info-subtle: color-mix(in oklch, var(--info) 12%, var(--background));
+  --severity-critical: oklch(0.7 0.19 22);
+  --severity-critical-foreground: oklch(0.16 0 0);
+  --severity-critical-subtle: color-mix(in oklch, var(--severity-critical) 12%, var(--background));
+  --severity-high: oklch(0.76 0.16 45);
+  --severity-high-foreground: oklch(0.16 0 0);
+  --severity-high-subtle: color-mix(in oklch, var(--severity-high) 12%, var(--background));
+  --severity-medium: oklch(0.82 0.14 85);
+  --severity-medium-foreground: oklch(0.16 0 0);
+  --severity-medium-subtle: color-mix(in oklch, var(--severity-medium) 12%, var(--background));
+  --severity-low: oklch(0.76 0.14 150);
+  --severity-low-foreground: oklch(0.16 0 0);
+  --severity-low-subtle: color-mix(in oklch, var(--severity-low) 12%, var(--background));
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(0.56 0 0);
+  --ring: oklch(1 0 0);
+  --chart-1: oklch(1 0 0);
+  --chart-2: oklch(0.7 0 0);
+  --chart-3: oklch(0.58 0 0);
+  --chart-4: oklch(0.76 0.11 250);
+  --chart-5: oklch(0.8 0.15 75);
+  /* Obsidian surfaces on a jet page: cards, popovers and the sidebar share the 10% obsidian. */
+  --sidebar: oklch(0.19 0 0);
+  --sidebar-foreground: oklch(0.97 0 0);
+  --sidebar-muted-foreground: oklch(0.72 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-accent: oklch(0.28 0 0);
+  --sidebar-accent-foreground: oklch(0.97 0 0);
+  --sidebar-border: oklch(1 0 0 / 14%);
+  --sidebar-ring: oklch(1 0 0);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+  }
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+  /* Figures align in tables and KPI tiles (spec 0003); formatting itself is feature 5. */
+  [data-numeric],
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Reduced motion: keep 1ms so Radix exit animations still fire and overlays unmount. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
   }
 }

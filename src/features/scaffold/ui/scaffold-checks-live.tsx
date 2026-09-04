@@ -1,12 +1,29 @@
 "use client";
 
+import { InboxIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
+import { EmptyState } from "@/components/empty-state";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import type { ScaffoldCheck } from "@/features/scaffold/queries";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 
 const POLL_MS = 5_000;
+
+function statusVariant(status: string): "success" | "destructive" | "info" {
+  if (status === "completed" || status === "ok") return "success";
+  if (status === "failed" || status === "error") return "destructive";
+  return "info";
+}
 
 /**
  * Live list of smoke test rows: Supabase Realtime (RLS enforced per subscriber) with a polling
@@ -74,50 +91,44 @@ export function ScaffoldChecksLive({ initialRows }: { initialRows: ScaffoldCheck
   return (
     <section aria-labelledby="checks-heading" className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 id="checks-heading" className="text-lg font-semibold">
+        <h2 id="checks-heading" className="font-semibold text-lg">
           {t("checksTitle")}
         </h2>
-        <span className="text-xs text-muted-foreground" data-live={live}>
-          {live ? "realtime" : "polling"}
-        </span>
+        <Badge variant={live ? "success" : "outline"} data-live={live}>
+          {live ? t("live") : t("polling")}
+        </Badge>
       </div>
       {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("empty")}</p>
+        <EmptyState icon={InboxIcon} title={t("emptyTitle")} description={t("empty")} />
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left">
-              <tr>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t("columns.message")}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t("columns.status")}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t("columns.run")}
-                </th>
-                <th scope="col" className="px-4 py-2 font-medium">
-                  {t("columns.time")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="rounded-lg border">
+          <Table density="compact">
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("columns.message")}</TableHead>
+                <TableHead>{t("columns.status")}</TableHead>
+                <TableHead>{t("columns.run")}</TableHead>
+                <TableHead>{t("columns.time")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {rows.map((row) => (
-                <tr key={row.id} className="border-t">
-                  <td className="px-4 py-2">{row.message}</td>
-                  <td className="px-4 py-2">{row.status}</td>
-                  <td className="px-4 py-2 font-mono text-xs">{row.run_id}</td>
-                  <td className="px-4 py-2">
+                <TableRow key={row.id}>
+                  <TableCell>{row.message}</TableCell>
+                  <TableCell>
+                    <Badge variant={statusVariant(row.status)}>{row.status}</Badge>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">{row.run_id}</TableCell>
+                  <TableCell className="tabular-nums" data-numeric>
                     {format.dateTime(new Date(row.created_at), {
                       dateStyle: "medium",
                       timeStyle: "short",
                     })}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </section>

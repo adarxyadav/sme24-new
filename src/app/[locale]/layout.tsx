@@ -2,18 +2,36 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { routing } from "@/i18n/routing";
 import { AnalyticsProvider } from "@/lib/analytics/client";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+// Geist is the one brand typeface (spec 0003, amendment of 2026-09-04); Helvetica and Arial are its fallback.
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+  fallback: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+});
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: { default: "SME24", template: "%s · SME24" },
-  description: "EHS consulting marketplace for regulated companies in Switzerland.",
-};
+/** Site title and the localized description (AC-12); an unknown locale gets the default one. */
+export async function generateMetadata({
+  params,
+}: Pick<LayoutProps<"/[locale]">, "params">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({
+    locale: hasLocale(routing.locales, locale) ? locale : routing.defaultLocale,
+    namespace: "metadata",
+  });
+  return {
+    title: { default: "SME24", template: "%s · SME24" },
+    description: t("description"),
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -24,11 +42,22 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
 
+  // The font variables live on `html` because `font-sans` is applied there (spec 0003).
   return (
-    <html lang={locale} suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-dvh antialiased`}>
+    <html
+      lang={locale}
+      className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
+    >
+      {/* Browser extensions (ColorZilla adds `cz-shortcut-listen`) mutate body attributes before hydration. */}
+      <body className="min-h-dvh antialiased" suppressHydrationWarning>
         <NextIntlClientProvider>
-          <AnalyticsProvider>{children}</AnalyticsProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              <AnalyticsProvider>{children}</AnalyticsProvider>
+            </TooltipProvider>
+            <Toaster />
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

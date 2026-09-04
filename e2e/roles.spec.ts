@@ -1,19 +1,11 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { seedPassword, signIn } from "./helpers";
 
 /**
  * Role gate (AC-5) with the seeded users from supabase/seed.sql. Needs E2E_SEED_PASSWORD, so it
  * runs locally and against staging once the seed has been applied there; it skips elsewhere.
  */
-const password = process.env.E2E_SEED_PASSWORD;
-
-test.skip(!password, "E2E_SEED_PASSWORD is not set; seeded users are unavailable");
-
-async function signIn(page: Page, email: string) {
-  await page.goto("/de/sign-in");
-  await page.getByLabel("E-Mail").fill(email);
-  await page.getByLabel("Passwort").fill(password as string);
-  await page.getByRole("button", { name: "Anmelden" }).click();
-}
+test.skip(!seedPassword, "E2E_SEED_PASSWORD is not set; seeded users are unavailable");
 
 test("anonymous visitors are sent to sign in", async ({ page }) => {
   await page.goto("/de/admin");
@@ -48,6 +40,7 @@ test("an expert reaches /expert but not /app or /admin", async ({ page }) => {
 test("ops reaches /admin and sees the scaffold checks", async ({ page }) => {
   await signIn(page, "ops@example.com");
   await expect(page).toHaveURL(/\/de\/admin$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Ops Admin" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Grundgerüst prüfen" })).toBeVisible();
   await page.goto("/de/app");
   await expect(page).toHaveURL(/\/de\/forbidden$/);

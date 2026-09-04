@@ -1,4 +1,7 @@
 {
+  "metadata": {
+    "description": "EHS-Beratung zum Fixpreis für regulierte Unternehmen in der Schweiz."
+  },
   "common": {
     "appName": "SME24",
     "signIn": "Anmelden",
@@ -7,13 +10,91 @@
     "german": "Deutsch",
     "english": "English"
   },
+  "brand": {
+    "descriptor": "EHS Consulting",
+    "signature": "Einfach. Anders.",
+    "tagline": "EHS-Beratung zum Fixpreis",
+    "domain": "sme24.ch"
+  },
+  "ui": {
+    "close": "Schliessen",
+    "sidebar": "Navigation",
+    "sidebarDescription": "Zeigt die Navigation des Bereichs.",
+    "toggleSidebar": "Navigation ein- oder ausblenden",
+    "breadcrumb": "Pfad",
+    "pagination": "Seiten",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "previousPage": "Zur vorherigen Seite",
+    "nextPage": "Zur nächsten Seite",
+    "morePages": "Weitere Seiten"
+  },
+  "shell": {
+    "skipToContent": "Zum Inhalt springen",
+    "userMenu": "Benutzermenü",
+    "openMenu": "Menü öffnen",
+    "menuDescription": "Sprache, Darstellung und Anmeldung.",
+    "mainNavigation": "Hauptnavigation",
+    "notifications": "Benachrichtigungen",
+    "role": {
+      "client": "Kundenunternehmen",
+      "expert": "EHS Expertin/Experte",
+      "ops": "Ops Team"
+    }
+  },
+  "nav": {
+    "label": "Navigation",
+    "app": {
+      "overview": "Übersicht"
+    },
+    "expert": {
+      "overview": "Übersicht"
+    },
+    "admin": {
+      "overview": "Übersicht",
+      "design": "Design Galerie"
+    }
+  },
+  "theme": {
+    "label": "Darstellung",
+    "toggle": "Darstellung wechseln",
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel"
+  },
+  "states": {
+    "loading": "Wird geladen",
+    "error": {
+      "title": "Da ist etwas schiefgelaufen",
+      "description": "Die Seite konnte nicht geladen werden. Versuchen Sie es erneut. Bleibt der Fehler, nennen Sie dem Support die Referenz.",
+      "retry": "Erneut versuchen",
+      "reference": "Referenz: {id}"
+    }
+  },
   "landing": {
-    "title": "SME24 Grundgerüst",
-    "lead": "Die technische Basis läuft: Next.js, Supabase, Trigger.dev, zwei Sprachen. Alles Weitere kommt Funktion für Funktion dazu.",
-    "signInCta": "Zum Login"
+    "eyebrow": "EHS-Beratung zum Fixpreis",
+    "title": "Senior-Experten. Keine Slides. Nur Resultate.",
+    "lead": "Ein benchmarktes Risikoprofil, eine Shortlist erfahrener Expertinnen und Experten und ein Fixpreis-Angebot, bevor Sie sich festlegen.",
+    "signInCta": "Anmelden",
+    "pointsLabel": "Warum SME24",
+    "points": {
+      "price": {
+        "title": "Fixpreis.",
+        "body": "Kein Verhandeln, keine Überraschungen auf der Rechnung."
+      },
+      "negotiation": {
+        "title": "Kein Projekt-Setup.",
+        "body": "Vier Schritte. Keine Kickoff-Folien."
+      },
+      "kickoff": {
+        "title": "Start in derselben Woche.",
+        "body": "Benchmark sehen, Expertin wählen, loslegen."
+      }
+    }
   },
   "signIn": {
     "title": "Anmelden",
+    "lead": "Melden Sie sich mit Ihrer geschäftlichen E-Mail an.",
     "email": "E-Mail",
     "password": "Passwort",
     "submit": "Anmelden",
@@ -27,13 +108,24 @@
   "areas": {
     "app": {
       "title": "Kundenbereich",
-      "body": "Hier entsteht das Dashboard für Kundenunternehmen."
+      "body": "Hier entsteht das Dashboard für Kundenunternehmen.",
+      "empty": {
+        "title": "Noch keine Inhalte",
+        "description": "Ihre Bewertungen, Kennzahlen und Programme erscheinen hier, sobald die ersten Funktionen freigeschaltet sind."
+      }
     },
     "expert": {
       "title": "Expertenbereich",
-      "body": "Hier entsteht der Arbeitsbereich für EHS Expertinnen und Experten."
+      "body": "Hier entsteht der Arbeitsbereich für EHS Expertinnen und Experten.",
+      "empty": {
+        "title": "Noch keine Aufträge",
+        "description": "Zugewiesene Prüfungen und Berichte erscheinen hier, sobald die ersten Kundenunternehmen an Bord sind."
+      }
     },
-    "admin": { "title": "Ops Admin", "body": "Interner Bereich für das Betriebsteam." },
+    "admin": {
+      "title": "Ops Admin",
+      "body": "Interner Bereich für das Betriebsteam."
+    },
     "signedInAs": "Angemeldet als {email} ({role})"
   },
   "scaffold": {
@@ -45,7 +137,15 @@
     "posthogEvent": "Testereignis an PostHog senden",
     "checksTitle": "Letzte Jobläufe",
     "empty": "Noch keine Läufe. Starten Sie einen Hintergrundjob.",
-    "columns": { "message": "Nachricht", "status": "Status", "run": "Lauf", "time": "Zeit" },
+    "emptyTitle": "Noch keine Läufe",
+    "live": "Echtzeit",
+    "polling": "Abfrage",
+    "columns": {
+      "message": "Nachricht",
+      "status": "Status",
+      "run": "Lauf",
+      "time": "Zeit"
+    },
     "result": {
       "taskQueued": "Job eingereiht: {runId}",
       "taskUnavailable": "Trigger.dev ist nicht konfiguriert (TRIGGER_SECRET_KEY fehlt).",
@@ -53,6 +153,338 @@
       "sentryUnavailable": "Sentry ist nicht konfiguriert (SENTRY_DSN fehlt).",
       "posthogSent": "Testereignis an PostHog gesendet.",
       "posthogUnavailable": "PostHog ist nicht konfiguriert (NEXT_PUBLIC_POSTHOG_KEY fehlt)."
+    }
+  },
+  "gallery": {
+    "title": "Design Galerie",
+    "description": "Jedes Grundelement in jedem Zustand. Hier prüfen wir Tastatur, Fokus, Screenreader und Kontrast in Hell und Dunkel.",
+    "sectionsNav": "Abschnitte",
+    "sections": {
+      "brand": {
+        "title": "Marke",
+        "description": "Zeichen, Lockups, Palette und die Kampagnensprache: Statement mit eckigem Punkt, Inversfläche und Signatur."
+      },
+      "campaign": {
+        "title": "Kampagne",
+        "description": "Das Kampagnenformat als Marketing-Bausteine: ein Objekt auf Weiss, Statement mit eckigem Punkt, Nebenzeile, Signatur. Paar, Kontrast, Vierer-Strip, reines Typo-Stück und die Wand."
+      },
+      "tokens": {
+        "title": "Farben und Kontrast",
+        "description": "Jedes garantierte Farbpaar mit dem live gemessenen Kontrastverhältnis im aktiven Theme."
+      },
+      "type": {
+        "title": "Schrift",
+        "description": "Geist in fünf Rollen (Display, Headline, Subhead, Body, Caption), Geist Mono für Kennungen, Tabellenziffern für Zahlen."
+      },
+      "buttons": {
+        "title": "Buttons und Badges",
+        "description": "Alle Varianten und Grössen, mit Symbol, deaktiviert, sowie Status- und Schweregrad-Badges."
+      },
+      "forms": {
+        "title": "Formulare",
+        "description": "React Hook Form mit Zod. Fehler stehen direkt unter dem Feld und sind mit dem Feld verknüpft."
+      },
+      "table": {
+        "title": "Tabellen",
+        "description": "Normale und kompakte Dichte. Nur Tabellenzellen dürfen kürzen, und nur mit dem vollen Text im Tooltip."
+      },
+      "overlays": {
+        "title": "Overlays",
+        "description": "Dialog, Seitenblatt, Menü, Popover und Tooltip. Fokus wird gefangen und zurückgegeben."
+      },
+      "feedback": {
+        "title": "Rückmeldung und Struktur",
+        "description": "Hinweise, Fortschritt, Trenner, Pfad, Tabs, Seitennavigation und eine Karte."
+      },
+      "states": {
+        "title": "Zustände",
+        "description": "Laden, leer, Fehler und Toasts, die jede Seite wiederverwendet."
+      },
+      "charts": {
+        "title": "Diagramme",
+        "description": "Recharts auf den Diagrammfarben. Tooltip und Legende folgen dem Theme."
+      }
+    },
+    "tokens": {
+      "on": "auf",
+      "minimum": "Minimum {ratio}"
+    },
+    "brand": {
+      "variants": "Freigegebene Varianten",
+      "variant": {
+        "bareOnWhite": "Bare · Schwarz auf Weiss",
+        "bareOnJet": "Bare · Weiss auf Jet",
+        "badgeOnWhite": "Badge · Schwarz auf Weiss",
+        "badgeOnObsidian": "Badge · Weiss auf Obsidian"
+      },
+      "lockups": "Lockups (primär bare, alternativ Badge, klein)",
+      "palette": "Palette · Weiss 60 % · Jet 30 % · Obsidian 10 %",
+      "statement": "Statement mit eckigem Punkt",
+      "statementText": "Weniger sagen. Mehr meinen.",
+      "inverse": "Inversfläche (className=\"dark\")",
+      "eyebrowText": "Vier Schritte",
+      "inverseText": "Fixpreis. Kein Verhandeln. Start in derselben Woche.",
+      "inverseBody": "Jede Komponente funktioniert auf der Jet-Fläche, weil der Block die Tokens für seinen Teilbaum umstellt.",
+      "signature": "Signatur",
+      "rules": "Regeln",
+      "rule": {
+        "clearSpace": "Schutzraum: 30 px auf jeder Seite, bei jeder Grösse.",
+        "minimum": "Mindestgrösse: 80 px Breite, darunter geht die Klarheit verloren.",
+        "noRecolor": "Nie umfärben: nur Schwarz auf Weiss oder Weiss auf Jet/Obsidian.",
+        "noEffects": "Keine Effekte, Schatten, Drehungen oder Verzerrungen.",
+        "noRedraw": "Wortmarke nie neu zeichnen; die Datei aus dem Asset-Kit ersetzt den Pfad in brand-mark.tsx."
+      }
+    },
+    "campaign": {
+      "single": "Einzelstück: Objekt, Statement, Nebenzeile, Signatur",
+      "singleStatement": "Geschäftsessen.",
+      "singleSubline": "(Auch vegan).",
+      "singleAlt": "Fleischkäse im Brötchen, freigestellt auf Weiss",
+      "contrast": "Kontrast: leerer Rahmen gegen Foto",
+      "contrastStatement": "Resultate geliefert.",
+      "contrastLeft": "KI",
+      "contrastRight": "Philipp",
+      "contrastAlt": "Philipp in Warnweste und Helm vor einer Giesspfanne im Stahlwerk",
+      "pair": "Paar: zwei Objekte, ein Statement",
+      "pairStatement": "Unsere SMEs.",
+      "pairLeft": "Graue Haare.",
+      "pairRight": "Keine Haare.",
+      "pairLeftAlt": "Expertin mit grauen Haaren im dunkelblauen Blazer, Arme verschränkt",
+      "pairRightAlt": "Experte mit Glatze im dunklen Anzug, lächelnd",
+      "strip": "Vierer-Strip",
+      "stripStatement": "Kein Kriechen. Eigene Wege.",
+      "stripAlt": "Vier Bilder: zwei Führungskräfte kriechen durch einen Tunnel, sehen nichts, kehren um; ein Mann steht aufrecht am Fenster über der Stadt",
+      "type": "Reines Typo-Stück",
+      "typeStatement": "Keine Slides. Resultate.",
+      "wall": "Wand: Stücke mit Haarlinien, eine Signatur pro Seite",
+      "wallItems": {
+        "teamevent": {
+          "statement": "Teamevent.",
+          "alt": "Grüner Bierharass mit Flaschen auf Eis"
+        },
+        "firmenwagen": {
+          "statement": "Firmenwagen.",
+          "alt": "Blaues Rennrad, freigestellt"
+        },
+        "dresscode": {
+          "statement": "Dresscode.",
+          "alt": "Dunkelblauer Arbeitsoverall mit Reflexstreifen"
+        },
+        "jahresbonus": {
+          "statement": "Jahresbonus.",
+          "alt": "Bergweg mit Blick auf das Matterhorn"
+        },
+        "noCosmetics": {
+          "statement": "Keine Kosmetik.",
+          "alt": "Stark geschminkte Frau mit übergrossen roten Lippen"
+        },
+        "noOverhead": {
+          "statement": "Kein Overhead.",
+          "alt": "Mann im Anzug mit Champagner zwischen Privatjet, Cabrio und Pool"
+        }
+      }
+    },
+    "type": {
+      "display": "Operative Exzellenz",
+      "headline": "Risiko, Innovation, Transformation",
+      "subhead": "Senior-Experten auf Abruf",
+      "body": "Massgeschneiderte, sachliche Lösungen für Organisationen, die nachhaltig wachsen wollen.",
+      "caption": "EHS-Beratung zum Fixpreis · sme24.ch"
+    },
+    "buttons": {
+      "variants": "Varianten",
+      "sizes": "Grössen",
+      "withIcon": "Mit Symbol",
+      "badges": "Status Badges",
+      "levels": "Schweregrad Badges",
+      "disabled": "Deaktiviert",
+      "create": "Erstellen",
+      "export": "Exportieren",
+      "settings": "Einstellungen",
+      "variant": {
+        "default": "Primär",
+        "secondary": "Sekundär",
+        "outline": "Umrandet",
+        "ghost": "Dezent",
+        "destructive": "Löschen",
+        "link": "Link"
+      },
+      "size": {
+        "xs": "Extra klein",
+        "sm": "Klein",
+        "default": "Standard",
+        "lg": "Gross"
+      },
+      "badge": {
+        "default": "Standard",
+        "secondary": "Sekundär",
+        "outline": "Umrandet",
+        "success": "Erledigt",
+        "warning": "Handlungsbedarf",
+        "info": "Hinweis",
+        "destructive": "Fehler",
+        "critical": "Kritisch",
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig"
+      }
+    },
+    "forms": {
+      "company": "Unternehmen",
+      "email": "E-Mail",
+      "emailHint": "Wir schreiben nur an geschäftliche Adressen.",
+      "canton": "Kanton",
+      "cantonPlaceholder": "Kanton wählen",
+      "plan": "Paket",
+      "plans": {
+        "starter": "Starter",
+        "growth": "Wachstum",
+        "enterprise": "Enterprise"
+      },
+      "message": "Nachricht",
+      "notify": "Über neue Befunde benachrichtigen",
+      "consent": "Ich akzeptiere die Nutzungsbedingungen.",
+      "submit": "Absenden",
+      "reset": "Zurücksetzen",
+      "submitted": "Formular gültig, danke.",
+      "invalidExample": "Ungültiges Feld",
+      "disabledExample": "Deaktiviertes Feld",
+      "disabledHint": "Dieser Wert wird aus dem Handelsregister übernommen.",
+      "disabledCheckbox": "Deaktivierte Auswahl",
+      "errors": {
+        "companyShort": "Bitte geben Sie mindestens 2 Zeichen ein.",
+        "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+        "cantonRequired": "Bitte wählen Sie einen Kanton.",
+        "planRequired": "Bitte wählen Sie ein Paket.",
+        "messageLong": "Höchstens 200 Zeichen.",
+        "consentRequired": "Bitte akzeptieren Sie die Nutzungsbedingungen."
+      }
+    },
+    "table": {
+      "default": "Standarddichte",
+      "compact": "Kompakt (density=\"compact\")",
+      "longText": "Prüfbericht Arbeitssicherheit mit 14 offenen Befunden, Nachkontrolle im dritten Quartal vereinbart",
+      "columns": {
+        "company": "Unternehmen",
+        "canton": "Kanton",
+        "kpi": "Kennzahl (CHF)",
+        "level": "Schweregrad",
+        "note": "Notiz"
+      }
+    },
+    "overlays": {
+      "label": "Jedes Overlay mit einem Auslöser",
+      "cancel": "Abbrechen",
+      "close": "Schliessen",
+      "dialog": {
+        "open": "Dialog öffnen",
+        "title": "Bewertung löschen?",
+        "description": "Die Bewertung und alle Befunde werden dauerhaft entfernt. Das lässt sich nicht rückgängig machen.",
+        "confirm": "Löschen"
+      },
+      "sheet": {
+        "open": "Seitenblatt öffnen",
+        "title": "Filter",
+        "description": "Grenzen Sie die Liste nach Kanton, Branche und Status ein.",
+        "body": "Filterfelder erscheinen hier."
+      },
+      "menu": {
+        "open": "Menü öffnen",
+        "label": "Aktionen",
+        "edit": "Bearbeiten",
+        "duplicate": "Duplizieren",
+        "delete": "Löschen"
+      },
+      "popover": {
+        "open": "Popover öffnen",
+        "title": "Was ist eine Kennzahl?",
+        "description": "Eine Kennzahl misst einen Aspekt der Sicherheitsleistung, zum Beispiel Unfälle pro 1000 Mitarbeitende."
+      },
+      "tooltip": {
+        "label": "Mehr erfahren",
+        "text": "Tooltips erklären ein Symbol oder zeigen gekürzten Text."
+      }
+    },
+    "feedback": {
+      "alerts": "Hinweise",
+      "alert": {
+        "default": {
+          "title": "Hinweis",
+          "description": "Ein neutraler Hinweis ohne Farbe."
+        },
+        "info": {
+          "title": "Information",
+          "description": "Die Vorschriften wurden im August aktualisiert."
+        },
+        "success": {
+          "title": "Erledigt",
+          "description": "Der Bericht wurde freigegeben und versendet."
+        },
+        "warning": {
+          "title": "Handlungsbedarf",
+          "description": "Zwei Befunde sind seit 30 Tagen überfällig."
+        },
+        "destructive": {
+          "title": "Fehler",
+          "description": "Der Upload konnte nicht gespeichert werden."
+        }
+      },
+      "card": "Karte",
+      "cardTitle": "Erfüllungsgrad",
+      "cardDescription": "Alle Standorte, laufendes Quartal",
+      "cardAction": "Details",
+      "cardFooter": "Aktualisiert vor 2 Stunden",
+      "progressLabel": "Erfüllungsgrad",
+      "separator": "Trenner",
+      "separatorA": "Zürich",
+      "separatorB": "Bern",
+      "breadcrumb": "Pfad",
+      "crumbs": {
+        "root": "Ops Admin",
+        "companies": "Unternehmen"
+      },
+      "tabs": "Tabs",
+      "tab": {
+        "overview": "Übersicht",
+        "findings": "Befunde",
+        "history": "Verlauf"
+      },
+      "tabBody": {
+        "overview": "Zusammenfassung der Bewertung.",
+        "findings": "Alle Befunde nach Schweregrad.",
+        "history": "Frühere Bewertungen und Massnahmen."
+      },
+      "pagination": "Seitennavigation"
+    },
+    "states": {
+      "skeleton": "Laden (Skeleton)",
+      "empty": "Leer",
+      "emptyAction": "Erste Bewertung starten",
+      "error": "Fehler",
+      "retried": "Erneut versucht.",
+      "toasts": "Toasts",
+      "toast": {
+        "successButton": "Erfolg anzeigen",
+        "success": "Bericht gespeichert.",
+        "infoButton": "Info anzeigen",
+        "info": "Die Prüfung läuft im Hintergrund weiter.",
+        "errorButton": "Fehler anzeigen",
+        "error": "Speichern fehlgeschlagen. Bitte erneut versuchen."
+      }
+    },
+    "charts": {
+      "bar": "Balkendiagramm",
+      "line": "Liniendiagramm",
+      "assessments": "Bewertungen",
+      "findings": "Offene Befunde",
+      "months": {
+        "m1": "Jan",
+        "m2": "Feb",
+        "m3": "Mär",
+        "m4": "Apr",
+        "m5": "Mai",
+        "m6": "Jun"
+      }
     }
   }
 }
