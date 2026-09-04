@@ -53,9 +53,9 @@ spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.cs
   - [x] Sidebar shell and page primitives: `AppSidebar` with user menu and skip links, `PageHeader`, empty, error and loading states, toaster, responsive marketing header (AC-4, AC-5, AC-7, AC-8, AC-12)
   - [x] Component inventory and charts in the gallery: forms, data, overlays, feedback, compact table, badge levels, Recharts (AC-6, AC-8, AC-9, AC-10)
   - [x] Tests and `docs/design.md`: component and message parity tests, keyboard and mobile scenarios, the design reference (AC-10, AC-11, AC-12)
-- [ ] Verify it: `/check verify design system & UI foundation`
-- [ ] Test it: `/test design system & UI foundation`
-- [ ] Review it (fresh model): `/check review design system & UI foundation`
+- [x] Verify it: `/check verify design system & UI foundation`
+- [x] Test it: `/test design system & UI foundation`
+- [x] Review it (fresh model): `/check review design system & UI foundation`
 - [ ] Document it: `/document design system & UI foundation`
 
 ### 5. Localization (German & English) · needs a decision
