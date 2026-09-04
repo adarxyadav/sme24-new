@@ -69,6 +69,6 @@ spec [0004](../specs/0004-localization/index.md) · code in `src/i18n/`, `messag
   - [x] Catalog conventions and gates: shared and feature namespaces, the explicit client messages, the literal scan, typed keys, `docs/localization.md`, localised Zod messages (AC-4, AC-5, AC-6, AC-8)
   - [x] Language alternates, sitemap and English coverage in Playwright (AC-10, AC-11)
 - [ ] Verify it: `/check verify localization`
-- [ ] Test it: `/test localization`
+- [x] Test it: `/test localization`
 - [ ] Review it (fresh model): `/check review localization`
 - [ ] Document it: `/document localization`
