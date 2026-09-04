@@ -27,7 +27,7 @@ export const BRAND_COLORS = [
 /** The surfaces page text and controls sit on. The sidebar is its own ground, see below. */
 export const GROUNDS = ["background", "card", "muted"] as const;
 
-/** The sidebar carries its own text tokens because it is jet black while the page is white. */
+/** The sidebar carries its own text tokens because its ground differs from the page in both themes. */
 export const SIDEBAR_GROUNDS = ["sidebar", "sidebar-accent"] as const;
 
 /** Status tokens: each has a fill, a `-foreground` for text on the fill and a `-subtle` tint. */

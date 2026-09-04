@@ -231,6 +231,15 @@ Owner decision, same day: Geist Sans stays the brand face and Urbanist is droppe
 - **Brand guidelines**: v1.0 names Urbanist. The guidelines diverge from the product until they are revised; `docs/design.md` is the source of truth for the app.
 - **Follow-up for `/architect`**: fold this into `### Typography` together with the amendment above.
 
+## Amendment 2026-09-04: light sidebar in the light theme
+
+Owner decision, same day: the signed in sidebar is a light gray of the page family in the light theme (`--sidebar` `oklch(0.975 0 0)`, jet text, `--sidebar-accent` `oklch(0.92 0 0)`, `--sidebar-border` equal to `--border`), no longer jet black. The dark theme is unchanged (obsidian sidebar on a jet page). This supersedes the "Light theme: white page, jet sidebar" clause of the brand identity amendment; the 30% jet share is now carried by the mark, text, the primary button and the active item rather than by a surface.
+
+- **Why**: a black column beside a white page reads as two products in one window and dominates every light screen; the mark and the type carry the brand strongly enough.
+- **Brand guidelines**: v1.0 places jet on the sidebar. The guidelines diverge from the product until they are revised; `docs/design.md` is the source of truth for the app.
+- **Contrast**: the pairs in `src/lib/design-tokens.ts` are unchanged; the gate verifies the new values.
+- **Follow-up for `/architect`**: fold this into `### Color` together with the brand identity amendment.
+
 ## Amendment 2026-09-04: shadcn Field replaces Form
 
 Found by `/check verify`: the installed forms primitive is shadcn `Field` (`src/components/ui/field.tsx`, the `Field`, `FieldGroup`, `FieldLabel`, `FieldDescription`, `FieldError`, `FieldSet` and `FieldLegend` family), not the older `Form` wrapper. `docs/design.md` already documents the `Field` family; **AC-8** and the Forms row of the component table in `## Feature design` still say `Form`. The behaviour (Zod errors inline under the field, `aria-invalid` and `aria-describedby` on the control) is unchanged.

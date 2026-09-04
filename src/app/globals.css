@@ -173,16 +173,17 @@
   --chart-4: oklch(0.52 0.12 250);
   --chart-5: oklch(0.7 0.14 75);
   --radius: 0.125rem;
-  /* The sidebar is jet black in the light theme: the brand's 30% jet beside a white page. */
-  --sidebar: oklch(0 0 0);
-  --sidebar-foreground: oklch(1 0 0);
-  --sidebar-muted-foreground: oklch(0.72 0 0);
-  --sidebar-primary: oklch(1 0 0);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-accent: oklch(0.25 0 0);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(1 0 0 / 15%);
-  --sidebar-ring: oklch(1 0 0);
+  /* The sidebar is a light gray in the light theme (owner decision 2026-09-04): the page family
+     with a hairline border; jet stays with the mark, text and the active item. */
+  --sidebar: oklch(0.975 0 0);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-muted-foreground: oklch(0.5 0 0);
+  --sidebar-primary: oklch(0 0 0);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.92 0 0);
+  --sidebar-accent-foreground: oklch(0 0 0);
+  --sidebar-border: oklch(0.9 0 0);
+  --sidebar-ring: oklch(0 0 0);
 }
 
 .dark {

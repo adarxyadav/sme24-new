@@ -57,7 +57,7 @@ Prose blocks cap at `max-w-prose`. Exactly one `h1` per page. Heading levels nev
 
 ## Color
 
-Semantic tokens only, named like shadcn so the installed components keep working. Every name below exists in `globals.css` in both themes. The palette is the brand's Jet Black `#000000`, Pure White `#FFFFFF` and Obsidian Black `#141414` in the proportion white 60, jet 30, obsidian 10: in the light theme the page is white and the sidebar is jet; in the dark theme the page is jet and cards, popovers and the sidebar are obsidian. The three brand constants exist as `jet`, `pure-white` and `obsidian` utilities for the places where the guidelines fix the ground (mark variants, campaign pieces); everything else uses the semantic tokens.
+Semantic tokens only, named like shadcn so the installed components keep working. Every name below exists in `globals.css` in both themes. The palette is the brand's Jet Black `#000000`, Pure White `#FFFFFF` and Obsidian Black `#141414` in the proportion white 60, jet 30, obsidian 10: in the light theme the page is white and the sidebar is a light gray of the same family (owner decision of 2026-09-04, the jet share moves to the mark, text and the active item); in the dark theme the page is jet and cards, popovers and the sidebar are obsidian. The three brand constants exist as `jet`, `pure-white` and `obsidian` utilities for the places where the guidelines fix the ground (mark variants, campaign pieces); everything else uses the semantic tokens.
 
 | Group | Tokens | Use |
 |---|---|---|
@@ -68,7 +68,7 @@ Semantic tokens only, named like shadcn so the installed components keep working
 | Status | `success`, `warning`, `info`, `destructive`, each with `-foreground` and `-subtle` | Solid fill with `-foreground` text; `-subtle` tint with the fill color as text (`bg-success-subtle text-success`). |
 | Severity | `severity-critical`, `severity-high`, `severity-medium`, `severity-low`, each with `-foreground` and `-subtle` | Gap findings and benchmark levels, always with the level label. |
 | Charts | `chart-1` to `chart-5` | Series in order: ink (jet or white), mid gray, light gray, slate blue, amber. Monochrome first, hues only from the fourth series on; never red beside green. |
-| Sidebar | `sidebar`, `sidebar-foreground`, `sidebar-muted-foreground`, `sidebar-primary`, `sidebar-primary-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-border`, `sidebar-ring` | The signed in navigation, jet black in the light theme. Inside the sidebar use `sidebar-*` tokens only; `muted-foreground` belongs to the page. |
+| Sidebar | `sidebar`, `sidebar-foreground`, `sidebar-muted-foreground`, `sidebar-primary`, `sidebar-primary-foreground`, `sidebar-accent`, `sidebar-accent-foreground`, `sidebar-border`, `sidebar-ring` | The signed in navigation, light gray in the light theme and obsidian in the dark theme. Inside the sidebar use `sidebar-*` tokens only; `muted-foreground` belongs to the page. |
 | Brand constants | `jet`, `pure-white`, `obsidian` | Fixed in both themes. Only where the brand guide fixes the ground. |
 
 **Contrast rule.** `src/lib/design-tokens.ts` lists every guaranteed pair. Text pairs must reach 4.5:1, `input` and `ring` on every page ground and `sidebar-ring` on the sidebar grounds 3:1. No text token is treated as large text. Translucent values are composited over their ground before measuring, `color-mix` is evaluated from the two colors. If you change a value, keep the hue and let the test decide. The gallery shows the live ratio next to every swatch.
