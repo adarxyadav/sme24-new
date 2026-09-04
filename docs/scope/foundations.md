@@ -56,7 +56,7 @@ spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.cs
 - [x] Verify it: `/check verify design system & UI foundation`
 - [x] Test it: `/test design system & UI foundation`
 - [x] Review it (fresh model): `/check review design system & UI foundation`
-- [ ] Document it: `/document design system & UI foundation`
+- [x] Document it: `/document design system & UI foundation`
 
 ### 5. Localization (German & English) · needs a decision
 Two languages from the first screen: routing per language, translated strings, number, date and CHF formatting, and translated content in generated emails and reports. Built now so French and Italian later cost only translation.
