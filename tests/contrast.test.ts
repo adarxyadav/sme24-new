@@ -91,3 +91,23 @@ describe("contrast helpers", () => {
     expect(parseTokenBlock(sample, ".dark")).toEqual({ x: "blue" });
   });
 });
+
+describe("contrast pair list (spec 0003, amendment of 2026-09-04)", () => {
+  it("checks every chart series on every page ground at 3:1, since bars and lines carry information", () => {
+    for (const token of CHART_TOKENS) {
+      for (const ground of ["background", "card", "muted"]) {
+        expect(CONTRAST_PAIRS).toContainEqual({
+          foreground: token,
+          background: ground,
+          minimum: 3,
+        });
+      }
+    }
+  });
+
+  it("leaves the decorative hairlines out, as the amendment records", () => {
+    const foregrounds = CONTRAST_PAIRS.map((pair) => pair.foreground);
+    expect(foregrounds).not.toContain("border");
+    expect(foregrounds).not.toContain("sidebar-border");
+  });
+});

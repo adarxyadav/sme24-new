@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { CampaignFrame, CampaignGrid, CampaignPiece } from "@/components/brand/campaign";
 import { Logo } from "@/components/brand/logo";
@@ -25,6 +25,22 @@ describe("Statement (brand campaign language)", () => {
       { text: "Just results", stop: true },
     ]);
     expect(splitSentences("AI")).toEqual([{ text: "AI", stop: false }]);
+  });
+
+  it("splits only at a period followed by whitespace or the end, so domains and decimals stay whole", () => {
+    expect(splitSentences("Mehr auf sme24.ch. Ab 1.5 Tagen.")).toEqual([
+      { text: "Mehr auf sme24.ch", stop: true },
+      { text: "Ab 1.5 Tagen", stop: true },
+    ]);
+    expect(splitSentences("Nur ein Satz")).toEqual([{ text: "Nur ein Satz", stop: false }]);
+  });
+
+  it("renders a repeated sentence as its own line without a duplicate key warning", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { container } = render(<Statement text="Nein. Nein." />);
+    expect(container.querySelectorAll("[data-slot=statement] > span")).toHaveLength(2);
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 
   it("renders one line per sentence with a hidden period so it still reads as prose", () => {
