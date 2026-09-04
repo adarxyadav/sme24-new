@@ -120,10 +120,7 @@ export function ScaffoldChecksLive({ initialRows }: { initialRows: ScaffoldCheck
                   </TableCell>
                   <TableCell className="font-mono text-xs">{row.run_id}</TableCell>
                   <TableCell className="tabular-nums" data-numeric>
-                    {format.dateTime(new Date(row.created_at), {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {format.dateTime(new Date(row.created_at), "dateTime")}
                   </TableCell>
                 </TableRow>
               ))}

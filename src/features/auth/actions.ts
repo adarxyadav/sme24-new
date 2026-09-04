@@ -1,8 +1,9 @@
 "use server";
 
+import { redirect as nextRedirect } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { redirect } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
+import { LOCALE_CODE, routing } from "@/i18n/routing";
 import { ROLE_HOME, roleFromClaims } from "@/lib/auth/roles";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
@@ -37,8 +38,10 @@ export async function signIn(formData: FormData) {
   const { data } = await supabase.auth.getClaims();
   const role = roleFromClaims(data?.claims);
 
-  if (typeof next === "string" && next.startsWith(`/${locale}/`)) {
-    return redirect({ href: next.slice(locale.length + 1), locale });
+  // `next` is a full path from the proxy (`/de/admin`): the prefix is the short code, not the locale.
+  const prefix = `/${LOCALE_CODE[locale]}`;
+  if (typeof next === "string" && next.startsWith(`${prefix}/`)) {
+    return nextRedirect(next);
   }
   return redirect({ href: role ? ROLE_HOME[role] : "/", locale });
 }

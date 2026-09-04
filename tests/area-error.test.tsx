@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AreaError } from "@/components/shell/area-error";
-import de from "../messages/de.json";
+import de from "../messages/de-CH.json";
 
 // Sentry is the system boundary here: the id it hands back and whether a client is enabled.
 const sentry = vi.hoisted(() => ({
@@ -26,7 +26,7 @@ function failure(digest?: string): BoundaryError {
 
 function renderBoundary(error: BoundaryError, retry = vi.fn()) {
   render(
-    <NextIntlClientProvider locale="de" messages={de}>
+    <NextIntlClientProvider locale="de-CH" messages={de}>
       <AreaError error={error} retry={retry} />
     </NextIntlClientProvider>,
   );

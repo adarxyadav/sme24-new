@@ -14,7 +14,10 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { searchParamsToQuery } from "@/i18n/query";
 import { type Locale, routing } from "@/i18n/routing";
 
-const LABEL_KEY = { de: "german", en: "english" } as const;
+const LABEL_KEY = { "de-CH": "german", "en-CH": "english" } as const satisfies Record<
+  Locale,
+  string
+>;
 
 /**
  * Language submenu for the sidebar user menu: one radio item per locale that replaces the current
@@ -25,7 +28,7 @@ const LABEL_KEY = { de: "german", en: "english" } as const;
  */
 export function LocaleMenuItems() {
   const t = useTranslations("common");
-  const locale = useLocale() as Locale;
+  const locale = useLocale();
   const pathname = usePathname();
   const query = searchParamsToQuery(useSearchParams());
   const router = useRouter();

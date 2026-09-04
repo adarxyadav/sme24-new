@@ -6,7 +6,7 @@ const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 test("/ redirects to /de (AC-1)", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveURL(/\/de$/);
-  await expect(page.locator("html")).toHaveAttribute("lang", "de");
+  await expect(page.locator("html")).toHaveAttribute("lang", "de-CH");
 });
 
 for (const locale of ["de", "en"] as const) {
@@ -14,7 +14,7 @@ for (const locale of ["de", "en"] as const) {
     page,
   }) => {
     await page.goto(`/${locale}`);
-    await expect(page.locator("html")).toHaveAttribute("lang", locale);
+    await expect(page.locator("html")).toHaveAttribute("lang", `${locale}-CH`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
     const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
@@ -29,7 +29,7 @@ test("the language switcher changes the URL and the document language", async ({
     .getByRole("link", { name: "English" })
     .click();
   await expect(page).toHaveURL(/\/en$/);
-  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en-CH");
 });
 
 test("/api/health answers", async ({ request }) => {

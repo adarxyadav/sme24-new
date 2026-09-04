@@ -2,11 +2,12 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Signature } from "@/components/brand/signature";
 import { MarketingHeader } from "@/components/marketing-header";
 import { SkipLink } from "@/components/skip-link";
+import { resolveLocale } from "@/i18n/routing";
 
 /** Public pages: statically rendered (setRequestLocale in every layout and page on this path). */
 export default async function MarketingLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
-  setRequestLocale(locale);
+  setRequestLocale(resolveLocale(locale));
   const t = await getTranslations("brand");
 
   // Navigation links arrive with feature 13 (marketing site); the header already collapses them.

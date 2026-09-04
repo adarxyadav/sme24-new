@@ -28,7 +28,7 @@ for (const theme of ["light", "dark"] as const) {
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 
       const html = page.locator("html");
-      await expect(html).toHaveAttribute("lang", locale);
+      await expect(html).toHaveAttribute("lang", `${locale}-CH`);
       await expect(html).toHaveClass(new RegExp(`\\b${theme}\\b`));
       expect(await html.evaluate((el) => getComputedStyle(el).colorScheme)).toBe(theme);
 

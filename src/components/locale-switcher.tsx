@@ -5,9 +5,12 @@ import { useLocale, useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { type Query, searchParamsToQuery } from "@/i18n/query";
-import { routing } from "@/i18n/routing";
+import { type Locale, routing } from "@/i18n/routing";
 
-const labelKey = { de: "german", en: "english" } as const;
+const LABEL_KEY = { "de-CH": "german", "en-CH": "english" } as const satisfies Record<
+  Locale,
+  string
+>;
 
 /**
  * Explicit language switch; next-intl writes the locale cookie on the change (spec 0001). The
@@ -45,6 +48,7 @@ function LocaleLinks({ query }: { query?: Query }) {
             href={href}
             locale={target}
             hrefLang={target}
+            lang={target}
             aria-current={active ? "true" : undefined}
             className={
               active
@@ -52,7 +56,7 @@ function LocaleLinks({ query }: { query?: Query }) {
                 : "rounded-md px-2 py-1 text-muted-foreground underline-offset-4 hover:underline"
             }
           >
-            {t(labelKey[target])}
+            {t(LABEL_KEY[target])}
           </Link>
         );
       })}

@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 import { Hero } from "@/features/marketing/hero";
-import de from "../messages/de.json";
-import en from "../messages/en.json";
+import de from "../messages/de-CH.json";
+import en from "../messages/en-CH.json";
 
 // The App Router is not mounted in jsdom; next-intl's Link only needs these hooks to exist.
 vi.mock("next/navigation", () => ({
@@ -17,7 +17,7 @@ vi.mock("next/navigation", () => ({
 describe("landing hero (AC-1)", () => {
   it("renders German copy for de", () => {
     render(
-      <NextIntlClientProvider locale="de" messages={de}>
+      <NextIntlClientProvider locale="de-CH" messages={de}>
         <Hero />
       </NextIntlClientProvider>,
     );
@@ -30,7 +30,7 @@ describe("landing hero (AC-1)", () => {
 
   it("renders English copy for en", () => {
     render(
-      <NextIntlClientProvider locale="en" messages={en}>
+      <NextIntlClientProvider locale="en-CH" messages={en}>
         <Hero />
       </NextIntlClientProvider>,
     );

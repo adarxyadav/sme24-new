@@ -1,4 +1,5 @@
 import { act, render, screen } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import { Bar, BarChart } from "recharts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
@@ -175,8 +176,13 @@ describe("ChartTooltipContent and ChartLegendContent (spec 0003, AC-9)", () => {
     },
   ];
 
+  // The tooltip formats numbers through next-intl (spec 0004), so it needs the intl context.
   function renderInChart(ui: React.ReactElement) {
-    return render(<ChartContainer config={CONFIG}>{ui}</ChartContainer>);
+    return render(
+      <NextIntlClientProvider locale="de-CH">
+        <ChartContainer config={CONFIG}>{ui}</ChartContainer>
+      </NextIntlClientProvider>,
+    );
   }
 
   it("tooltip shows the axis label, the series label from the config and the value", () => {

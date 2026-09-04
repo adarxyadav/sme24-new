@@ -4,6 +4,7 @@ import { ButtonsSection } from "@/components/gallery/buttons-section";
 import { CampaignSection } from "@/components/gallery/campaign-section";
 import { ChartsSection } from "@/components/gallery/charts-section";
 import { FeedbackSection } from "@/components/gallery/feedback-section";
+import { FormattingSection } from "@/components/gallery/formatting-section";
 import { FormsSection } from "@/components/gallery/forms-section";
 import { GallerySection } from "@/components/gallery/gallery-section";
 import { OverlaysSection } from "@/components/gallery/overlays-section";
@@ -22,6 +23,7 @@ const SECTIONS = [
   ["type", TypeSection],
   ["buttons", ButtonsSection],
   ["forms", FormsSection],
+  ["formatting", FormattingSection],
   ["table", TableSection],
   ["overlays", OverlaysSection],
   ["feedback", FeedbackSection],

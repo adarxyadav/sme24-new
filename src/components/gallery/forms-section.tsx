@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTranslations } from "next-intl";
+import { type Messages, useTranslations } from "next-intl";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -64,7 +64,8 @@ export function FormsSection() {
     },
   });
   const { errors, isSubmitting } = form.formState;
-  const errorText = (key: string | undefined) => (key ? t(`errors.${key}`) : undefined);
+  const errorText = (key: string | undefined) =>
+    key ? t(`errors.${key as keyof Messages["gallery"]["forms"]["errors"]}`) : undefined;
 
   return (
     <div className="grid gap-12 lg:grid-cols-[minmax(0,42rem)_minmax(0,20rem)]">

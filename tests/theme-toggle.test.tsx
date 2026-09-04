@@ -4,11 +4,11 @@ import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
 import { beforeEach, describe, expect, it } from "vitest";
 import { ThemeToggle } from "@/components/theme-toggle";
-import de from "../messages/de.json";
+import de from "../messages/de-CH.json";
 
 function renderToggle() {
   return render(
-    <NextIntlClientProvider locale="de" messages={de}>
+    <NextIntlClientProvider locale="de-CH" messages={de}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <ThemeToggle />
       </ThemeProvider>

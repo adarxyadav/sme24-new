@@ -153,7 +153,8 @@
       "sentryUnavailable": "Sentry is not configured (SENTRY_DSN missing).",
       "posthogSent": "Test event sent to PostHog.",
       "posthogUnavailable": "PostHog is not configured (NEXT_PUBLIC_POSTHOG_KEY missing)."
-    }
+    },
+    "summary": "Inserted on {at, date, dateTime}"
   },
   "gallery": {
     "title": "Design gallery",
@@ -183,6 +184,10 @@
       "forms": {
         "title": "Forms",
         "description": "React Hook Form with Zod. Errors sit under the field and are linked to it."
+      },
+      "formatting": {
+        "title": "Formats",
+        "description": "The named number and date formats, live through the request formatter: CHF, percentages and dates read the Swiss way in both languages."
       },
       "table": {
         "title": "Tables",
@@ -358,6 +363,15 @@
         "planRequired": "Please choose a plan.",
         "messageLong": "At most 200 characters.",
         "consentRequired": "Please accept the terms of use."
+      }
+    },
+    "formatting": {
+      "numbers": "Numbers",
+      "dates": "Dates and times",
+      "columns": {
+        "format": "Format",
+        "input": "Input",
+        "output": "Output"
       }
     },
     "table": {
