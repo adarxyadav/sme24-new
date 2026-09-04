@@ -39,7 +39,8 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-dvh antialiased">
+      {/* Browser extensions (ColorZilla adds `cz-shortcut-listen`) mutate body attributes before hydration. */}
+      <body className="min-h-dvh antialiased" suppressHydrationWarning>
         <NextIntlClientProvider>
           <ThemeProvider>
             <TooltipProvider>
