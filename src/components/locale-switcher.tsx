@@ -3,9 +3,10 @@
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Suspense } from "react";
+import { setLocale } from "@/features/localization/actions";
 import { Link, usePathname } from "@/i18n/navigation";
 import { type Query, searchParamsToQuery } from "@/i18n/query";
-import { type Locale, routing } from "@/i18n/routing";
+import { LOCALE_CODE, type Locale, routing } from "@/i18n/routing";
 
 const LABEL_KEY = { "de-CH": "german", "en-CH": "english" } as const satisfies Record<
   Locale,
@@ -17,7 +18,9 @@ const LABEL_KEY = { "de-CH": "german", "en-CH": "english" } as const satisfies R
  * marketing pages are prerendered, and reading the search params would bail the tree out of
  * prerendering, so the query aware links sit behind a Suspense boundary whose fallback renders
  * the same links without the query: the static HTML carries the switcher, the browser then swaps
- * in the version that keeps the query string. Runs in the browser.
+ * in the version that keeps the query string. Each link also starts `setLocale` without awaiting
+ * it (spec 0004, AC-2): persistence here is best effort, the link works without JavaScript and the
+ * page never depends on the stored value. Runs in the browser.
  */
 export function LocaleSwitcher() {
   return (
@@ -50,6 +53,9 @@ function LocaleLinks({ query }: { query?: Query }) {
             hrefLang={target}
             lang={target}
             aria-current={active ? "true" : undefined}
+            onClick={() => {
+              void setLocale({ locale: LOCALE_CODE[target] });
+            }}
             className={
               active
                 ? "rounded-md bg-foreground px-2 py-1 font-medium text-background"
