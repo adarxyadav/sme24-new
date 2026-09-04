@@ -9,10 +9,13 @@ export type StatementProps = {
 
 export type Sentence = { readonly text: string; readonly stop: boolean };
 
-/** Splits copy at its periods and remembers which lines carried one ("AI" stays bare). */
+/**
+ * Splits copy at sentence ends (a period followed by whitespace or the end of the text, so
+ * "sme24.ch" and "1.5" stay whole) and remembers which lines carried one ("AI" stays bare).
+ */
 export function splitSentences(text: string): readonly Sentence[] {
   return text
-    .split(/(?<=\.)\s*/)
+    .split(/(?<=\.)(?:\s+|$)/)
     .map((part) => part.trim())
     .filter((part) => part.length > 0 && part !== ".")
     .map((part) => ({ text: part.replace(/\.$/, ""), stop: part.endsWith(".") }));
@@ -44,7 +47,8 @@ export function Statement({ text, as: Tag = "p", className }: StatementProps) {
   return (
     <Tag data-slot="statement" className={cn("text-balance", className)}>
       {sentences.map((sentence, index) => (
-        <span key={sentence.text} className="block">
+        // biome-ignore lint/suspicious/noArrayIndexKey: the lines are static per render and derived from one string, and a repeated sentence must keep its own line
+        <span key={index} className="block">
           {sentence.text}
           {sentence.stop ? <SquareStop /> : null}
           {index < sentences.length - 1 ? " " : null}

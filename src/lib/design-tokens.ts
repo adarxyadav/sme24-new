@@ -53,6 +53,12 @@ const TEXT_ON_SIDEBAR = ["sidebar-foreground", "sidebar-muted-foreground"] as co
 /** Control boundaries and the focus ring must stand out from every ground at 3:1. */
 const BOUNDARIES_ON_GROUNDS = ["ring", "input"] as const;
 
+/**
+ * Chart series tokens in the order the gallery and `ChartContainer` use them. Bars and lines carry
+ * information, so each series must stand out from every page ground at 3:1 (WCAG 1.4.11).
+ */
+export const CHART_TOKENS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] as const;
+
 /** Surface pairs: the text token of each surface on that surface. */
 const SURFACE_PAIRS = [
   ["primary-foreground", "primary"],
@@ -78,9 +84,10 @@ const boundary = (foreground: string, background: string): ContrastPair => ({
 
 /**
  * The full pair list. Hairline dividers (`--border`, `--sidebar-border`) are decorative and are
- * deliberately not in it: WCAG 1.4.11 applies to boundaries that identify a control, which is what
- * `--input` and the rings are for. Text on a `-subtle` tint is the fill color itself
- * (`text-success` on `bg-success-subtle`), so that is the pair checked.
+ * deliberately not in it (spec 0003, amendment of 2026-09-04): WCAG 1.4.11 applies to boundaries
+ * that identify a control, which is what `--input` and the rings are for, and to graphics that carry
+ * information, which is why the chart series are in. Text on a `-subtle` tint is the fill color
+ * itself (`text-success` on `bg-success-subtle`), so that is the pair checked.
  */
 export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ...SURFACE_PAIRS.map(([foreground, background]) => text(foreground, background)),
@@ -93,7 +100,5 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ...BOUNDARIES_ON_GROUNDS.flatMap((token) => GROUNDS.map((ground) => boundary(token, ground))),
   ...TEXT_ON_SIDEBAR.flatMap((token) => SIDEBAR_GROUNDS.map((ground) => text(token, ground))),
   ...SIDEBAR_GROUNDS.map((ground) => boundary("sidebar-ring", ground)),
+  ...CHART_TOKENS.flatMap((token) => GROUNDS.map((ground) => boundary(token, ground))),
 ];
-
-/** Chart series tokens in the order the gallery and `ChartContainer` use them. */
-export const CHART_TOKENS = ["chart-1", "chart-2", "chart-3", "chart-4", "chart-5"] as const;

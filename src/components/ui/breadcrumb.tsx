@@ -80,6 +80,7 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
 }
 
 function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span">) {
+  const t = useTranslations("ui");
   return (
     <span
       data-slot="breadcrumb-ellipsis"
@@ -89,7 +90,7 @@ function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<"span"
       {...props}
     >
       <MoreHorizontalIcon />
-      <span className="sr-only">More</span>
+      <span className="sr-only">{t("morePages")}</span>
     </span>
   );
 }
