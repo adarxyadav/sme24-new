@@ -231,6 +231,12 @@ Owner decision, same day: Geist Sans stays the brand face and Urbanist is droppe
 - **Brand guidelines**: v1.0 names Urbanist. The guidelines diverge from the product until they are revised; `docs/design.md` is the source of truth for the app.
 - **Follow-up for `/architect`**: fold this into `### Typography` together with the amendment above.
 
+## Amendment 2026-09-04: shadcn Field replaces Form
+
+Found by `/check verify`: the installed forms primitive is shadcn `Field` (`src/components/ui/field.tsx`, the `Field`, `FieldGroup`, `FieldLabel`, `FieldDescription`, `FieldError`, `FieldSet` and `FieldLegend` family), not the older `Form` wrapper. `docs/design.md` already documents the `Field` family; **AC-8** and the Forms row of the component table in `## Feature design` still say `Form`. The behaviour (Zod errors inline under the field, `aria-invalid` and `aria-describedby` on the control) is unchanged.
+
+- **Follow-up for `/architect`**: replace `Form` with `Field` in **AC-8** and the Forms row, and confirm **AC-6** counts the `Field` family as the installed base set.
+
 ## Follow-up
 
 - [ ] Feature 5 (localization): decide number, date and CHF formatting; the tabular figure rule here assumes it.

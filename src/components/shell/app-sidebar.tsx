@@ -67,7 +67,7 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
             <SidebarMenuButton size="lg" asChild tooltip={t("common.appName")}>
               <Link href={items[0]?.href ?? "/"}>
                 <BrandMark className="h-7 w-8" />
-                <span className="flex flex-col leading-tight">
+                <span className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="font-extrabold tracking-display">{t("common.appName")}</span>
                   <span className="text-sidebar-muted-foreground text-xs">
                     {t(`areas.${area}.title`)}
