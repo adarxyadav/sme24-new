@@ -43,7 +43,7 @@ spec [0002](../specs/0002-data-model/index.md) · code in `supabase/schemas/`, `
 - [x] Review it (fresh model): `/check review data model`
 - [x] Document it: `/document data model`
 
-### 4. Design system & UI foundation · in-progress
+### 4. Design system & UI foundation · done
 Visual language, layout primitives and base components for a serious B2B product: typography, color with accessible contrast, spacing, forms, tables, cards, charts styling, empty and error states. Every page in the client dashboard, admin and marketing site depends on it.
 **Done when:** `design.md` covers type, color, spacing and components; base components pass keyboard, focus and screen reader checks at WCAG 2.2 AA; light and dark both render.
 spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.css`, `src/lib/contrast.ts`, `src/lib/design-tokens.ts`, `src/components/`, `src/components/shell/`, `src/components/gallery/`, `src/components/ui/`, `src/app/[locale]/admin/design/`, `docs/design.md`
