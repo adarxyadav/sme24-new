@@ -33,11 +33,12 @@ pnpm build                   # next build
 pnpm typecheck               # next typegen + tsc --noEmit
 pnpm lint / pnpm lint:fix    # Biome: lint, format, import order, a11y rules
 pnpm test                    # Vitest + Testing Library (tests/, src/**/*.test.*)
-pnpm test:e2e                # Playwright + axe (e2e/); starts its own dev server on port 3100
+pnpm test:e2e                # Playwright + axe (e2e/); starts its own dev server on port 3100, reads .env.local, 2 workers locally; the email flows go through Mailpit, so they run on the local stack only and skip on a deployment
 pnpm test:db                 # pgTAP policy tests in supabase/tests/; needs the local stack running
 pnpm db:diff <name>          # migration from supabase/schemas/ (declarative sync)
 pnpm db:reset && pnpm db:types   # reapply locally, then regenerate src/lib/supabase/database.types.ts (CI fails when stale)
 pnpm trigger:dev             # Trigger.dev tasks locally (needs a project ref)
+pnpm user:invite --email <address> --role expert|ops [--locale de|en] [--name "…"]   # invite a staff user with the role fixed; needs the target environment's Supabase keys in .env.local (docs/auth.md)
 ```
 
 ## Specs
@@ -56,6 +57,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md` (decision and 
 - **Data access through the four client factories** in `src/lib/supabase/`, one per execution context. RLS is the real boundary; the proxy only gates areas. The service client (bypasses RLS) is allowed only in `src/trigger/` and server only code, enforced by Biome; tasks take explicit ids and filter by them.
 - **Database changes** start in `supabase/schemas/*.sql` (table, RLS and policies in the same file), then `pnpm db:diff`, `db:reset`, `test:db`, `db:types`. Migrations stay backward compatible (add, switch, remove later) because previews share staging. The diff misses three things that must be re-added by hand in the migration: column grants dropped by a table level `REVOKE ALL`, the `anon` execute revoke on a new `public` function, and a view body rewritten from `select *` to a column list. Every new kind T (tenant) table copies the tenant table contract from spec 0002 and gets a pgTAP file in `supabase/tests/`.
 - **Membership rows are never inserted directly.** Direct `INSERT` on `organization_members` is revoked for the app roles; an owner adds a member through `public.add_organization_member`, which checks the target consented. Nothing in `src/` calls it yet; feature 22 (client team invitations) does.
+- **Auth flows follow `docs/auth.md`** (spec 0005). Every emailed link goes through `/api/auth/confirm` and is verified from its token hash (never `{{ .ConfirmationURL }}` in a template); `profiles.terms_accepted_at` is written only by the profiles trigger or `accept_terms()`; the role never comes from user input (the profiles trigger defaults to `client`, only `pnpm user:invite` sets `expert` or `ops`). Auth email templates live in `supabase/templates/` (German above English) and the hosted settings (Resend SMTP, templates, Google and Microsoft) are a per environment checklist in `docs/auth.md`.
 - **Authenticated areas are `force-dynamic`**; static rendering only under `(marketing)`. Every user facing string goes through next-intl (`messages/de-CH.json` and `messages/en-CH.json`; the database and the URL use the short codes `de` and `en`, see `docs/localization.md`). The app role lives in `app_metadata.role`, never a top level `role` claim.
 - **Accessibility WCAG 2.2 AA**: Biome a11y rules in the editor, axe in Playwright as the second net. No ESLint.
 - **Design system**: build all UI to `docs/design.md` (art direction, the component inventory and the build mandate); token values live in `src/app/globals.css`, and every new primitive gets a section on the ops only `/admin/design` gallery so axe scans it.
