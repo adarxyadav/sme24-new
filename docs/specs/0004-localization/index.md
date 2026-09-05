@@ -1,7 +1,7 @@
 # 0004. Localization: German and English as the foundation
 
 **Date**: 2026-09-04
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 

@@ -58,7 +58,7 @@ spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.cs
 - [x] Review it (fresh model): `/check review design system & UI foundation`
 - [x] Document it: `/document design system & UI foundation`
 
-### 5. Localization (German & English) · in-progress
+### 5. Localization (German & English) · done
 Two languages from the first screen: routing per language, translated strings, number, date and CHF formatting, and translated content in generated emails and reports. Built now so French and Italian later cost only translation.
 **Done when:** every user facing string is translatable, a visitor can switch between German and English and the URL reflects it, and CHF amounts and dates format per language.
 spec [0004](../specs/0004-localization/index.md) · code in `src/i18n/`, `messages/`, `src/features/localization/`, `src/lib/validation.ts`, `src/proxy.ts`, `supabase/schemas/10_organizations.sql`, `docs/localization.md`, `tests/i18n/`, `e2e/localization.spec.ts`
