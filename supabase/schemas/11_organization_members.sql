@@ -180,9 +180,9 @@ grant execute on function public.add_organization_member(uuid, uuid, text) to au
 revoke insert on public.organization_members from anon, authenticated;
 
 -- The only insert path for organizations. Runs as the signed in client (PostgREST rpc): creates
--- the organization, the caller's owner membership and the caller's current organization in one
--- transaction and returns the new id. Refuses a caller who is not a client (`not_a_client`) or
--- who already belongs to an organization (`already_member`).
+-- the organization (in the caller's stored language, spec 0004), the caller's owner membership and
+-- the caller's current organization in one transaction and returns the new id. Refuses a caller
+-- who is not a client (`not_a_client`) or who already belongs to an organization (`already_member`).
 create or replace function public.create_organization(name text)
 returns uuid
 language plpgsql
@@ -201,8 +201,12 @@ begin
     raise exception 'already_member';
   end if;
 
-  insert into public.organizations (name, created_by)
-  values (create_organization.name, caller)
+  insert into public.organizations (name, created_by, locale)
+  values (
+    create_organization.name,
+    caller,
+    coalesce((select p.locale from public.profiles p where p.id = caller), 'de')
+  )
   returning id into org_id;
 
   insert into public.organization_members (organization_id, user_id, role)

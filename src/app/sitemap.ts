@@ -1,14 +1,16 @@
 import type { MetadataRoute } from "next";
-import { routing } from "@/i18n/routing";
-import { clientEnv } from "@/lib/env";
+import { absoluteUrl, localizedAlternates } from "@/i18n/metadata";
+import { MARKETING_ROUTES } from "@/i18n/pathnames";
+import { LOCALES } from "@/i18n/routing";
 
+/** Every public route in both languages with its language alternates (spec 0004, AC-10). Server, request time. */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = clientEnv().NEXT_PUBLIC_APP_URL;
-  const languages = Object.fromEntries(routing.locales.map((l) => [l, `${base}/${l}`]));
-
-  return routing.locales.map((locale) => ({
-    url: `${base}/${locale}`,
-    lastModified: new Date(),
-    alternates: { languages },
-  }));
+  const lastModified = new Date();
+  return MARKETING_ROUTES.flatMap((route) =>
+    LOCALES.map((locale) => ({
+      url: absoluteUrl(route, locale),
+      lastModified,
+      alternates: { languages: localizedAlternates(route, locale).languages },
+    })),
+  );
 }

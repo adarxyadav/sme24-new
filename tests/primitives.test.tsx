@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import de from "../messages/de.json";
+import de from "../messages/de-CH.json";
 
 // The App Router is not mounted in jsdom; next-intl's Link only needs these hooks to exist.
 vi.mock("next/navigation", () => ({
@@ -19,7 +19,7 @@ vi.mock("next/navigation", () => ({
 
 function renderDe(ui: React.ReactNode) {
   return render(
-    <NextIntlClientProvider locale="de" messages={de}>
+    <NextIntlClientProvider locale="de-CH" messages={de}>
       {ui}
     </NextIntlClientProvider>,
   );

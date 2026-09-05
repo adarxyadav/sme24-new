@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
-import { routing } from "@/i18n/routing";
+import { getPathname } from "@/i18n/navigation";
+import { localeFromCode, routing } from "@/i18n/routing";
 import { AREA_ROLE, areaFromPathname, roleFromClaims } from "@/lib/auth/roles";
 import { createProxyClient } from "@/lib/supabase/proxy";
 
@@ -27,16 +28,17 @@ export async function proxy(request: NextRequest) {
   const area = areaFromPathname(pathname);
   if (!area) return response;
 
-  const locale = pathname.split("/")[1] ?? routing.defaultLocale;
+  // The prefix is the short code (spec 0004), so it maps straight to the locale.
+  const locale = localeFromCode(pathname.split("/")[1]);
 
   if (!claims) {
-    const signInUrl = new URL(`/${locale}/sign-in`, request.url);
+    const signInUrl = new URL(getPathname({ locale, href: "/sign-in" }), request.url);
     signInUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(signInUrl);
   }
 
   if (roleFromClaims(claims) !== AREA_ROLE[area]) {
-    return NextResponse.redirect(new URL(`/${locale}/forbidden`, request.url));
+    return NextResponse.redirect(new URL(getPathname({ locale, href: "/forbidden" }), request.url));
   }
 
   return response;

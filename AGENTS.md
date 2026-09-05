@@ -56,8 +56,9 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md` (decision and 
 - **Data access through the four client factories** in `src/lib/supabase/`, one per execution context. RLS is the real boundary; the proxy only gates areas. The service client (bypasses RLS) is allowed only in `src/trigger/` and server only code, enforced by Biome; tasks take explicit ids and filter by them.
 - **Database changes** start in `supabase/schemas/*.sql` (table, RLS and policies in the same file), then `pnpm db:diff`, `db:reset`, `test:db`, `db:types`. Migrations stay backward compatible (add, switch, remove later) because previews share staging. The diff misses three things that must be re-added by hand in the migration: column grants dropped by a table level `REVOKE ALL`, the `anon` execute revoke on a new `public` function, and a view body rewritten from `select *` to a column list. Every new kind T (tenant) table copies the tenant table contract from spec 0002 and gets a pgTAP file in `supabase/tests/`.
 - **Membership rows are never inserted directly.** Direct `INSERT` on `organization_members` is revoked for the app roles; an owner adds a member through `public.add_organization_member`, which checks the target consented. Nothing in `src/` calls it yet; feature 22 (client team invitations) does.
-- **Authenticated areas are `force-dynamic`**; static rendering only under `(marketing)`. Every user facing string goes through next-intl (`messages/<locale>.json`, `de` and `en`). The app role lives in `app_metadata.role`, never a top level `role` claim.
+- **Authenticated areas are `force-dynamic`**; static rendering only under `(marketing)`. Every user facing string goes through next-intl (`messages/de-CH.json` and `messages/en-CH.json`; the database and the URL use the short codes `de` and `en`, see `docs/localization.md`). The app role lives in `app_metadata.role`, never a top level `role` claim.
 - **Accessibility WCAG 2.2 AA**: Biome a11y rules in the editor, axe in Playwright as the second net. No ESLint.
+- **Design system**: build all UI to `docs/design.md` (art direction, the component inventory and the build mandate); token values live in `src/app/globals.css`, and every new primitive gets a section on the ops only `/admin/design` gallery so axe scans it.
 - **Conventional commit messages** (`feat:`, `fix:`, `chore:`, `docs:`, `test:`).
 
 ## Tooling
@@ -94,6 +95,9 @@ Chosen by `/audit` on 2026-09-03; `/develop tooling` installs what is not yet th
 - [stripe-best-practices](.claude/skills/stripe-best-practices/): `stripe/ai`, Checkout, webhooks, Stripe Tax, key handling (feature 11 on).
 - [resend](.claude/skills/resend/): `resend/resend-skills`, Resend API, idempotency keys, webhooks (feature 7 on).
 - [react-email](.claude/skills/react-email/): `resend/resend-skills`, React Email templates (feature 7 on).
+- [next-themes](.claude/skills/next-themes/): `pharbuz/ai-agent-skills`, theme switching with next-themes (ThemeProvider, useTheme, no flash on first paint, forced themes).
+- [recharts](.claude/skills/recharts/): `andy-spike/skills`, Recharts charts behind the shadcn Chart wrapper (axes, tooltips, legends, responsive sizing, accessibility).
+- [ask-sonner](.claude/skills/ask-sonner/): `emilkowalski/skills`, Sonner toasts (the single root toaster, promise and loading toasts, theming, dark mode).
 
 Declined: lackeyjb/playwright-skill (same skill name as the installed one). MCP servers: Supabase (recommended), Sentry (recommended), Stripe (recommended), PostHog (recommended), Resend (recommended, feature 7); connect them in your MCP settings, none is connected yet.
 

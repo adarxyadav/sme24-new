@@ -6,12 +6,12 @@ import { CampaignFrame, CampaignGrid, CampaignPiece } from "@/components/brand/c
 import { Logo } from "@/components/brand/logo";
 import { Signature } from "@/components/brand/signature";
 import { Statement, splitSentences } from "@/components/brand/statement";
-import de from "../messages/de.json";
-import en from "../messages/en.json";
+import de from "../messages/de-CH.json";
+import en from "../messages/en-CH.json";
 
-function withMessages(ui: React.ReactNode, locale: "de" | "en" = "de") {
+function withMessages(ui: React.ReactNode, locale: "de-CH" | "en-CH" = "de-CH") {
   return render(
-    <NextIntlClientProvider locale={locale} messages={locale === "de" ? de : en}>
+    <NextIntlClientProvider locale={locale} messages={locale === "de-CH" ? de : en}>
       {ui}
     </NextIntlClientProvider>,
   );
@@ -75,9 +75,9 @@ describe("Logo and Signature", () => {
   });
 
   it("signs off in the campaign voice for each locale", () => {
-    withMessages(<Signature />, "de");
+    withMessages(<Signature />, "de-CH");
     expect(screen.getByText(de.brand.signature)).toBeInTheDocument();
-    withMessages(<Signature />, "en");
+    withMessages(<Signature />, "en-CH");
     expect(screen.getByText(en.brand.signature)).toBeInTheDocument();
   });
 });

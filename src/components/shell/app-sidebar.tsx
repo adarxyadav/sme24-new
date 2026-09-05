@@ -91,7 +91,7 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
             <SidebarMenu aria-label={t("nav.label")}>
               {items.map((item) => {
                 const active = isNavItemActive(pathname, item);
-                const label = t(`nav.${area}.${item.labelKey}`);
+                const label = t(`nav.${item.labelKey}`);
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={active} tooltip={label}>

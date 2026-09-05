@@ -35,9 +35,11 @@ export async function runScaffoldTask(
   if (!env.TRIGGER_SECRET_KEY) return { key: "taskUnavailable" };
 
   const shouldFail = formData.get("shouldFail") === "true";
+  // The task writes its summary in the actor's stored language (spec 0004, AC-7).
   const handle = await tasks.trigger<typeof scaffoldCheck>("scaffold-check", {
     message: `Triggered by ${actor.email}`,
     shouldFail,
+    userId: actor.userId,
   });
   log.info("scaffold task triggered", { runId: handle.id, shouldFail, userId: actor.userId });
   return { key: "taskQueued", runId: handle.id };

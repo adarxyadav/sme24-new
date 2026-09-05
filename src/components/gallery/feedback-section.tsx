@@ -104,7 +104,7 @@ export function FeedbackSection() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Muster AG</BreadcrumbPage>
+              <BreadcrumbPage>{t("crumbs.current")}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>

@@ -1,8 +1,9 @@
--- create_organization: one call creates the organization, the owner membership and the current
--- organization; refuses non clients, existing members and anon (spec 0002 AC-6).
+-- create_organization: one call creates the organization (in the caller's language), the owner
+-- membership and the current organization; refuses non clients, existing members and anon
+-- (spec 0002 AC-6; spec 0004 AC-9).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(12);
+select plan(14);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -99,6 +100,8 @@ select is(
 select is(
   (select organization_id from public.profiles where id = 'd0000000-0000-4000-8000-000000000001'),
   (select id from created), 'the caller''s current organization is the new one');
+select is((select o.locale from public.organizations o join created c on c.id = o.id), 'de',
+  'a caller with the default language creates a German organization');
 create function pg_temp.hook(user_id uuid)
 returns jsonb language sql as $$
   select public.custom_access_token_hook(jsonb_build_object('user_id', user_id,
@@ -126,6 +129,15 @@ select throws_ok($$ select public.create_organization('Service AG') $$, 'P0001',
 select pg_temp.as_anon();
 select throws_ok($$ select public.create_organization('Anon AG') $$, '42501', null,
   'anon may not execute create_organization');
+
+-- The organization copies the caller's stored language (spec 0004 AC-9)
+select pg_temp.as_postgres();
+select pg_temp.make_user('d0000000-0000-4000-8000-000000000003', 'newcomer3@test.local', 'client', '{"locale":"en"}');
+select pg_temp.impersonate('d0000000-0000-4000-8000-000000000003', 'client');
+create temp table created_en as select public.create_organization('English Ltd') as id;
+select pg_temp.as_postgres();
+select is((select o.locale from public.organizations o join created_en c on c.id = o.id), 'en',
+  'a caller whose profile says en creates an English organization');
 
 -- Name check
 select pg_temp.as_postgres();

@@ -1,9 +1,11 @@
 import { cookies } from "next/headers";
-import { getLocale, getTranslations } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { AppSidebar } from "@/components/shell/app-sidebar";
 import { SkipLink } from "@/components/skip-link";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { clientMessages } from "@/i18n/client-messages";
 import type { Area } from "@/lib/auth/roles";
 import { roleFromClaims } from "@/lib/auth/roles";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -23,11 +25,15 @@ export async function AreaShell({ area, children }: { area: Area; children: Reac
   const email = typeof claims?.email === "string" ? claims.email : "";
   const role = roleFromClaims(claims) ?? "";
   const sidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
+  // The sidebar names the area from `areas`, a feature namespace outside the shared client bundle.
+  const messages = clientMessages(await getMessages(), ["areas"]);
 
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
       <SkipLink />
-      <AppSidebar area={area} email={email} role={role} locale={locale} />
+      <NextIntlClientProvider messages={messages}>
+        <AppSidebar area={area} email={email} role={role} locale={locale} />
+      </NextIntlClientProvider>
       <SidebarInset id="main" tabIndex={-1} className="outline-none">
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />

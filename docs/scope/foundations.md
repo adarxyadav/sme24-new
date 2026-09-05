@@ -43,7 +43,7 @@ spec [0002](../specs/0002-data-model/index.md) · code in `supabase/schemas/`, `
 - [x] Review it (fresh model): `/check review data model`
 - [x] Document it: `/document data model`
 
-### 4. Design system & UI foundation · in-progress
+### 4. Design system & UI foundation · done
 Visual language, layout primitives and base components for a serious B2B product: typography, color with accessible contrast, spacing, forms, tables, cards, charts styling, empty and error states. Every page in the client dashboard, admin and marketing site depends on it.
 **Done when:** `design.md` covers type, color, spacing and components; base components pass keyboard, focus and screen reader checks at WCAG 2.2 AA; light and dark both render.
 spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.css`, `src/lib/contrast.ts`, `src/lib/design-tokens.ts`, `src/components/`, `src/components/shell/`, `src/components/gallery/`, `src/components/ui/`, `src/app/[locale]/admin/design/`, `docs/design.md`
@@ -58,7 +58,17 @@ spec [0003](../specs/0003-design-system/index.md) · code in `src/app/globals.cs
 - [x] Review it (fresh model): `/check review design system & UI foundation`
 - [x] Document it: `/document design system & UI foundation`
 
-### 5. Localization (German & English) · needs a decision
+### 5. Localization (German & English) · in-progress
 Two languages from the first screen: routing per language, translated strings, number, date and CHF formatting, and translated content in generated emails and reports. Built now so French and Italian later cost only translation.
 **Done when:** every user facing string is translatable, a visitor can switch between German and English and the URL reflects it, and CHF amounts and dates format per language.
-- [ ] Design it (spec): `/architect localization`
+spec [0004](../specs/0004-localization/index.md) · code in `src/i18n/`, `messages/`, `src/features/localization/`, `src/lib/validation.ts`, `src/proxy.ts`, `supabase/schemas/10_organizations.sql`, `docs/localization.md`, `tests/i18n/`, `e2e/localization.spec.ts`
+- [x] Design it (spec): `/architect localization`
+- [x] Build it: `/develop localization`
+  - [x] Locale tags and formats: `de-CH` and `en-CH` behind `/de` and `/en`, the formats module in `Europe/Zurich`, the standalone translator, the missing key handling, one formatted value through the scaffold task and the gallery (AC-1, AC-3, AC-7, AC-12)
+  - [x] Typed route map, switch persistence and the organisation locale: `pathnames`, the proxy on `getPathname`, the `setLocale` action, `organizations.locale` with its migration and pgTAP (AC-2, AC-9, AC-13)
+  - [x] Catalog conventions and gates: shared and feature namespaces, the explicit client messages, the literal scan, typed keys, `docs/localization.md`, localised Zod messages (AC-4, AC-5, AC-6, AC-8)
+  - [x] Language alternates, sitemap and English coverage in Playwright (AC-10, AC-11)
+- [x] Verify it: `/check verify localization`
+- [x] Test it: `/test localization`
+- [x] Review it (fresh model): `/check review localization`
+- [x] Document it: `/document localization`

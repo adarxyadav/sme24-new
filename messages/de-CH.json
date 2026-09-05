@@ -153,7 +153,8 @@
       "sentryUnavailable": "Sentry ist nicht konfiguriert (SENTRY_DSN fehlt).",
       "posthogSent": "Testereignis an PostHog gesendet.",
       "posthogUnavailable": "PostHog ist nicht konfiguriert (NEXT_PUBLIC_POSTHOG_KEY fehlt)."
-    }
+    },
+    "summary": "Eingefügt am {at, date, dateTime}"
   },
   "gallery": {
     "title": "Design Galerie",
@@ -183,6 +184,10 @@
       "forms": {
         "title": "Formulare",
         "description": "React Hook Form mit Zod. Fehler stehen direkt unter dem Feld und sind mit dem Feld verknüpft."
+      },
+      "formatting": {
+        "title": "Formate",
+        "description": "Die benannten Zahlen- und Datumsformate, live durch den Formatter der Anfrage: CHF, Prozent und Daten lesen sich in beiden Sprachen schweizerisch."
       },
       "table": {
         "title": "Tabellen",
@@ -350,14 +355,23 @@
       "invalidExample": "Ungültiges Feld",
       "disabledExample": "Deaktiviertes Feld",
       "disabledHint": "Dieser Wert wird aus dem Handelsregister übernommen.",
-      "disabledCheckbox": "Deaktivierte Auswahl",
-      "errors": {
-        "companyShort": "Bitte geben Sie mindestens 2 Zeichen ein.",
-        "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
-        "cantonRequired": "Bitte wählen Sie einen Kanton.",
-        "planRequired": "Bitte wählen Sie ein Paket.",
-        "messageLong": "Höchstens 200 Zeichen.",
-        "consentRequired": "Bitte akzeptieren Sie die Nutzungsbedingungen."
+      "disabledCheckbox": "Deaktivierte Auswahl"
+    },
+    "validation": {
+      "companyShort": "Bitte geben Sie mindestens 2 Zeichen ein.",
+      "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      "cantonRequired": "Bitte wählen Sie einen Kanton.",
+      "planRequired": "Bitte wählen Sie ein Paket.",
+      "messageLong": "Höchstens 200 Zeichen.",
+      "consentRequired": "Bitte akzeptieren Sie die Nutzungsbedingungen."
+    },
+    "formatting": {
+      "numbers": "Zahlen",
+      "dates": "Daten und Zeiten",
+      "columns": {
+        "format": "Format",
+        "input": "Eingabe",
+        "output": "Ausgabe"
       }
     },
     "table": {
@@ -441,7 +455,8 @@
       "breadcrumb": "Pfad",
       "crumbs": {
         "root": "Ops Admin",
-        "companies": "Unternehmen"
+        "companies": "Unternehmen",
+        "current": "Muster AG"
       },
       "tabs": "Tabs",
       "tab": {

@@ -8,12 +8,13 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Link } from "@/i18n/navigation";
+import type { Pathname } from "@/i18n/pathnames";
 import { cn } from "@/lib/utils";
 
 export type BreadcrumbEntry = {
   readonly label: string;
   /** Omit on the last entry: it is the current page. */
-  readonly href?: `/${string}`;
+  readonly href?: Pathname;
 };
 
 export type PageHeaderProps = {

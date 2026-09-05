@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import de from "../messages/de.json";
-import en from "../messages/en.json";
+import de from "../messages/de-CH.json";
+import en from "../messages/en-CH.json";
 
 /** Flattens nested message objects to dotted keys, so the two locales can be compared. */
 function deepKeys(value: unknown, prefix = ""): string[] {
@@ -10,8 +10,8 @@ function deepKeys(value: unknown, prefix = ""): string[] {
   );
 }
 
-describe("message catalogs (spec 0003, AC-12)", () => {
-  it("de.json is the authoritative key set and en.json matches it exactly", () => {
+describe("message catalogs (spec 0003 AC-12, spec 0004 AC-4)", () => {
+  it("de-CH.json is the authoritative key set and en-CH.json matches it exactly", () => {
     const deKeys = deepKeys(de).sort();
     const enKeys = deepKeys(en).sort();
     expect(enKeys.filter((key) => !deKeys.includes(key))).toEqual([]);

@@ -4,10 +4,11 @@ import { EmptyState } from "@/components/empty-state";
 import { SkipLink } from "@/components/skip-link";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { resolveLocale } from "@/i18n/routing";
 
 export default async function ForbiddenPage({ params }: PageProps<"/[locale]/forbidden">) {
   const { locale } = await params;
-  setRequestLocale(locale);
+  setRequestLocale(resolveLocale(locale));
   const t = await getTranslations("forbidden");
 
   return (

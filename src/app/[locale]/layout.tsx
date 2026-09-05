@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { clientMessages } from "@/i18n/client-messages";
 import { routing } from "@/i18n/routing";
 import { AnalyticsProvider } from "@/lib/analytics/client";
 
@@ -41,6 +42,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
   setRequestLocale(locale);
+  // Only the shared namespaces reach the browser (spec 0004, AC-6); a page that needs a feature
+  // namespace on the client wraps its children in a nested provider with `clientMessages`.
+  const messages = clientMessages(await getMessages());
 
   // The font variables live on `html` because `font-sans` is applied there (spec 0003).
   return (
@@ -51,7 +55,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
     >
       {/* Browser extensions (ColorZilla adds `cz-shortcut-listen`) mutate body attributes before hydration. */}
       <body className="min-h-dvh antialiased" suppressHydrationWarning>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <TooltipProvider>
               <AnalyticsProvider>{children}</AnalyticsProvider>

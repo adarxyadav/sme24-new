@@ -1,10 +1,17 @@
 import { LayoutDashboardIcon, type LucideIcon, PaletteIcon } from "lucide-react";
+import type { Messages } from "next-intl";
+import type { Pathname } from "@/i18n/pathnames";
 import type { Area } from "@/lib/auth/roles";
 
-/** One sidebar entry: the localized path, its `nav.<area>.<labelKey>` message and an icon. */
+/** A key of the `nav` namespace that names one area entry (`app.overview`, `admin.design`). */
+export type NavLabelKey = {
+  [A in Area]: `${A}.${Extract<keyof Messages["nav"][A], string>}`;
+}[Area];
+
+/** One sidebar entry: the typed route, its `nav.<labelKey>` message and an icon. */
 export type NavItem = {
-  readonly href: `/${string}`;
-  readonly labelKey: string;
+  readonly href: Pathname;
+  readonly labelKey: NavLabelKey;
   readonly icon: LucideIcon;
 };
 
@@ -14,11 +21,11 @@ export type NavItem = {
  * append their entries here.
  */
 export const AREA_NAV: Record<Area, readonly NavItem[]> = {
-  app: [{ href: "/app", labelKey: "overview", icon: LayoutDashboardIcon }],
-  expert: [{ href: "/expert", labelKey: "overview", icon: LayoutDashboardIcon }],
+  app: [{ href: "/app", labelKey: "app.overview", icon: LayoutDashboardIcon }],
+  expert: [{ href: "/expert", labelKey: "expert.overview", icon: LayoutDashboardIcon }],
   admin: [
-    { href: "/admin", labelKey: "overview", icon: LayoutDashboardIcon },
-    { href: "/admin/design", labelKey: "design", icon: PaletteIcon },
+    { href: "/admin", labelKey: "admin.overview", icon: LayoutDashboardIcon },
+    { href: "/admin/design", labelKey: "admin.design", icon: PaletteIcon },
   ],
 };
 
