@@ -20,8 +20,8 @@ export const LOCALE_CODE = { "de-CH": "de", "en-CH": "en" } as const satisfies R
 >;
 export type LocaleCode = (typeof LOCALE_CODE)[Locale];
 
-/** The default locale, German. */
-export const DEFAULT_LOCALE: Locale = "de-CH";
+/** The default locale, English (spec 0001 amended 2026-09-05; German until then). */
+export const DEFAULT_LOCALE: Locale = "en-CH";
 
 /** True when `value` is one of the app locales (`de-CH`, `en-CH`). Pure, runs anywhere. */
 export function isLocale(value: unknown): value is Locale {
@@ -39,7 +39,7 @@ export function localeFromCode(code: string | null | undefined): Locale {
   return match ?? DEFAULT_LOCALE;
 }
 
-// Spec 0001: locale prefix always, default German, no browser language detection, an explicit
+// Spec 0001: locale prefix always, default English (amended 2026-09-05), no browser language detection, an explicit
 // switcher writes the locale cookie. Spec 0004: the prefix is the short code, derived from
 // `LOCALE_CODE`, so `localeFromCode(prefix)` also serves the proxy; `localizedAlternates` in
 // `metadata.ts` is the single authority for language links, so the middleware sends none.

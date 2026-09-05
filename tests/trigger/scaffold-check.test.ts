@@ -122,15 +122,15 @@ describe("scaffold check task (spec 0004, AC-7)", () => {
     );
   });
 
-  it("uses German without a userId, so an anonymous trigger never touches profiles", async () => {
+  it("uses English, the default, without a userId, so an anonymous trigger never touches profiles", async () => {
     await run({ message: "Smoke" }, ctx);
-    expect(insertedRows()[0]?.message).toBe("Smoke · Eingefügt am 04.09.2026, 15:05");
+    expect(insertedRows()[0]?.message).toBe("Smoke · Inserted on 04.09.2026, 15:05");
   });
 
-  it("falls back to German when the user's profile is gone, so a retry never fails forever", async () => {
+  it("falls back to English, the default, when the user's profile is gone, so a retry never fails forever", async () => {
     db.profileLocale = null;
     await run({ message: "Smoke", userId: "deleted-user" }, ctx);
-    expect(insertedRows()[0]?.message).toBe("Smoke · Eingefügt am 04.09.2026, 15:05");
+    expect(insertedRows()[0]?.message).toBe("Smoke · Inserted on 04.09.2026, 15:05");
   });
 
   it("marks the row failed and throws when asked to fail, so the error reaches Sentry", async () => {

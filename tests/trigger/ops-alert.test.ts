@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * The ops-alert task (spec 0006, AC-2, AC-11): an unset webhook logs and returns `posted: false`,
  * a sign up resolves the person's name and language from the user id (never their address),
- * the Block Kit body carries the Swiss formatted time and a `/de/admin` button, a 429 or 5xx
+ * the Block Kit body carries the Swiss formatted time and an `/en/admin` button, a 429 or 5xx
  * throws so Trigger.dev retries, another 4xx aborts, and `raiseAlertFromTask` never fails the
  * calling task. The SDK, the env, the service client and `fetch` are the boundaries.
  */
@@ -136,7 +136,7 @@ describe("ops-alert task (AC-2, AC-11)", () => {
       ],
     });
     expect(body.blocks[2]).toMatchObject({
-      elements: [{ type: "button", url: "https://sme24.example/de/admin/emails" }],
+      elements: [{ type: "button", url: "https://sme24.example/en/admin/emails" }],
     });
     expect(boundary.profileReads).toEqual([]);
   });
@@ -155,7 +155,7 @@ describe("ops-alert task (AC-2, AC-11)", () => {
       ],
     });
     expect(body.blocks[2]).toMatchObject({
-      elements: [{ url: "https://sme24.example/de/admin" }],
+      elements: [{ url: "https://sme24.example/en/admin" }],
     });
     expect(JSON.stringify(body)).not.toContain("@");
   });

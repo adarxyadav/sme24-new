@@ -11,7 +11,7 @@ create table public.profiles (
   role public.app_role not null default 'client',
   organization_id uuid,
   full_name text null,
-  locale text not null default 'de' check (locale in ('de', 'en')),
+  locale text not null default 'en' check (locale in ('de', 'en')),
   -- Spec 0005 (AC-11): when the user accepted the terms. Written once, by handle_new_user from
   -- the sign up metadata or by accept_terms() for provider sign ups; never by a direct update
   -- (the column grant below leaves it out).
@@ -127,7 +127,7 @@ begin
       nullif(new.raw_user_meta_data ->> 'full_name', ''),
       nullif(new.raw_user_meta_data ->> 'name', '')
     ),
-    case when requested_locale in ('de', 'en') then requested_locale else 'de' end,
+    case when requested_locale in ('de', 'en') then requested_locale else 'en' end,
     consent
   );
   return new;

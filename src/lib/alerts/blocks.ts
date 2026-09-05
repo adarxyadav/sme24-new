@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, LOCALE_CODE } from "@/i18n/routing";
 import type { AlertView } from "./registry";
 
 /** The Slack incoming webhook body: a fallback text plus Block Kit blocks. */
@@ -6,8 +7,8 @@ export type SlackMessage = {
   readonly blocks: ReadonlyArray<Record<string, unknown>>;
 };
 
-/** Slack's default locale prefix for the ops team channel: the admin links open in German. */
-const ADMIN_LOCALE = "de";
+/** The locale prefix of the admin links in the ops channel: the app default (English). */
+const ADMIN_LOCALE = LOCALE_CODE[DEFAULT_LOCALE];
 
 /**
  * Builds the Block Kit payload of one alert (spec 0006, AC-2, AC-11): a header, a two column

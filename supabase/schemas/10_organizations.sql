@@ -11,7 +11,7 @@ create table public.organizations (
   archived_at timestamptz null,
   -- The organisation's language (spec 0004): reports and organisation wide mail use it even when
   -- a colleague works in the other language. Mirrors the short codes in src/i18n/routing.ts.
-  locale text not null default 'de' check (locale in ('de', 'en')),
+  locale text not null default 'en' check (locale in ('de', 'en')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

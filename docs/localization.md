@@ -102,7 +102,7 @@ Never call `Intl`, `toLocaleString` or `toLocaleDateString` directly.
 
 - Every route is one line in `src/i18n/pathnames.ts`; links with parameters are objects (`{ pathname: "/app/companies/[id]", params: { id } }`). An unknown href fails `pnpm typecheck`.
 - Marketing pages may localise the German slug (`"/pricing": { "de-CH": "/preise", "en-CH": "/pricing" }`) and must be listed in `MARKETING_ROUTES` for the sitemap and the language alternates.
-- `localizedAlternates(pathname)` in `src/i18n/metadata.ts` is the single source of `hreflang` links; spread it into `alternates` in every `generateMetadata`. `x-default` points at German.
+- `localizedAlternates(pathname)` in `src/i18n/metadata.ts` is the single source of `hreflang` links; spread it into `alternates` in every `generateMetadata`. `x-default` points at English (the app default since 2026-09-05).
 
 ## Validation messages
 
@@ -117,4 +117,4 @@ Never call `Intl`, `toLocaleString` or `toLocaleDateString` directly.
 3. Widen the three database checks (`profiles.locale`, `organizations.locale`, the `create_organization` fallback) in `supabase/schemas/` and diff a migration.
 4. Add the Zod locale (`fr` from `zod/locales`) to `zodLocaleError` in `src/lib/validation.ts`.
 5. Add the locale to the Playwright loops in `e2e/` and the label keys in the two switchers.
-6. Localised marketing slugs: add the French path per entry in `PATHNAMES`. `x-default` stays German.
+6. Localised marketing slugs: add the French path per entry in `PATHNAMES`. `x-default` stays English.

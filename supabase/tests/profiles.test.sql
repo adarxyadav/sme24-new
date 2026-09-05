@@ -95,8 +95,8 @@ select results_eq(
   'handle_new_user copies full_name and locale from user metadata');
 select results_eq(
   $$ select full_name, locale from public.profiles where id = 'b0000000-0000-4000-8000-000000000001' $$,
-  $$ values (null::text, 'de') $$,
-  'an empty name becomes null and an unknown locale falls back to de');
+  $$ values (null::text, 'en') $$,
+  'an empty name becomes null and an unknown locale falls back to en');
 
 -- Owner of A
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');

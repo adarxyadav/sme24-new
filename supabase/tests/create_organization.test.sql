@@ -100,8 +100,8 @@ select is(
 select is(
   (select organization_id from public.profiles where id = 'd0000000-0000-4000-8000-000000000001'),
   (select id from created), 'the caller''s current organization is the new one');
-select is((select o.locale from public.organizations o join created c on c.id = o.id), 'de',
-  'a caller with the default language creates a German organization');
+select is((select o.locale from public.organizations o join created c on c.id = o.id), 'en',
+  'a caller with the default language creates an English organization');
 create function pg_temp.hook(user_id uuid)
 returns jsonb language sql as $$
   select public.custom_access_token_hook(jsonb_build_object('user_id', user_id,
@@ -132,12 +132,12 @@ select throws_ok($$ select public.create_organization('Anon AG') $$, '42501', nu
 
 -- The organization copies the caller's stored language (spec 0004 AC-9)
 select pg_temp.as_postgres();
-select pg_temp.make_user('d0000000-0000-4000-8000-000000000003', 'newcomer3@test.local', 'client', '{"locale":"en"}');
+select pg_temp.make_user('d0000000-0000-4000-8000-000000000003', 'newcomer3@test.local', 'client', '{"locale":"de"}');
 select pg_temp.impersonate('d0000000-0000-4000-8000-000000000003', 'client');
-create temp table created_en as select public.create_organization('English Ltd') as id;
+create temp table created_en as select public.create_organization('Deutsche GmbH') as id;
 select pg_temp.as_postgres();
-select is((select o.locale from public.organizations o join created_en c on c.id = o.id), 'en',
-  'a caller whose profile says en creates an English organization');
+select is((select o.locale from public.organizations o join created_en c on c.id = o.id), 'de',
+  'a caller whose profile says de creates a German organization');
 
 -- Name check
 select pg_temp.as_postgres();

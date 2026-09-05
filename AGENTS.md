@@ -16,7 +16,7 @@ AI powered EHS consulting marketplace for regulated companies in Switzerland. On
 
 - **Language / Runtime**: TypeScript, strict mode plus `noUncheckedIndexedAccess`, everywhere (app, tasks, scripts); Node 22 (`.nvmrc`, `engines`)
 - **Framework**: Next.js 16 App Router with React 19 Server Components; Node runtime only (no Edge), Vercel functions in `fra1`
-- **Key dependencies**: Supabase in Zurich (Postgres, Auth, Storage, Realtime) through `@supabase/ssr` with RLS always on and no ORM; Trigger.dev v4 (EU) for all long running work; Tailwind v4 with shadcn/ui; next-intl v4 (`de` default, `en`); Zod v4; Sentry EU and PostHog EU. Later features add Vercel AI SDK via AI Gateway (Claude Sonnet 5), Stripe, Resend.
+- **Key dependencies**: Supabase in Zurich (Postgres, Auth, Storage, Realtime) through `@supabase/ssr` with RLS always on and no ORM; Trigger.dev v4 (EU) for all long running work; Tailwind v4 with shadcn/ui; next-intl v4 (`en` default, `de`); Zod v4; Sentry EU and PostHog EU. Later features add Vercel AI SDK via AI Gateway (Claude Sonnet 5), Stripe, Resend.
 - **Package manager**: pnpm
 
 ## Build approach
@@ -28,7 +28,7 @@ Tracer Bullet (vertical slices; each feature runs end to end through database, b
 ```bash
 pnpm install                 # Node 22 via .nvmrc; Docker and the Supabase CLI are needed too
 supabase start               # local Postgres, Auth, Storage, Realtime; applies migrations and seed.sql
-pnpm dev                     # http://localhost:3000 redirects to /de (falls to 3001 when 3000 is busy)
+pnpm dev                     # http://localhost:3000 redirects to /en (falls to 3001 when 3000 is busy)
 pnpm build                   # next build
 pnpm typecheck               # next typegen + tsc --noEmit
 pnpm lint / pnpm lint:fix    # Biome: lint, format, import order, a11y rules

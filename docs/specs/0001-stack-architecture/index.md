@@ -16,7 +16,7 @@ This is a decision spec, so there is no build plan here; the scaffold sub task o
 - As the ops team, I want the skeleton to already deploy along the staging and production paths so that the first real feature ships the same way the last one will.
 
 **Acceptance criteria**:
-- **AC-1**: The scaffold boots locally with the documented sequence (`pnpm install`, `supabase start`, `pnpm dev`, `pnpm dlx trigger.dev@latest dev`) and renders a localized page at `/de` and `/en`, with `/` redirecting to `/de`.
+- **AC-1**: The scaffold boots locally with the documented sequence (`pnpm install`, `supabase start`, `pnpm dev`, `pnpm dlx trigger.dev@latest dev`) and renders a localized page at `/de` and `/en`, with `/` redirecting to `/en` (amended 2026-09-05, German until then).
 - **AC-2**: Typecheck, Biome lint and format check, and the Vitest suite run clean locally and in the GitHub Actions workflow on every pull request into `main` and into `production`.
 - **AC-3**: Merging to `main` deploys the app to the staging alias, applies migrations to the staging Supabase project and deploys tasks to the Trigger.dev staging environment; on that alias a task can be triggered and writes a row the page shows. Pull request previews use the same staging database and tasks (a one time manual staging deploy of tasks precedes the first pull request).
 - **AC-4**: The first migration comes from the declarative schema, enables RLS on every table it creates, and the checked in generated TypeScript types match the schema in CI.
@@ -55,7 +55,7 @@ Every row is a decision. Where a later feature spec owns the detail, the row say
 | Email | Resend with React Email templates, EU sending region | Templates are React components localized with the app's strings; send calls run inside Trigger.dev tasks. Templates and triggers are feature 7's spec. |
 | File storage | Supabase Storage, private buckets, signed URLs, RLS on `storage.objects` | Object storage in Zurich beside the data it belongs to; never files in the database. |
 | Realtime | Supabase Realtime (Postgres changes, RLS enforced on the realtime publication) for job progress, polling a server component as fallback | The database stays the single source of truth; the browser never talks to Trigger.dev directly. |
-| Localization | next-intl v4: locale prefix always (`/de`, `/en`), default `de`, browser language detection off, `/` redirects to `/de`, an explicit switcher writes the locale cookie, messages in `messages/<locale>.json` | Deterministic URLs for SEO and tests; works in server components, actions and tasks. Content rules are feature 5's spec. |
+| Localization | next-intl v4: locale prefix always (`/de`, `/en`), default `en` (amended 2026-09-05), browser language detection off, `/` redirects to `/en`, an explicit switcher writes the locale cookie, messages in `messages/<locale>.json` | Deterministic URLs for SEO and tests; works in server components, actions and tasks. Content rules are feature 5's spec. |
 | Forms and validation | React Hook Form with Zod, via the shadcn Form components; the same Zod schemas validate every server action | One schema per form, validated on both sides. |
 | Client data fetching | Server Components for reads, no client fetch library until a screen needs live refetching (then TanStack Query, scoped to that screen) | Keeps the client bundle small and the data path simple. |
 | API shape | Server Components for reads, Server Actions for mutations, Route Handlers only for machine endpoints (webhooks, health, sitemap, robots), all unlocalized under `/api` | The native Next.js model with the least code; no public API in Release 1 (deferred). |
@@ -195,3 +195,9 @@ Branch protection on `main` and `production` requires a pull request and the `ch
 ## Rationale
 
 Reasoning, options considered, the landscape check evidence, the cross check record and references: see [rationale.md](rationale.md).
+
+## Amendment 2026-09-05: English as the default language
+
+Owner decision: English (`en-CH`, URL prefix `/en`) is the default language instead of German. `/` redirects to `/en`, `x-default` points at the English URL, an unknown or missing language falls back to English everywhere (`DEFAULT_LOCALE`, `localeFromCode`, `resolveLocale`, the auth confirm and callback routes, the scaffold task), `profiles.locale` and `organizations.locale` default to `'en'`, `handle_new_user` and `create_organization` fall back to `'en'`, `pnpm user:invite` defaults to `--locale en`, and the ops alert links open `/en/admin`. German stays a full first class language; nothing about the catalogs, the Swiss formats or the switcher changes. AC-1 and the localization row above are read with this amendment.
+
+- **Follow-up for `/architect`**: fold this into the localization row of `## Proposed stack`; spec 0004 carries the matching amendment.

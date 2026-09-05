@@ -3,10 +3,10 @@ import { expect, test } from "@playwright/test";
 
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-test("/ redirects to /de (AC-1)", async ({ page }) => {
+test("/ redirects to /en (AC-1)", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/de$/);
-  await expect(page.locator("html")).toHaveAttribute("lang", "de-CH");
+  await expect(page).toHaveURL(/\/en$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en-CH");
 });
 
 for (const locale of ["de", "en"] as const) {

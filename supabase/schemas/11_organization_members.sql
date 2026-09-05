@@ -211,7 +211,7 @@ begin
   values (
     create_organization.name,
     caller,
-    coalesce((select p.locale from public.profiles p where p.id = caller), 'de')
+    coalesce((select p.locale from public.profiles p where p.id = caller), 'en')
   )
   returning id into org_id;
 

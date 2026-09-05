@@ -50,7 +50,7 @@ describe("request proxy (spec 0004, AC-13)", () => {
   });
 
   it("returns next-intl's redirect untouched, without asking Supabase for claims", async () => {
-    const redirect = NextResponse.redirect("https://sme24.ch/de");
+    const redirect = NextResponse.redirect("https://sme24.ch/en");
     boundary.intl.mockReturnValue(redirect);
     const response = await proxy(request("/"));
     expect(response).toBe(redirect);

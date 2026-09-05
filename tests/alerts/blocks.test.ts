@@ -38,7 +38,7 @@ describe("presentAlert and buildSlackMessage", () => {
         {
           type: "button",
           text: { type: "plain_text", text: "Open admin", emoji: false },
-          url: "https://sme24.example/de/admin",
+          url: "https://sme24.example/en/admin",
         },
       ],
     });

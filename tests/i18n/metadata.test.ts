@@ -17,13 +17,13 @@ describe("language alternates and sitemap (spec 0004, AC-10)", () => {
     resetEnvCache();
   });
 
-  it("returns the canonical URL of the current locale plus both languages and x-default in German", () => {
+  it("returns the canonical URL of the current locale plus both languages and x-default in English", () => {
     expect(localizedAlternates("/", "en-CH")).toEqual({
       canonical: "https://sme24.ch/en",
       languages: {
         "de-CH": "https://sme24.ch/de",
         "en-CH": "https://sme24.ch/en",
-        "x-default": "https://sme24.ch/de",
+        "x-default": "https://sme24.ch/en",
       },
     });
     expect(localizedAlternates("/sign-in", "de-CH").canonical).toBe("https://sme24.ch/de/sign-in");
