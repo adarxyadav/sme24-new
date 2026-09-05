@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { Bar, BarChart } from "recharts";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type ChartConfig,
   ChartContainer,
@@ -21,6 +21,12 @@ const DATA = [
   { label: "Jan", assessments: 12, findings: 31 },
   { label: "Feb", assessments: 18, findings: 27 },
 ];
+
+// Recharts' store notifies subscribers through requestAnimationFrame with a 10ms setTimeout
+// fallback (Redux Toolkit's autoBatchEnhancer). Let those real timers drain before Vitest tears
+// down jsdom, otherwise the fallback fires against a window that no longer has
+// cancelAnimationFrame and Vitest reports an unhandled error for this file.
+afterAll(() => new Promise<void>((resolve) => setTimeout(resolve, 25)));
 
 /** The Recharts surface carries the chart size the container resolved; the DOM is the contract. */
 function chartSurface(): SVGSVGElement {
