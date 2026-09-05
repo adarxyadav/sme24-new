@@ -21,9 +21,9 @@
     "db:diff": "supabase db schema declarative sync --no-apply --name",
     "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
     "user:invite": "node scripts/invite-user.mts",
-    "trigger:dev": "trigger.dev dev --env-file .env.local",
-    "trigger:deploy:staging": "trigger.dev deploy --env staging",
-    "trigger:deploy:prod": "trigger.dev deploy --env prod",
+    "trigger:dev": "trigger dev --env-file .env.local",
+    "trigger:deploy:staging": "trigger deploy --env staging",
+    "trigger:deploy:prod": "trigger deploy --env prod",
     "email:dev": "email dev --dir src/lib/email/previews --port 3200"
   },
   "dependencies": {
@@ -83,6 +83,7 @@
     "react-email": "6.9.3",
     "supabase": "^2.116.0",
     "tailwindcss": "^4",
+    "trigger.dev": "4.5.15",
     "typescript": "^5",
     "vitest": "^4.1.11"
   },

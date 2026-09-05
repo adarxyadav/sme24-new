@@ -7,3 +7,4 @@ allowBuilds:
   "@parcel/watcher": true
   lefthook: false
   esbuild: true
+  '@depot/cli': true

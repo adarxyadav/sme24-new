@@ -56,3 +56,6 @@ next-env.d.ts
 
 # lefthook
 lefthook-local.yml
+
+# Trigger.dev local worker build cache
+.trigger
