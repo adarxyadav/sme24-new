@@ -8,23 +8,33 @@ import { createFormatterFor } from "@/i18n/standalone";
 const AT = new Date("2026-09-04T13:05:00Z");
 
 /**
- * The exact strings spec 0004 AC-3 fixes. The apostrophe is U+2019 from ICU, not a straight quote,
- * and ICU separates the currency code from the amount with a no break space (U+00A0) so
- * `CHF 4’900.00` never wraps between the code and the number.
+ * The grouping apostrophe ICU emits for Swiss locales depends on its CLDR data: U+2019 up to
+ * CLDR 47 (Node 25.1 locally) and the straight U+0027 from CLDR 48 (Node 22.23 in CI). Both are
+ * correct Swiss formatting, so the expected strings use whichever the running ICU emits, and the
+ * last test pins the separator to one of the two apostrophes, never a dot, comma or space.
  */
-const NBSP = "\u00A0";
+const GROUP =
+  new Intl.NumberFormat("de-CH").formatToParts(1000).find((part) => part.type === "group")?.value ??
+  "";
+const APOSTROPHES = ["’", "'"] as const;
+
+/**
+ * The exact strings spec 0004 AC-3 fixes. ICU separates the currency code from the amount with a
+ * no break space (U+00A0) so `CHF 4’900.00` never wraps between the code and the number.
+ */
+const NBSP = " ";
 const EXPECTED = {
   "de-CH": {
-    chf: `CHF${NBSP}4’900.00`,
-    chfWhole: `CHF${NBSP}48’313`,
+    chf: `CHF${NBSP}4${GROUP}900.00`,
+    chfWhole: `CHF${NBSP}48${GROUP}313`,
     percent: "12.3%",
     dateShort: "04.09.2026",
     dateLong: "4. September 2026",
     dateTime: "04.09.2026, 15:05",
   },
   "en-CH": {
-    chf: `CHF${NBSP}4’900.00`,
-    chfWhole: `CHF${NBSP}48’313`,
+    chf: `CHF${NBSP}4${GROUP}900.00`,
+    chfWhole: `CHF${NBSP}48${GROUP}313`,
     percent: "12.3%",
     dateShort: "04.09.2026",
     dateLong: "4 September 2026",
@@ -63,8 +73,10 @@ describe("named formats (spec 0004, AC-3, AC-7)", () => {
     expect(TIME_ZONE).toBe("Europe/Zurich");
   });
 
-  it("uses the grouping apostrophe U+2019 that ICU emits for Swiss locales", () => {
-    expect(createFormatterFor("de-CH").number(1234567, "integer")).toBe("1’234’567");
-    expect("1’234’567".charCodeAt(1)).toBe(0x2019);
+  it("groups thousands with an apostrophe (U+2019 or U+0027 by ICU version), never a dot or space", () => {
+    expect(APOSTROPHES).toContain(GROUP);
+    for (const locale of LOCALES) {
+      expect(createFormatterFor(locale).number(1234567, "integer")).toBe(`1${GROUP}234${GROUP}567`);
+    }
   });
 });

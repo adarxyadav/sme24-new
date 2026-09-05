@@ -81,7 +81,7 @@ Never call `Intl`, `toLocaleString` or `toLocaleDateString` directly.
 | `dateLong` | headings, letters, documents | `4. September 2026` | `4 September 2026` |
 | `dateTime` | anything with a time | `04.09.2026, 15:05` | `04.09.2026, 15:05` |
 
-- The grouping apostrophe is U+2019 and the space between `CHF` and the amount is a no break space (U+00A0), both from ICU. Tests compare against those characters; Playwright's text matchers normalise whitespace, so `CHF 4’900.00` matches in the browser.
+- The grouping apostrophe comes from ICU's CLDR data and changed between versions: U+2019 (`4’900`) up to CLDR 47 (Node 25.1 locally) and the straight U+0027 (`4'900`) from CLDR 48 (Node 22.23 in CI, so also on Vercel once its Node 22 carries that ICU). Both are correct Swiss formatting. The Vitest test reads the separator from the running ICU and pins it to one of the two apostrophes; the Playwright assertion accepts both. The space between `CHF` and the amount is a no break space (U+00A0).
 - **Timezone**: every date and time renders in `Europe/Zurich` (`TIME_ZONE`), in the app and in anything a task sends. A user abroad sees Swiss local time, by design.
 - **Relative time** (`format.relativeTime`) is allowed only next to an absolute `dateTime` (a `title` or a second line), so an email or a screenshot stays meaningful later.
 - Rappen rounding to 0.05 is a business rule of checkout (feature 11), applied to the amount before formatting, not a format.

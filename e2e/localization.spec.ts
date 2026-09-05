@@ -10,6 +10,9 @@ import { SEED_USERS, seedPassword, signIn } from "./helpers";
  */
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
+/** `CHF 4’900.00` with either grouping apostrophe (ICU version) and the no break space after CHF. */
+const CHF_4900 = /^CHF\s4[’']900\.00$/;
+
 for (const route of [...MARKETING_ROUTES, "/sign-in"]) {
   test(`/en${route === "/" ? "" : route} renders in English without WCAG 2.2 AA violations (AC-11)`, async ({
     page,
@@ -100,9 +103,11 @@ test.describe("signed in", () => {
   }) => {
     await signIn(page, SEED_USERS.ops);
     await page.goto("/en/admin/design");
-    await expect(page.locator("[data-format=chf]")).toHaveText("CHF 4’900.00");
+    // The grouping apostrophe is U+2019 or U+0027 depending on the server's ICU version, and the
+    // space after CHF is a no break space; a regex skips Playwright's whitespace normalisation.
+    await expect(page.locator("[data-format=chf]")).toHaveText(CHF_4900);
     await page.goto("/de/admin/design");
-    await expect(page.locator("[data-format=chf]")).toHaveText("CHF 4’900.00");
+    await expect(page.locator("[data-format=chf]")).toHaveText(CHF_4900);
     await expect(page.locator("[data-format=dateLong]")).toHaveText("4. September 2026");
   });
 });
