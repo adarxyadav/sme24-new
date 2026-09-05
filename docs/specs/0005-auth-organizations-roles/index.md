@@ -62,7 +62,7 @@ Functions: `public.handle_new_user` (existing trigger) also copies `terms_accept
 |---|---|---|---|---|---|
 | `signUp` action | POST | fullName, organizationName, email, password (8+), termsAccepted:true, locale | `{ ok: true }` (always, even for an existing email); sets metadata; `emailRedirectTo` = `confirmRedirectUrl(locale, '/app')`, the absolute destination the template puts into `next` | anon | `weak_password`, `over_email_send_rate_limit` → field or wait message |
 | `requestCode` action | POST | email, purpose `sign-up` (with the sign up fields, no password) or `sign-in`, locale | `signInWithOtp` with `shouldCreateUser` true on `sign-up` (metadata as in `signUp`) and false on `sign-in`; `{ ok: true }` then the client navigates to `/verify-code?email=` | anon | `over_email_send_rate_limit`; an unknown email on `sign-in` makes Supabase answer `otp_disabled`, which the action maps to `{ ok: true }` so nothing leaks |
-| `verifyCode` action | POST | email, token (6 digits), next | `verifyOtp({ email, token, type: 'email' })`, then `finalizeSignIn` | anon | `otp_expired` → resend offer, wrong code → field message |
+| `verifyCode` action | POST | email, token (6 digits), next | `verifyOtp({ email, token, type: 'email' })`, then `finalizeSignIn` | anon | a wrong or an expired code both arrive as `otp_expired` (Supabase does not tell them apart), so one combined `codeInvalidOrExpired` message with the resend offer covers both; see the amendment of 2026-09-05 |
 | `signIn` action | POST | email, password, next | signed in, then `finalizeSignIn` | anon | `invalid_credentials` → generic, `email_not_confirmed` → resend offer |
 | `signInWithProvider` action | POST | provider `google` or `azure`, locale, next | `signInWithOAuth` on the action client, so the PKCE verifier cookie lands on the action response; redirect to the provider with `redirectTo` = `<APP_URL>/api/auth/callback?next=/<locale>/app` | anon | provider unavailable → sign in error state |
 | `resendConfirmation` action | POST | email, locale | `auth.resend({ type: 'signup' })` with the same `emailRedirectTo` as `signUp`; `{ ok: true }` always | anon | `over_email_send_rate_limit` |
@@ -97,7 +97,7 @@ Two server side helpers in `src/features/auth/session.ts`, used by the actions a
 | email templates | the link and the code | every link is built in the template as `{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&type=<fixed per template>&next={{ .RedirectTo }}`, never `{{ .ConfirmationURL }}` (that one issues a PKCE code only the original browser can exchange, so a link opened on a phone would fail); the code is `{{ .Token }}`; `{{ .RedirectTo }}` is the absolute destination from `emailRedirectTo` and carries the locale |
 | `verifyCode` | which email the code belongs to | the `email` query on `/verify-code`, written by `requestCode` |
 | `updatePassword` | the session the new password applies to | the recovery or invite session set by the confirm handler |
-| `signIn`, `verifyCode`, both handlers | error state to show | the Supabase `error.code` mapped in `src/features/auth/errors.ts` to a message key; unknown codes map to a generic key and go to Sentry |
+| `signIn`, `verifyCode`, both handlers | error state to show | the Supabase `error.code` mapped in `src/features/auth/errors.ts` to a message key; `otp_expired` and `validation_failed` share the `codeInvalidOrExpired` key because a wrong six digit code and an expired one return the same code; unknown codes map to a generic key and go to Sentry |
 | invite script | role and locale of the invitee | CLI arguments `--role` (required) and `--locale` (default `de`) |
 | proxy | whether a client has an organization | `app_metadata.organization_id` through `organizationIdFromClaims` |
 
@@ -205,3 +205,12 @@ Tracer Bullet: milestone 1 pushes the thinnest real thread (one column, one sign
 ## Rationale
 
 Reasoning, options considered and the decision detail: see [rationale.md](rationale.md).
+
+## Amendment 2026-09-05: one message for a wrong or expired code
+
+`/check verify` found that a wrong six digit code showed the expired message. The cause sits in Supabase Auth: `verifyOtp` answers `otp_expired` ("Token has expired or is invalid") for a wrong code and for an expired one alike, so the app has no way to tell the two apart. Owner decision, same day:
+
+- **One combined message** for both cases, keyed `codeInvalidOrExpired` in `auth.errors`: German "Der Code ist falsch oder abgelaufen. Fordern Sie einen neuen an.", English "The code is wrong or has expired. Request a new one." The separate `codeInvalid` and `codeExpired` keys are dropped; `otp_expired` and `validation_failed` both map to the new key. Nothing else in the error map changes.
+- **Why not guess**: a wrong code is the common case and an expired one the rare case, but a message that names only one of them is wrong part of the time. One honest sentence plus the resend offer is the fix that never lies.
+- **`verify.md`** changes in two steps: the used link step no longer expects a second confirmation for an already confirmed account (Supabase sends none), so the resend is tested with an unconfirmed account and a broken link instead; the error mapping step expects the combined message for a wrong and for an expired code.
+- The `verifyCode` row of the API surface and the "error state to show" row of the value sourcing table above carry the change; AC-12 stands as written.
