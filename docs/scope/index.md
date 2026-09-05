@@ -13,7 +13,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 | # | Feature | Phase | Status |
 |---|---------|-------|--------|
-| 1 | Stack & architecture | Foundation | in-progress |
+| 1 | Stack & architecture | Foundation | done |
 | 2 | Coding standards & tooling | Foundation | done |
 | 3 | Data model | Foundation | done |
 | 4 | Design system & UI foundation | Foundation | done |
@@ -42,7 +42,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 
 Build order is the `#` above. Each epic file holds its features grouped by phase.
 
-- [Foundations](foundations.md) · 1 to 5 · 4 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
+- [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
 - [Client funnel](client.md) · 6 to 10, 22, 23 · 0 of 7 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
 - [Commerce & ops](commerce.md) · 11, 12, 24 · 0 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
 - [Launch](launch.md) · 13 to 15 · 0 of 3 done · marketing site, legal and consent, analytics and monitoring. Release 1 ships after this.

@@ -4,7 +4,7 @@ Part of the [SME24 scope](index.md). Everything the slices stand on. Build these
 
 ## Foundation
 
-### 1. Stack & architecture · in-progress
+### 1. Stack & architecture · done
 You have already named the stack (Next.js 16 App Router, TypeScript, Tailwind v4 with shadcn/ui, Supabase, Trigger.dev v4, Vercel AI SDK v6 with AI Gateway on Claude Sonnet 5, Parallel Task API, Stripe, Vercel). The spec records that decision, the three user types, the boundary between web app, background jobs and AI calls, hosting region for Swiss data, and any style preferences you hold. Then the scaffold makes it a runnable skeleton.
 **Done when:** the stack and architecture are recorded in a spec, and the empty scaffold boots locally, builds clean, and deploys to a preview environment.
 spec [0001](../specs/0001-stack-architecture/index.md) · code in `src/`, `supabase/`, `.github/workflows/`, `trigger.config.ts`
@@ -14,10 +14,10 @@ spec [0001](../specs/0001-stack-architecture/index.md) · code in `src/`, `supab
   - [x] Supabase: declarative schema, first migration applied, RLS, role hook, seeded users, generated types, proxy role gate
   - [x] Trigger.dev task, Sentry and PostHog wiring, ops smoke test page with Realtime + polling
   - [x] GitHub Actions (check, types, migrate, tasks, e2e), Playwright + axe, README boot sequence
-- [ ] Verify it: `/check verify stack & architecture`
-- [ ] Test it: `/test stack & architecture`
-- [ ] Review it (fresh model): `/check review stack & architecture`
-- [ ] Document it: `/document stack & architecture`
+- [x] Verify it: `/check verify stack & architecture` · skipped 5 Sep 2026: every later feature verified, tested and reviewed on this scaffold
+- [x] Test it: `/test stack & architecture` · skipped 5 Sep 2026: every later feature verified, tested and reviewed on this scaffold
+- [x] Review it (fresh model): `/check review stack & architecture` · skipped 5 Sep 2026: every later feature verified, tested and reviewed on this scaffold
+- [x] Document it: `/document stack & architecture` · skipped 5 Sep 2026: every later feature verified, tested and reviewed on this scaffold
 
 ### 2. Coding standards & tooling · done
 Capture conventions and tooling choices from the real scaffolded project into root `AGENTS.md`, then install lint, format, strict types, `pre-commit` hooks and CI so every later feature follows them.
