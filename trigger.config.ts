@@ -17,7 +17,7 @@ const sentryUpload = process.env.SENTRY_AUTH_TOKEN
   : [];
 
 export default defineConfig({
-  project: process.env.TRIGGER_PROJECT_REF ?? "proj_replace_me",
+  project: process.env.TRIGGER_PROJECT_REF ?? "proj_fqmmullopmjdfqkqdrca",
   runtime: "node-22",
   logLevel: "info",
   maxDuration: 300,
