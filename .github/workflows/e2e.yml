@@ -25,6 +25,8 @@ jobs:
           PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url }}
           # Set as a repo secret once the seed has been applied to staging; the role gate test skips without it.
           E2E_SEED_PASSWORD: ${{ secrets.E2E_SEED_PASSWORD }}
+          # Vercel project setting "Protection Bypass for Automation"; without it every page is Vercel's login screen.
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm test:e2e
       - if: failure()
         uses: actions/upload-artifact@v4

@@ -10,6 +10,14 @@ loadEnv({ path: ".env.local", quiet: true });
 const localPort = 3100;
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${localPort}`;
 
+// Vercel protects preview deployments with Vercel Authentication; the CI job passes the project's
+// "Protection Bypass for Automation" secret so the browser reaches the app instead of the login page.
+// The second header asks Vercel to set the bypass cookie, so client side navigations stay bypassed.
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypassSecret
+  ? { "x-vercel-protection-bypass": bypassSecret, "x-vercel-set-bypass-cookie": "true" }
+  : undefined;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -21,6 +29,7 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,
+    extraHTTPHeaders,
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
