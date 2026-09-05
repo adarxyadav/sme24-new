@@ -1,7 +1,7 @@
 # 0002. Core data model and access rules
 
 **Date**: 2026-09-04
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
@@ -313,7 +313,7 @@ Tracer Bullet for a schema feature means: the thinnest thread that goes schema f
 
 ## Follow-up
 
-- [ ] Feature 6 (auth): sign up calls `create_organization` after the first sign in and passes `full_name` and `locale` as user metadata; a Playwright test asserts the organization claim through the real sign in.
+- [x] Feature 6 (auth): sign up calls `create_organization` after the first sign in and passes `full_name` and `locale` as user metadata; a Playwright test asserts the organization claim through the real sign in.
 - [ ] Feature 8 (research): seed `kpi_definitions` through a data migration; the research task takes `organizationId`, `companyId` and `researchRunId` and writes `company_kpis` rows with `source = 'research'`; decide the per organization run quota (spec 0001 puts it in Postgres).
 - [ ] Feature 12 (ops admin): if support needs a record of what ops looked at, add an application level audit call (a `private` function that inserts an `audit_log` row with `action = 'read'`, which needs the check constraint widened, an additive change).
 - [ ] Feature 14 (legal): write `private.redact_audit_subject(user_id)` under `app.audit_maintenance`, the erasure and export flows on top of the organization cascade, and the audit retention rule.
