@@ -31,8 +31,8 @@ spec [0006](../specs/0006-transactional-email-ops-alerts/index.md)
   - [x] Alert rail: the alert registry with live and reserved kinds, the Block Kit builder, the `ops-alert` task, the new client and failed email alerts (AC-2, AC-7, AC-11)
   - [x] Ops surface: `/admin/emails` with filters, keyset paging and Realtime, the detail page with the sandboxed preview and retry, the test email and test alert buttons, route map, navigation and messages (AC-9, AC-10)
   - [x] Retention, previews, tests and the checklist: the weekly purge schedule, `pnpm email:dev` previews, Vitest and the Playwright welcome flow behind the local worker, `docs/email.md` (AC-12, AC-14)
-- [ ] Verify it: `/check verify transactional email & ops alerts`
-- [ ] Test it: `/test transactional email & ops alerts`
+- [x] Verify it: `/check verify transactional email & ops alerts`
+- [x] Test it: `/test transactional email & ops alerts`
 - [ ] Review it (fresh model): `/check review transactional email & ops alerts`
 - [ ] Document it: `/document transactional email & ops alerts`
 
