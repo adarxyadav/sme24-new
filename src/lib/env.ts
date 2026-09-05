@@ -60,8 +60,11 @@ const serverSchema = clientSchema.extend({
   STRIPE_WEBHOOK_SECRET: optionalString,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: optionalString,
   // Spec 0006: the Resend webhook signature, and the Slack webhook mirrored here only so the ops
-  // "send a test alert" button can answer `webhook_unset` without triggering a task.
-  RESEND_WEBHOOK_SECRET: requiredWhen(deployedOnVercel),
+  // "send a test alert" button can answer `webhook_unset` without triggering a task. The secret
+  // stays optional even when deployed: the webhook route answers 503 until it is set, whereas a
+  // startup requirement here (parsed by sentry.server.config.ts) took every route down on the
+  // preview that had no Resend webhook yet.
+  RESEND_WEBHOOK_SECRET: optionalString,
   OPS_ALERT_WEBHOOK_URL: optionalString,
 });
 

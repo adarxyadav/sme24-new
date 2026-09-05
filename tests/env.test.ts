@@ -80,6 +80,26 @@ describe("the email rail variables (spec 0006, AC-5, AC-6)", () => {
     expect(server.OPS_ALERT_WEBHOOK_URL).toBeUndefined();
   });
 
+  it("does not require RESEND_WEBHOOK_SECRET on a Vercel deployment (regression: PR #11 preview)", async () => {
+    // `deployedOnVercel` is read when the module loads, so this case needs a fresh import with
+    // VERCEL_ENV set and every variable that is genuinely required there present.
+    stubAll({
+      ...valid,
+      VERCEL_ENV: "preview",
+      NEXT_PUBLIC_SENTRY_DSN: "https://k@o.ingest.de.sentry.io/1",
+      NEXT_PUBLIC_POSTHOG_KEY: "phc_test",
+      TRIGGER_SECRET_KEY: "tr_test",
+      AI_GATEWAY_API_KEY: "vck_test",
+      SENTRY_DSN: "https://k@o.ingest.de.sentry.io/1",
+      RESEND_WEBHOOK_SECRET: "",
+    });
+    vi.resetModules();
+    const deployed = await import("@/lib/env");
+    expect(() => deployed.serverEnv()).not.toThrow();
+    expect(deployed.serverEnv().RESEND_WEBHOOK_SECRET).toBeUndefined();
+    vi.resetModules();
+  });
+
   it("passes the values through when set", () => {
     stubAll({
       ...valid,
