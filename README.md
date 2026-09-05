@@ -14,7 +14,7 @@ pnpm install                      # also installs the git hooks (see below)
 cp .env.example .env.local        # then paste the two keys `supabase status -o env` prints
 supabase start                    # Postgres, Auth, Storage, Realtime, Studio on 127.0.0.1:5432x
 pnpm dev                          # http://localhost:3000 redirects to /en
-pnpm dlx trigger.dev@latest dev --env-file .env.local   # optional, needs a Trigger.dev project
+pnpm trigger:dev                  # optional, needs a Trigger.dev project
 ```
 
 `supabase start` applies `supabase/migrations/` and `supabase/seed.sql`. The seed creates one user
@@ -131,7 +131,7 @@ One time setup, outside the repo:
    staging and prod secret keys in the matching Vercel scopes, a personal access token in the repo
    secret `TRIGGER_ACCESS_TOKEN`; add the task variables (Supabase URL and secret key, app URL,
    Sentry DSN, PostHog key) to each Trigger.dev environment. Run one manual
-   `pnpm dlx trigger.dev@latest deploy --env staging` before the first pull request.
+   `pnpm trigger:deploy:staging` before the first pull request.
 4. **Sentry (EU) and PostHog (EU)**: create the projects in the EU regions; DSN and key go to
    Vercel and Trigger.dev; `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` go to the repo
    secrets and the Vercel build for source maps.
