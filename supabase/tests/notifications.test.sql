@@ -5,12 +5,8 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(19);
 
-do $$
-begin
-  if exists (select 1 from public.email_deliveries) or exists (select 1 from public.notifications) then
-    raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
-  end if;
-end $$;
+-- Unlike the tenant suites this file needs no empty table: every assertion is keyed on its own
+-- fixture ids, so rows the local app left behind (a welcome email from a sign up) do not matter.
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the

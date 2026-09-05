@@ -23,7 +23,8 @@
     "user:invite": "node scripts/invite-user.mts",
     "trigger:dev": "trigger.dev dev --env-file .env.local",
     "trigger:deploy:staging": "trigger.dev deploy --env staging",
-    "trigger:deploy:prod": "trigger.dev deploy --env prod"
+    "trigger:deploy:prod": "trigger.dev deploy --env prod",
+    "email:dev": "email dev --dir src/lib/email/previews --port 3200"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

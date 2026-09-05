@@ -1,7 +1,7 @@
 "use client";
 
 import { LanguagesIcon } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
   DropdownMenuRadioGroup,
@@ -33,6 +33,7 @@ export function LocaleMenuItems() {
   const t = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
+  const params = useParams();
   const query = searchParamsToQuery(useSearchParams());
   const router = useRouter();
 
@@ -54,7 +55,10 @@ export function LocaleMenuItems() {
                 await setLocale({ locale: LOCALE_CODE[target] }).catch(() => {
                   // Best effort: a lost write never blocks the navigation.
                 });
-                router.replace({ pathname, query }, { locale: target });
+                // The pathname and params come from the current route and match (a dynamic route
+                // carries its `id`); TypeScript cannot see that, next-intl's documented pattern.
+                // @ts-expect-error -- see above.
+                router.replace({ pathname, params, query }, { locale: target });
               }}
             >
               {t(LABEL_KEY[target])}

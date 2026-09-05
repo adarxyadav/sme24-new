@@ -52,7 +52,8 @@
     },
     "admin": {
       "overview": "Overview",
-      "design": "Design gallery"
+      "design": "Design gallery",
+      "emails": "Emails"
     }
   },
   "theme": {
@@ -614,6 +615,112 @@
       "intro": "Your account for {organizationName} is set up. SME24 builds a benchmarked EHS risk profile of your company from public disclosures and matches you with experienced experts, at a fixed price.",
       "nextStep": "The next step: sign in and start the company lookup. We research your figures in the background and get in touch once the profile is ready.",
       "button": "Open the client area"
+    }
+  },
+  "emails": {
+    "title": "Emails",
+    "description": "Every email SME24 has sent: the status from the send and the delivery, filters, search and a retry for failures.",
+    "detailTitle": "Email delivery",
+    "backToList": "All emails",
+    "listHeading": "Deliveries",
+    "live": "Live",
+    "polling": "Refreshes every 5 seconds",
+    "status": {
+      "queued": "Queued",
+      "sending": "Sending",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "bounced": "Bounced",
+      "complained": "Marked as spam",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "filters": {
+      "legend": "Filters",
+      "status": "Status",
+      "template": "Template",
+      "all": "All",
+      "search": "Recipient address",
+      "searchPlaceholder": "name@company.ch",
+      "apply": "Filter",
+      "reset": "Reset"
+    },
+    "columns": {
+      "recipient": "Recipient",
+      "template": "Template",
+      "status": "Status",
+      "sourceEvent": "Source event",
+      "created": "Created",
+      "subject": "Subject"
+    },
+    "fields": {
+      "id": "Delivery",
+      "idempotencyKey": "Idempotency key",
+      "sourceEvent": "Source event",
+      "template": "Template",
+      "locale": "Language",
+      "recipient": "Recipient",
+      "recipientId": "Recipient ID",
+      "organization": "Organization",
+      "subject": "Subject",
+      "status": "Status",
+      "transport": "Transport",
+      "providerMessageId": "Provider ID",
+      "error": "Error",
+      "attempts": "Attempts",
+      "lastRunId": "Last run",
+      "created": "Created",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "failed": "Failed",
+      "updated": "Updated",
+      "data": "Data",
+      "none": "–"
+    },
+    "sections": {
+      "details": "Details",
+      "preview": "Preview",
+      "data": "Template data"
+    },
+    "preview": {
+      "description": "What the template renders today from the stored data, not the copy that was sent.",
+      "frameTitle": "Preview of the email",
+      "unknownTemplate": "This template no longer exists, so there is no preview.",
+      "renderFailed": "The preview could not be rendered."
+    },
+    "empty": {
+      "title": "No emails yet",
+      "description": "As soon as SME24 sends an email it appears here with its status."
+    },
+    "noResults": {
+      "title": "No matches",
+      "description": "No entry matches these filters. Reset the filters or change the search."
+    },
+    "pagination": {
+      "next": "Show older",
+      "first": "Back to the first page"
+    },
+    "actions": {
+      "retry": "Send again",
+      "retrying": "Starting",
+      "testEmail": "Send me a test email",
+      "testAlert": "Send a test alert",
+      "testHeading": "Check the configuration",
+      "testIntro": "Both actions send to this environment's stored targets and show the run id."
+    },
+    "toasts": {
+      "retryQueued": "Retry started (run {runId})",
+      "testEmailQueued": "Test email started (run {runId})",
+      "testAlertQueued": "Test alert started (run {runId})",
+      "notRetryable": "Only failed deliveries can be sent again.",
+      "webhookUnset": "No Slack webhook is set in this environment (OPS_ALERT_WEBHOOK_URL).",
+      "triggerUnavailable": "Trigger.dev is not configured in this environment (TRIGGER_SECRET_KEY).",
+      "triggerFailed": "The background job could not be started. Try again.",
+      "forbidden": "This needs the ops role.",
+      "invalid": "Invalid request."
+    },
+    "errors": {
+      "loadFailed": "The emails could not be loaded."
     }
   }
 }

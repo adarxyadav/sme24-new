@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { AREA_NAV, isNavItemActive } from "@/components/shell/nav";
 
-const [overview, design] = AREA_NAV.admin;
+const overview = AREA_NAV.admin.find((item) => item.href === "/admin");
+const design = AREA_NAV.admin.find((item) => item.href === "/admin/design");
 if (!overview || !design) throw new Error("admin nav needs the overview and design entries");
 
 describe("isNavItemActive", () => {

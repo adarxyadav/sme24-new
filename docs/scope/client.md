@@ -25,12 +25,12 @@ The messages every step of the flow relies on: sign in links if auth uses them, 
 **Done when:** each event in the flow sends the right email in German or English within a minute; ops alerts reach your team channel; failed sends are visible to ops.
 spec [0006](../specs/0006-transactional-email-ops-alerts/index.md)
 - [x] Design it (spec): `/architect transactional email & ops alerts`
-- [ ] Build it: `/develop transactional email & ops alerts` · code in `src/lib/email/`, `src/lib/alerts/`, `src/trigger/`, `src/features/emails/`, `src/app/[locale]/admin/emails/`, `src/app/api/webhooks/resend/`, `supabase/schemas/`, `docs/email.md`
+- [x] Build it: `/develop transactional email & ops alerts` · code in `src/lib/email/`, `src/lib/alerts/`, `src/trigger/`, `src/features/emails/`, `src/app/[locale]/admin/emails/`, `src/app/api/webhooks/resend/`, `supabase/schemas/`, `docs/email.md`
   - [x] Thin thread to Mailpit: `email_deliveries` and `notifications` migration with pgTAP, the template registry with the shared layout and the `welcome` template, the `send-email` task on the SMTP transport, `ensureOrganization` returning the organization id and triggering the send (AC-1, AC-3, AC-4, AC-5, AC-13, AC-14, AC-15)
   - [x] Hosted transport and delivery status: the Resend transport, the allowlist, error classification and retries, the signed webhook route with the forward only status rule (AC-5, AC-6, AC-7, AC-8)
   - [x] Alert rail: the alert registry with live and reserved kinds, the Block Kit builder, the `ops-alert` task, the new client and failed email alerts (AC-2, AC-7, AC-11)
-  - [ ] Ops surface: `/admin/emails` with filters, keyset paging and Realtime, the detail page with the sandboxed preview and retry, the test email and test alert buttons, route map, navigation and messages (AC-9, AC-10)
-  - [ ] Retention, previews, tests and the checklist: the weekly purge schedule, `pnpm email:dev` previews, Vitest and the Playwright welcome flow behind the local worker, `docs/email.md` (AC-12, AC-14)
+  - [x] Ops surface: `/admin/emails` with filters, keyset paging and Realtime, the detail page with the sandboxed preview and retry, the test email and test alert buttons, route map, navigation and messages (AC-9, AC-10)
+  - [x] Retention, previews, tests and the checklist: the weekly purge schedule, `pnpm email:dev` previews, Vitest and the Playwright welcome flow behind the local worker, `docs/email.md` (AC-12, AC-14)
 - [ ] Verify it: `/check verify transactional email & ops alerts`
 - [ ] Test it: `/test transactional email & ops alerts`
 - [ ] Review it (fresh model): `/check review transactional email & ops alerts`

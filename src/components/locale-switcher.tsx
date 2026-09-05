@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { setLocale } from "@/features/localization/actions";
@@ -39,7 +39,11 @@ function LocaleLinks({ query }: { query?: Query }) {
   const t = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
-  const href = query ? { pathname, query } : pathname;
+  const params = useParams();
+  // The current pathname and params always match (a dynamic route such as `/admin/emails/[id]`
+  // carries its `id`), so the pair is handed on as is; TypeScript cannot see that they belong
+  // together, which is next-intl's documented reason for the expect error below.
+  const href = { pathname, params, ...(query ? { query } : {}) };
 
   return (
     <nav aria-label={t("language")} className="flex items-center gap-2 text-sm">
@@ -48,6 +52,7 @@ function LocaleLinks({ query }: { query?: Query }) {
         return (
           <Link
             key={target}
+            // @ts-expect-error -- pathname and params come from the current route and match (see above).
             href={href}
             locale={target}
             hrefLang={target}
