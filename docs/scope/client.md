@@ -14,7 +14,7 @@ spec [0005](../specs/0005-auth-organizations-roles/index.md)
   - [x] Onboarding and the rebuilt sign in: `/app/onboarding` for clients without an organization, sign in on the typed action pattern with the unconfirmed and expired link states (AC-3, AC-5, AC-8, AC-11, AC-12)
   - [x] Email code, password reset, sign out and sessions: `/verify-code` with the OTP primitive, forgot and reset pages, local sign out, refresh proven (AC-2, AC-4, AC-6, AC-7, AC-9)
   - [x] Staff invites and providers: the `pnpm user:invite` script, Google and Microsoft with the callback handler, `docs/auth.md` setup checklist (AC-5, AC-10)
-  - [ ] Hosted configuration: Resend SMTP, the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13)
+  - [ ] Hosted configuration: the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13) · Resend SMTP deferred to feature 7 on 5 Sep 2026 until a sending domain exists (`docs/auth.md`)
 - [x] Verify it: `/check verify auth, organizations & roles`
 - [x] Test it: `/test auth, organizations & roles`
 - [x] Review it (fresh model): `/check review auth, organizations & roles`

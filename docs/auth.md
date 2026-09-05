@@ -36,6 +36,8 @@ Authentication settings in the Supabase dashboard:
 
 SMTP through Resend (shared with feature 7):
 
+> **Deferred on 5 Sep 2026: no sending domain yet.** Access to the `sme24.ch` DNS is not available and no other domain is at hand, so the three Resend boxes wait. Until then the hosted projects use Supabase's built in email service, which only delivers to members of the Supabase organization (invite every tester there) and sends at most 2 emails per hour. Pick this up in feature 7 once a domain is verified.
+
 - [ ] The sending domain is verified in Resend (SPF and DKIM records at the DNS provider).
 - [ ] A Resend API key with **sending access** only, one per environment.
 - [ ] Supabase, Authentication, SMTP settings: **Enable custom SMTP**, host `smtp.resend.com`, port `465`, username `resend`, password = the API key, sender `no-reply@<verified domain>`, sender name `SME24`. Raise the emails per hour rate limit from the default 30 to what the funnel needs.
