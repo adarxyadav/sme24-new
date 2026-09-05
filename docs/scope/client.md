@@ -33,8 +33,8 @@ spec [0006](../specs/0006-transactional-email-ops-alerts/index.md)
   - [x] Retention, previews, tests and the checklist: the weekly purge schedule, `pnpm email:dev` previews, Vitest and the Playwright welcome flow behind the local worker, `docs/email.md` (AC-12, AC-14)
 - [x] Verify it: `/check verify transactional email & ops alerts`
 - [x] Test it: `/test transactional email & ops alerts`
-- [ ] Review it (fresh model): `/check review transactional email & ops alerts`
-- [ ] Document it: `/document transactional email & ops alerts`
+- [x] Review it (fresh model): `/check review transactional email & ops alerts`
+- [x] Document it: `/document transactional email & ops alerts`
 
 ### 8. Company lookup & research pipeline · needs a decision
 The core thread. A client enters a company name, a background pipeline researches public disclosures, extracts safety KPIs with sources, and stores them. The dashboard shows the run's progress and the extracted KPIs when it finishes. Real database, real jobs, real AI, narrow scope: KPIs only, no benchmark yet.
