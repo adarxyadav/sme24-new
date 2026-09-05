@@ -4,10 +4,21 @@ Part of the [SME24 scope](index.md). The free half of the promise: a client sign
 
 ## Slice 1: Core loop (the walking skeleton)
 
-### 6. Auth, organizations & roles · needs a decision
+### 6. Auth, organizations & roles · in-progress
 Real sign in from day one. A client signs up and lands in an organization for their company; experts and ops sign in to their own areas. Roles (client member, expert, ops) gate every route and every row. One member per organization for now; invitations arrive in Slice 8.
 **Done when:** a new client can sign up, sign in and sign out; each role sees only its own area; a signed out visitor is redirected; sessions survive a refresh.
-- [ ] Design it (spec): `/architect auth, organizations & roles`
+spec [0005](../specs/0005-auth-organizations-roles/index.md)
+- [x] Design it (spec): `/architect auth, organizations & roles`
+- [ ] Build it: `/develop auth, organizations & roles`
+  - [ ] Consent column and the sign up thread: migration with `terms_accepted_at` and `accept_terms()`, route map and error map, the session helpers and the confirm handler, the proxy restructure, password sign up end to end through Mailpit (AC-1, AC-3, AC-8, AC-11, AC-12, AC-13)
+  - [ ] Onboarding and the rebuilt sign in: `/app/onboarding` for clients without an organization, sign in on the typed action pattern with the unconfirmed and expired link states (AC-3, AC-5, AC-8, AC-11, AC-12)
+  - [ ] Email code, password reset, sign out and sessions: `/verify-code` with the OTP primitive, forgot and reset pages, local sign out, refresh proven (AC-2, AC-4, AC-6, AC-7, AC-9)
+  - [ ] Staff invites and providers: the `pnpm user:invite` script, Google and Microsoft with the callback handler, `docs/auth.md` setup checklist (AC-5, AC-10)
+  - [ ] Hosted configuration: Resend SMTP, the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13)
+- [ ] Verify it: `/check verify auth, organizations & roles`
+- [ ] Test it: `/test auth, organizations & roles`
+- [ ] Review it (fresh model): `/check review auth, organizations & roles`
+- [ ] Document it: `/document auth, organizations & roles`
 
 ### 7. Transactional email & ops alerts · needs a decision
 The messages every step of the flow relies on: sign in links if auth uses them, benchmark ready, payment receipt, expert assigned, gap report ready, all in the recipient's language. Plus alerts to your team when a payment lands, a research run fails, or a retainer enquiry arrives.
