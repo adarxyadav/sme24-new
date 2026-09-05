@@ -20,7 +20,7 @@ spec [0005](../specs/0005-auth-organizations-roles/index.md)
 - [x] Review it (fresh model): `/check review auth, organizations & roles`
 - [x] Document it: `/document auth, organizations & roles`
 
-### 7. Transactional email & ops alerts · in-progress
+### 7. Transactional email & ops alerts · done
 The messages every step of the flow relies on: sign in links if auth uses them, benchmark ready, payment receipt, expert assigned, gap report ready, all in the recipient's language. Plus alerts to your team when a payment lands, a research run fails, or a retainer enquiry arrives.
 **Done when:** each event in the flow sends the right email in German or English within a minute; ops alerts reach your team channel; failed sends are visible to ops.
 spec [0006](../specs/0006-transactional-email-ops-alerts/index.md)

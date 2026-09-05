@@ -19,7 +19,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 4 | Design system & UI foundation | Foundation | done |
 | 5 | Localization (German & English) | Foundation | done |
 | 6 | Auth, organizations & roles | Slice 1 | in-progress |
-| 7 | Transactional email & ops alerts | Slice 1 | in-progress |
+| 7 | Transactional email & ops alerts | Slice 1 | done |
 | 8 | Company lookup & research pipeline | Slice 1 | planned |
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | planned |
 | 10 | Self assessment fallback | Slice 2 | planned |
@@ -43,7 +43,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 Build order is the `#` above. Each epic file holds its features grouped by phase.
 
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
-- [Client funnel](client.md) · 6 to 10, 22, 23 · 0 of 7 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
+- [Client funnel](client.md) · 6 to 10, 22, 23 · 1 of 7 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
 - [Commerce & ops](commerce.md) · 11, 12, 24 · 0 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
 - [Launch](launch.md) · 13 to 15 · 0 of 3 done · marketing site, legal and consent, analytics and monitoring. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 0 of 3 done · experts, the three structured assessments, the generated gap report.
