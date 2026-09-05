@@ -11,8 +11,7 @@ export const AUTH_ERROR_KEYS = [
   "rateLimited",
   "weakPassword",
   "samePassword",
-  "codeInvalid",
-  "codeExpired",
+  "codeInvalidOrExpired",
   "provider",
   "emailUnverified",
   "sessionMissing",
@@ -40,9 +39,11 @@ const KNOWN_CODES: Readonly<Record<string, AuthErrorKey>> = {
   over_sms_send_rate_limit: "rateLimited",
   weak_password: "weakPassword",
   same_password: "samePassword",
-  otp_expired: "codeExpired",
-  // The wrong code and an unusable token hash both arrive as "Token has expired or is invalid".
-  validation_failed: "codeInvalid",
+  // Supabase answers `otp_expired` ("Token has expired or is invalid") for a wrong six digit code
+  // and for an expired one alike, so one combined message covers both (spec 0005, amendment of
+  // 2026-09-05). An unusable token hash arrives as `validation_failed` with the same text.
+  otp_expired: "codeInvalidOrExpired",
+  validation_failed: "codeInvalidOrExpired",
   provider_disabled: "provider",
   provider_email_needs_verification: "emailUnverified",
   bad_oauth_state: "provider",

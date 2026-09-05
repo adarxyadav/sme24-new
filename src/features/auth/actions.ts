@@ -137,7 +137,8 @@ export async function requestCode(
 
 /**
  * Verifies a six digit code and signs the user in (AC-2, AC-4), then lands them through
- * `finalizeSignIn`. A wrong or expired code returns its message. Server action, anonymous.
+ * `finalizeSignIn`. A wrong or expired code returns one combined message, because Supabase does
+ * not tell the two apart. Server action, anonymous.
  */
 export async function verifyCode(
   _previous: AuthResult | null,
@@ -155,7 +156,7 @@ export async function verifyCode(
   });
   if (error) {
     const result = failure(error, "verify-code");
-    return result.ok ? { ok: false, error: "codeInvalid" } : result;
+    return result.ok ? { ok: false, error: "codeInvalidOrExpired" } : result;
   }
 
   redirect(await finalizeSignIn(supabase, locale, parsed.data.next));
