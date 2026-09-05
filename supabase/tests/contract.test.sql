@@ -117,16 +117,17 @@ select is_empty(
   'audit_log has no foreign key, so the trail outlives the user and the organization');
 
 -- Functions ------------------------------------------------------------------------------
--- Security definer stays inside private, plus the three public entry points that need it:
+-- Security definer stays inside private, plus the four public entry points that need it:
 -- create_organization (the only insert path for organizations), add_organization_member (the only
 -- member facing insert path for memberships, which has to read the target's profile to check they
 -- consented) and handle_new_user (the auth trigger from spec 0001 that writes profiles as
--- supabase_auth_admin).
+-- supabase_auth_admin) and accept_terms (spec 0005: the only API write path for the consent column,
+-- which sits outside the authenticated update grant).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name) $$,
-  'the only security definer functions in public are the three recorded entry points');
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name) $$,
+  'the only security definer functions in public are the four recorded entry points');
 select is_empty(
   $$ select n.nspname || '.' || p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname in ('private', 'public')
