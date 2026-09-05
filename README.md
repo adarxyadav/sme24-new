@@ -13,7 +13,7 @@ You need Node 22 (`.nvmrc`), pnpm, Docker (for the local Supabase stack) and the
 pnpm install                      # also installs the git hooks (see below)
 cp .env.example .env.local        # then paste the two keys `supabase status -o env` prints
 supabase start                    # Postgres, Auth, Storage, Realtime, Studio on 127.0.0.1:5432x
-pnpm dev                          # http://localhost:3000 redirects to /de
+pnpm dev                          # http://localhost:3000 redirects to /en
 pnpm dlx trigger.dev@latest dev --env-file .env.local   # optional, needs a Trigger.dev project
 ```
 
@@ -119,12 +119,14 @@ One time setup, outside the repo:
 1. **Vercel**: import the repo; Functions region `fra1` (Frankfurt); set the production branch to
    `production`; assign `staging.<domain>` to `main`; add the variables from `.env.example` per
    scope (Preview gets the staging keys, Production the prod keys); Node 22 comes from `engines`.
-2. **Supabase**: create a staging and a prod project in Zurich (`eu-central-2`). In each: enable the
-   custom access token hook (`public.custom_access_token_hook`) under Auth > Hooks, add the
-   Vercel preview wildcard and the staging or production URL to redirect URLs. Store the
+2. **Supabase**: create a staging and a prod project in Zurich (`eu-central-2`). Store the
    database connection strings as the repo secrets `STAGING_SUPABASE_DB_URL` and
-   `PROD_SUPABASE_DB_URL`. Apply `supabase/seed.sql` to staging by hand if you want the seeded
-   users there (never to prod).
+   `PROD_SUPABASE_DB_URL`, a personal access token as `SUPABASE_ACCESS_TOKEN` and the
+   environment's Resend key as `SUPABASE_AUTH_EMAIL_SMTP_PASS`; put the project ref in the
+   `[remotes.<name>]` block of `supabase/config.toml` and in `deploy.yml`. The Auth settings
+   (hook, URLs, OTP, templates, SMTP) are then pushed by every deploy (`docs/auth.md`), not set in
+   the dashboard. Apply `supabase/seed.sql` to staging by hand if you want the seeded users there
+   (never to prod).
 3. **Trigger.dev**: create the project in the EU region; put its ref in `TRIGGER_PROJECT_REF`, the
    staging and prod secret keys in the matching Vercel scopes, a personal access token in the repo
    secret `TRIGGER_ACCESS_TOKEN`; add the task variables (Supabase URL and secret key, app URL,

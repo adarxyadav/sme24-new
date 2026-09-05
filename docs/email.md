@@ -32,7 +32,7 @@ Do these once per hosted environment (staging, production). The variables live i
 
 ### Resend
 
-- [ ] Verify the sending domain in the EU region (SPF and DKIM records at the DNS provider). Blocked until there is DNS access to `sme24.ch`; until then staging may send from `SME24 <onboarding@resend.dev>` to the allowlist only.
+- [ ] Verify the sending domain in the EU region (SPF and DKIM records at the DNS provider). Staging sends from `send.akaiv.in` (verified 6 Sep 2026) until there is DNS access to `sme24.ch`; the same domain is the auth sender in the `[remotes.staging.auth.email.smtp]` block of `supabase/config.toml` ([auth.md](auth.md)).
 - [ ] Create a send only API key per environment and set `RESEND_API_KEY` in Trigger.dev.
 - [ ] Set `EMAIL_FROM` (`SME24 <no-reply@<verified domain>>`) and, optionally, `EMAIL_REPLY_TO` (the ops mailbox) in Trigger.dev.
 - [ ] Create the webhook endpoint `https://<host>/api/webhooks/resend` subscribed to `email.delivered`, `email.bounced`, `email.complained` and `email.delivery_delayed`; store its signing secret as `RESEND_WEBHOOK_SECRET` in Vercel (optional in the env schema; the webhook answers 503 until it is set).

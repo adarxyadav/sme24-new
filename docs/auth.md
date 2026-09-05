@@ -23,34 +23,52 @@ Invite a staff user against the local stack:
 pnpm user:invite --email erika@example.com --role expert --locale de --name "Erika Expert"
 ```
 
-The invite lands in Mailpit; the link opens `/de/reset-password`, and after saving a password the user lands on `/de/expert`.
+The invite lands in Mailpit; the link opens `/en/reset-password` (the invite defaults to English, `--locale de` for German), and after saving a password the user lands on `/en/expert`.
 
-## Hosted projects (staging and prod), one checklist each
+## Hosted projects (staging and prod)
 
-Authentication settings in the Supabase dashboard:
+### Automated: `supabase config push` on every deploy
 
-- [ ] Sign in / Providers, Email: **Confirm email** on, **Minimum password length** 8, no character requirements, **Prevent use of leaked passwords** on, **Email OTP expiration** 900 seconds, **Email OTP length** 6.
-- [ ] URL configuration: **Site URL** is the environment's app URL (`https://staging.sme24.ch`, `https://sme24.ch`); the redirect allow list already covers the preview wildcard (`https://*-sme24.vercel.app/**`) and the app URL with `/**`.
-- [ ] Email templates: paste each file from `supabase/templates/` into the matching template (Confirm signup ← `confirmation.html`, Magic link ← `magic_link.html`, Reset password ← `recovery.html`, Invite user ← `invite.html`, Change email ← `email_change.html`) with the subjects from `config.toml`. Never use `{{ .ConfirmationURL }}`: it issues a PKCE code only the requesting browser can exchange.
-- [ ] Hooks: the custom access token hook `public.custom_access_token_hook` is enabled (spec 0002).
+The migrate job in `.github/workflows/deploy.yml` runs `supabase config push --project-ref <ref>` right after `supabase db push`. It applies the `[auth]` sections of `supabase/config.toml` plus the `[remotes.<name>]` block whose `project_id` is the branch's project (`remotes.staging` for `main`; add `remotes.production` with the prod ref when that project exists). Everything below is therefore set by a deploy and must never be edited in the dashboard, because the next push overwrites it:
 
-SMTP through Resend (shared with feature 7):
+- Email: confirm email on, minimum password length 8, no character requirements, email OTP expiry 900 seconds, email OTP length 6.
+- URL configuration: site URL `https://sme24.vercel.app` (the `main` deployment; every emailed link is built from it, so change the block the day `main` gets a custom domain) and the redirect allow list `https://sme24.vercel.app/**` plus the team preview wildcard `https://*-adarxyzs-projects.vercel.app/**`.
+- Everything else under `[auth]` as written, including `skip_nonce_check = false` for Google (the base block sets it to true for local sign in only), TOTP MFA off until feature 12 switches it on in the file, and no SMS, Apple, web3 or third party providers.
+- The five email templates from `supabase/templates/` with the subjects from `config.toml`. Never use `{{ .ConfirmationURL }}`: it issues a PKCE code only the requesting browser can exchange.
+- The custom access token hook `public.custom_access_token_hook` (spec 0002).
+- Custom SMTP through Resend: host `smtp.resend.com`, port `465`, user `resend`, sender `no-reply@send.akaiv.in` (the staging sending domain from [email.md](email.md)), sender name `SME24`, 30 auth emails per hour. The password is `env(SUPABASE_AUTH_EMAIL_SMTP_PASS)`, never a literal in the file.
 
-> **Deferred on 5 Sep 2026: no sending domain yet.** Access to the `sme24.ch` DNS is not available and no other domain is at hand, so the three Resend boxes wait. Until then the hosted projects use Supabase's built in email service, which only delivers to members of the Supabase organization (invite every tester there) and sends at most 2 emails per hour. Pick this up in feature 7 once a domain is verified.
+The step skips with a notice (it never pushes half a config) until the GitHub environment carries two secrets:
+
+- [ ] `SUPABASE_ACCESS_TOKEN`: a personal access token from the Supabase account page (Account, Access tokens). The CLI needs it for the management API; the database URL does not open that door.
+- [ ] `SUPABASE_AUTH_EMAIL_SMTP_PASS`: the environment's Resend API key (below). The CLI sends the enabled SMTP block with whatever the variable resolves to, so without it the push would blank the SMTP password; the step refuses to run instead.
+
+To apply the file from a machine instead of waiting for a deploy: `supabase login`, export `SUPABASE_AUTH_EMAIL_SMTP_PASS`, then `supabase config push --project-ref fxmdkvhououxakmyddwn` and confirm the printed diff.
+
+> **Symptom of a project that was never pushed (staging, 5 Sep 2026):** the confirmation email carries an **8 digit** code while `/verify-code` has six boxes, so every code fails with "The code is wrong or has expired". Supabase's default OTP length is 8 and only the config push sets 6. Nothing is wrong in the app; run the push (or check the deploy log for the "Auth config push skipped" notice).
+
+### Manual, once per environment
+
+Resend (shared with feature 7):
+
+> **Deferred on 5 Sep 2026: no product sending domain yet.** Staging sends from `send.akaiv.in` (verified 6 Sep 2026); `sme24.ch` waits for DNS access. When the product domain lands, change `admin_email` in the `[remotes.<name>.auth.email.smtp]` block and redeploy.
 
 - [ ] The sending domain is verified in Resend (SPF and DKIM records at the DNS provider).
-- [ ] A Resend API key with **sending access** only, one per environment.
-- [ ] Supabase, Authentication, SMTP settings: **Enable custom SMTP**, host `smtp.resend.com`, port `465`, username `resend`, password = the API key, sender `no-reply@<verified domain>`, sender name `SME24`. Raise the emails per hour rate limit from the default 30 to what the funnel needs.
+- [ ] A Resend API key with **sending access** only, one per environment, stored as the `SUPABASE_AUTH_EMAIL_SMTP_PASS` secret above (and as `RESEND_API_KEY` for product email, [email.md](email.md)).
+
+Supabase dashboard (no `config.toml` key exists for these):
+
+- [ ] Sign in / Providers, Email: **Prevent use of leaked passwords** on (Pro plan).
 
 Google (one OAuth client per Supabase project):
 
 - [ ] Google Cloud console, APIs and services, Credentials: an **OAuth client ID** of type Web application. Authorised redirect URI `https://<project ref>.supabase.co/auth/v1/callback`. The consent screen lists the app name, support email and the privacy and terms URLs.
-- [ ] Supabase, Sign in / Providers, Google: enabled, client ID and client secret pasted. Leave "Skip nonce check" off.
+- [ ] Store the client ID and secret as the GitHub secrets `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` and `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET`, export them in the `supabase config push` step and uncomment `[remotes.<name>.auth.external.google]` in `config.toml` with `enabled = true` and `skip_nonce_check = false`. Enabling Google in the dashboard instead is undone by the next deploy, because the base block says `enabled = false`.
 
 Microsoft (one app registration per Supabase project):
 
 - [ ] Microsoft Entra admin center, App registrations, New registration: supported account types **Accounts in any organizational directory and personal Microsoft accounts** (the `common` tenant), redirect URI (Web) `https://<project ref>.supabase.co/auth/v1/callback`. Under Certificates and secrets create a client secret and note its expiry; under API permissions keep `email`, `openid`, `profile`, `User.Read`.
-- [ ] Supabase, Sign in / Providers, Azure: enabled, Application (client) ID and the secret pasted, Azure tenant URL `https://login.microsoftonline.com/common`.
+- [ ] Same pattern as Google: `SUPABASE_AUTH_EXTERNAL_AZURE_CLIENT_ID` and `SUPABASE_AUTH_EXTERNAL_AZURE_SECRET` as GitHub secrets, exported in the push step, `[remotes.<name>.auth.external.azure]` uncommented with `enabled = true` and the tenant URL `https://login.microsoftonline.com/common`.
 - [ ] Known edge: a personal Microsoft account whose email Microsoft has not verified arrives without `email_confirmed_at`; the app signs it out again and shows the `email_unverified` message. Nothing to configure, but worth knowing when testing with a fresh outlook.com address.
 
 Invite staff on a hosted project:
