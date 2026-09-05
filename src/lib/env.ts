@@ -25,6 +25,22 @@ function requiredWhen(condition: boolean) {
   return condition ? nonEmpty : optionalString;
 }
 
+/**
+ * `EMAIL_ALLOWED_RECIPIENTS` (spec 0006, AC-6): comma separated addresses or `@domain` entries,
+ * lowercased; an empty variable means no allowlist (every recipient may be mailed).
+ */
+const allowlist = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value): readonly string[] | undefined => {
+    const entries = (value ?? "")
+      .split(",")
+      .map((entry) => entry.trim().toLowerCase())
+      .filter((entry) => entry !== "");
+    return entries.length === 0 ? undefined : entries;
+  });
+
 const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: nonEmpty,
@@ -43,6 +59,10 @@ const serverSchema = clientSchema.extend({
   STRIPE_SECRET_KEY: optionalString,
   STRIPE_WEBHOOK_SECRET: optionalString,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: optionalString,
+  // Spec 0006: the Resend webhook signature, and the Slack webhook mirrored here only so the ops
+  // "send a test alert" button can answer `webhook_unset` without triggering a task.
+  RESEND_WEBHOOK_SECRET: requiredWhen(deployedOnVercel),
+  OPS_ALERT_WEBHOOK_URL: optionalString,
 });
 
 const taskSchema = z.object({
@@ -54,8 +74,14 @@ const taskSchema = z.object({
   NEXT_PUBLIC_POSTHOG_KEY: requiredWhen(deployedTask),
   NEXT_PUBLIC_POSTHOG_HOST: z.url().default("https://eu.i.posthog.com"),
   PARALLEL_API_KEY: optionalString,
+  // Spec 0006: the email rail. Resend when the key is set, else SMTP (Mailpit locally), else the
+  // task skips the send. EMAIL_FROM falls back to a local sender only when SMTP is the transport.
   RESEND_API_KEY: optionalString,
-  EMAIL_FROM: optionalString,
+  EMAIL_FROM: requiredWhen(deployedTask),
+  EMAIL_REPLY_TO: optionalString,
+  EMAIL_SMTP_URL: optionalString,
+  EMAIL_ALLOWED_RECIPIENTS: allowlist,
+  OPS_ALERT_WEBHOOK_URL: optionalString,
 });
 
 export type ClientEnv = z.infer<typeof clientSchema>;

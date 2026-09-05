@@ -38,7 +38,7 @@ select is_empty(
 create function pg_temp.audited_tables()
 returns setof name language sql stable as $$
   select t from pg_temp.public_tables() t
-  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks')
+  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.audited_tables()), '>=', 7::bigint,
@@ -68,8 +68,8 @@ select is_empty(
      join pg_proc p on p.oid = g.tgfoid
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
-       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks') $$,
-  'audit_log, kpi_definitions and scaffold_checks are not audited');
+       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications') $$,
+  'audit_log, kpi_definitions, scaffold_checks, email_deliveries and notifications are not audited');
 -- private.audit_row() stores subject ->> 'id' as row_id (not null), so an audited table needs one.
 select is_empty(
   $$ select t from pg_temp.audited_tables() t
@@ -80,7 +80,9 @@ select is_empty(
 
 -- organization_id on kind T tables -------------------------------------------------------
 -- Kind T is every table with an organization_id column other than profiles (kind U, nullable
--- current organization) and audit_log (kind I, no foreign key so the trail outlives the tenant).
+-- current organization), audit_log (kind I, no foreign key so the trail outlives the tenant),
+-- email_deliveries (kind I, spec 0006: the organization is a nullable reference for the ops view)
+-- and notifications (kind U, spec 0006: owned by recipient_id, the organization is a reference).
 create function pg_temp.tenant_tables()
 returns setof name language sql stable as $$
   select c.relname
@@ -89,7 +91,7 @@ returns setof name language sql stable as $$
   join pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relkind in ('r', 'p')
     and a.attname = 'organization_id' and not a.attisdropped
-    and c.relname not in ('profiles', 'audit_log')
+    and c.relname not in ('profiles', 'audit_log', 'email_deliveries', 'notifications')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.tenant_tables()), '>=', 5::bigint,
@@ -155,14 +157,14 @@ select is_empty(
 -- A new table is not silently in or out: it has to be added here or to realtime_optional below.
 select results_eq(
   $$ select tablename from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' order by 1 $$,
-  $$ values ('research_runs'::name), ('scaffold_checks'::name) $$,
-  'research_runs and scaffold_checks are the tables in supabase_realtime');
+  $$ values ('email_deliveries'::name), ('research_runs'::name), ('scaffold_checks'::name) $$,
+  'email_deliveries, research_runs and scaffold_checks are the tables in supabase_realtime');
 -- Tables deliberately outside the publication. A table that is on neither list fails, so the
 -- decision is forced rather than defaulted.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
   values ('audit_log'::name), ('companies'), ('company_kpis'), ('expert_assignments'),
-         ('kpi_definitions'), ('organization_members'), ('organizations'), ('profiles')
+         ('kpi_definitions'), ('notifications'), ('organization_members'), ('organizations'), ('profiles')
 $$;
 select is_empty(
   $$ select t from pg_temp.public_tables() t

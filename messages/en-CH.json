@@ -599,5 +599,21 @@
         "m6": "Jun"
       }
     }
+  },
+  "email": {
+    "layout": {
+      "footerLegal": "You receive this email because an SME24 account was created for your company.",
+      "footerAddress": "SME24 · Musterstrasse 1 · 8000 Zurich",
+      "replyHint": "Questions? Just reply to this email."
+    },
+    "welcome": {
+      "subject": "Welcome to SME24, {organizationName}",
+      "preview": "Your account for {organizationName} is set up. The next step is the company lookup.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "Your account for {organizationName} is set up. SME24 builds a benchmarked EHS risk profile of your company from public disclosures and matches you with experienced experts, at a fixed price.",
+      "nextStep": "The next step: sign in and start the company lookup. We research your figures in the background and get in touch once the profile is ready.",
+      "button": "Open the client area"
+    }
   }
 }

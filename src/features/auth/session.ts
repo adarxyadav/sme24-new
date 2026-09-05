@@ -5,6 +5,8 @@ import { LOCALE_CODE, type Locale } from "@/i18n/routing";
 import { buildConfirmRedirectUrl } from "@/lib/auth/confirm-url";
 import { landingPath, localizedPath } from "@/lib/auth/redirects";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
+import { ORGANIZATION_CREATED_EVENT } from "@/lib/email/schema";
+import { sendEmail } from "@/lib/email/send";
 import { clientEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import type { Database } from "@/lib/supabase/database.types";
@@ -24,20 +26,22 @@ export function confirmRedirectUrl(locale: Locale, path: "/app" | "/reset-passwo
 }
 
 export type EnsureOrganizationResult =
-  | { ok: true }
+  | { ok: true; organizationId: string; created: boolean }
   | { ok: false; error: "not_a_client" | "failed" };
 
 /**
  * The only caller of `create_organization` (spec 0005, key invariants): creates the caller's
- * organization, treats `already_member` as success, then refreshes the session so the access token
- * hook writes the organization claim. Runs on the action client in server actions and route
- * handlers, so the refreshed cookies reach the response.
+ * organization, treats `already_member` as success (`created` false, the organization from the
+ * refreshed claims), then refreshes the session so the access token hook writes the organization
+ * claim. On a fresh organization it fires the welcome email and the ops alert (spec 0006, AC-1,
+ * AC-2); a failed trigger never fails the sign in (AC-15). Runs on the action client in server
+ * actions and route handlers, so the refreshed cookies reach the response.
  */
 export async function ensureOrganization(
   supabase: Client,
   name: string,
 ): Promise<EnsureOrganizationResult> {
-  const { error } = await supabase.rpc("create_organization", { name });
+  const { data: rpcData, error } = await supabase.rpc("create_organization", { name });
   if (error && error.code !== CREATE_ORGANIZATION_CODES.alreadyMember) {
     if (error.code === CREATE_ORGANIZATION_CODES.notAClient) {
       return { ok: false, error: "not_a_client" };
@@ -45,13 +49,50 @@ export async function ensureOrganization(
     log.warn("create_organization failed", { code: error.code, reason: error.message });
     return { ok: false, error: "failed" };
   }
+  const created = !error;
 
   const { error: refreshError } = await supabase.auth.refreshSession();
   if (refreshError) {
     log.warn("session refresh after create_organization failed", { reason: refreshError.message });
     return { ok: false, error: "failed" };
   }
-  return { ok: true };
+
+  // The organization claim is written by the access token hook, so it is read from the refreshed
+  // token, not from the user's own metadata.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  const organizationId = created ? rpcData : organizationIdFromClaims(claims);
+  const userId = typeof claims?.sub === "string" ? claims.sub : null;
+  if (!organizationId || !userId) {
+    log.warn("organization id missing after create_organization", { created, userId });
+    return { ok: false, error: "failed" };
+  }
+
+  if (created) await notifyOrganizationCreated(userId, organizationId, name);
+  return { ok: true, organizationId, created };
+}
+
+/**
+ * The two sends of a new organization (spec 0006): the welcome email to the creator and the
+ * `client.signed_up` alert. Both keyed on the organization id so a second trigger is a no op;
+ * neither result can fail the caller.
+ */
+async function notifyOrganizationCreated(
+  userId: string,
+  organizationId: string,
+  organizationName: string,
+): Promise<void> {
+  const email = await sendEmail({
+    template: "welcome",
+    data: { organizationName },
+    recipient: { userId },
+    sourceEvent: ORGANIZATION_CREATED_EVENT,
+    organizationId,
+    idempotencyKey: `welcome/${organizationId}`,
+  });
+  if (!email.ok) {
+    log.warn("welcome email not triggered", { organizationId, reason: email.error });
+  }
 }
 
 /**

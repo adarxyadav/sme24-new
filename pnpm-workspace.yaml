@@ -6,3 +6,4 @@ allowBuilds:
   "@swc/core": true
   "@parcel/watcher": true
   lefthook: false
+  esbuild: true

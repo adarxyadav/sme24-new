@@ -204,6 +204,93 @@ export type Database = {
           },
         ]
       }
+      email_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          data: Json
+          delivered_at: string | null
+          error: string | null
+          failed_at: string | null
+          id: string
+          idempotency_key: string
+          last_run_id: string | null
+          locale: string
+          organization_id: string | null
+          provider_message_id: string | null
+          recipient_email: string
+          recipient_id: string | null
+          sent_at: string | null
+          source_event: string
+          status: string
+          subject: string | null
+          template: string
+          transport: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          data?: Json
+          delivered_at?: string | null
+          error?: string | null
+          failed_at?: string | null
+          id?: string
+          idempotency_key: string
+          last_run_id?: string | null
+          locale: string
+          organization_id?: string | null
+          provider_message_id?: string | null
+          recipient_email: string
+          recipient_id?: string | null
+          sent_at?: string | null
+          source_event: string
+          status?: string
+          subject?: string | null
+          template: string
+          transport?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          data?: Json
+          delivered_at?: string | null
+          error?: string | null
+          failed_at?: string | null
+          id?: string
+          idempotency_key?: string
+          last_run_id?: string | null
+          locale?: string
+          organization_id?: string | null
+          provider_message_id?: string | null
+          recipient_email?: string
+          recipient_id?: string | null
+          sent_at?: string | null
+          source_event?: string
+          status?: string
+          subject?: string | null
+          template?: string
+          transport?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_deliveries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_deliveries_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expert_assignments: {
         Row: {
           assigned_by: string | null
@@ -297,6 +384,64 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          data: Json
+          delivery_id: string | null
+          id: string
+          kind: string
+          link: string | null
+          organization_id: string | null
+          read_at: string | null
+          recipient_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          delivery_id?: string | null
+          id?: string
+          kind: string
+          link?: string | null
+          organization_id?: string | null
+          read_at?: string | null
+          recipient_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          delivery_id?: string | null
+          id?: string
+          kind?: string
+          link?: string | null
+          organization_id?: string | null
+          read_at?: string | null
+          recipient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "email_deliveries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organization_members: {
         Row: {
