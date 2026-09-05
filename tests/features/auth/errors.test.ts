@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   AUTH_ERROR_KEYS,
@@ -5,6 +7,7 @@ import {
   isKnownAuthError,
   isSilentAuthError,
 } from "@/features/auth/errors";
+import { LINK_EXPIRED_TYPES } from "@/features/auth/notices";
 import de from "../../../messages/de-CH.json";
 import en from "../../../messages/en-CH.json";
 
@@ -64,5 +67,24 @@ describe("auth error map (spec 0005, AC-12)", () => {
     expect(authErrorKey("same_password")).toBe("samePassword");
     expect(authErrorKey("refresh_token_already_used")).toBe("sessionMissing");
     expect(authErrorKey("bad_code_verifier")).toBe("provider");
+  });
+});
+
+describe('email templates (spec 0005, value sourcing "email templates")', () => {
+  it("emit only link types the confirm handler accepts, so no template can point at a dead link", () => {
+    const dir = join(process.cwd(), "supabase/templates");
+    const types = readdirSync(dir)
+      .filter((file) => file.endsWith(".html"))
+      .flatMap((file) => {
+        const html = readFileSync(join(dir, file), "utf8");
+        return [...html.matchAll(/(?:&amp;|[?&])type=([a-z_]+)/g)].map(
+          (match) => `${file}:${match[1]}`,
+        );
+      });
+    expect(types.length).toBeGreaterThan(0);
+    for (const entry of types) {
+      const type = entry.split(":")[1];
+      expect(LINK_EXPIRED_TYPES, entry).toContain(type);
+    }
   });
 });

@@ -172,6 +172,7 @@
       "code": "Fordern Sie einen neuen Code an.",
       "recovery": "Fordern Sie einen neuen Link zum Zurücksetzen an.",
       "invite": "Bitten Sie Ihre Administratorin oder Ihren Administrator um eine neue Einladung.",
+      "emailChange": "Starten Sie die Änderung Ihrer E-Mail-Adresse erneut.",
       "email": "E-Mail",
       "resend": "Neue E-Mail senden"
     },
@@ -185,7 +186,6 @@
       "provider": "Die Anmeldung über den Anbieter ist fehlgeschlagen. Versuchen Sie es erneut oder nutzen Sie E-Mail und Passwort.",
       "emailUnverified": "Ihr Anbieter hat die E-Mail-Adresse nicht bestätigt. Nutzen Sie E-Mail und Passwort oder einen Code.",
       "sessionMissing": "Ihre Sitzung ist abgelaufen. Fordern Sie einen neuen Link an.",
-      "notAClient": "Dieses Konto gehört nicht zu einem Kundenunternehmen.",
       "generic": "Da ist etwas schiefgelaufen. Versuchen Sie es erneut."
     },
     "validation": {

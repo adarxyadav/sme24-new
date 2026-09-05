@@ -44,14 +44,22 @@ function localeOf(input: unknown): Locale {
 /**
  * Turns a Supabase error into the action's answer: swallowed codes look like success (AC-12),
  * known codes map to their message, unknown codes go to Sentry and show the generic message.
+ * `silent: false` (a code check, where no swallowed code applies) always answers with a message.
  */
+function failure(error: AuthError, action: string, options: { silent: false }): AuthResult<never>;
 function failure(
   error: AuthError,
   action: string,
+  options?: { silent?: true },
+): AuthResult<never> | { ok: true; data: undefined };
+function failure(
+  error: AuthError,
+  action: string,
+  { silent = true }: { silent?: boolean } = {},
 ): AuthResult<never> | { ok: true; data: undefined } {
   const code = error.code ?? null;
   log.info(`${action} rejected`, { reason: code ?? error.message });
-  if (isSilentAuthError(code)) return { ok: true, data: undefined };
+  if (silent && isSilentAuthError(code)) return { ok: true, data: undefined };
   if (!isKnownAuthError(code)) {
     Sentry.captureException(error, { tags: { source: `auth-${action}` } });
   }
@@ -154,10 +162,7 @@ export async function verifyCode(
     token: parsed.data.token,
     type: "email",
   });
-  if (error) {
-    const result = failure(error, "verify-code");
-    return result.ok ? { ok: false, error: "codeInvalidOrExpired" } : result;
-  }
+  if (error) return failure(error, "verify-code", { silent: false });
 
   redirect(await finalizeSignIn(supabase, locale, parsed.data.next));
 }

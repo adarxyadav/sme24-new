@@ -172,6 +172,7 @@
       "code": "Request a new code.",
       "recovery": "Request a new reset link.",
       "invite": "Ask your administrator for a new invitation.",
+      "emailChange": "Start the change of your email address again.",
       "email": "Email",
       "resend": "Send a new email"
     },
@@ -185,7 +186,6 @@
       "provider": "Signing in with the provider failed. Try again or use email and password.",
       "emailUnverified": "Your provider has not verified this email address. Use email and password or a code.",
       "sessionMissing": "Your session has expired. Request a new link.",
-      "notAClient": "This account does not belong to a client company.",
       "generic": "Something went wrong. Try again."
     },
     "validation": {

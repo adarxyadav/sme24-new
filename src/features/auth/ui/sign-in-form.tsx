@@ -35,7 +35,10 @@ type EmailAction = (
   input: unknown,
 ) => Promise<AuthResult<{ email: string }>>;
 
-/** The action that sends a fresh email of the failed type; null for an invite (ask the administrator). */
+/**
+ * The action that sends a fresh email of the failed type; null when the page cannot resend it (an
+ * invite comes from the administrator, an email change restarts from the account).
+ */
 function resendActionFor(type: LinkExpiredType): EmailAction | null {
   switch (type) {
     case "signup":
@@ -46,7 +49,21 @@ function resendActionFor(type: LinkExpiredType): EmailAction | null {
     case "recovery":
       return requestPasswordReset;
     case "invite":
+    case "email_change":
       return null;
+  }
+}
+
+/** The `auth.linkExpired` message for a failed link type; magic link and email tokens share `code`. */
+function linkExpiredKey(type: LinkExpiredType) {
+  switch (type) {
+    case "magiclink":
+    case "email":
+      return "code";
+    case "email_change":
+      return "emailChange";
+    default:
+      return type;
   }
 }
 
@@ -112,15 +129,17 @@ export function SignInForm({ next, notice }: SignInFormProps) {
     );
   }
 
-  /** Reads a valid email from the form for the secondary actions, marking the field otherwise. */
-  const withEmail = (run: (email: string) => void) => {
-    const email = form.getValues("email").trim();
-    if (!email) {
-      form.setError("email", { type: "required", message: undefined });
+  /**
+   * Runs a secondary action with the email field once the schema accepts it; otherwise the field
+   * shows the same localized message the submit button would and takes focus (WCAG 3.3.1).
+   */
+  const withEmail = async (run: (email: string) => void) => {
+    const valid = await form.trigger("email");
+    if (!valid) {
       form.setFocus("email");
       return;
     }
-    run(email);
+    run(form.getValues("email").trim());
   };
   const requestSignInCode = () =>
     withEmail((email) => codeAction.submit({ purpose: "sign-in", email, locale, next }));
@@ -149,13 +168,7 @@ export function SignInForm({ next, notice }: SignInFormProps) {
         <Alert variant="warning">
           <AlertCircleIcon aria-hidden="true" />
           <AlertTitle>{t("linkExpired.title")}</AlertTitle>
-          <AlertDescription>
-            {t(
-              `linkExpired.${
-                notice.type === "magiclink" || notice.type === "email" ? "code" : notice.type
-              }`,
-            )}
-          </AlertDescription>
+          <AlertDescription>{t(`linkExpired.${linkExpiredKey(notice.type)}`)}</AlertDescription>
         </Alert>
       ) : null}
       {notice?.kind === "error" ? <AuthErrorAlert error={notice.error} /> : null}
@@ -212,7 +225,7 @@ export function SignInForm({ next, notice }: SignInFormProps) {
             {t("unconfirmed.resend")}
           </Button>
         ) : null}
-        {expiredType && expiredType !== "invite" ? (
+        {expiredType && resendActionFor(expiredType) ? (
           <Button type="button" variant="outline" disabled={pending} onClick={resendForExpired}>
             {t("linkExpired.resend")}
           </Button>

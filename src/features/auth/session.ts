@@ -11,6 +11,9 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type Client = SupabaseClient<Database>;
 
+/** The SQLSTATE codes `create_organization` raises (`supabase/schemas/11_organization_members.sql`). */
+const CREATE_ORGANIZATION_CODES = { notAClient: "SM403", alreadyMember: "SM409" } as const;
+
 /**
  * The absolute destination `signUp`, `requestCode`, `resendConfirmation` and
  * `requestPasswordReset` pass as `emailRedirectTo`; the template puts it into `next` and the
@@ -35,9 +38,11 @@ export async function ensureOrganization(
   name: string,
 ): Promise<EnsureOrganizationResult> {
   const { error } = await supabase.rpc("create_organization", { name });
-  if (error && !error.message.includes("already_member")) {
-    if (error.message.includes("not_a_client")) return { ok: false, error: "not_a_client" };
-    log.warn("create_organization failed", { reason: error.message });
+  if (error && error.code !== CREATE_ORGANIZATION_CODES.alreadyMember) {
+    if (error.code === CREATE_ORGANIZATION_CODES.notAClient) {
+      return { ok: false, error: "not_a_client" };
+    }
+    log.warn("create_organization failed", { code: error.code, reason: error.message });
     return { ok: false, error: "failed" };
   }
 

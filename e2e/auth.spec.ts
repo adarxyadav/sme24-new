@@ -8,6 +8,7 @@ import {
   createUnconfirmedClient,
   dbAvailable,
   deleteAccount,
+  serviceClient,
 } from "./db";
 import { SEED_USERS, seedPassword } from "./helpers";
 import {
@@ -280,6 +281,11 @@ test.describe("sign up and sign in with a code (AC-2, AC-4)", () => {
   }) => {
     const seen = await mailIds(SEED_USERS.client2);
     await open(page, "/en/sign-in");
+    // An empty email field gets the schema's own message, not a bare invalid state (WCAG 3.3.1).
+    await page.getByRole("button", { name: "Email me a code instead" }).click();
+    await expect(page.locator("#email-error")).not.toBeEmpty();
+    await expect(page.getByLabel("Email")).toHaveAttribute("aria-invalid", "true");
+    await expect(page).toHaveURL(/\/en\/sign-in$/);
     await page.getByLabel("Email").fill(SEED_USERS.client2);
     await page.getByRole("button", { name: "Email me a code instead" }).click();
     await expect(page).toHaveURL(/\/en\/verify-code\?email=/);
@@ -379,6 +385,38 @@ test.describe("onboarding for a client without an organization (AC-5 local half,
       await page.goto("/en/app/onboarding");
       await expect(page).toHaveURL(/\/en\/app$/);
     } finally {
+      await deleteAccount(email);
+    }
+  });
+
+  test("two concurrent onboarding submits from two tabs create exactly one organization", async ({
+    browser,
+  }) => {
+    // The disabled button only guards one tab; the database lock in create_organization is what
+    // keeps one organization per user (review of 2026-09-05).
+    const email = uniqueEmail("race");
+    const contexts = [await browser.newContext(), await browser.newContext()];
+    try {
+      await createBareClient(email, PASSWORD);
+      const pages = await Promise.all(contexts.map((context) => context.newPage()));
+      for (const tab of pages) {
+        await signInWith(tab, email, PASSWORD, "en");
+        await expect(tab).toHaveURL(/\/en\/app\/onboarding$/);
+        await tab.waitForLoadState("networkidle");
+        await tab.getByLabel("Company").fill("Race Ltd");
+        await tab.getByLabel(/terms of use/).check();
+      }
+      await Promise.all(pages.map((tab) => tab.getByRole("button", { name: "Continue" }).click()));
+      for (const tab of pages) await expect(tab).toHaveURL(/\/en\/app$/);
+
+      const account = await expectOwnerOfOrganization(email, "Race Ltd");
+      const { data: created } = await serviceClient()
+        .from("organizations")
+        .select("id")
+        .eq("created_by", account?.user.id ?? "");
+      expect(created).toHaveLength(1);
+    } finally {
+      await Promise.all(contexts.map((context) => context.close()));
       await deleteAccount(email);
     }
   });

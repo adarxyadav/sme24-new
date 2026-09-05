@@ -13,7 +13,7 @@
       <tr>
         <td lang="de" style="padding-bottom:32px;border-bottom:1px solid #e5e5e5;">
           <h1 style="margin:0 0 12px;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Bestätigen Sie Ihre E-Mail</h1>
-          <p style="margin:0 0 20px;font-size:14px;line-height:1.5;">Vielen Dank für Ihre Registrierung bei SME24. Bestätigen Sie Ihre E-Mail-Adresse über den Link, oder geben Sie diesen Code auf der Code-Seite ein. Beides ist 24 Stunden gültig.</p>
+          <p style="margin:0 0 20px;font-size:14px;line-height:1.5;">Vielen Dank für Ihre Registrierung bei SME24. Bestätigen Sie Ihre E-Mail-Adresse über den Link, oder geben Sie diesen Code auf der Code-Seite ein. Der Link ist 24 Stunden gültig, der Code 15 Minuten.</p>
           <p style="margin:0 0 20px;font-family:'Geist Mono',Menlo,Consolas,monospace;font-size:28px;font-weight:700;letter-spacing:0.2em;">{{ .Token }}</p>
           <p style="margin:0 0 20px;"><a href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup&amp;next={{ .RedirectTo }}" style="display:inline-block;padding:12px 20px;background:#000000;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;">E-Mail bestätigen</a></p>
           <p style="margin:0;font-size:14px;line-height:1.5;">Wenn Sie kein Konto erstellt haben, ignorieren Sie diese E-Mail.</p>
@@ -22,7 +22,7 @@
       <tr>
         <td lang="en" style="padding-top:32px;">
           <h2 style="margin:0 0 12px;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Confirm your email</h2>
-          <p style="margin:0 0 20px;font-size:14px;line-height:1.5;">Thank you for signing up to SME24. Confirm your email address through the link, or enter this code on the code page. Both are valid for 24 hours.</p>
+          <p style="margin:0 0 20px;font-size:14px;line-height:1.5;">Thank you for signing up to SME24. Confirm your email address through the link, or enter this code on the code page. The link is valid for 24 hours, the code for 15 minutes.</p>
           <p style="margin:0 0 20px;font-family:'Geist Mono',Menlo,Consolas,monospace;font-size:28px;font-weight:700;letter-spacing:0.2em;">{{ .Token }}</p>
           <p style="margin:0 0 20px;"><a href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}&amp;type=signup&amp;next={{ .RedirectTo }}" style="display:inline-block;padding:12px 20px;background:#000000;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;">Confirm email</a></p>
           <p style="margin:0;font-size:14px;line-height:1.5;">If you did not create an account, ignore this email.</p>

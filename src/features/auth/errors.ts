@@ -15,7 +15,6 @@ export const AUTH_ERROR_KEYS = [
   "provider",
   "emailUnverified",
   "sessionMissing",
-  "notAClient",
   "generic",
 ] as const;
 
