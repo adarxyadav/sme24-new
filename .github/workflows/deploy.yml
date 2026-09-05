@@ -107,4 +107,4 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        run: pnpm dlx trigger.dev@latest deploy --env ${{ github.ref_name == 'production' && 'prod' || 'staging' }}
+        run: pnpm trigger:deploy:${{ github.ref_name == 'production' && 'prod' || 'staging' }}
