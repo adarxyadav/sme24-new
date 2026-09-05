@@ -31,6 +31,8 @@ jobs:
           PROJECT_REF: ${{ github.ref_name != 'production' && 'fxmdkvhououxakmyddwn' || '' }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_AUTH_EMAIL_SMTP_PASS: ${{ secrets.SUPABASE_AUTH_EMAIL_SMTP_PASS }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
         run: |
           echo "project_ref=$PROJECT_REF" >> "$GITHUB_OUTPUT"
           if [ -n "$DB_URL" ]; then
@@ -39,15 +41,15 @@ jobs:
             echo "configured=false" >> "$GITHUB_OUTPUT"
             echo "::notice title=Migrations skipped::The Supabase database URL secret for this branch is not set yet. See README, one time setup, Supabase."
           fi
-          # The Auth config push needs the management API token, the SMTP password that
-          # supabase/config.toml reads through env(), and a project ref for this branch. The CLI
-          # sends the enabled SMTP block with whatever the variable resolves to, so pushing without
-          # the password would blank the hosted SMTP credentials; skip instead.
-          if [ -n "$DB_URL" ] && [ -n "$PROJECT_REF" ] && [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_AUTH_EMAIL_SMTP_PASS" ]; then
+          # The Auth config push needs the management API token, the SMTP password and the Google
+          # client that supabase/config.toml reads through env(), and a project ref for this branch.
+          # The CLI sends the enabled SMTP and provider blocks with whatever the variables resolve
+          # to, so pushing without them would blank the hosted credentials; skip instead.
+          if [ -n "$DB_URL" ] && [ -n "$PROJECT_REF" ] && [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_AUTH_EMAIL_SMTP_PASS" ] && [ -n "$SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID" ] && [ -n "$SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET" ]; then
             echo "config=true" >> "$GITHUB_OUTPUT"
           else
             echo "config=false" >> "$GITHUB_OUTPUT"
-            echo "::notice title=Auth config push skipped::Set SUPABASE_ACCESS_TOKEN and SUPABASE_AUTH_EMAIL_SMTP_PASS for this environment, and give the branch a project ref in deploy.yml plus a matching [remotes.<name>] block in supabase/config.toml. See docs/auth.md, hosted projects."
+            echo "::notice title=Auth config push skipped::Set SUPABASE_ACCESS_TOKEN, SUPABASE_AUTH_EMAIL_SMTP_PASS, SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID and SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET for this environment, and give the branch a project ref in deploy.yml plus a matching [remotes.<name>] block in supabase/config.toml. See docs/auth.md, hosted projects."
           fi
       - if: steps.check.outputs.configured == 'true'
         uses: actions/checkout@v4
@@ -69,6 +71,8 @@ jobs:
           PROJECT_REF: ${{ steps.check.outputs.project_ref }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_AUTH_EMAIL_SMTP_PASS: ${{ secrets.SUPABASE_AUTH_EMAIL_SMTP_PASS }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID }}
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${{ secrets.SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET }}
         run: supabase config push --project-ref "$PROJECT_REF" --yes
 
   tasks:

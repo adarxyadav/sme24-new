@@ -495,18 +495,17 @@ pass = "env(SUPABASE_AUTH_EMAIL_SMTP_PASS)"
 admin_email = "no-reply@send.akaiv.in"
 sender_name = "SME24"
 
+# Google and Microsoft are switched on per environment here, never in the dashboard (a push would
+# switch them off again). The client ids and secrets are GitHub secrets exported by the workflow.
 # The base block skips the nonce check because local Google sign in needs it; a hosted project must
 # verify the nonce, so the override wins here whether or not Google is enabled.
 [remotes.staging.auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
 skip_nonce_check = false
 
-# Google and Microsoft are switched on per environment here, never in the dashboard (a push would
-# switch them off again). The client ids and secrets are GitHub secrets exported by the workflow.
-# [remotes.staging.auth.external.google]
-# enabled = true
-# client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
-# secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
-#
+# Microsoft follows once its app registration exists (docs/auth.md).
 # [remotes.staging.auth.external.azure]
 # enabled = true
 # client_id = "env(SUPABASE_AUTH_EXTERNAL_AZURE_CLIENT_ID)"
