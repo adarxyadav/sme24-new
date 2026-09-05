@@ -19,8 +19,8 @@ _Steps derived from spec 0005 acceptance criteria. `/check verify` runs these; `
 
 ## Commands
 - [x] `pnpm test:db` → 250 pgTAP tests pass, including `accept_terms.test.sql` (column grant, null only write, anon refused) → AC-11
-- [x] `pnpm test` → the proxy suite passes: auth page bounce, onboarding rule, refreshed cookies kept on redirects → AC-8
-- [x] `PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:e2e` (with `pnpm dev` running and `.env.local` holding the local keys) → `e2e/auth.spec.ts` green: 24 tests over AC-1, AC-2, AC-3, AC-4, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-12, AC-13
+- [x] `pnpm test` → the proxy suite and `tests/features/auth/errors.test.ts` (the combined code message) pass: auth page bounce, onboarding rule, refreshed cookies kept on redirects → AC-8
+- [x] `PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:e2e` (with `pnpm dev` running and `.env.local` holding the local keys) → `e2e/auth.spec.ts` green: 26 tests over AC-1, AC-2, AC-3, AC-4, AC-6, AC-7, AC-8, AC-9, AC-10, AC-11, AC-12, AC-13
 - [x] `pnpm user:invite --email <fresh> --role expert` → prints "invited … as expert"; the profile role and `app_metadata.role` are `expert`; the invite email's link opens `/de/reset-password`; after saving a password the user lands on `/de/expert`; the used link shows the "ask your administrator" note without a resend button → AC-10
 - [x] `curl -X POST "$NEXT_PUBLIC_SUPABASE_URL/auth/v1/signup" -H "apikey: $NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" -H 'content-type: application/json' -d '{"email":"<fresh>","password":"12345678","data":{"role":"ops"},"app_metadata":{"role":"ops"}}'` → the profile role is `client` → AC-10
 

@@ -117,6 +117,47 @@ test.describe("sign up with a password (AC-1, AC-11, AC-12, AC-13)", () => {
     }
   });
 
+  test("a broken link for an unconfirmed account shows the expired state and the resend sends a fresh confirmation (AC-12)", async ({
+    page,
+  }) => {
+    // A confirmed account gets no second confirmation from Supabase, so the resend is proven on an
+    // account whose link was never opened (spec 0005 verify.md, reworded 2026-09-05).
+    const email = uniqueEmail("broken-link");
+    try {
+      await open(page, "/de/sign-up");
+      await page.getByLabel("Vor- und Nachname").fill("Berta Broken");
+      await page.getByLabel("Unternehmen").fill("Broken AG");
+      await page.getByLabel("Geschäftliche E-Mail").fill(email);
+      await page.getByLabel("Passwort", { exact: true }).fill(PASSWORD);
+      await page.getByLabel(/Nutzungsbedingungen/).check();
+      await page.getByRole("button", { name: "Konto erstellen", exact: true }).click();
+      await expect(page.getByText("Prüfen Sie Ihren Posteingang")).toBeVisible();
+      const first = await readMail(email);
+      const broken = linkPath(confirmLink(first)).replace(/token_hash=/, "token_hash=deadbeef");
+      const seen = await mailIds(email);
+
+      await page.goto(broken);
+      await expect(page).toHaveURL(/\/de\/sign-in\?error=link_expired&type=signup$/);
+      await expect(page.getByText("abgelaufen oder wurde schon verwendet")).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      await page.getByLabel("E-Mail").fill(email);
+      // Supabase refuses a second email within its per address frequency guard right after the
+      // sign up mail (the wait message), so the press is repeated until it is accepted.
+      await expect(async () => {
+        await page.getByRole("button", { name: "Neue E-Mail senden" }).click();
+        await expect(page.getByText("Prüfen Sie Ihren Posteingang")).toBeVisible({
+          timeout: 3_000,
+        });
+      }).toPass({ timeout: 20_000, intervals: [1_500, 2_000, 3_000] });
+
+      const fresh = await readMail(email, { seen });
+      expect(fresh.html).toMatch(/Bestätigen Sie Ihre E-Mail/);
+      expect(confirmLink(fresh)).not.toBe(confirmLink(first));
+    } finally {
+      await deleteAccount(email);
+    }
+  });
+
   test("an existing email shows the inbox state and sends nothing to the existing account", async ({
     page,
   }) => {
@@ -188,6 +229,47 @@ test.describe("sign up and sign in with a code (AC-2, AC-4)", () => {
       await page.getByRole("button", { name: "Anmelden", exact: true }).click();
       await expect(page).toHaveURL(/\/de\/app$/);
       await expectOwnerOfOrganization(email, "Code GmbH");
+    } finally {
+      await deleteAccount(email);
+    }
+  });
+
+  test("a wrong code shows the one combined message and the right code still signs in (AC-12)", async ({
+    page,
+  }) => {
+    // Supabase answers otp_expired for a wrong and an expired code alike (spec 0005, amendment of
+    // 2026-09-05), so the page shows one message for both and offers a new code.
+    const email = uniqueEmail("wrong-code");
+    try {
+      await open(page, "/de/sign-up");
+      await page.getByLabel("Vor- und Nachname").fill("Wanda Wrong");
+      await page.getByLabel("Unternehmen").fill("Wrong AG");
+      await page.getByLabel("Geschäftliche E-Mail").fill(email);
+      await page.getByLabel(/Nutzungsbedingungen/).check();
+      await page
+        .getByRole("button", { name: "Stattdessen einen Code per E-Mail erhalten" })
+        .click();
+      await page
+        .getByRole("button", { name: "Stattdessen einen Code per E-Mail erhalten" })
+        .click();
+      await expect(page).toHaveURL(/\/de\/verify-code\?email=/);
+      await page.waitForLoadState("networkidle");
+      const real = codeIn(await readMail(email));
+      const wrong = real === "000000" ? "111111" : "000000";
+
+      await page.getByLabel("Code").fill(wrong);
+      await page.getByRole("button", { name: "Anmelden", exact: true }).click();
+      await expect(alert(page)).toContainText(
+        "Der Code ist falsch oder abgelaufen. Fordern Sie einen neuen an.",
+      );
+
+      // The OTP field keeps its six digits, so clear it the way a person would before retyping.
+      await page.getByLabel("Code").click();
+      await page.keyboard.press("ControlOrMeta+A");
+      await page.keyboard.press("Backspace");
+      await page.getByLabel("Code").fill(real);
+      await page.getByRole("button", { name: "Anmelden", exact: true }).click();
+      await expect(page).toHaveURL(/\/de\/app$/);
     } finally {
       await deleteAccount(email);
     }

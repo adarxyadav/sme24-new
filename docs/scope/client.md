@@ -16,7 +16,7 @@ spec [0005](../specs/0005-auth-organizations-roles/index.md)
   - [x] Staff invites and providers: the `pnpm user:invite` script, Google and Microsoft with the callback handler, `docs/auth.md` setup checklist (AC-5, AC-10)
   - [ ] Hosted configuration: Resend SMTP, the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13)
 - [x] Verify it: `/check verify auth, organizations & roles`
-- [ ] Test it: `/test auth, organizations & roles`
+- [x] Test it: `/test auth, organizations & roles`
 - [ ] Review it (fresh model): `/check review auth, organizations & roles`
 - [ ] Document it: `/document auth, organizations & roles`
 
