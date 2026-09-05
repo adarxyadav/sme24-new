@@ -71,4 +71,4 @@ spec [0004](../specs/0004-localization/index.md) · code in `src/i18n/`, `messag
 - [x] Verify it: `/check verify localization`
 - [x] Test it: `/test localization`
 - [x] Review it (fresh model): `/check review localization`
-- [ ] Document it: `/document localization`
+- [x] Document it: `/document localization`
