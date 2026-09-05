@@ -112,19 +112,19 @@ select is(pg_temp.hook('d0000000-0000-4000-8000-000000000001') -> 'app_metadata'
 
 -- Second call and other roles
 select pg_temp.impersonate('d0000000-0000-4000-8000-000000000001', 'client', (select id from created));
-select throws_ok($$ select public.create_organization('Zweite AG') $$, 'P0001', 'already_member',
+select throws_ok($$ select public.create_organization('Zweite AG') $$, 'SM409', 'already_member',
   'a second call by the same user raises already_member');
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
-select throws_ok($$ select public.create_organization('Another') $$, 'P0001', 'already_member',
+select throws_ok($$ select public.create_organization('Another') $$, 'SM409', 'already_member',
   'an existing member raises already_member');
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');
-select throws_ok($$ select public.create_organization('Expert AG') $$, 'P0001', 'not_a_client',
+select throws_ok($$ select public.create_organization('Expert AG') $$, 'SM403', 'not_a_client',
   'an expert raises not_a_client');
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
-select throws_ok($$ select public.create_organization('Ops AG') $$, 'P0001', 'not_a_client',
+select throws_ok($$ select public.create_organization('Ops AG') $$, 'SM403', 'not_a_client',
   'ops raise not_a_client');
 select pg_temp.as_service_role();
-select throws_ok($$ select public.create_organization('Service AG') $$, 'P0001', 'not_a_client',
+select throws_ok($$ select public.create_organization('Service AG') $$, 'SM403', 'not_a_client',
   'the service key has no caller and raises not_a_client');
 select pg_temp.as_anon();
 select throws_ok($$ select public.create_organization('Anon AG') $$, '42501', null,

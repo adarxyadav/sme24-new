@@ -92,13 +92,109 @@
       }
     }
   },
-  "signIn": {
-    "title": "Anmelden",
-    "lead": "Melden Sie sich mit Ihrer geschäftlichen E-Mail an.",
-    "email": "E-Mail",
-    "password": "Passwort",
-    "submit": "Anmelden",
-    "invalid": "E-Mail oder Passwort ist falsch."
+  "auth": {
+    "signIn": {
+      "title": "Anmelden",
+      "lead": "Melden Sie sich mit Ihrer geschäftlichen E-Mail an.",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "submit": "Anmelden",
+      "forgotPassword": "Passwort vergessen?",
+      "codeInstead": "Stattdessen einen Code per E-Mail erhalten",
+      "noAccount": "Noch kein Konto?",
+      "signUp": "Konto erstellen"
+    },
+    "signUp": {
+      "title": "Konto erstellen",
+      "lead": "Ein Konto für Ihr Unternehmen, in einer Minute.",
+      "fullName": "Vor- und Nachname",
+      "organizationName": "Unternehmen",
+      "email": "Geschäftliche E-Mail",
+      "password": "Passwort",
+      "passwordHint": "Mindestens 8 Zeichen.",
+      "consent": "Ich akzeptiere die Nutzungsbedingungen und die Datenschutzerklärung.",
+      "submit": "Konto erstellen",
+      "codeInstead": "Stattdessen einen Code per E-Mail erhalten",
+      "hasAccount": "Schon ein Konto?",
+      "signIn": "Anmelden"
+    },
+    "inbox": {
+      "title": "Prüfen Sie Ihren Posteingang",
+      "signUp": "Wir haben eine E-Mail an {email} geschickt. Folgen Sie dem Link darin, um Ihr Konto zu bestätigen.",
+      "code": "Wir haben einen sechsstelligen Code an {email} geschickt, falls ein Konto besteht.",
+      "reset": "Falls ein Konto für {email} besteht, haben wir einen Link zum Zurücksetzen geschickt.",
+      "resent": "Wir haben eine neue E-Mail geschickt.",
+      "resend": "E-Mail erneut senden",
+      "enterCode": "Code eingeben"
+    },
+    "verifyCode": {
+      "title": "Code eingeben",
+      "lead": "Geben Sie den sechsstelligen Code aus der E-Mail ein.",
+      "email": "E-Mail",
+      "code": "Code",
+      "submit": "Anmelden",
+      "resend": "Neuen Code senden",
+      "resent": "Wir haben einen neuen Code geschickt."
+    },
+    "forgotPassword": {
+      "title": "Passwort zurücksetzen",
+      "lead": "Wir schicken Ihnen einen Link, mit dem Sie ein neues Passwort setzen.",
+      "email": "E-Mail",
+      "submit": "Link senden",
+      "backToSignIn": "Zurück zur Anmeldung"
+    },
+    "resetPassword": {
+      "title": "Neues Passwort setzen",
+      "lead": "Wählen Sie ein Passwort mit mindestens 8 Zeichen. Andere Geräte werden abgemeldet.",
+      "password": "Neues Passwort",
+      "submit": "Passwort speichern"
+    },
+    "onboarding": {
+      "title": "Ihr Unternehmen",
+      "lead": "Noch ein Schritt: Nennen Sie uns Ihr Unternehmen, dann geht es los.",
+      "organizationName": "Unternehmen",
+      "consent": "Ich akzeptiere die Nutzungsbedingungen und die Datenschutzerklärung.",
+      "submit": "Weiter"
+    },
+    "providers": {
+      "or": "oder",
+      "google": "Mit Google anmelden",
+      "microsoft": "Mit Microsoft anmelden"
+    },
+    "unconfirmed": {
+      "title": "E-Mail noch nicht bestätigt",
+      "body": "Bestätigen Sie zuerst Ihre E-Mail über den Link, den wir Ihnen geschickt haben.",
+      "resend": "Bestätigung erneut senden"
+    },
+    "linkExpired": {
+      "title": "Dieser Link ist abgelaufen oder wurde schon verwendet",
+      "signup": "Fordern Sie eine neue Bestätigungs-E-Mail an.",
+      "code": "Fordern Sie einen neuen Code an.",
+      "recovery": "Fordern Sie einen neuen Link zum Zurücksetzen an.",
+      "invite": "Bitten Sie Ihre Administratorin oder Ihren Administrator um eine neue Einladung.",
+      "emailChange": "Starten Sie die Änderung Ihrer E-Mail-Adresse erneut.",
+      "email": "E-Mail",
+      "resend": "Neue E-Mail senden"
+    },
+    "errors": {
+      "invalidCredentials": "E-Mail oder Passwort ist falsch.",
+      "emailNotConfirmed": "Bestätigen Sie zuerst Ihre E-Mail.",
+      "rateLimited": "Zu viele Versuche. Warten Sie einen Moment und versuchen Sie es erneut.",
+      "weakPassword": "Das Passwort ist zu schwach. Wählen Sie mindestens 8 Zeichen, die nicht in bekannten Datenlecks vorkommen.",
+      "samePassword": "Das neue Passwort muss sich vom alten unterscheiden.",
+      "codeInvalidOrExpired": "Der Code ist falsch oder abgelaufen. Fordern Sie einen neuen an.",
+      "provider": "Die Anmeldung über den Anbieter ist fehlgeschlagen. Versuchen Sie es erneut oder nutzen Sie E-Mail und Passwort.",
+      "emailUnverified": "Ihr Anbieter hat die E-Mail-Adresse nicht bestätigt. Nutzen Sie E-Mail und Passwort oder einen Code.",
+      "sessionMissing": "Ihre Sitzung ist abgelaufen. Fordern Sie einen neuen Link an.",
+      "generic": "Da ist etwas schiefgelaufen. Versuchen Sie es erneut."
+    },
+    "validation": {
+      "consentRequired": "Bitte akzeptieren Sie die Nutzungsbedingungen.",
+      "passwordShort": "Das Passwort braucht mindestens 8 Zeichen.",
+      "codeLength": "Der Code hat sechs Ziffern.",
+      "nameRequired": "Bitte geben Sie Ihren Namen an.",
+      "organizationRequired": "Bitte geben Sie Ihr Unternehmen an."
+    }
   },
   "forbidden": {
     "title": "Kein Zugriff",
@@ -355,7 +451,9 @@
       "invalidExample": "Ungültiges Feld",
       "disabledExample": "Deaktiviertes Feld",
       "disabledHint": "Dieser Wert wird aus dem Handelsregister übernommen.",
-      "disabledCheckbox": "Deaktivierte Auswahl"
+      "disabledCheckbox": "Deaktivierte Auswahl",
+      "code": "Einmalcode",
+      "codeHint": "Sechs Ziffern aus der E-Mail; die Eingabe springt von Feld zu Feld."
     },
     "validation": {
       "companyShort": "Bitte geben Sie mindestens 2 Zeichen ein.",

@@ -81,8 +81,13 @@ describe("typed route map (spec 0004, AC-13)", () => {
       expect.arrayContaining([
         "/",
         "/sign-in",
+        "/sign-up",
+        "/verify-code",
+        "/forgot-password",
+        "/reset-password",
         "/forbidden",
         "/app",
+        "/app/onboarding",
         "/expert",
         "/admin",
         "/admin/design",
@@ -91,11 +96,16 @@ describe("typed route map (spec 0004, AC-13)", () => {
     expect(routing.pathnames).toBe(PATHNAMES);
   });
 
-  it("keeps the signed in areas, sign in and forbidden identical in both languages", () => {
+  it("keeps the signed in areas, the auth pages and forbidden identical in both languages", () => {
     for (const route of [
       "/sign-in",
+      "/sign-up",
+      "/verify-code",
+      "/forgot-password",
+      "/reset-password",
       "/forbidden",
       "/app",
+      "/app/onboarding",
       "/expert",
       "/admin",
       "/admin/design",

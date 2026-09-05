@@ -18,7 +18,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 3 | Data model | Foundation | done |
 | 4 | Design system & UI foundation | Foundation | done |
 | 5 | Localization (German & English) | Foundation | done |
-| 6 | Auth, organizations & roles | Slice 1 | planned |
+| 6 | Auth, organizations & roles | Slice 1 | in-progress |
 | 7 | Transactional email & ops alerts | Slice 1 | planned |
 | 8 | Company lookup & research pipeline | Slice 1 | planned |
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | planned |
@@ -57,6 +57,7 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Public expert sign up**: experts apply through the site instead of being invited by ops
 - **EU VAT and multi currency**: only CHF with Swiss MWST is in scope now · needs a decision
 - **Public API and integrations**: client systems pulling benchmark and program data · needs a decision
+- **Account settings page**: name, language, password change and sign out everywhere; the sign in flows ship without it · from spec 0005
 
 ## Legend
 

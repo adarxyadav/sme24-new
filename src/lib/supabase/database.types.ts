@@ -386,6 +386,7 @@ export type Database = {
           locale: string
           organization_id: string | null
           role: Database["public"]["Enums"]["app_role"]
+          terms_accepted_at: string | null
           updated_at: string
         }
         Insert: {
@@ -395,6 +396,7 @@ export type Database = {
           locale?: string
           organization_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -404,6 +406,7 @@ export type Database = {
           locale?: string
           organization_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -572,6 +575,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_terms: { Args: never; Returns: string }
       add_organization_member: {
         Args: { organization_id: string; role?: string; user_id: string }
         Returns: string

@@ -36,7 +36,7 @@ values
     'authenticated', 'authenticated', 'client@example.com',
     extensions.crypt('sme24-local-password', extensions.gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"],"role":"client"}',
-    '{"full_name":"Clara Client","locale":"de"}', now(), now(), '', '', '', ''
+    '{"full_name":"Clara Client","locale":"de","terms_accepted_at":"2026-09-01T08:00:00Z"}', now(), now(), '', '', '', ''
   ),
   (
     '00000000-0000-0000-0000-000000000000', '22222222-2222-4222-8222-222222222222',
@@ -57,7 +57,7 @@ values
     'authenticated', 'authenticated', 'client2@example.com',
     extensions.crypt('sme24-local-password', extensions.gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"],"role":"client"}',
-    '{"full_name":"Bruno Beispiel","locale":"de"}', now(), now(), '', '', '', ''
+    '{"full_name":"Bruno Beispiel","locale":"de","terms_accepted_at":"2026-09-01T08:00:00Z"}', now(), now(), '', '', '', ''
   )
 on conflict (id) do nothing;
 

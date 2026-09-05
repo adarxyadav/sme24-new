@@ -17,6 +17,7 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -249,6 +250,23 @@ export function FormsSection() {
           <FieldLabel htmlFor="demo-disabled-check" className="font-normal">
             {t("disabledCheckbox")}
           </FieldLabel>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="demo-code">{t("code")}</FieldLabel>
+          <InputOTP
+            id="demo-code"
+            maxLength={6}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            aria-describedby="demo-code-hint"
+          >
+            <InputOTPGroup>
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <InputOTPSlot key={index} index={index} />
+              ))}
+            </InputOTPGroup>
+          </InputOTP>
+          <FieldDescription id="demo-code-hint">{t("codeHint")}</FieldDescription>
         </Field>
       </div>
     </div>

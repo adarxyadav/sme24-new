@@ -82,6 +82,8 @@ test.describe("signed in", () => {
   }) => {
     await signIn(page, SEED_USERS.ops);
     await page.goto("/de/admin/design");
+    // The gallery is heavy: wait for hydration, or the click lands before the form's handler exists.
+    await page.waitForLoadState("networkidle");
     const form = page.getByRole("region", { name: "Formulare" }).locator("form");
     await form.getByRole("button", { name: "Absenden" }).click();
     await expect(form.locator("#demo-company-error")).toHaveText(
@@ -90,6 +92,7 @@ test.describe("signed in", () => {
     await expect(form.locator("#demo-email-error")).toHaveText(/E-Mail/);
 
     await page.goto("/en/admin/design");
+    await page.waitForLoadState("networkidle");
     const formEn = page.getByRole("region", { name: "Forms" }).locator("form");
     await formEn.getByRole("button", { name: "Submit" }).click();
     await expect(formEn.locator("#demo-company-error")).toHaveText(

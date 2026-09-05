@@ -182,7 +182,8 @@ revoke insert on public.organization_members from anon, authenticated;
 -- The only insert path for organizations. Runs as the signed in client (PostgREST rpc): creates
 -- the organization (in the caller's stored language, spec 0004), the caller's owner membership and
 -- the caller's current organization in one transaction and returns the new id. Refuses a caller
--- who is not a client (`not_a_client`) or who already belongs to an organization (`already_member`).
+-- who is not a client (`not_a_client`, SQLSTATE SM403) or who already belongs to an organization
+-- (`already_member`, SQLSTATE SM409); the app branches on the codes, never on the message text.
 create or replace function public.create_organization(name text)
 returns uuid
 language plpgsql
@@ -194,11 +195,16 @@ declare
   org_id uuid;
 begin
   if caller is null or private.jwt_app_role() is distinct from 'client' then
-    raise exception 'not_a_client';
+    raise exception 'not_a_client' using errcode = 'SM403';
   end if;
 
+  -- Two concurrent calls by the same caller (two tabs, a replayed request) would both pass the
+  -- membership check below. The lock lasts for this transaction and is keyed on the caller, so the
+  -- second call waits, then sees the first one's membership and raises already_member.
+  perform pg_advisory_xact_lock(hashtextextended(caller::text, 0));
+
   if exists (select 1 from public.organization_members m where m.user_id = caller) then
-    raise exception 'already_member';
+    raise exception 'already_member' using errcode = 'SM409';
   end if;
 
   insert into public.organizations (name, created_by, locale)
