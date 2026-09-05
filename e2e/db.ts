@@ -50,15 +50,73 @@ export async function accountByEmail(email: string) {
   return { user, profile, memberships: memberships ?? [], organization };
 }
 
-/** Removes a test account and, through the cascades, its profile, memberships and organization. */
+/**
+ * Removes a test account and, through the cascades, its profile and memberships, plus every
+ * organization it created. Keyed on `created_by` rather than the profile's `organization_id`
+ * alone: a membership removed by a probe, or an organization inserted by a server action still
+ * in flight when the test gave up, otherwise leaves an organization behind that trips the pgTAP
+ * seed guard. Errors surface so a leak is visible in the run, not in the next `pnpm test:db`.
+ */
 export async function deleteAccount(email: string) {
   const account = await accountByEmail(email);
   if (!account) return;
   const supabase = serviceClient();
-  if (account.organization) {
-    await supabase.from("organizations").delete().eq("id", account.organization.id);
+  const { data: created, error: createdError } = await supabase
+    .from("organizations")
+    .select("id")
+    .eq("created_by", account.user.id);
+  if (createdError) throw createdError;
+  const organizationIds = [
+    ...new Set([
+      ...(account.organization ? [account.organization.id] : []),
+      ...(created ?? []).map((row) => row.id),
+    ]),
+  ];
+  if (organizationIds.length > 0) {
+    const { error } = await supabase.from("organizations").delete().in("id", organizationIds);
+    if (error) throw error;
   }
-  await supabase.auth.admin.deleteUser(account.user.id);
+  const { error } = await supabase.auth.admin.deleteUser(account.user.id);
+  if (error) throw error;
+}
+
+/** True when the Supabase URL points at the local stack, the only place the sweep may run. */
+const localStack = /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+);
+
+/**
+ * Removes what earlier runs left behind on the local stack: every `@example.test` account
+ * (`uniqueEmail` in mail.ts) with its organizations, and organizations nobody can reach any more
+ * (no member, no creator), the trace of a worker killed by a timeout after its user was deleted.
+ * A no op away from the local stack. Returns the counts for the log. Playwright global setup and
+ * teardown.
+ */
+export async function sweepTestAccounts() {
+  if (!dbAvailable || !localStack) return { users: 0, organizations: 0 };
+  const supabase = serviceClient();
+  const { data: users, error } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  if (error) throw error;
+  const stale = users.users.filter((user) => user.email?.toLowerCase().endsWith("@example.test"));
+  for (const user of stale) {
+    await deleteAccount(user.email as string);
+  }
+  const { data: orphans, error: orphanError } = await supabase
+    .from("organizations")
+    .select("id, organization_members(user_id)")
+    .is("created_by", null);
+  if (orphanError) throw orphanError;
+  const orphanIds = (orphans ?? [])
+    .filter((row) => row.organization_members.length === 0)
+    .map((row) => row.id);
+  if (orphanIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from("organizations")
+      .delete()
+      .in("id", orphanIds);
+    if (deleteError) throw deleteError;
+  }
+  return { users: stale.length, organizations: orphanIds.length };
 }
 
 /**

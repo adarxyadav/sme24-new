@@ -15,12 +15,19 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // Locally one dev server and one Docker stack serve every worker: at five workers sign in
+  // actions and axe scans time out (measured 2026-09-05), at two the suite passes and is fastest.
+  workers: process.env.CI ? undefined : 2,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,
     trace: "on-first-retry",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // Leftovers of an interrupted run (a timeout kills the worker before its cleanup) would trip the
+  // pgTAP seed guard; the sweep runs on the local stack only and is a no op elsewhere.
+  globalSetup: "./e2e/sweep.ts",
+  globalTeardown: "./e2e/sweep.ts",
   webServer: process.env.PLAYWRIGHT_BASE_URL
     ? undefined
     : {
