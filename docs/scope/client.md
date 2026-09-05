@@ -15,7 +15,7 @@ spec [0005](../specs/0005-auth-organizations-roles/index.md)
   - [x] Email code, password reset, sign out and sessions: `/verify-code` with the OTP primitive, forgot and reset pages, local sign out, refresh proven (AC-2, AC-4, AC-6, AC-7, AC-9)
   - [x] Staff invites and providers: the `pnpm user:invite` script, Google and Microsoft with the callback handler, `docs/auth.md` setup checklist (AC-5, AC-10)
   - [ ] Hosted configuration: Resend SMTP, the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13)
-- [ ] Verify it: `/check verify auth, organizations & roles`
+- [x] Verify it: `/check verify auth, organizations & roles`
 - [ ] Test it: `/test auth, organizations & roles`
 - [ ] Review it (fresh model): `/check review auth, organizations & roles`
 - [ ] Document it: `/document auth, organizations & roles`
