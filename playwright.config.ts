@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { config as loadEnv } from "dotenv";
+
+// Local runs read .env.local (seed password, Supabase keys for the auth assertions); CI sets its
+// own variables and has no such file, which dotenv treats as a no op.
+loadEnv({ path: ".env.local", quiet: true });
 
 // Runs against PLAYWRIGHT_BASE_URL when set (the CI `e2e` job passes the Vercel deployment URL),
 // otherwise starts a dev server on its own port so an app already on 3000 is never tested by mistake.

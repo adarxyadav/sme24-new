@@ -50,6 +50,6 @@ test("a wrong password is rejected", async ({ page }) => {
   await page.goto("/de/sign-in");
   await page.getByLabel("E-Mail").fill("ops@example.com");
   await page.getByLabel("Passwort").fill("definitely-wrong");
-  await page.getByRole("button", { name: "Anmelden" }).click();
+  await page.getByRole("button", { name: "Anmelden", exact: true }).click();
   await expect(page.getByRole("alert")).toBeVisible();
 });

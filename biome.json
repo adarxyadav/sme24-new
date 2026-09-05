@@ -12,6 +12,7 @@
       "!node_modules",
       "!.claude",
       "!.next",
+      "!supabase/templates",
       "!dist",
       "!build",
       "!.trigger",

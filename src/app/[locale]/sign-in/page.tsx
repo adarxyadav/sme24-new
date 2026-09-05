@@ -1,89 +1,53 @@
-import { getTranslations } from "next-intl/server";
-import { Logo } from "@/components/brand/logo";
-import { LocaleSwitcher } from "@/components/locale-switcher";
-import { SkipLink } from "@/components/skip-link";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Alert, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { signIn } from "@/features/auth/actions";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import type { AuthErrorKey } from "@/features/auth/errors";
+import { isLinkExpiredType, type SignInNotice } from "@/features/auth/notices";
+import { AuthPage } from "@/features/auth/ui/auth-page";
+import { SignInForm } from "@/features/auth/ui/sign-in-form";
 import { Link } from "@/i18n/navigation";
+import { resolveLocale } from "@/i18n/routing";
 
+/** The `error` query values the handlers and actions redirect with, and the message each shows. */
+const QUERY_ERRORS: Readonly<Record<string, AuthErrorKey>> = {
+  email_unverified: "emailUnverified",
+  provider: "provider",
+  session: "sessionMissing",
+};
+
+/** Turns the query string into the notice the form shows, or undefined for a plain visit. */
+function noticeFrom(
+  query: Record<string, string | string[] | undefined>,
+): SignInNotice | undefined {
+  const error = typeof query.error === "string" ? query.error : undefined;
+  if (!error) return undefined;
+  if (error === "link_expired") {
+    return { kind: "linkExpired", type: isLinkExpiredType(query.type) ? query.type : "signup" };
+  }
+  const key = QUERY_ERRORS[error];
+  return key ? { kind: "error", error: key } : undefined;
+}
+
+/** Sign in (spec 0005, AC-3, AC-4, AC-12); the proxy sends a signed in user to their area. */
 export default async function SignInPage({ params, searchParams }: PageProps<"/[locale]/sign-in">) {
   const { locale } = await params;
+  setRequestLocale(resolveLocale(locale));
   const query = await searchParams;
-  const t = await getTranslations();
-  const invalid = query.error === "invalid";
-  const next = typeof query.next === "string" ? query.next : "";
+  const t = await getTranslations("auth.signIn");
+  const next = typeof query.next === "string" ? query.next : undefined;
 
   return (
-    <>
-      <SkipLink />
-      <div className="flex min-h-dvh flex-col">
-        <header className="flex h-16 items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="rounded-md">
-            <Logo size="md" />
+    <AuthPage
+      title={t("title")}
+      description={t("lead")}
+      footer={
+        <p className="text-muted-foreground">
+          {t("noAccount")}{" "}
+          <Link href="/sign-up" className="text-foreground underline">
+            {t("signUp")}
           </Link>
-          <div className="flex items-center gap-2">
-            <LocaleSwitcher />
-            <ThemeToggle />
-          </div>
-        </header>
-        <main
-          id="main"
-          tabIndex={-1}
-          className="flex flex-1 items-center justify-center px-4 py-12 outline-none sm:px-6"
-        >
-          <Card className="w-full max-w-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl tracking-headline">{t("auth.signIn.title")}</CardTitle>
-              <CardDescription>{t("auth.signIn.lead")}</CardDescription>
-            </CardHeader>
-            <form action={signIn}>
-              <CardContent className="flex flex-col gap-6">
-                <input type="hidden" name="locale" value={locale} />
-                <input type="hidden" name="next" value={next} />
-                {invalid ? (
-                  <Alert variant="destructive">
-                    <AlertTitle>{t("auth.errors.invalidCredentials")}</AlertTitle>
-                  </Alert>
-                ) : null}
-                <FieldGroup>
-                  <Field>
-                    <FieldLabel htmlFor="email">{t("auth.signIn.email")}</FieldLabel>
-                    <Input id="email" name="email" type="email" autoComplete="email" required />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="password">{t("auth.signIn.password")}</FieldLabel>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      minLength={6}
-                    />
-                  </Field>
-                </FieldGroup>
-              </CardContent>
-              <CardFooter className="mt-6">
-                <Button type="submit" className="w-full" size="lg">
-                  {t("auth.signIn.submit")}
-                </Button>
-              </CardFooter>
-            </form>
-          </Card>
-        </main>
-      </div>
-    </>
+        </p>
+      }
+    >
+      <SignInForm next={next} notice={noticeFrom(query)} />
+    </AuthPage>
   );
 }

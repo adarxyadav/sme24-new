@@ -16,7 +16,7 @@ export async function signIn(page: Page, email: string) {
   await page.goto("/de/sign-in");
   await page.getByLabel("E-Mail").fill(email);
   await page.getByLabel("Passwort").fill(seedPassword as string);
-  await page.getByRole("button", { name: "Anmelden" }).click();
+  await page.getByRole("button", { name: "Anmelden", exact: true }).click();
   // The server action redirects once the session cookies are set; wait for it before navigating on.
   await page.waitForURL((url) => !url.pathname.endsWith("/sign-in"));
 }
