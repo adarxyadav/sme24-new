@@ -18,8 +18,16 @@ export const PATHNAMES = {
 /** A route key of the typed map: what `Link` and `redirect` accept as `href`. */
 export type Pathname = keyof typeof PATHNAMES;
 
+/** A route without parameters: the only kind `getPathname` can resolve without `params`. */
+export type StaticPathname = Pathname extends infer P
+  ? P extends `${string}[${string}`
+    ? never
+    : P
+  : never;
+
 /**
  * The public routes the sitemap and the alternates helper iterate. Feature 13 adds its pages and
- * their German slugs here after adding them to `PATHNAMES`.
+ * their German slugs here after adding them to `PATHNAMES`. Static routes only: a template route
+ * (`/foo/[id]`) has no single URL, so listing one fails `pnpm typecheck`.
  */
-export const MARKETING_ROUTES: readonly Pathname[] = ["/"];
+export const MARKETING_ROUTES: readonly StaticPathname[] = ["/"];

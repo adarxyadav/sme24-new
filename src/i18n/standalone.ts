@@ -1,7 +1,11 @@
+import { captureException } from "@sentry/node";
 import { createFormatter, createTranslator, type Messages } from "next-intl";
 import { formats, TIME_ZONE } from "./formats";
-import { getMessageFallback, onError } from "./on-error";
+import { createOnError, getMessageFallback } from "./on-error";
 import type { Locale } from "./routing";
+
+/** The task runtime's handler: `@sentry/node` is what Trigger.dev's esbuild bundle can carry. */
+const onError = createOnError(captureException);
 
 /** The same dynamic import as the request config, so tasks and emails read the one catalog. */
 export async function loadMessages(locale: Locale): Promise<Messages> {

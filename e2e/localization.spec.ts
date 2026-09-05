@@ -72,11 +72,6 @@ test.describe("signed in", () => {
     await page.reload();
     await page.getByRole("button", { name: "User menu" }).click();
     await expect(page.getByRole("menuitem", { name: /Language/ })).toContainText("English");
-
-    // Back to German so the other suites, which sign in through /de, find the seeded state.
-    await page.getByRole("menuitem", { name: /Language/ }).click();
-    await page.getByRole("menuitemradio", { name: "Deutsch" }).click();
-    await expect(page).toHaveURL(/\/de\/admin$/);
   });
 
   test("the gallery form shows its errors in the page language: built in and custom (AC-8)", async ({

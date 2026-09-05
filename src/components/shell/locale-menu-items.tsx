@@ -24,7 +24,8 @@ const LABEL_KEY = { "de-CH": "german", "en-CH": "english" } as const satisfies R
  * Language submenu for the sidebar user menu: one radio item per locale that stores the choice on
  * the profile through `setLocale` (spec 0004, AC-2) and then replaces the current page with the
  * same page (path and query string) in the other language (next-intl writes the locale cookie on
- * the change, spec 0001). The write is awaited so the navigation does not cut it off. Runs in the
+ * the change, spec 0001). The write is awaited so the navigation does not cut it off, and a rejected
+ * write (offline, stale action id) still navigates: the URL is the truth for the page. Runs in the
  * browser inside a `DropdownMenuContent`, in the signed in areas only, which render dynamically,
  * so reading the search params never bails out of prerendering.
  */
@@ -50,7 +51,9 @@ export function LocaleMenuItems() {
               value={target}
               lang={target}
               onSelect={async () => {
-                await setLocale({ locale: LOCALE_CODE[target] });
+                await setLocale({ locale: LOCALE_CODE[target] }).catch(() => {
+                  // Best effort: a lost write never blocks the navigation.
+                });
                 router.replace({ pathname, query }, { locale: target });
               }}
             >

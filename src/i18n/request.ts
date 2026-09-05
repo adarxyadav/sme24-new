@@ -1,8 +1,12 @@
+import { captureException } from "@sentry/nextjs";
 import { hasLocale } from "next-intl";
 import { getRequestConfig } from "next-intl/server";
 import { formats, TIME_ZONE } from "./formats";
-import { getMessageFallback, onError } from "./on-error";
+import { createOnError, getMessageFallback } from "./on-error";
 import { routing } from "./routing";
+
+/** The app runtime's handler: catalog gaps reach the Sentry client `sentry.server.config.ts` set up. */
+const onError = createOnError(captureException);
 
 /** Request scoped next-intl config (spec 0004): locale from the URL segment, the one catalog per locale, the named formats and the Swiss timezone. Server. */
 export default getRequestConfig(async ({ requestLocale }) => {

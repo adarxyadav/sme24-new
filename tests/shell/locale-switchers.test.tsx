@@ -126,7 +126,9 @@ describe("LocaleSwitcher, the marketing links (spec 0004, AC-2)", () => {
     expect(boundary.setLocale).toHaveBeenCalledWith({ locale: "en" });
   });
 
-  it("keeps working when the action fails: the link itself carries the switch", async () => {
+  it("keeps working when the action fails: the link itself carries the switch and nothing is left unhandled", async () => {
+    const unhandled = vi.fn();
+    process.on("unhandledRejection", unhandled);
     boundary.setLocale.mockRejectedValue(new Error("offline"));
     const user = userEvent.setup();
     renderSwitcher();
@@ -135,6 +137,9 @@ describe("LocaleSwitcher, the marketing links (spec 0004, AC-2)", () => {
       "href",
       "/en/admin/design?x=1&tab=a&tab=b",
     );
+    await new Promise((resolve) => setImmediate(resolve));
+    process.off("unhandledRejection", unhandled);
+    expect(unhandled).not.toHaveBeenCalled();
   });
 
   it("is reachable by keyboard in reading order", async () => {
@@ -190,6 +195,21 @@ describe("LocaleMenuItems, the sidebar submenu (spec 0004, AC-2)", () => {
       boundary.replace.mock.invocationCallOrder[0] ?? 0,
     );
     expect(landedOn(boundary.replace.mock.calls[0]?.[0])).toBe("/en/admin/design?x=1&tab=a&tab=b");
+  });
+
+  it("still replaces the page when the write fails: the URL is the truth, the profile only feeds what leaves the app", async () => {
+    const unhandled = vi.fn();
+    process.on("unhandledRejection", unhandled);
+    boundary.setLocale.mockRejectedValue(new Error("offline"));
+    const user = userEvent.setup();
+    renderMenu();
+    await openSubmenu(user, "de-CH");
+    await user.click(await screen.findByRole("menuitemradio", { name: de.common.english }));
+    await waitFor(() => expect(boundary.replace).toHaveBeenCalledTimes(1));
+    expect(landedOn(boundary.replace.mock.calls[0]?.[0])).toBe("/en/admin/design?x=1&tab=a&tab=b");
+    await new Promise((resolve) => setImmediate(resolve));
+    process.off("unhandledRejection", unhandled);
+    expect(unhandled).not.toHaveBeenCalled();
   });
 
   it("switches back to German from an English page", async () => {

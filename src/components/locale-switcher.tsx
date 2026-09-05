@@ -54,7 +54,9 @@ function LocaleLinks({ query }: { query?: Query }) {
             lang={target}
             aria-current={active ? "true" : undefined}
             onClick={() => {
-              void setLocale({ locale: LOCALE_CODE[target] });
+              setLocale({ locale: LOCALE_CODE[target] }).catch(() => {
+                // Best effort: the link carries the switch, a lost write is not an error.
+              });
             }}
             className={
               active
