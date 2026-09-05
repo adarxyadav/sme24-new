@@ -18,7 +18,7 @@ spec [0005](../specs/0005-auth-organizations-roles/index.md)
 - [x] Verify it: `/check verify auth, organizations & roles`
 - [x] Test it: `/test auth, organizations & roles`
 - [x] Review it (fresh model): `/check review auth, organizations & roles`
-- [ ] Document it: `/document auth, organizations & roles`
+- [x] Document it: `/document auth, organizations & roles`
 
 ### 7. Transactional email & ops alerts · needs a decision
 The messages every step of the flow relies on: sign in links if auth uses them, benchmark ready, payment receipt, expert assigned, gap report ready, all in the recipient's language. Plus alerts to your team when a payment lands, a research run fails, or a retainer enquiry arrives.
