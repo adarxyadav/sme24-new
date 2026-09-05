@@ -27,6 +27,7 @@ function landedOn(href: unknown) {
 const boundary = vi.hoisted(() => ({
   pathname: "/de/admin/design",
   search: "x=1&tab=a&tab=b",
+  params: { locale: "de-CH" } as Record<string, string>,
   replace: vi.fn(),
   setLocale: vi.fn<() => Promise<{ ok: true; data: { persisted: boolean } }>>(),
 }));
@@ -40,7 +41,7 @@ vi.mock("next/navigation", () => ({
     refresh: vi.fn(),
     prefetch: vi.fn(),
   }),
-  useParams: () => ({ locale: "de-CH" }),
+  useParams: () => boundary.params,
   redirect: vi.fn(),
   permanentRedirect: vi.fn(),
 }));
@@ -50,6 +51,7 @@ vi.mock("@/features/localization/actions", () => ({
 }));
 
 const MESSAGES = { "de-CH": de, "en-CH": en } as const;
+const DELIVERY_ID = "d0000000-0000-4000-8000-000000000001";
 
 function renderSwitcher(locale: "de-CH" | "en-CH" = "de-CH") {
   return render(
@@ -75,6 +77,7 @@ function renderMenu(locale: "de-CH" | "en-CH" = "de-CH") {
 beforeEach(() => {
   boundary.pathname = "/de/admin/design";
   boundary.search = "x=1&tab=a&tab=b";
+  boundary.params = { locale: "de-CH" };
   boundary.setLocale.mockResolvedValue({ ok: true, data: { persisted: true } });
 });
 
@@ -104,6 +107,21 @@ describe("LocaleSwitcher, the marketing links (spec 0004, AC-2)", () => {
     expect(screen.getByRole("link", { name: de.common.english })).toHaveAttribute(
       "href",
       "/en/admin/design",
+    );
+  });
+
+  it("keeps the id of a dynamic route such as a delivery detail page, the reason the params travel with the pathname", () => {
+    boundary.pathname = `/de/admin/emails/${DELIVERY_ID}`;
+    boundary.search = "";
+    boundary.params = { locale: "de-CH", id: DELIVERY_ID };
+    renderSwitcher();
+    expect(screen.getByRole("link", { name: de.common.english })).toHaveAttribute(
+      "href",
+      `/en/admin/emails/${DELIVERY_ID}`,
+    );
+    expect(screen.getByRole("link", { name: de.common.german })).toHaveAttribute(
+      "href",
+      `/de/admin/emails/${DELIVERY_ID}`,
     );
   });
 
@@ -210,6 +228,18 @@ describe("LocaleMenuItems, the sidebar submenu (spec 0004, AC-2)", () => {
     await new Promise((resolve) => setImmediate(resolve));
     process.off("unhandledRejection", unhandled);
     expect(unhandled).not.toHaveBeenCalled();
+  });
+
+  it("keeps the id of a dynamic route when replacing a delivery detail page in the other language", async () => {
+    boundary.pathname = `/de/admin/emails/${DELIVERY_ID}`;
+    boundary.search = "";
+    boundary.params = { locale: "de-CH", id: DELIVERY_ID };
+    const user = userEvent.setup();
+    renderMenu();
+    await openSubmenu(user, "de-CH");
+    await user.click(await screen.findByRole("menuitemradio", { name: de.common.english }));
+    await waitFor(() => expect(boundary.replace).toHaveBeenCalledTimes(1));
+    expect(landedOn(boundary.replace.mock.calls[0]?.[0])).toBe(`/en/admin/emails/${DELIVERY_ID}`);
   });
 
   it("switches back to German from an English page", async () => {

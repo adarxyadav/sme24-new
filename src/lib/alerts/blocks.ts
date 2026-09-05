@@ -1,0 +1,57 @@
+import type { AlertView } from "./registry";
+
+/** The Slack incoming webhook body: a fallback text plus Block Kit blocks. */
+export type SlackMessage = {
+  readonly text: string;
+  readonly blocks: ReadonlyArray<Record<string, unknown>>;
+};
+
+/** Slack's default locale prefix for the ops team channel: the admin links open in German. */
+const ADMIN_LOCALE = "de";
+
+/**
+ * Builds the Block Kit payload of one alert (spec 0006, AC-2, AC-11): a header, a two column
+ * section of label and value pairs, and one button to the app when a link is given. The fallback
+ * text carries the title and the first value for notifications. Pure.
+ */
+export function buildSlackMessage(
+  view: AlertView,
+  link: string | undefined,
+  appUrl: string,
+): SlackMessage {
+  const first = view.fields[0];
+  const text = first ? `${view.title}: ${first[1]}` : view.title;
+  const url = link ? `${appUrl.replace(/\/$/, "")}/${ADMIN_LOCALE}${link}` : null;
+  return {
+    text,
+    blocks: [
+      { type: "header", text: { type: "plain_text", text: view.title, emoji: false } },
+      {
+        type: "section",
+        fields: view.fields.slice(0, 10).map(([label, value]) => ({
+          type: "mrkdwn",
+          text: `*${escapeMrkdwn(label)}*\n${escapeMrkdwn(value)}`.slice(0, 2000),
+        })),
+      },
+      ...(url
+        ? [
+            {
+              type: "actions",
+              elements: [
+                {
+                  type: "button",
+                  text: { type: "plain_text", text: view.buttonLabel, emoji: false },
+                  url,
+                },
+              ],
+            },
+          ]
+        : []),
+    ],
+  };
+}
+
+/** Slack's mrkdwn escapes: the three characters it reads as control sequences. */
+function escapeMrkdwn(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}

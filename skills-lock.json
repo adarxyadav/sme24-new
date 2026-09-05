@@ -55,6 +55,12 @@
       "skillPath": "skills/document/SKILL.md",
       "computedHash": "90933443f204d2ed29c84730be87b7b5470f6819fccde6129aedad1df517fb92"
     },
+    "email-testing": {
+      "source": "petrkindlmann/qa-skills",
+      "sourceType": "github",
+      "skillPath": "skills/email-testing/SKILL.md",
+      "computedHash": "57732c5ccb5d35c5180b5609e923ee4697de354e27ac9d35150ed4e04857fe41"
+    },
     "next-intl-app-router": {
       "source": "liuchiawei/agent-skills",
       "sourceType": "github",
@@ -66,6 +72,12 @@
       "sourceType": "github",
       "skillPath": "skills/next-themes/SKILL.md",
       "computedHash": "3e035072868abd98b3c85c70ec7b65ac08a78033cdf1b54facd8b500c49da895"
+    },
+    "nodemailer": {
+      "source": "aidotnet/moyucode",
+      "sourceType": "github",
+      "skillPath": "skills/tools/nodemailer/SKILL.md",
+      "computedHash": "c9a8c08c0fa6ab15d6331e5346e33768a83b5e337d1160c620f87893122061a6"
     },
     "playwright-skill": {
       "source": "testdino-hq/playwright-skill",

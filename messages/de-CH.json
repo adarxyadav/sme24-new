@@ -52,7 +52,8 @@
     },
     "admin": {
       "overview": "Übersicht",
-      "design": "Design Galerie"
+      "design": "Design Galerie",
+      "emails": "E-Mails"
     }
   },
   "theme": {
@@ -598,6 +599,128 @@
         "m5": "Mai",
         "m6": "Jun"
       }
+    }
+  },
+  "email": {
+    "layout": {
+      "footerLegal": "Sie erhalten diese E-Mail, weil für Ihr Unternehmen ein Konto bei SME24 erstellt wurde.",
+      "footerAddress": "SME24 · Musterstrasse 1 · 8000 Zürich",
+      "replyHint": "Fragen? Antworten Sie einfach auf diese E-Mail."
+    },
+    "welcome": {
+      "subject": "Willkommen bei SME24, {organizationName}",
+      "preview": "Ihr Konto für {organizationName} ist eingerichtet. Der nächste Schritt ist die Unternehmenssuche.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Ihr Konto für {organizationName} ist eingerichtet. SME24 ermittelt aus öffentlichen Angaben ein benchmarktes EHS-Risikoprofil für Ihr Unternehmen und bringt Sie mit erfahrenen Expertinnen und Experten zusammen, zum Fixpreis.",
+      "nextStep": "Der nächste Schritt: Melden Sie sich an und starten Sie die Unternehmenssuche. Wir recherchieren Ihre Kennzahlen im Hintergrund und melden uns, sobald das Profil steht.",
+      "button": "Zum Kundenbereich"
+    }
+  },
+  "emails": {
+    "title": "E-Mails",
+    "description": "Jede E-Mail, die SME24 versendet hat: Status aus dem Versand und der Zustellung, Filter, Suche und ein erneuter Versand bei Fehlern.",
+    "detailTitle": "E-Mail Zustellung",
+    "backToList": "Alle E-Mails",
+    "listHeading": "Zustellungen",
+    "live": "Live",
+    "polling": "Aktualisiert alle 5 Sekunden",
+    "status": {
+      "queued": "In Warteschlange",
+      "sending": "Wird gesendet",
+      "sent": "Gesendet",
+      "delivered": "Zugestellt",
+      "bounced": "Unzustellbar",
+      "complained": "Als Spam gemeldet",
+      "failed": "Fehlgeschlagen",
+      "skipped": "Übersprungen"
+    },
+    "filters": {
+      "legend": "Filter",
+      "status": "Status",
+      "template": "Vorlage",
+      "all": "Alle",
+      "search": "Empfängeradresse",
+      "searchPlaceholder": "name@firma.ch",
+      "apply": "Filtern",
+      "reset": "Zurücksetzen"
+    },
+    "columns": {
+      "recipient": "Empfänger",
+      "template": "Vorlage",
+      "status": "Status",
+      "sourceEvent": "Auslöser",
+      "created": "Erstellt",
+      "subject": "Betreff"
+    },
+    "fields": {
+      "id": "Zustellung",
+      "idempotencyKey": "Idempotenzschlüssel",
+      "sourceEvent": "Auslöser",
+      "template": "Vorlage",
+      "locale": "Sprache",
+      "recipient": "Empfänger",
+      "recipientId": "Empfänger ID",
+      "organization": "Organisation",
+      "subject": "Betreff",
+      "status": "Status",
+      "transport": "Transport",
+      "providerMessageId": "Anbieter ID",
+      "error": "Fehler",
+      "attempts": "Versuche",
+      "lastRunId": "Letzter Lauf",
+      "created": "Erstellt",
+      "sent": "Gesendet",
+      "delivered": "Zugestellt",
+      "failed": "Fehlgeschlagen",
+      "updated": "Aktualisiert",
+      "data": "Daten",
+      "none": "–"
+    },
+    "sections": {
+      "details": "Details",
+      "preview": "Vorschau",
+      "data": "Vorlagendaten"
+    },
+    "preview": {
+      "description": "So rendert die Vorlage heute aus den gespeicherten Daten, nicht die gesendete Kopie.",
+      "frameTitle": "Vorschau der E-Mail",
+      "unknownTemplate": "Diese Vorlage gibt es nicht mehr, darum gibt es keine Vorschau.",
+      "renderFailed": "Die Vorschau konnte nicht gerendert werden."
+    },
+    "empty": {
+      "title": "Noch keine E-Mails",
+      "description": "Sobald SME24 eine E-Mail versendet, erscheint sie hier mit ihrem Status."
+    },
+    "noResults": {
+      "title": "Keine Treffer",
+      "description": "Kein Eintrag passt zu diesen Filtern. Setzen Sie die Filter zurück oder ändern Sie die Suche."
+    },
+    "pagination": {
+      "next": "Ältere anzeigen",
+      "first": "Zur ersten Seite"
+    },
+    "actions": {
+      "retry": "Erneut senden",
+      "retrying": "Wird gestartet",
+      "testEmail": "Test E-Mail an mich senden",
+      "testAlert": "Test Alarm senden",
+      "testHeading": "Konfiguration prüfen",
+      "testIntro": "Beide Aktionen senden an die gespeicherten Ziele dieser Umgebung und zeigen die Lauf ID."
+    },
+    "toasts": {
+      "retryQueued": "Erneuter Versand gestartet (Lauf {runId})",
+      "testEmailQueued": "Test E-Mail gestartet (Lauf {runId})",
+      "testAlertQueued": "Test Alarm gestartet (Lauf {runId})",
+      "notRetryable": "Nur fehlgeschlagene Zustellungen können erneut gesendet werden.",
+      "webhookUnset": "In dieser Umgebung ist kein Slack Webhook hinterlegt (OPS_ALERT_WEBHOOK_URL).",
+      "triggerUnavailable": "Trigger.dev ist in dieser Umgebung nicht konfiguriert (TRIGGER_SECRET_KEY).",
+      "triggerFailed": "Der Hintergrundjob konnte nicht gestartet werden. Versuchen Sie es erneut.",
+      "forbidden": "Dafür braucht es die Ops Rolle.",
+      "invalid": "Ungültige Anfrage."
+    },
+    "errors": {
+      "loadFailed": "Die E-Mails konnten nicht geladen werden."
     }
   }
 }

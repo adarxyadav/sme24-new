@@ -16,9 +16,9 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Link } from "@/i18n/navigation";
-import type { Pathname } from "@/i18n/pathnames";
+import type { StaticPathname } from "@/i18n/pathnames";
 
-export type MarketingLink = { readonly href: Pathname; readonly label: string };
+export type MarketingLink = { readonly href: StaticPathname; readonly label: string };
 
 /**
  * Public site header (spec 0003): wordmark, navigation links, language, theme and sign in. Links

@@ -18,6 +18,8 @@ export const PATHNAMES = {
   "/expert": "/expert",
   "/admin": "/admin",
   "/admin/design": "/admin/design",
+  "/admin/emails": "/admin/emails",
+  "/admin/emails/[id]": "/admin/emails/[id]",
 } as const;
 
 /** A route key of the typed map: what `Link` and `redirect` accept as `href`. */

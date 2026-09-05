@@ -14,16 +14,27 @@ spec [0005](../specs/0005-auth-organizations-roles/index.md)
   - [x] Onboarding and the rebuilt sign in: `/app/onboarding` for clients without an organization, sign in on the typed action pattern with the unconfirmed and expired link states (AC-3, AC-5, AC-8, AC-11, AC-12)
   - [x] Email code, password reset, sign out and sessions: `/verify-code` with the OTP primitive, forgot and reset pages, local sign out, refresh proven (AC-2, AC-4, AC-6, AC-7, AC-9)
   - [x] Staff invites and providers: the `pnpm user:invite` script, Google and Microsoft with the callback handler, `docs/auth.md` setup checklist (AC-5, AC-10)
-  - [ ] Hosted configuration: Resend SMTP, the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13)
+  - [ ] Hosted configuration: the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13) · Resend SMTP deferred to feature 7 on 5 Sep 2026 until a sending domain exists (`docs/auth.md`)
 - [x] Verify it: `/check verify auth, organizations & roles`
 - [x] Test it: `/test auth, organizations & roles`
 - [x] Review it (fresh model): `/check review auth, organizations & roles`
 - [x] Document it: `/document auth, organizations & roles`
 
-### 7. Transactional email & ops alerts · needs a decision
+### 7. Transactional email & ops alerts · in-progress
 The messages every step of the flow relies on: sign in links if auth uses them, benchmark ready, payment receipt, expert assigned, gap report ready, all in the recipient's language. Plus alerts to your team when a payment lands, a research run fails, or a retainer enquiry arrives.
 **Done when:** each event in the flow sends the right email in German or English within a minute; ops alerts reach your team channel; failed sends are visible to ops.
-- [ ] Design it (spec): `/architect transactional email & ops alerts`
+spec [0006](../specs/0006-transactional-email-ops-alerts/index.md)
+- [x] Design it (spec): `/architect transactional email & ops alerts`
+- [x] Build it: `/develop transactional email & ops alerts` · code in `src/lib/email/`, `src/lib/alerts/`, `src/trigger/`, `src/features/emails/`, `src/app/[locale]/admin/emails/`, `src/app/api/webhooks/resend/`, `supabase/schemas/`, `docs/email.md`
+  - [x] Thin thread to Mailpit: `email_deliveries` and `notifications` migration with pgTAP, the template registry with the shared layout and the `welcome` template, the `send-email` task on the SMTP transport, `ensureOrganization` returning the organization id and triggering the send (AC-1, AC-3, AC-4, AC-5, AC-13, AC-14, AC-15)
+  - [x] Hosted transport and delivery status: the Resend transport, the allowlist, error classification and retries, the signed webhook route with the forward only status rule (AC-5, AC-6, AC-7, AC-8)
+  - [x] Alert rail: the alert registry with live and reserved kinds, the Block Kit builder, the `ops-alert` task, the new client and failed email alerts (AC-2, AC-7, AC-11)
+  - [x] Ops surface: `/admin/emails` with filters, keyset paging and Realtime, the detail page with the sandboxed preview and retry, the test email and test alert buttons, route map, navigation and messages (AC-9, AC-10)
+  - [x] Retention, previews, tests and the checklist: the weekly purge schedule, `pnpm email:dev` previews, Vitest and the Playwright welcome flow behind the local worker, `docs/email.md` (AC-12, AC-14)
+- [x] Verify it: `/check verify transactional email & ops alerts`
+- [x] Test it: `/test transactional email & ops alerts`
+- [x] Review it (fresh model): `/check review transactional email & ops alerts`
+- [x] Document it: `/document transactional email & ops alerts`
 
 ### 8. Company lookup & research pipeline · needs a decision
 The core thread. A client enters a company name, a background pipeline researches public disclosures, extracts safety KPIs with sources, and stores them. The dashboard shows the run's progress and the extracted KPIs when it finishes. Real database, real jobs, real AI, narrow scope: KPIs only, no benchmark yet.

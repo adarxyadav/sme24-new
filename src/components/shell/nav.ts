@@ -1,6 +1,6 @@
-import { LayoutDashboardIcon, type LucideIcon, PaletteIcon } from "lucide-react";
+import { LayoutDashboardIcon, type LucideIcon, MailIcon, PaletteIcon } from "lucide-react";
 import type { Messages } from "next-intl";
-import type { Pathname } from "@/i18n/pathnames";
+import type { StaticPathname } from "@/i18n/pathnames";
 import type { Area } from "@/lib/auth/roles";
 
 /** A key of the `nav` namespace that names one area entry (`app.overview`, `admin.design`). */
@@ -10,7 +10,7 @@ export type NavLabelKey = {
 
 /** One sidebar entry: the typed route, its `nav.<labelKey>` message and an icon. */
 export type NavItem = {
-  readonly href: Pathname;
+  readonly href: StaticPathname;
   readonly labelKey: NavLabelKey;
   readonly icon: LucideIcon;
 };
@@ -25,6 +25,7 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
   expert: [{ href: "/expert", labelKey: "expert.overview", icon: LayoutDashboardIcon }],
   admin: [
     { href: "/admin", labelKey: "admin.overview", icon: LayoutDashboardIcon },
+    { href: "/admin/emails", labelKey: "admin.emails", icon: MailIcon },
     { href: "/admin/design", labelKey: "admin.design", icon: PaletteIcon },
   ],
 };
