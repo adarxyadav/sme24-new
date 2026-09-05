@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { LOCALE_CODE, type Locale } from "@/i18n/routing";
+import { sendOpsAlert } from "@/lib/alerts/send";
 import { buildConfirmRedirectUrl } from "@/lib/auth/confirm-url";
 import { landingPath, localizedPath } from "@/lib/auth/redirects";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
@@ -92,6 +93,15 @@ async function notifyOrganizationCreated(
   });
   if (!email.ok) {
     log.warn("welcome email not triggered", { organizationId, reason: email.error });
+  }
+  const alert = await sendOpsAlert({
+    kind: "client.signed_up",
+    fields: { organizationName, userId },
+    link: "/admin",
+    idempotencyKey: `signup/${organizationId}`,
+  });
+  if (!alert.ok) {
+    log.warn("sign up alert not triggered", { organizationId, reason: alert.error });
   }
 }
 

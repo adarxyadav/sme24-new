@@ -23,6 +23,7 @@ import {
 import { taskEnv } from "@/lib/env";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 import { createServiceClient } from "@/lib/supabase/service";
+import { raiseAlertFromTask } from "./ops-alert";
 
 type Service = SupabaseClient<Database>;
 type DeliveryRow = Tables<"email_deliveries">;
@@ -66,20 +67,20 @@ export const sendEmailTask = schemaTask({
   onFailure: async ({ payload, ctx, error }) => {
     const env = taskEnv();
     const supabase = createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
-    const deliveryId = await deliveryIdOf(supabase, payload);
-    if (!deliveryId) return;
+    const row = await deliveryOf(supabase, payload);
+    if (!row) return;
     const message = error instanceof Error ? error.message : String(error);
     await supabase
       .from("email_deliveries")
       .update({ status: "failed", error: message, failed_at: new Date().toISOString() })
-      .eq("id", deliveryId)
+      .eq("id", row.id)
       .in("status", ["queued", "sending"]);
     logger.error("email delivery failed after the last attempt", {
-      deliveryId,
+      deliveryId: row.id,
       runId: ctx.run.id,
       reason: message,
     });
-    await raiseEmailFailedAlert(deliveryId, message);
+    await raiseEmailFailedAlert(row, message);
   },
 });
 
@@ -267,7 +268,7 @@ async function processDelivery(
       reason: outcome.message,
     });
     await fail(supabase, row.id, outcome.message);
-    await raiseEmailFailedAlert(row.id, outcome.message);
+    await raiseEmailFailedAlert({ ...row, attempts }, outcome.message);
     return { deliveryId: row.id, status: "failed" };
   }
   throw new Error(`email transport failure (${outcome.status ?? "network"}): ${outcome.message}`);
@@ -328,10 +329,19 @@ async function findByKey(supabase: Service, key: string): Promise<DeliveryRow | 
   return data;
 }
 
-async function deliveryIdOf(supabase: Service, payload: SendEmailPayload): Promise<string | null> {
-  if (payload.kind === "retry") return payload.deliveryId;
-  const row = await findByKey(supabase, payload.idempotencyKey).catch(() => null);
-  return row?.id ?? null;
+async function deliveryOf(
+  supabase: Service,
+  payload: SendEmailPayload,
+): Promise<DeliveryRow | null> {
+  const { data } = await supabase
+    .from("email_deliveries")
+    .select("*")
+    .eq(
+      payload.kind === "retry" ? "id" : "idempotency_key",
+      payload.kind === "retry" ? payload.deliveryId : payload.idempotencyKey,
+    )
+    .maybeSingle();
+  return data;
 }
 
 async function update(
@@ -365,9 +375,17 @@ async function fail(
   return { deliveryId: id, status: "failed" };
 }
 
-/** The `email.failed` alert (AC-7); the alert rail lands in the next milestone, so this only logs for now. */
-async function raiseEmailFailedAlert(deliveryId: string, reason: string): Promise<void> {
-  logger.warn("email.failed alert pending the alert rail", { deliveryId, reason });
+/** The `email.failed` alert (AC-7), linking to the delivery; keyed per delivery and attempt so a retry that fails again alerts again. */
+async function raiseEmailFailedAlert(
+  row: Pick<DeliveryRow, "id" | "template" | "attempts">,
+  reason: string,
+): Promise<void> {
+  await raiseAlertFromTask({
+    kind: "email.failed",
+    fields: { deliveryId: row.id, template: row.template, reason: reason.slice(0, 500) },
+    link: `/admin/emails/${row.id}`,
+    idempotencyKey: `email-failed/${row.id}/${row.attempts}`,
+  });
 }
 
 function statusOf(row: DeliveryRow): DeliveryStatus {
