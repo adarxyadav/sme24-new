@@ -81,7 +81,7 @@
     "jsdom": "^30.0.1",
     "lefthook": "^2.1.12",
     "react-email": "6.9.3",
-    "supabase": "^2.116.0",
+    "supabase": "2.116.0",
     "tailwindcss": "^4",
     "trigger.dev": "4.5.15",
     "typescript": "^5",

@@ -159,7 +159,7 @@ site_url = "http://localhost:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-# Local list. On the hosted staging project add the Vercel preview wildcard (https://*-<team>.vercel.app/**) so sign in works on every preview.
+# Local list; the hosted projects override it in the [remotes.<name>.auth] blocks at the end of this file.
 additional_redirect_urls = ["http://localhost:3000/**", "http://127.0.0.1:3000/**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
@@ -179,7 +179,7 @@ enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-# Spec 0005: 8, matched by the hosted projects (which also switch on leaked password protection).
+# Spec 0005: 8, pushed to the hosted projects (leaked password protection has no key here and stays a dashboard switch).
 minimum_password_length = 8
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
@@ -235,22 +235,15 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour). Spec 0005: 15 minutes.
 otp_expiry = 900
 
-# Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# Locally every auth email lands in Mailpit ([local_smtp]); the hosted projects send through Resend,
+# configured in the [remotes.<name>.auth.email.smtp] blocks at the end of this file.
 
 # Spec 0005: bilingual templates (German above English). Every link is built from {{ .SiteURL }},
 # {{ .TokenHash }}, a fixed type and {{ .RedirectTo }}, so it is verified by /api/auth/confirm and
 # works in any browser; the confirmation and magic link templates also print the six digit
 # {{ .Token }} (a code request for a new address sends the confirmation template, an existing
-# address gets the magic link one). The hosted projects carry the same files pasted into the
-# dashboard (docs/auth.md).
+# address gets the magic link one). `supabase config push` uploads the same files and subjects to
+# the hosted projects (docs/auth.md).
 [auth.email.template.confirmation]
 subject = "Bestätigen Sie Ihre E-Mail · Confirm your email"
 content_path = "./supabase/templates/confirmation.html"
@@ -458,3 +451,67 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Hosted projects. `supabase config push --project-ref <ref>` (deploy.yml, migrate job, after
+# `db push`) applies the sections above plus the `[remotes.<name>]` block whose project_id matches,
+# so every Auth value on the hosted checklist in docs/auth.md comes from this file: OTP length and
+# expiry, confirmations, password length, site and redirect URLs, the email templates and
+# subjects, the custom access token hook and SMTP. Nothing is set in the dashboard by hand any
+# more; a dashboard edit is overwritten by the next deploy. Secrets stay out of git through env()
+# and are read from the environment's GitHub secrets by the workflow. The push sends the whole
+# [auth] tree, so a value that only makes sense locally needs an override below, and an enabled
+# SMTP block is sent with whatever password env() resolves to (an unset variable would blank it).
+#
+# Symptom of a project that was never pushed: Supabase's default OTP length is 8, so the
+# confirmation email carries an 8 digit code while /verify-code has six boxes and every code fails
+# with "The code is wrong or has expired". The fix is a deploy, not the app.
+[remotes.staging]
+project_id = "fxmdkvhououxakmyddwn"
+
+[remotes.staging.auth]
+# The Vercel deployment of `main` plus every preview of the team. Every emailed link is built
+# from site_url, so move it the day `main` gets a custom domain (README, one time setup, Vercel).
+site_url = "https://sme24.vercel.app"
+additional_redirect_urls = ["https://sme24.vercel.app/**", "https://*-adarxyzs-projects.vercel.app/**"]
+
+[remotes.staging.auth.rate_limit]
+# Overrides the local value (2 per hour, sized for the e2e suite) with Supabase's hosted default
+# for custom SMTP. Raise it here, not in the dashboard, when the funnel needs more.
+email_sent = 30
+
+[remotes.staging.auth.email]
+# Supabase's hosted default; the local "1s" only exists for the e2e suite.
+max_frequency = "60s"
+
+# Resend over SMTP (docs/email.md): the user is the literal "resend", the password a send only
+# API key held as the GitHub secret SUPABASE_AUTH_EMAIL_SMTP_PASS. The sender is the staging
+# sending domain (send.akaiv.in until the product domain exists, docs/email.md).
+[remotes.staging.auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(SUPABASE_AUTH_EMAIL_SMTP_PASS)"
+admin_email = "no-reply@send.akaiv.in"
+sender_name = "SME24"
+
+# The base block skips the nonce check because local Google sign in needs it; a hosted project must
+# verify the nonce, so the override wins here whether or not Google is enabled.
+[remotes.staging.auth.external.google]
+skip_nonce_check = false
+
+# Google and Microsoft are switched on per environment here, never in the dashboard (a push would
+# switch them off again). The client ids and secrets are GitHub secrets exported by the workflow.
+# [remotes.staging.auth.external.google]
+# enabled = true
+# client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+# secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+#
+# [remotes.staging.auth.external.azure]
+# enabled = true
+# client_id = "env(SUPABASE_AUTH_EXTERNAL_AZURE_CLIENT_ID)"
+# secret = "env(SUPABASE_AUTH_EXTERNAL_AZURE_SECRET)"
+
+# Production: copy the staging block as [remotes.production] with the prod project ref, the
+# production site URL and the product sending domain once the project exists (README, one time
+# setup, Supabase).
