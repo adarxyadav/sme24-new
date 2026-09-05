@@ -19,7 +19,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 4 | Design system & UI foundation | Foundation | done |
 | 5 | Localization (German & English) | Foundation | done |
 | 6 | Auth, organizations & roles | Slice 1 | in-progress |
-| 7 | Transactional email & ops alerts | Slice 1 | planned |
+| 7 | Transactional email & ops alerts | Slice 1 | in-progress |
 | 8 | Company lookup & research pipeline | Slice 1 | planned |
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | planned |
 | 10 | Self assessment fallback | Slice 2 | planned |
