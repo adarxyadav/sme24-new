@@ -21,7 +21,7 @@ Alerts take a smaller rail: `sendOpsAlert(...)` from `src/lib/alerts/send.ts` (o
 
 - `supabase/config.toml` exposes Mailpit's SMTP port (`smtp_port = 54325`); after changing it run `supabase stop && supabase start`.
 - `.env.local` needs `EMAIL_SMTP_URL=smtp://127.0.0.1:54325`. `EMAIL_FROM` may stay empty locally: with SMTP the sender falls back to `SME24 <no-reply@sme24.local>`.
-- `pnpm trigger:dev` runs the tasks locally (the Trigger.dev CLI is not a dependency; `pnpm dlx trigger.dev@<sdk version> dev --env-file .env.local` does the same). The app needs `TRIGGER_SECRET_KEY` (the dev environment key) to trigger runs; without it the event site logs `trigger_unavailable` and the sign in still completes.
+- `pnpm trigger:dev` runs the tasks locally (the `trigger.dev` CLI is a dev dependency pinned to the SDK version; its binary is called `trigger`). The app needs `TRIGGER_SECRET_KEY` (the dev environment key) to trigger runs; without it the event site logs `trigger_unavailable` and the sign in still completes.
 - `pnpm email:dev` opens the React Email preview server on port 3200 with one preview per template and language.
 - Read the emails at http://127.0.0.1:54324 (Mailpit).
 - Tests: `tests/email/` (render, transport, webhook), `tests/alerts/` (Block Kit), `tests/trigger/send-email.test.ts` (the task against fakes), `tests/trigger/send-email.local.test.ts` (the task against the running local stack and Mailpit; skips without them), `e2e/emails.spec.ts` (the ops pages with axe) and `e2e/welcome-email.spec.ts` (the sign in to Mailpit flow, asserted only with `TRIGGER_DEV_RUNNING=1` while the worker runs).
@@ -56,10 +56,11 @@ Do these once per hosted environment (staging, production). The variables live i
 
 ## Go live
 
-1. Domain verified, `EMAIL_FROM` on the real sender, `EMAIL_ALLOWED_RECIPIENTS` removed on production.
-2. Webhook endpoint and secret set on production, one test email delivered end to end.
-3. Slack webhook set on production, one test alert posted.
-4. Switch Supabase's auth emails to the same domain (the custom SMTP boxes in [auth.md](auth.md)).
+1. Replace the placeholder postal address in the email footer (`email.layout.footerAddress` in `messages/de-CH.json` and `messages/en-CH.json`, currently `Musterstrasse 1`) with the real imprint address. Commercial email to Swiss and EU recipients is expected to carry it, and nothing in the code stops a real welcome email going out with the placeholder.
+2. Domain verified, `EMAIL_FROM` on the real sender, `EMAIL_ALLOWED_RECIPIENTS` removed on production.
+3. Webhook endpoint and secret set on production, one test email delivered end to end.
+4. Slack webhook set on production, one test alert posted.
+5. Switch Supabase's auth emails to the same domain (the custom SMTP boxes in [auth.md](auth.md)).
 
 ## Data and retention
 

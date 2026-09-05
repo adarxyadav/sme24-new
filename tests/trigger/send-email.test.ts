@@ -112,6 +112,14 @@ function fakeSupabase() {
       if (table === "email_deliveries") return deliveries;
       if (table === "notifications") {
         return {
+          select: () => ({
+            eq: (column: string, value: string) => ({
+              maybeSingle: async () => {
+                const found = state.notifications.find((candidate) => candidate[column] === value);
+                return { data: found ? { id: "n1" } : null, error: null };
+              },
+            }),
+          }),
           insert: async (row: Record<string, unknown>) => {
             state.notifications.push(row);
             return { error: null };
@@ -274,6 +282,46 @@ describe("send-email task", () => {
     expect(String(state.rows.get("d0000000-0000-4000-8000-000000000001")?.error)).toMatch(
       /^invalid_data: organizationName/,
     );
+  });
+
+  it("writes the missing notification when it resumes a row a dead attempt left behind (AC-3)", async () => {
+    state.rows.set("d0000000-0000-4000-8000-000000000007", {
+      id: "d0000000-0000-4000-8000-000000000007",
+      idempotency_key: `welcome/${ORG_ID}`,
+      source_event: "auth.organization_created",
+      template: "welcome",
+      locale: "de",
+      recipient_email: "clara@example.test",
+      recipient_id: USER_ID,
+      organization_id: ORG_ID,
+      data: { organizationName: "Musterfirma AG", firstName: "Clara" },
+      status: "queued",
+      attempts: 0,
+      last_run_id: null,
+    });
+    const task = await loadTask();
+    const result = await task.run(newPayload, { ctx });
+    expect(result.status).toBe("sent");
+    expect(state.notifications).toEqual([
+      expect.objectContaining({
+        recipient_id: USER_ID,
+        organization_id: ORG_ID,
+        kind: "welcome",
+        link: "/app",
+        delivery_id: "d0000000-0000-4000-8000-000000000007",
+      }),
+    ]);
+  });
+
+  it("keeps one notification across the retry attempts of the same run (AC-3, AC-7)", async () => {
+    state.resend = { ok: false, kind: "transient", message: "upstream down", status: 503 };
+    const task = await loadTask();
+    await expect(task.run(newPayload, { ctx })).rejects.toThrow("upstream down");
+    state.resend = { ok: true, providerMessageId: "msg_2" };
+    const again = await task.run(newPayload, { ctx: { ...ctx, attempt: { number: 2 } } });
+    expect(again.status).toBe("sent");
+    expect(state.sent).toHaveLength(2);
+    expect(state.notifications).toHaveLength(1);
   });
 
   it("returns the existing row for a second trigger with the same key (AC-4)", async () => {

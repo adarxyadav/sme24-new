@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * `ensureOrganization` after spec 0006 (AC-1, AC-2, AC-15): a fresh organization returns its id
  * with `created: true` and fires exactly one welcome email and one sign up alert, both keyed on
- * the organization id; `already_member` returns the organization from the refreshed claims and
- * sends nothing; a failed trigger never fails the sign in. The Supabase action client and the two
- * trigger helpers are the boundaries.
+ * the organization id; `already_member` returns the organization from the refreshed claims (null
+ * with a warning when the hook wrote none, the member still gets in) and sends nothing; a failed
+ * trigger never fails the sign in. The Supabase action client and the two trigger helpers are the
+ * boundaries.
  */
 const boundary = vi.hoisted(() => ({
   rpc: vi.fn<() => Promise<{ data: unknown; error: { code: string; message: string } | null }>>(),
@@ -125,15 +126,30 @@ describe("ensureOrganization (AC-1, AC-2, AC-15)", () => {
     expect(boundary.sendOpsAlert).not.toHaveBeenCalled();
   });
 
-  it("fails when the refreshed claims carry no subject or, on already_member, no organization", async () => {
+  it("fails when the refreshed claims carry no subject", async () => {
     boundary.claims = { app_metadata: { role: "client", organization_id: ORG_ID } };
     await expect(ensureOrganization(supabase, "X")).resolves.toEqual({
       ok: false,
       error: "failed",
     });
+    expect(boundary.sendEmail).not.toHaveBeenCalled();
+  });
 
+  it("lets an existing member in when the refreshed claims carry no organization, warning once and sending nothing", async () => {
     boundary.claims = { sub: USER_ID, app_metadata: { role: "client" } };
     boundary.rpc.mockResolvedValue({ data: null, error: { code: "SM409", message: "member" } });
+    await expect(ensureOrganization(supabase, "X")).resolves.toEqual({
+      ok: true,
+      organizationId: null,
+      created: false,
+    });
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(boundary.sendEmail).not.toHaveBeenCalled();
+    expect(boundary.sendOpsAlert).not.toHaveBeenCalled();
+  });
+
+  it("fails a fresh organization whose rpc answer carries no id, sending nothing", async () => {
+    boundary.rpc.mockResolvedValue({ data: null, error: null });
     await expect(ensureOrganization(supabase, "X")).resolves.toEqual({
       ok: false,
       error: "failed",

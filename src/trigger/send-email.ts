@@ -91,8 +91,9 @@ type Prepared =
 /**
  * Creates the delivery row for a new send, or returns the existing one when the key was seen
  * before (AC-4). Resolves the recipient first so the row carries the address; a recipient that
- * cannot be resolved still gets a row (empty address, `skipped`, `recipient_missing`). Writes the
- * notification row next to the delivery (AC-3).
+ * cannot be resolved still gets a row (empty address, `skipped`, `recipient_missing`). Makes sure
+ * the notification row sits next to the delivery on both paths (AC-3), so an attempt that died
+ * between the two inserts is completed by the next one.
  */
 async function prepareNewDelivery(
   supabase: Service,
@@ -107,10 +108,12 @@ async function prepareNewDelivery(
     });
     return { kind: "done", result: { deliveryId: existing.id, status: statusOf(existing) } };
   }
-  if (existing) return { kind: "row", row: existing };
+  if (existing) {
+    await ensureNotification(supabase, existing);
+    return { kind: "row", row: existing };
+  }
 
   const resolved = await resolveRecipient(supabase, payload.recipient);
-  const entry = EMAIL_TEMPLATES[payload.template];
   const data =
     resolved.firstName && !("firstName" in payload.data)
       ? { ...payload.data, firstName: resolved.firstName }
@@ -141,19 +144,7 @@ async function prepareNewDelivery(
     throw error;
   }
 
-  const notify =
-    resolved.recipientId !== null && entry.notify && !payload.sourceEvent.startsWith("ops.");
-  if (notify) {
-    const { error: notificationError } = await supabase.from("notifications").insert({
-      recipient_id: resolved.recipientId,
-      organization_id: payload.organizationId ?? null,
-      kind: payload.template,
-      data: inserted.data,
-      link: entry.link,
-      delivery_id: inserted.id,
-    });
-    if (notificationError) throw notificationError;
-  }
+  const notify = await ensureNotification(supabase, inserted);
 
   logger.info("email delivery row created", {
     deliveryId: inserted.id,
@@ -163,6 +154,38 @@ async function prepareNewDelivery(
     notify,
   });
   return { kind: "row", row: inserted };
+}
+
+/**
+ * The notification row next to a delivery to a known user (AC-3), written once whatever the email
+ * outcome: looked up by delivery id first, so a run that resumes a row left by a dead attempt
+ * completes the pair without a duplicate. Ops events and templates that do not notify write none.
+ * Returns whether a notification exists for the row.
+ */
+async function ensureNotification(supabase: Service, row: DeliveryRow): Promise<boolean> {
+  if (row.recipient_id === null || row.source_event.startsWith("ops.")) return false;
+  if (!isEmailTemplateName(row.template)) return false;
+  const entry = EMAIL_TEMPLATES[row.template];
+  if (!entry.notify) return false;
+
+  const { data: existing, error: lookupError } = await supabase
+    .from("notifications")
+    .select("id")
+    .eq("delivery_id", row.id)
+    .maybeSingle();
+  if (lookupError) throw lookupError;
+  if (existing) return true;
+
+  const { error } = await supabase.from("notifications").insert({
+    recipient_id: row.recipient_id,
+    organization_id: row.organization_id,
+    kind: row.template,
+    data: row.data,
+    link: entry.link,
+    delivery_id: row.id,
+  });
+  if (error) throw error;
+  return true;
 }
 
 /** A retry rerenders from the stored row (AC-4, AC-10); only a `failed` row is retried. */

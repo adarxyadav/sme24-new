@@ -27,13 +27,15 @@ export function confirmRedirectUrl(locale: Locale, path: "/app" | "/reset-passwo
 }
 
 export type EnsureOrganizationResult =
-  | { ok: true; organizationId: string; created: boolean }
+  | { ok: true; organizationId: string; created: true }
+  | { ok: true; organizationId: string | null; created: false }
   | { ok: false; error: "not_a_client" | "failed" };
 
 /**
  * The only caller of `create_organization` (spec 0005, key invariants): creates the caller's
  * organization, treats `already_member` as success (`created` false, the organization from the
- * refreshed claims), then refreshes the session so the access token hook writes the organization
+ * refreshed claims, or null with a warning when the hook wrote no claim: a member is never refused
+ * over a claim), then refreshes the session so the access token hook writes the organization
  * claim. On a fresh organization it fires the welcome email and the ops alert (spec 0006, AC-1,
  * AC-2); a failed trigger never fails the sign in (AC-15). Runs on the action client in server
  * actions and route handlers, so the refreshed cookies reach the response.
@@ -62,15 +64,28 @@ export async function ensureOrganization(
   // token, not from the user's own metadata.
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
-  const organizationId = created ? rpcData : organizationIdFromClaims(claims);
   const userId = typeof claims?.sub === "string" ? claims.sub : null;
-  if (!organizationId || !userId) {
-    log.warn("organization id missing after create_organization", { created, userId });
+  if (!userId) {
+    log.warn("subject missing after create_organization", { created });
     return { ok: false, error: "failed" };
   }
 
-  if (created) await notifyOrganizationCreated(userId, organizationId, name);
-  return { ok: true, organizationId, created };
+  if (!created) {
+    // An existing member whose refreshed token carries no organization claim points at the access
+    // token hook, not at the member: let them through and make the gap visible in the log.
+    const organizationId = organizationIdFromClaims(claims) ?? null;
+    if (!organizationId) {
+      log.warn("organization claim missing for an existing member", { userId });
+    }
+    return { ok: true, organizationId, created: false };
+  }
+
+  if (typeof rpcData !== "string" || rpcData === "") {
+    log.warn("organization id missing after create_organization", { userId });
+    return { ok: false, error: "failed" };
+  }
+  await notifyOrganizationCreated(userId, rpcData, name);
+  return { ok: true, organizationId: rpcData, created: true };
 }
 
 /**
