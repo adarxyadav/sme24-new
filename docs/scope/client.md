@@ -17,7 +17,7 @@ spec [0005](../specs/0005-auth-organizations-roles/index.md)
   - [ ] Hosted configuration: Resend SMTP, the five bilingual templates, password rules and leaked password protection on staging and prod, axe over every new page (AC-1, AC-6, AC-13)
 - [x] Verify it: `/check verify auth, organizations & roles`
 - [x] Test it: `/test auth, organizations & roles`
-- [ ] Review it (fresh model): `/check review auth, organizations & roles`
+- [x] Review it (fresh model): `/check review auth, organizations & roles`
 - [ ] Document it: `/document auth, organizations & roles`
 
 ### 7. Transactional email & ops alerts · needs a decision
