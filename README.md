@@ -46,6 +46,7 @@ add the keys to `.env.local`.
 | `pnpm db:diff <name>` | Write a migration from the declarative schema in `supabase/schemas/` |
 | `pnpm db:types` | Regenerate `src/lib/supabase/database.types.ts` (CI fails when it is stale) |
 | `pnpm trigger:dev` | Run Trigger.dev tasks locally |
+| `pnpm user:invite --email <address> --role expert\|ops [--locale de\|en] [--name "…"]` | Invite a staff user with their role fixed; needs the target environment's Supabase keys in `.env.local` (see [docs/auth.md](docs/auth.md)) |
 
 ## Git hooks
 

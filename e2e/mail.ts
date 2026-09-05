@@ -107,3 +107,38 @@ export function codeIn(mail: Mail): string {
   if (!match?.[1]) throw new Error(`no six digit code in "${mail.subject}"`);
   return match[1];
 }
+
+/**
+ * Rewrites the session cookie so the access token counts as expired (AC-9): the next request
+ * forces the proxy to refresh through the rotated refresh token. Works on the `base64-` prefixed,
+ * possibly chunked cookie `@supabase/ssr` writes.
+ */
+export async function expireAccessToken(context: import("@playwright/test").BrowserContext) {
+  const cookies = await context.cookies();
+  const chunks = cookies
+    .filter((cookie) => /^sb-.*-auth-token(\.\d+)?$/.test(cookie.name))
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  const first = chunks[0];
+  if (!first) throw new Error("no Supabase session cookie in the context");
+  const joined = chunks.map((cookie) => cookie.value).join("");
+  const encoded = joined.startsWith("base64-") ? joined.slice("base64-".length) : joined;
+  const session = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as Record<
+    string,
+    unknown
+  >;
+  const expired = { ...session, expires_at: Math.floor(Date.now() / 1000) - 60, expires_in: 0 };
+  const value = `base64-${Buffer.from(JSON.stringify(expired)).toString("base64url")}`;
+  const baseName = first.name.replace(/\.\d+$/, "");
+  await context.clearCookies({ name: /^sb-.*-auth-token/ });
+  await context.addCookies([
+    {
+      name: baseName,
+      value,
+      domain: first.domain,
+      path: first.path,
+      httpOnly: false,
+      secure: false,
+      sameSite: "Lax",
+    },
+  ]);
+}

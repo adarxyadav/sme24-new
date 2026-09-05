@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertCircleIcon, MailWarningIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -74,12 +75,23 @@ export function SignInForm({ next, notice }: SignInFormProps) {
     issueMessage(message, t as unknown as Parameters<typeof issueMessage>[1]);
   const pending =
     signInAction.pending || codeAction.pending || resendAction.pending || expiredResend.pending;
+  const codeSentTo = codeAction.result?.ok ? codeAction.result.data.email : null;
+  const expiredResentTo = expiredResend.result?.ok ? expiredResend.result.data.email : null;
+  const expiredResentCode =
+    expiredResentTo !== null && (expiredType === "magiclink" || expiredType === "email");
 
-  if (codeAction.result?.ok) {
-    const email = codeAction.result.data.email;
-    router.push({ pathname: "/verify-code", query: next ? { email, next } : { email } });
-    return <InboxNotice kind="code" email={email} locale={locale} />;
-  }
+  useEffect(() => {
+    if (codeSentTo) {
+      router.push({
+        pathname: "/verify-code",
+        query: next ? { email: codeSentTo, next } : { email: codeSentTo },
+      });
+    } else if (expiredResentCode && expiredResentTo) {
+      router.push({ pathname: "/verify-code", query: { email: expiredResentTo } });
+    }
+  }, [codeSentTo, expiredResentCode, expiredResentTo, next, router]);
+
+  if (codeSentTo) return <InboxNotice kind="code" email={codeSentTo} locale={locale} />;
   if (resendAction.result?.ok) {
     return (
       <InboxNotice
@@ -90,15 +102,11 @@ export function SignInForm({ next, notice }: SignInFormProps) {
       />
     );
   }
-  if (expiredResend.result?.ok && expiredType) {
-    const email = expiredResend.result.data.email;
-    if (expiredType === "magiclink" || expiredType === "email") {
-      router.push({ pathname: "/verify-code", query: { email } });
-    }
+  if (expiredResentTo && expiredType) {
     return (
       <InboxNotice
         kind={expiredType === "signup" ? "signUp" : expiredType === "recovery" ? "reset" : "code"}
-        email={email}
+        email={expiredResentTo}
         locale={locale}
       />
     );
@@ -133,6 +141,7 @@ export function SignInForm({ next, notice }: SignInFormProps) {
   return (
     <form
       noValidate
+      method="post"
       onSubmit={form.handleSubmit((values) => signInAction.submit({ ...values, locale, next }))}
       className="flex flex-col gap-6"
     >

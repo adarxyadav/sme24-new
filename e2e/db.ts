@@ -60,3 +60,51 @@ export async function deleteAccount(email: string) {
   }
   await supabase.auth.admin.deleteUser(account.user.id);
 }
+
+/**
+ * A confirmed client whose sign up metadata still holds the company name and consent, the state
+ * a password or code sign up is in right after confirmation and before its first sign in.
+ */
+export async function createConfirmedClient(
+  email: string,
+  password: string,
+  organizationName = "Fixture AG",
+) {
+  const supabase = serviceClient();
+  const { error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      full_name: "Fixture Person",
+      locale: "de",
+      organization_name: organizationName,
+      terms_accepted_at: new Date().toISOString(),
+    },
+  });
+  if (error) throw error;
+}
+
+/** A confirmed client without any sign up metadata: what a provider sign up looks like. */
+export async function createBareClient(email: string, password: string) {
+  const supabase = serviceClient();
+  const { error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { name: "Pia Provider" },
+  });
+  if (error) throw error;
+}
+
+/** A client who signed up with a password and never followed the confirmation link. */
+export async function createUnconfirmedClient(email: string, password: string) {
+  const supabase = serviceClient();
+  const { error } = await supabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: false,
+    user_metadata: { full_name: "Uwe Unconfirmed", locale: "de" },
+  });
+  if (error) throw error;
+}

@@ -452,7 +452,9 @@
       "invalidExample": "Ungültiges Feld",
       "disabledExample": "Deaktiviertes Feld",
       "disabledHint": "Dieser Wert wird aus dem Handelsregister übernommen.",
-      "disabledCheckbox": "Deaktivierte Auswahl"
+      "disabledCheckbox": "Deaktivierte Auswahl",
+      "code": "Einmalcode",
+      "codeHint": "Sechs Ziffern aus der E-Mail; die Eingabe springt von Feld zu Feld."
     },
     "validation": {
       "companyShort": "Bitte geben Sie mindestens 2 Zeichen ein.",

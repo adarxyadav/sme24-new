@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,11 @@ export function SignUpForm() {
   const { errors } = form.formState;
   const errorText = (message: string | undefined) => issueMessage(message, v);
   const pending = password.pending || code.pending;
+  const codeSentTo = code.result?.ok ? code.result.data.email : null;
+
+  useEffect(() => {
+    if (codeSentTo) router.push({ pathname: "/verify-code", query: { email: codeSentTo } });
+  }, [codeSentTo, router]);
 
   if (password.result?.ok) {
     return (
@@ -61,11 +66,7 @@ export function SignUpForm() {
       />
     );
   }
-  if (code.result?.ok) {
-    const email = code.result.data.email;
-    router.push({ pathname: "/verify-code", query: { email } });
-    return <InboxNotice kind="code" email={email} locale={locale} />;
-  }
+  if (codeSentTo) return <InboxNotice kind="code" email={codeSentTo} locale={locale} />;
 
   const onSubmit = form.handleSubmit((values) => {
     if (mode === "password") password.submit({ ...values, locale });
@@ -77,7 +78,7 @@ export function SignUpForm() {
   const failed = [password.result, code.result].find((result) => result?.ok === false);
 
   return (
-    <form noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
+    <form noValidate method="post" onSubmit={onSubmit} className="flex flex-col gap-6">
       <AuthErrorAlert error={failed?.ok === false ? failed.error : null} />
       <FieldGroup>
         <Field data-invalid={errors.fullName ? true : undefined}>

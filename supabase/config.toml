@@ -247,8 +247,10 @@ otp_expiry = 900
 
 # Spec 0005: bilingual templates (German above English). Every link is built from {{ .SiteURL }},
 # {{ .TokenHash }}, a fixed type and {{ .RedirectTo }}, so it is verified by /api/auth/confirm and
-# works in any browser; the magic link template also prints the six digit {{ .Token }}. The hosted
-# projects carry the same files pasted into the dashboard (docs/auth.md).
+# works in any browser; the confirmation and magic link templates also print the six digit
+# {{ .Token }} (a code request for a new address sends the confirmation template, an existing
+# address gets the magic link one). The hosted projects carry the same files pasted into the
+# dashboard (docs/auth.md).
 [auth.email.template.confirmation]
 subject = "Bestätigen Sie Ihre E-Mail · Confirm your email"
 content_path = "./supabase/templates/confirmation.html"

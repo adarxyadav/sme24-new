@@ -452,7 +452,9 @@
       "invalidExample": "Invalid field",
       "disabledExample": "Disabled field",
       "disabledHint": "This value comes from the commercial register.",
-      "disabledCheckbox": "Disabled choice"
+      "disabledCheckbox": "Disabled choice",
+      "code": "One time code",
+      "codeHint": "Six digits from the email; the input moves from box to box."
     },
     "validation": {
       "companyShort": "Please enter at least 2 characters.",
