@@ -92,13 +92,110 @@
       }
     }
   },
-  "signIn": {
-    "title": "Sign in",
-    "lead": "Sign in with your work email.",
-    "email": "Email",
-    "password": "Password",
-    "submit": "Sign in",
-    "invalid": "Email or password is wrong."
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "lead": "Sign in with your work email.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "forgotPassword": "Forgot your password?",
+      "codeInstead": "Email me a code instead",
+      "noAccount": "No account yet?",
+      "signUp": "Create an account"
+    },
+    "signUp": {
+      "title": "Create an account",
+      "lead": "An account for your company, in a minute.",
+      "fullName": "Full name",
+      "organizationName": "Company",
+      "email": "Work email",
+      "password": "Password",
+      "passwordHint": "At least 8 characters.",
+      "consent": "I accept the terms of use and the privacy policy.",
+      "submit": "Create account",
+      "codeInstead": "Email me a code instead",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "inbox": {
+      "title": "Check your inbox",
+      "signUp": "We sent an email to {email}. Follow the link in it to confirm your account.",
+      "code": "We sent a six digit code to {email}, if an account exists.",
+      "reset": "If an account exists for {email}, we sent a link to reset the password.",
+      "resent": "We sent a new email.",
+      "resend": "Send the email again",
+      "enterCode": "Enter the code"
+    },
+    "verifyCode": {
+      "title": "Enter the code",
+      "lead": "Enter the six digit code from the email.",
+      "email": "Email",
+      "code": "Code",
+      "submit": "Sign in",
+      "resend": "Send a new code",
+      "resent": "We sent a new code."
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "lead": "We will send you a link to set a new password.",
+      "email": "Email",
+      "submit": "Send link",
+      "backToSignIn": "Back to sign in"
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "lead": "Choose a password with at least 8 characters. Other devices will be signed out.",
+      "password": "New password",
+      "submit": "Save password"
+    },
+    "onboarding": {
+      "title": "Your company",
+      "lead": "One more step: tell us your company and you are in.",
+      "organizationName": "Company",
+      "consent": "I accept the terms of use and the privacy policy.",
+      "submit": "Continue"
+    },
+    "providers": {
+      "or": "or",
+      "google": "Sign in with Google",
+      "microsoft": "Sign in with Microsoft"
+    },
+    "unconfirmed": {
+      "title": "Email not confirmed yet",
+      "body": "Confirm your email first through the link we sent you.",
+      "resend": "Send the confirmation again"
+    },
+    "linkExpired": {
+      "title": "This link has expired or was already used",
+      "signup": "Request a new confirmation email.",
+      "code": "Request a new code.",
+      "recovery": "Request a new reset link.",
+      "invite": "Ask your administrator for a new invitation.",
+      "email": "Email",
+      "resend": "Send a new email"
+    },
+    "errors": {
+      "invalidCredentials": "Email or password is wrong.",
+      "emailNotConfirmed": "Confirm your email first.",
+      "rateLimited": "Too many attempts. Wait a moment and try again.",
+      "weakPassword": "The password is too weak. Choose at least 8 characters that do not appear in known data breaches.",
+      "samePassword": "The new password must differ from the old one.",
+      "codeInvalid": "The code is wrong.",
+      "codeExpired": "The code has expired. Request a new one.",
+      "provider": "Signing in with the provider failed. Try again or use email and password.",
+      "emailUnverified": "Your provider has not verified this email address. Use email and password or a code.",
+      "sessionMissing": "Your session has expired. Request a new link.",
+      "notAClient": "This account does not belong to a client company.",
+      "generic": "Something went wrong. Try again."
+    },
+    "validation": {
+      "consentRequired": "Please accept the terms of use.",
+      "passwordShort": "The password needs at least 8 characters.",
+      "codeLength": "The code has six digits.",
+      "nameRequired": "Please enter your name.",
+      "organizationRequired": "Please enter your company."
+    }
   },
   "forbidden": {
     "title": "No access",

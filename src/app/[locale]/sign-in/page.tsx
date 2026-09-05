@@ -45,8 +45,8 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
         >
           <Card className="w-full max-w-sm">
             <CardHeader>
-              <CardTitle className="text-2xl tracking-headline">{t("signIn.title")}</CardTitle>
-              <CardDescription>{t("signIn.lead")}</CardDescription>
+              <CardTitle className="text-2xl tracking-headline">{t("auth.signIn.title")}</CardTitle>
+              <CardDescription>{t("auth.signIn.lead")}</CardDescription>
             </CardHeader>
             <form action={signIn}>
               <CardContent className="flex flex-col gap-6">
@@ -54,16 +54,16 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
                 <input type="hidden" name="next" value={next} />
                 {invalid ? (
                   <Alert variant="destructive">
-                    <AlertTitle>{t("signIn.invalid")}</AlertTitle>
+                    <AlertTitle>{t("auth.errors.invalidCredentials")}</AlertTitle>
                   </Alert>
                 ) : null}
                 <FieldGroup>
                   <Field>
-                    <FieldLabel htmlFor="email">{t("signIn.email")}</FieldLabel>
+                    <FieldLabel htmlFor="email">{t("auth.signIn.email")}</FieldLabel>
                     <Input id="email" name="email" type="email" autoComplete="email" required />
                   </Field>
                   <Field>
-                    <FieldLabel htmlFor="password">{t("signIn.password")}</FieldLabel>
+                    <FieldLabel htmlFor="password">{t("auth.signIn.password")}</FieldLabel>
                     <Input
                       id="password"
                       name="password"
@@ -77,7 +77,7 @@ export default async function SignInPage({ params, searchParams }: PageProps<"/[
               </CardContent>
               <CardFooter className="mt-6">
                 <Button type="submit" className="w-full" size="lg">
-                  {t("signIn.submit")}
+                  {t("auth.signIn.submit")}
                 </Button>
               </CardFooter>
             </form>

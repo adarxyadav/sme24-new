@@ -25,9 +25,15 @@ function request(path: string) {
   return new NextRequest(`https://sme24.ch${path}`);
 }
 
-function claimsFor(role: string) {
-  return { data: { claims: { sub: "user-1", app_metadata: { role } } } };
+function claimsFor(role: string, organizationId?: string) {
+  return {
+    data: {
+      claims: { sub: "user-1", app_metadata: { role, organization_id: organizationId } },
+    },
+  };
 }
+
+const ORGANIZATION_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 
 /** Where the proxy sent the browser: the path plus query of the `location` header, or null. */
 function redirectedTo(response: NextResponse) {
@@ -77,7 +83,7 @@ describe("request proxy (spec 0004, AC-13)", () => {
       ["expert", "expert"],
       ["ops", "admin"],
     ] as const) {
-      boundary.getClaims.mockResolvedValue(claimsFor(role));
+      boundary.getClaims.mockResolvedValue(claimsFor(role, ORGANIZATION_ID));
       for (const prefix of ["de", "en"]) {
         const response = await proxy(request(`/${prefix}/${area}`));
         expect(redirectedTo(response)).toBeNull();
@@ -95,5 +101,85 @@ describe("request proxy (spec 0004, AC-13)", () => {
   it("treats a session without a role as forbidden, not as signed out", async () => {
     boundary.getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } } });
     expect(redirectedTo(await proxy(request("/en/app")))).toBe("/en/forbidden");
+  });
+
+  it("keeps the wrong role's refreshed cookies on the forbidden redirect", async () => {
+    boundary.intl.mockImplementation(() => {
+      const next = NextResponse.next();
+      next.cookies.set("sb-token", "rotated");
+      return next;
+    });
+    boundary.getClaims.mockResolvedValue(claimsFor("client", ORGANIZATION_ID));
+    const response = await proxy(request("/de/admin"));
+    expect(redirectedTo(response)).toBe("/de/forbidden");
+    expect(response.cookies.get("sb-token")?.value).toBe("rotated");
+  });
+});
+
+describe("auth pages and onboarding (spec 0005, AC-8)", () => {
+  beforeEach(() => {
+    boundary.intl.mockImplementation(() => NextResponse.next());
+    boundary.getClaims.mockResolvedValue({ data: { claims: null } });
+  });
+
+  it("sends a signed in user from the auth pages to their role home in the request's language", async () => {
+    boundary.getClaims.mockResolvedValue(claimsFor("ops"));
+    for (const page of ["/sign-in", "/sign-up", "/verify-code", "/forgot-password"]) {
+      expect(redirectedTo(await proxy(request(`/de${page}`)))).toBe("/de/admin");
+      expect(redirectedTo(await proxy(request(`/en${page}`)))).toBe("/en/admin");
+    }
+    boundary.getClaims.mockResolvedValue(claimsFor("client", ORGANIZATION_ID));
+    expect(redirectedTo(await proxy(request("/en/sign-in?next=%2Fen%2Fapp")))).toBe("/en/app");
+  });
+
+  it("leaves the reset password page alone for a signed in session (a recovery link is signed in on purpose)", async () => {
+    boundary.getClaims.mockResolvedValue(claimsFor("client", ORGANIZATION_ID));
+    expect(redirectedTo(await proxy(request("/de/reset-password")))).toBeNull();
+  });
+
+  it("lets a signed out visitor open every auth page", async () => {
+    for (const page of [
+      "/sign-in",
+      "/sign-up",
+      "/verify-code",
+      "/forgot-password",
+      "/reset-password",
+    ]) {
+      expect(redirectedTo(await proxy(request(`/de${page}`)))).toBeNull();
+    }
+  });
+
+  it("sends a client without an organization claim from every /app path but onboarding to onboarding", async () => {
+    boundary.getClaims.mockResolvedValue(claimsFor("client"));
+    expect(redirectedTo(await proxy(request("/de/app")))).toBe("/de/app/onboarding");
+    expect(redirectedTo(await proxy(request("/en/app/companies/1")))).toBe("/en/app/onboarding");
+    expect(redirectedTo(await proxy(request("/de/app/onboarding")))).toBeNull();
+  });
+
+  it("sends a client with an organization claim from onboarding to /app and lets the rest through", async () => {
+    boundary.getClaims.mockResolvedValue(claimsFor("client", ORGANIZATION_ID));
+    expect(redirectedTo(await proxy(request("/de/app/onboarding")))).toBe("/de/app");
+    expect(redirectedTo(await proxy(request("/en/app/onboarding")))).toBe("/en/app");
+    expect(redirectedTo(await proxy(request("/de/app")))).toBeNull();
+    expect(redirectedTo(await proxy(request("/de/app/companies")))).toBeNull();
+  });
+
+  it("never sends staff to onboarding: the rule applies to the client area only", async () => {
+    boundary.getClaims.mockResolvedValue(claimsFor("expert"));
+    expect(redirectedTo(await proxy(request("/de/expert")))).toBeNull();
+    boundary.getClaims.mockResolvedValue(claimsFor("ops"));
+    expect(redirectedTo(await proxy(request("/en/admin/design")))).toBeNull();
+  });
+
+  it("carries the refreshed cookies onto the onboarding redirect", async () => {
+    boundary.intl.mockImplementation(() => {
+      const next = NextResponse.next();
+      next.cookies.set("sb-token", "rotated");
+      return next;
+    });
+    boundary.getClaims.mockResolvedValue(claimsFor("client"));
+    const response = await proxy(request("/de/app"));
+    expect(redirectedTo(response)).toBe("/de/app/onboarding");
+    expect(response.cookies.get("sb-token")?.value).toBe("rotated");
   });
 });

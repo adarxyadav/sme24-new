@@ -2,14 +2,19 @@
  * The typed route map (spec 0004, AC-13): one entry per route, so `Link`, `redirect`, `useRouter`
  * and `getPathname` are typed and an unknown href fails `pnpm typecheck`. Marketing routes may
  * localise the German slug (`"/pricing": { "de-CH": "/preise", "en-CH": "/pricing" }`); the
- * signed in areas, sign in and forbidden stay identical in both languages. Dynamic routes use
+ * signed in areas, the auth pages (spec 0005) and forbidden stay identical in both languages. Dynamic routes use
  * next-intl templates (`"/app/companies/[id]"`) and a link with parameters is an object. Pure data.
  */
 export const PATHNAMES = {
   "/": "/",
   "/sign-in": "/sign-in",
+  "/sign-up": "/sign-up",
+  "/verify-code": "/verify-code",
+  "/forgot-password": "/forgot-password",
+  "/reset-password": "/reset-password",
   "/forbidden": "/forbidden",
   "/app": "/app",
+  "/app/onboarding": "/app/onboarding",
   "/expert": "/expert",
   "/admin": "/admin",
   "/admin/design": "/admin/design",
