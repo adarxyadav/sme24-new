@@ -1,6 +1,6 @@
 # Auth setup
 
-_How sign in is configured per environment (spec [0005](specs/0005-auth-organizations-roles/index.md)). The code lives in `src/features/auth/`, the proxy rules in `src/proxy.ts`, the two handlers in `src/app/api/auth/`. This file is the per environment checklist: what must exist in Supabase, Resend, Google and Microsoft before the flows work on staging and prod._
+_How sign in is configured per environment (spec [0005](specs/0005-auth-organizations-roles/index.md)). The code lives in `src/features/auth/`, the proxy rules in `src/proxy.ts`, the two handlers in `src/app/api/auth/`. This file is the per environment checklist: what must exist in Supabase, Resend, Google and Microsoft before the flows work on staging and prod. Proving the flows work after a deploy is the separate [auth smoke checklist](auth-checklist.md)._
 
 ## How it fits together
 
