@@ -22,7 +22,7 @@ create table public.company_kpis (
 );
 
 comment on table public.company_kpis is 'A KPI value per company, KPI and year, from research or entered by the client.';
-comment on column public.company_kpis.sources is 'Array of {url, title, excerpt, retrieved_at} the value was taken from.';
+comment on column public.company_kpis.sources is 'Array of {url, title, excerpt, retrievedAt} the value was taken from.';
 
 create unique index company_kpis_research_run_kpi_year_idx
   on public.company_kpis (research_run_id, kpi_key, period_year)

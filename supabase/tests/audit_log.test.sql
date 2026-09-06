@@ -15,7 +15,7 @@ begin
      or exists (select 1 from public.companies)
      or exists (select 1 from public.company_kpis)
      or exists (select 1 from public.research_runs)
-     or exists (select 1 from public.kpi_definitions) then
+     or exists (select 1 from public.kpi_definitions where key not in ('ltifr', 'trifr', 'fatalities', 'lost_days_per_incident', 'accident_rate_per_1000_fte', 'absenteeism_rate', 'near_miss_rate', 'iso_45001_certified')) then
     raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
   end if;
 end $$;

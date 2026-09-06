@@ -95,13 +95,42 @@ begin
 end;
 $$;
 
+-- True while the organization has fewer than 5 research runs created in the last 24 hours
+-- (spec 0007, AC-2). Rows the action failed at once (`error_code = 'trigger_failed'`) do not
+-- count; stale rows do. Definer so the insert policy on research_runs does not recurse through
+-- RLS; the count is not serialised, so two simultaneous inserts can overshoot by one (accepted,
+-- the open run index bounds the damage). The limit mirrors RUN_LIMIT_PER_DAY in
+-- src/features/research/catalogue.ts.
+create or replace function private.research_run_allowed(organization_id uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if organization_id is null then
+    return false;
+  end if;
+  return (
+    select count(*)
+    from public.research_runs r
+    where r.organization_id = research_run_allowed.organization_id
+      and r.created_at > now() - interval '24 hours'
+      and r.error_code is distinct from 'trigger_failed'
+  ) < 5;
+end;
+$$;
+
 revoke execute on function private.jwt_app_role() from public;
 revoke execute on function private.jwt_org_id() from public;
 revoke execute on function private.is_ops() from public;
 revoke execute on function private.is_org_owner(uuid) from public;
 revoke execute on function private.is_assigned_expert(uuid) from public;
+revoke execute on function private.research_run_allowed(uuid) from public, anon;
 grant execute on function private.jwt_app_role() to authenticated, service_role;
 grant execute on function private.jwt_org_id() to authenticated, service_role;
 grant execute on function private.is_ops() to authenticated, service_role;
 grant execute on function private.is_org_owner(uuid) to authenticated, service_role;
 grant execute on function private.is_assigned_expert(uuid) to authenticated, service_role;
+grant execute on function private.research_run_allowed(uuid) to authenticated, service_role;
