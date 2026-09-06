@@ -48,9 +48,13 @@ for (const theme of ["light", "dark"] as const) {
 test("the theme choice survives a reload and the toggle switches it (AC-3)", async ({ page }) => {
   await signIn(page, SEED_USERS.ops);
   await page.goto("/de/admin/design");
-  const toggle = page.getByRole("main").getByRole("button", { name: "Darstellung wechseln" });
-  await toggle.click();
-  await page.getByRole("menuitemradio", { name: "Dunkel" }).click();
+  const toggle = page.getByRole("main").getByRole("radiogroup", { name: "Darstellung wechseln" });
+  // The radios mark the current choice only after hydration; a click before that would be lost.
+  await expect(toggle.getByRole("radio", { name: "System" })).toHaveAttribute(
+    "aria-checked",
+    "true",
+  );
+  await toggle.getByRole("radio", { name: "Dunkel" }).click();
   await expect(page.locator("html")).toHaveClass(/\bdark\b/);
   await page.reload();
   await expect(page.locator("html")).toHaveClass(/\bdark\b/);
