@@ -21,8 +21,8 @@ type Presenter<K extends AlertKind> = (fields: AlertFields<K>, context: AlertCon
 
 /**
  * The alert registry (AC-11): one presenter per kind, English only by decision, Swiss formats
- * through the `en-CH` formatter. The three live kinds have callers today; the reserved kinds are
- * ready for features 8, 11 and 13. A new kind adds its fields in `schema.ts` and its presenter
+ * through the `en-CH` formatter. Five kinds have callers today (`enquiry.received` since spec
+ * 0009, its topic may be general); `payment.received` is reserved for feature 11. A new kind adds its fields in `schema.ts` and its presenter
  * here. Pure.
  */
 export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
@@ -86,7 +86,7 @@ export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
     buttonLabel: "Open payment",
   }),
   "enquiry.received": (fields, context) => ({
-    title: "Retainer enquiry received",
+    title: "Enquiry received",
     fields: [
       ["Organization", fields.organizationName],
       ["Topic", fields.topic],
@@ -105,7 +105,8 @@ export function presentAlert<K extends AlertKind>(
   return ALERT_REGISTRY[kind](fields, context);
 }
 
-function languageName(code: string | undefined): string {
+/** The English name of a stored language code (`de`, `en` or the full tag); Unknown otherwise. Pure. */
+export function languageName(code: string | undefined): string {
   if (code === "de" || code === "de-CH") return "German";
   if (code === "en" || code === "en-CH") return "English";
   return "Unknown";

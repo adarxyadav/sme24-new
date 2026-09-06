@@ -1,7 +1,13 @@
 import type { ReactElement } from "react";
 import type { z } from "zod";
-import { benchmarkReadyDataSchema, type EmailTemplateName, welcomeDataSchema } from "./schema";
+import {
+  benchmarkReadyDataSchema,
+  type EmailTemplateName,
+  enquiryReceivedDataSchema,
+  welcomeDataSchema,
+} from "./schema";
 import { BenchmarkReadyEmail } from "./templates/benchmark-ready";
+import { EnquiryReceivedEmail } from "./templates/enquiry-received";
 import type { TemplateProps } from "./templates/props";
 import { WelcomeEmail } from "./templates/welcome";
 
@@ -35,11 +41,29 @@ export const EMAIL_TEMPLATES = {
     notify: true,
     Component: BenchmarkReadyEmail,
   }),
+  // The recipient is an outside address (null `recipient_id`), which already suppresses the
+  // notification in send-email; `notify: false` says so for the reader (spec 0009, AC-14).
+  enquiry_received: defineTemplate({
+    schema: enquiryReceivedDataSchema,
+    link: "/",
+    notify: false,
+    Component: EnquiryReceivedEmail,
+  }),
 } as const satisfies Record<EmailTemplateName, unknown>;
 
 /** Keeps the data schema and the component of one entry on the same type. */
 function defineTemplate<TData>(entry: EmailTemplateEntry<TData>): EmailTemplateEntry<TData> {
   return entry;
+}
+
+/**
+ * The entry of one template widened to unknown data, for the renderer: it validates the data
+ * through the entry's own schema before handing it to the component, so the widening is safe.
+ */
+export function templateEntry(
+  name: EmailTemplateName,
+): EmailTemplateEntry<Record<string, unknown>> {
+  return EMAIL_TEMPLATES[name] as unknown as EmailTemplateEntry<Record<string, unknown>>;
 }
 
 /** True when `name` is a registered template (the ops preview reads the name from a stored row). */

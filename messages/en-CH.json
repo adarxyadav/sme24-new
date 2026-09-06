@@ -53,7 +53,8 @@
     "admin": {
       "overview": "Overview",
       "design": "Design gallery",
-      "emails": "Emails"
+      "emails": "Emails",
+      "enquiries": "Enquiries"
     }
   },
   "theme": {
@@ -90,6 +91,71 @@
       "kickoff": {
         "title": "Kick off the same week.",
         "body": "See your benchmark, pick your expert, start."
+      }
+    }
+  },
+  "marketing": {
+    "contact": {
+      "meta": {
+        "title": "Contact",
+        "description": "Ask about the retainer or send a question. A person answers within one working day."
+      },
+      "eyebrow": "Contact",
+      "title": "Talk to a person. Not to a form.",
+      "lead": "For the retainer, a question about a package, or anything else: write to us or use the form. A senior expert answers within one working day.",
+      "facts": {
+        "heading": "Reach us",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "form": {
+        "heading": "Your enquiry",
+        "fields": {
+          "topic": "Topic",
+          "companyName": "Company",
+          "contactName": "Your name",
+          "email": "Work email",
+          "phone": "Phone (optional)",
+          "headcountBand": "Employees (optional)",
+          "message": "Message"
+        },
+        "topics": {
+          "retainer": "Retainer",
+          "general": "General question"
+        },
+        "topicHints": {
+          "retainer": "An ongoing EHS partner for your sites, priced on request.",
+          "general": "A package, a date, or anything else."
+        },
+        "headcountPlaceholder": "Not specified",
+        "bands": {
+          "1-49": "1 to 49",
+          "50-249": "50 to 249",
+          "250+": "250 or more"
+        },
+        "messageHint": "What you need, which sites, and when. 20 to 2000 characters.",
+        "characterCount": "{count} of {max} characters",
+        "honeypot": "Leave this field empty",
+        "privacyNote": "We use your details only to answer this enquiry. <link>Privacy policy</link>",
+        "submit": "Send enquiry",
+        "submitting": "Sending",
+        "summaryTitle": "Please check these fields",
+        "errors": {
+          "companyRequired": "Enter your company name.",
+          "companyLong": "At most 200 characters.",
+          "nameRequired": "Enter your name.",
+          "nameLong": "At most 200 characters.",
+          "phoneLong": "At most 40 characters.",
+          "messageShort": "At least 20 characters.",
+          "messageLong": "At most 2000 characters.",
+          "rateLimited": "Please try again later or write to {email}.",
+          "unavailable": "The enquiry could not be saved. Please try again in a moment or write to {email}."
+        }
+      },
+      "success": {
+        "title": "Thank you. Your enquiry has reached us.",
+        "body": "You will get a short confirmation by email. A person answers within one working day.",
+        "back": "Back to the start"
       }
     }
   },
@@ -651,6 +717,19 @@
       "noCost": "We could not estimate the annual cost yet. Add your headcount in the client area and we recalculate at once.",
       "nextStep": "The client area shows your position per KPI, the priority gaps and how every number is calculated.",
       "button": "See the benchmark"
+    },
+    "enquiry_received": {
+      "subject": "Your enquiry has reached SME24",
+      "preview": "Your {topic} has reached us. A person answers within one working day.",
+      "greeting": "Hello {contactName}",
+      "intro": "Thank you for your {topic}. It has reached the SME24 team.",
+      "reply": "A senior expert answers within one working day. No brochure, no sales script.",
+      "button": "Back to SME24",
+      "footerLegal": "You receive this email because you sent an enquiry through sme24.ch.",
+      "topics": {
+        "retainer": "retainer request",
+        "general": "question"
+      }
     }
   },
   "emails": {
@@ -757,6 +836,89 @@
     },
     "errors": {
       "loadFailed": "The emails could not be loaded."
+    }
+  },
+  "enquiries": {
+    "title": "Enquiries",
+    "description": "Every enquiry from the contact form: retainer requests and general questions, newest first.",
+    "detailTitle": "Enquiry",
+    "listHeading": "Enquiries",
+    "status": {
+      "new": "New",
+      "contacted": "Contacted",
+      "closed": "Closed"
+    },
+    "topics": {
+      "retainer": "Retainer",
+      "general": "General question"
+    },
+    "bands": {
+      "1-49": "1 to 49",
+      "50-249": "50 to 249",
+      "250+": "250 or more"
+    },
+    "filters": {
+      "legend": "Filters",
+      "status": "Status",
+      "all": "All",
+      "apply": "Filter",
+      "reset": "Reset"
+    },
+    "columns": {
+      "received": "Received",
+      "topic": "Topic",
+      "company": "Company",
+      "contact": "Contact",
+      "status": "Status"
+    },
+    "fields": {
+      "status": "Status",
+      "topic": "Topic",
+      "company": "Company",
+      "contact": "Contact",
+      "email": "Email",
+      "phone": "Phone",
+      "headcount": "Employees",
+      "message": "Message",
+      "language": "Language",
+      "organization": "Organization",
+      "handledBy": "Handled by",
+      "handledAt": "Handled at",
+      "created": "Received",
+      "updated": "Updated",
+      "id": "Enquiry",
+      "none": "–"
+    },
+    "sections": {
+      "details": "Details",
+      "workflow": "Workflow"
+    },
+    "form": {
+      "status": "Status",
+      "opsNote": "Note",
+      "opsNoteHint": "What was agreed, who called, what comes next. Up to 2000 characters.",
+      "submit": "Save",
+      "saving": "Saving",
+      "saved": "Enquiry saved",
+      "errors": {
+        "noteLong": "At most 2000 characters.",
+        "validation": "Please check the form.",
+        "forbidden": "Only the ops team can change an enquiry.",
+        "not_found": "This enquiry no longer exists.",
+        "unavailable": "The change could not be saved. Please try again."
+      }
+    },
+    "empty": {
+      "title": "No enquiries yet",
+      "description": "As soon as someone sends the contact form it appears here."
+    },
+    "noResults": {
+      "title": "No matches",
+      "description": "No enquiry has this status. Reset the filter."
+    },
+    "pagination": {
+      "next": "Show older",
+      "first": "Back to the first page"
     }
   },
   "research": {

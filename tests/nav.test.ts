@@ -28,10 +28,11 @@ describe("isNavItemActive", () => {
 describe("the admin emails entry (spec 0006, AC-9)", () => {
   const emails = AREA_NAV.admin.find((item) => item.href === "/admin/emails");
 
-  it("sits between the overview and the design gallery with its own label key", () => {
+  it("sits between the overview and the enquiries entry with its own label key", () => {
     expect(AREA_NAV.admin.map((item) => item.href)).toEqual([
       "/admin",
       "/admin/emails",
+      "/admin/enquiries",
       "/admin/design",
     ]);
     expect(emails?.labelKey).toBe("admin.emails");

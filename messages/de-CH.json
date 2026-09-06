@@ -53,7 +53,8 @@
     "admin": {
       "overview": "Übersicht",
       "design": "Design Galerie",
-      "emails": "E-Mails"
+      "emails": "E-Mails",
+      "enquiries": "Anfragen"
     }
   },
   "theme": {
@@ -90,6 +91,71 @@
       "kickoff": {
         "title": "Start in derselben Woche.",
         "body": "Benchmark sehen, Expertin wählen, loslegen."
+      }
+    }
+  },
+  "marketing": {
+    "contact": {
+      "meta": {
+        "title": "Kontakt",
+        "description": "Fragen Sie nach dem Retainer oder stellen Sie eine Frage. Ein Mensch antwortet innerhalb eines Arbeitstags."
+      },
+      "eyebrow": "Kontakt",
+      "title": "Reden Sie mit einem Menschen. Nicht mit einem Formular.",
+      "lead": "Für den Retainer, eine Frage zu einem Paket oder alles andere: Schreiben Sie uns oder nutzen Sie das Formular. Ein Senior-Experte antwortet innerhalb eines Arbeitstags.",
+      "facts": {
+        "heading": "So erreichen Sie uns",
+        "email": "E-Mail",
+        "phone": "Telefon"
+      },
+      "form": {
+        "heading": "Ihre Anfrage",
+        "fields": {
+          "topic": "Thema",
+          "companyName": "Unternehmen",
+          "contactName": "Ihr Name",
+          "email": "Geschäftliche E-Mail",
+          "phone": "Telefon (optional)",
+          "headcountBand": "Mitarbeitende (optional)",
+          "message": "Nachricht"
+        },
+        "topics": {
+          "retainer": "Retainer",
+          "general": "Allgemeine Frage"
+        },
+        "topicHints": {
+          "retainer": "Ein dauerhafter EHS-Partner für Ihre Standorte, Preis auf Anfrage.",
+          "general": "Ein Paket, ein Termin oder etwas anderes."
+        },
+        "headcountPlaceholder": "Keine Angabe",
+        "bands": {
+          "1-49": "1 bis 49",
+          "50-249": "50 bis 249",
+          "250+": "250 oder mehr"
+        },
+        "messageHint": "Was Sie brauchen, welche Standorte und wann. 20 bis 2000 Zeichen.",
+        "characterCount": "{count} von {max} Zeichen",
+        "honeypot": "Dieses Feld leer lassen",
+        "privacyNote": "Wir verwenden Ihre Angaben nur, um diese Anfrage zu beantworten. <link>Datenschutzerklärung</link>",
+        "submit": "Anfrage senden",
+        "submitting": "Wird gesendet",
+        "summaryTitle": "Bitte prüfen Sie diese Felder",
+        "errors": {
+          "companyRequired": "Geben Sie den Namen Ihres Unternehmens ein.",
+          "companyLong": "Höchstens 200 Zeichen.",
+          "nameRequired": "Geben Sie Ihren Namen ein.",
+          "nameLong": "Höchstens 200 Zeichen.",
+          "phoneLong": "Höchstens 40 Zeichen.",
+          "messageShort": "Mindestens 20 Zeichen.",
+          "messageLong": "Höchstens 2000 Zeichen.",
+          "rateLimited": "Bitte versuchen Sie es später erneut oder schreiben Sie an {email}.",
+          "unavailable": "Die Anfrage konnte nicht gespeichert werden. Bitte versuchen Sie es gleich noch einmal oder schreiben Sie an {email}."
+        }
+      },
+      "success": {
+        "title": "Danke. Ihre Anfrage ist bei uns.",
+        "body": "Sie erhalten eine kurze Bestätigung per E-Mail. Ein Mensch antwortet innerhalb eines Arbeitstags.",
+        "back": "Zurück zum Start"
       }
     }
   },
@@ -651,6 +717,19 @@
       "noCost": "Die Jahreskosten konnten wir noch nicht schätzen. Erfassen Sie Ihre Mitarbeiterzahl im Kundenbereich, dann rechnen wir sofort neu.",
       "nextStep": "Der Kundenbereich zeigt Ihre Position pro Kennzahl, die prioritären Lücken und wie jede Zahl berechnet wird.",
       "button": "Benchmark ansehen"
+    },
+    "enquiry_received": {
+      "subject": "Ihre Anfrage ist bei SME24 eingegangen",
+      "preview": "Ihre {topic} ist bei uns. Ein Mensch antwortet innerhalb eines Arbeitstags.",
+      "greeting": "Guten Tag {contactName}",
+      "intro": "Danke für Ihre {topic}. Sie ist beim SME24 Team eingegangen.",
+      "reply": "Ein Senior-Experte antwortet innerhalb eines Arbeitstags. Keine Broschüre, kein Verkaufsskript.",
+      "button": "Zurück zu SME24",
+      "footerLegal": "Sie erhalten diese E-Mail, weil Sie über sme24.ch eine Anfrage gesendet haben.",
+      "topics": {
+        "retainer": "Retainer-Anfrage",
+        "general": "Frage"
+      }
     }
   },
   "emails": {
@@ -757,6 +836,89 @@
     },
     "errors": {
       "loadFailed": "Die E-Mails konnten nicht geladen werden."
+    }
+  },
+  "enquiries": {
+    "title": "Anfragen",
+    "description": "Jede Anfrage aus dem Kontaktformular: Retainer-Anfragen und allgemeine Fragen, neueste zuerst.",
+    "detailTitle": "Anfrage",
+    "listHeading": "Anfragen",
+    "status": {
+      "new": "Neu",
+      "contacted": "Kontaktiert",
+      "closed": "Abgeschlossen"
+    },
+    "topics": {
+      "retainer": "Retainer",
+      "general": "Allgemeine Frage"
+    },
+    "bands": {
+      "1-49": "1 bis 49",
+      "50-249": "50 bis 249",
+      "250+": "250 oder mehr"
+    },
+    "filters": {
+      "legend": "Filter",
+      "status": "Status",
+      "all": "Alle",
+      "apply": "Filtern",
+      "reset": "Zurücksetzen"
+    },
+    "columns": {
+      "received": "Eingegangen",
+      "topic": "Thema",
+      "company": "Unternehmen",
+      "contact": "Kontakt",
+      "status": "Status"
+    },
+    "fields": {
+      "status": "Status",
+      "topic": "Thema",
+      "company": "Unternehmen",
+      "contact": "Kontakt",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "headcount": "Mitarbeitende",
+      "message": "Nachricht",
+      "language": "Sprache",
+      "organization": "Organisation",
+      "handledBy": "Bearbeitet von",
+      "handledAt": "Bearbeitet am",
+      "created": "Eingegangen",
+      "updated": "Aktualisiert",
+      "id": "Anfrage",
+      "none": "–"
+    },
+    "sections": {
+      "details": "Details",
+      "workflow": "Bearbeitung"
+    },
+    "form": {
+      "status": "Status",
+      "opsNote": "Notiz",
+      "opsNoteHint": "Was vereinbart wurde, wer angerufen hat, was als Nächstes kommt. Bis zu 2000 Zeichen.",
+      "submit": "Speichern",
+      "saving": "Wird gespeichert",
+      "saved": "Anfrage gespeichert",
+      "errors": {
+        "noteLong": "Höchstens 2000 Zeichen.",
+        "validation": "Bitte prüfen Sie das Formular.",
+        "forbidden": "Nur das Ops Team kann eine Anfrage ändern.",
+        "not_found": "Diese Anfrage existiert nicht mehr.",
+        "unavailable": "Die Änderung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      }
+    },
+    "empty": {
+      "title": "Noch keine Anfragen",
+      "description": "Sobald jemand das Kontaktformular sendet, erscheint die Anfrage hier."
+    },
+    "noResults": {
+      "title": "Keine Treffer",
+      "description": "Keine Anfrage hat diesen Status. Setzen Sie den Filter zurück."
+    },
+    "pagination": {
+      "next": "Ältere anzeigen",
+      "first": "Zurück zur ersten Seite"
     }
   },
   "research": {

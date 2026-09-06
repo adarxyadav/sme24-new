@@ -1,4 +1,10 @@
-import { LayoutDashboardIcon, type LucideIcon, MailIcon, PaletteIcon } from "lucide-react";
+import {
+  InboxIcon,
+  LayoutDashboardIcon,
+  type LucideIcon,
+  MailIcon,
+  PaletteIcon,
+} from "lucide-react";
 import type { Messages } from "next-intl";
 import type { StaticPathname } from "@/i18n/pathnames";
 import type { Area } from "@/lib/auth/roles";
@@ -26,6 +32,7 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
   admin: [
     { href: "/admin", labelKey: "admin.overview", icon: LayoutDashboardIcon },
     { href: "/admin/emails", labelKey: "admin.emails", icon: MailIcon },
+    { href: "/admin/enquiries", labelKey: "admin.enquiries", icon: InboxIcon },
     { href: "/admin/design", labelKey: "admin.design", icon: PaletteIcon },
   ],
 };

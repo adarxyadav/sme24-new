@@ -1,8 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
+import { afterCursorFilter, decodeCursor, encodeCursor, isUuid } from "@/lib/supabase/cursor";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 import { queryError } from "@/lib/supabase/query-error";
 import { type DeliveryFilters, PAGE_SIZE } from "./schema";
+
+// The cursor helpers moved to `src/lib/supabase/cursor.ts` (shared with the enquiries list, spec 0009).
+export { type Cursor, decodeCursor, encodeCursor } from "@/lib/supabase/cursor";
 
 type Client = SupabaseClient<Database>;
 
@@ -13,27 +17,6 @@ export type DeliveryPage = {
   /** The cursor of the next page, null on the last page. */
   readonly nextCursor: string | null;
 };
-
-export type Cursor = { readonly createdAt: string; readonly id: string };
-
-/** Encodes the keyset cursor `created_at|id` as base64url (AC-9). Pure, server only. */
-export function encodeCursor(cursor: Cursor): string {
-  return Buffer.from(`${cursor.createdAt}|${cursor.id}`, "utf8").toString("base64url");
-}
-
-/** Decodes a cursor; a malformed value gives null (the first page). Pure, server only. */
-export function decodeCursor(value: string | undefined): Cursor | null {
-  if (!value) return null;
-  const decoded = Buffer.from(value, "base64url").toString("utf8");
-  const separator = decoded.lastIndexOf("|");
-  if (separator <= 0) return null;
-  const createdAt = decoded.slice(0, separator);
-  const id = decoded.slice(separator + 1);
-  if (!UUID_PATTERN.test(id) || Number.isNaN(Date.parse(createdAt))) return null;
-  return { createdAt, id };
-}
-
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * The ops list of deliveries (spec 0006, AC-9): newest first, 50 per page on a keyset cursor
@@ -54,11 +37,7 @@ export async function listDeliveries(
   if (filters.template) query = query.eq("template", filters.template);
   if (filters.q) query = query.ilike("recipient_email", `%${escapeLike(filters.q)}%`);
   const cursor = decodeCursor(filters.cursor);
-  if (cursor) {
-    query = query.or(
-      `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`,
-    );
-  }
+  if (cursor) query = query.or(afterCursorFilter(cursor));
 
   const { data, error } = await query;
   if (error) throw queryError(error);
@@ -73,7 +52,7 @@ export async function listDeliveries(
 
 /** One delivery for the detail page; an unknown or invisible id renders the not found page. Server component. */
 export async function getDelivery(supabase: Client, id: string): Promise<Delivery> {
-  if (!UUID_PATTERN.test(id)) notFound();
+  if (!isUuid(id)) notFound();
   const { data, error } = await supabase
     .from("email_deliveries")
     .select("*")
