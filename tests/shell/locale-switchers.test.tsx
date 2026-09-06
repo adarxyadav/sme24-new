@@ -81,7 +81,7 @@ beforeEach(() => {
   boundary.setLocale.mockResolvedValue({ ok: true, data: { persisted: true } });
 });
 
-describe("LocaleSwitcher, the marketing links (spec 0004, AC-2)", () => {
+describe("LocaleSwitcher, the segmented pill of links (spec 0004, AC-2)", () => {
   it("is a navigation landmark named after the language label with one link per locale", () => {
     renderSwitcher();
     const nav = screen.getByRole("navigation", { name: de.common.language });
@@ -135,6 +135,21 @@ describe("LocaleSwitcher, the marketing links (spec 0004, AC-2)", () => {
     expect(german).toHaveAttribute("hreflang", "de-CH");
     expect(english).toHaveAttribute("lang", "en-CH");
     expect(english).toHaveAttribute("hreflang", "en-CH");
+  });
+
+  it("renders as the sibling of the theme pill: a bordered rounded nav whose active segment alone carries the accent fill and the medium weight", () => {
+    renderSwitcher("en-CH");
+    const nav = screen.getByRole("navigation", { name: en.common.language });
+    expect(nav).toHaveClass("inline-flex", "rounded-full", "border", "bg-background", "p-0.5");
+    const german = screen.getByRole("link", { name: en.common.german });
+    const english = screen.getByRole("link", { name: en.common.english });
+    for (const segment of [german, english]) {
+      expect(segment).toHaveClass("h-7", "rounded-full");
+      expect(segment.tagName).toBe("A");
+    }
+    expect(english).toHaveClass("bg-accent", "text-accent-foreground", "shadow-xs", "font-medium");
+    expect(german).toHaveClass("text-muted-foreground");
+    expect(german).not.toHaveClass("bg-accent", "font-medium");
   });
 
   it("stores the short code of the chosen language through setLocale on click, best effort", async () => {
