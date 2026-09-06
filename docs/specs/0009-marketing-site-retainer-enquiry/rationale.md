@@ -162,3 +162,19 @@ Why the deferred Sentry starts at once in the signed in areas: a hydration error
 Why a script and not the route table: Next 16 prints no sizes; the script measures what a browser downloads, runs locally after a build and in `e2e.yml` against the deployment, and checks the two structural clauses (no Sentry in the module scripts, no zod on the content pages) with two string markers, so the criterion is provable by one command.
 
 Why not `zod/mini` for the browser env: mini's entry re exports the same locales namespace, so the bytes would stay; the honest fix is no zod in that module at all.
+
+## Amendment 2026-09-06 (second): the owner's package ladder, optional phone and profiles
+
+### Context
+
+The spec was written before the owner's own pricing page existed. It named three assessments (compliance, safety management system, safety culture) plus a retainer, in that order, with the engineer drafting the descriptions. On 2026-09-06 the owner sent the pricing page and the imprint. The pricing page is a ladder: an EHS Culture Snapshot (remote, one day, CHF 2'000), an EHS System & Culture Snapshot (on site, two days, CHF 5'000, which contains the first), a Compliance Check with both snapshots (on site, five days, CHF 10'000) and an EHS Implementation Partner sold on demand. Each card carries a best for line, a delivery line, three pills, an output and an outcome. The imprint carries a registered name, an address, an email, a managing director, a UID and a VAT number, and no phone number; the company has no LinkedIn page yet.
+
+### Options considered
+
+1. Keep the spec's order and names, only set the prices. Cheapest, but the site would sell products the owner does not sell, under names the owner does not use. Rejected.
+2. Take the owner's ladder as the contract (chosen). The keys stay (they are wired into the enquiry topic and the tests), the order, the names and the card content change, all as catalog strings and one data file. The buttons stay sign up and contact, because "Buy package" needs the checkout of feature 11.
+3. Keep the phone placeholder until a number exists. The test that refuses placeholders would stay red, CI would stay red on the PR, and a wrong number could reach a public page. Rejected in favour of an optional phone the page omits.
+
+### Rationale
+
+The product ladder is the owner's call and the spec has no opinion to defend; the amendment moves the facts into the two places the spec already reserved for them (the catalogs and `packages.ts`) and keeps every mechanism (the order test, the positive price test, the placeholder test) alive. Making the phone and the profiles optional is the honest placeholder: nothing fake is published, the tests are green, and each fact is a one line edit when it exists. The imprint facts beyond the address (managing director, UID, VAT number) belong to the imprint page of feature 14 and are recorded in its follow-up.

@@ -9,7 +9,7 @@ Four prerendered pages in German and English under `src/app/[locale]/(marketing)
 | Page | English | German | What it holds |
 |---|---|---|---|
 | Landing | `/en` | `/de` | The hero with the company lookup field into sign up, three proof points, how it works, the packages overview, the campaign wall, a closing call to action |
-| Pricing | `/en/pricing` | `/de/preise` | The four packages from the catalog, what every package includes, a short FAQ |
+| Pricing | `/en/pricing` | `/de/preise` | The four packages of the owner's ladder in price order (three snapshots and the implementation partner on demand), what every package includes, a short FAQ |
 | About | `/en/about` | `/de/ueber-uns` | The story in three paragraphs, a campaign grid, how we work |
 | Contact | `/en/contact` | `/de/kontakt` | The contact facts and the enquiry form |
 
@@ -17,7 +17,7 @@ Every page is static: no page or layout on this path reads `searchParams`, `head
 
 - its title and description from `marketing.<page>.meta.*`, the canonical URL and the `hreflang` links through `marketingMetadata` in `src/features/marketing/metadata.ts`, plus the Open Graph and Twitter fields;
 - a social card (1200 by 630, the page's statement in Geist Bold on the jet ground) from the `opengraph-image.tsx` next to the page, rendered by `src/features/marketing/og-image.tsx` with the font vendored in `src/assets/fonts/` (OFL). Next builds the card URL from the internal locale segment (`/en-CH/pricing/opengraph-image-<hash>/card`), which the request proxy lets through; the card is generated on its first request and cached, not at build time;
-- structured data through the `JsonLd` component: `Organization` on every page (from the layout), `WebSite` on the landing, `ItemList` of four `Product` entries with a `CHF` offer on pricing (the retainer offer carries no price), `AboutPage` and `ContactPage`;
+- structured data through the `JsonLd` component: `Organization` on every page (from the layout), `WebSite` on the landing, `ItemList` of four `Product` entries with a `CHF` offer on pricing (the implementation partner's offer carries no price), `AboutPage` and `ContactPage`;
 - an entry in `sitemap.xml` in both languages with alternates. `robots.txt` answers `disallow: /` on every deployment that is not `VERCEL_ENV=production` (previews, staging, local), so only production invites indexing.
 
 The header (`src/components/marketing-header.tsx`) shows Pricing, About and Contact with `aria-current="page"` on the active one; the footer (`src/features/marketing/ui/marketing-footer.tsx`) shows Product, Company and, once feature 14 passes links, Legal.
@@ -25,8 +25,8 @@ The header (`src/components/marketing-header.tsx`) shows Pricing, About and Cont
 ## Changing copy, a price or a contact fact
 
 - **Copy**: every string is a key under `marketing.*` in `messages/de-CH.json` and `messages/en-CH.json` (`landing`, `pricing`, `about`, `contact`, `packages`, `nav`, `footer`). `tests/messages.test.ts` fails when the two catalogs drift.
-- **A price**: `PACKAGES` in `src/features/marketing/packages.ts` holds the price per package (`priceChf`, null for the retainer) and the order. Names, promises and included points are catalog keys under `marketing.packages.<key>.*`. `tests/features/marketing/catalog.test.ts` fails while a fixed price package carries a price of `0` or less.
-- **A contact fact**: `SITE` in `src/features/marketing/site.ts` (legal name, street, postal code, city, email, phone, profiles). Empty `SITE_PLACEHOLDERS` once the owner's facts are in; the same test fails while the list is not empty.
+- **A price**: `PACKAGES` in `src/features/marketing/packages.ts` holds the price per package (`priceChf`, null for the implementation partner) and the order by price. Names, promises, best for lines, delivery lines, included points, outputs and outcomes are catalog keys under `marketing.packages.<key>.*`, the four card labels under `marketing.pricing.*`. `tests/features/marketing/catalog.test.ts` fails while a fixed price package carries a price of `0` or less, when the order is not by price, or when a card string is missing in one language.
+- **A contact fact**: `SITE` in `src/features/marketing/site.ts` (legal name, street, postal code, city, email, phone, profiles). The phone is `null` and the profiles empty until they exist; the contact page omits the phone row and the `Organization` structured data omits `sameAs` meanwhile. A field that carries a placeholder goes on `SITE_PLACEHOLDERS`; the same test fails while the list is not empty.
 - **The email footer address** is a separate key, `email.layout.footerAddress` (see [email.md](email.md)).
 
 ## How an enquiry travels
@@ -47,7 +47,8 @@ The header (`src/components/marketing-header.tsx`) shows Pricing, About and Cont
 
 ## Per environment checklist
 
-- [ ] Owner: the three fixed prices in `packages.ts`, the contact facts in `site.ts` (and an empty `SITE_PLACEHOLDERS`), and a pass over the drafted copy, the package descriptions, the FAQ and the about story in both catalogs.
+- [x] Owner: the three fixed prices in `packages.ts`, the contact facts in `site.ts` (and an empty `SITE_PLACEHOLDERS`), both received on 2026-09-06.
+- [ ] Owner: a phone number and the LinkedIn company URL in `site.ts` when they exist, and a pass over the German package strings, the FAQ and the about story in both catalogs.
 - [ ] `NEXT_PUBLIC_APP_URL` is the absolute public host: canonical links, alternates, the sitemap and the social card URLs derive from it.
 - [ ] Deploy the tasks so the `purge-enquiries` schedule registers; `TRIGGER_SECRET_KEY` in Vercel so the action can trigger the alert and the acknowledgement.
 - [ ] `OPS_ALERT_WEBHOOK_URL` in Trigger.dev for the `enquiry.received` alert; on staging `EMAIL_ALLOWED_RECIPIENTS` keeps the acknowledgement from reaching outside addresses (stored as `skipped`).

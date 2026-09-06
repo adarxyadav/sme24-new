@@ -32,17 +32,21 @@ export type OrganizationInput = {
   readonly sameAs: readonly string[];
 };
 
-/** `Organization` for every marketing page (from the layout): name, url, logo, contact point and profiles. Pure. */
+/**
+ * `Organization` for every marketing page (from the layout): name, url, logo, contact point and
+ * profiles; the `sameAs` key is omitted while no profile exists (an empty list would only draw a
+ * validator warning). Pure.
+ */
 export function organizationJsonLd(input: OrganizationInput): WithContext<Organization> {
-  return {
+  const organization: WithContext<Organization> = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: input.name,
     url: input.url,
     logo: input.logo,
     contactPoint: { "@type": "ContactPoint", contactType: "sales", email: input.email },
-    sameAs: [...input.sameAs],
   };
+  return input.sameAs.length > 0 ? { ...organization, sameAs: [...input.sameAs] } : organization;
 }
 
 export type PageInput = {

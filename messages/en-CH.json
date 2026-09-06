@@ -142,7 +142,7 @@
       "packages": {
         "eyebrow": "Packages",
         "title": "Fixed price. No surprises.",
-        "lead": "Three assessments at a fixed price, and a retainer when you want a partner rather than a project."
+        "lead": "Three snapshots at a fixed price, and an implementation partner when you want results delivered rather than a project."
       },
       "wall": {
         "eyebrow": "Our SMEs",
@@ -182,7 +182,7 @@
     "pricing": {
       "meta": {
         "title": "Pricing",
-        "description": "Three fixed-price EHS assessments in CHF and a retainer on request. Every package includes a senior expert on site and a written report."
+        "description": "Three EHS snapshots at a fixed price in CHF and an implementation partner on demand. Every package includes a senior expert and a written report."
       },
       "og": {
         "statement": "Fixed price. No surprises."
@@ -192,16 +192,19 @@
       "lead": "Every package is one price, one senior expert, one report. Prices exclude 8.1% VAT.",
       "packagesLabel": "The packages",
       "vatNote": "excl. 8.1% VAT",
-      "priceOnRequest": "Price on request",
+      "onDemand": "On demand",
+      "bestForLabel": "Best for",
+      "outputLabel": "Output",
+      "outcomeLabel": "Outcome",
       "cta": "Start with the free benchmark",
-      "retainerCta": "Ask about the retainer",
+      "retainerCta": "Let's talk",
       "overviewLink": "See all prices",
       "included": {
         "title": "What every package includes.",
         "items": {
           "expert": "A senior expert, not a junior with a template.",
           "fixedPrice": "One fixed price, agreed before the first visit.",
-          "onSite": "On site at your company, not on a call.",
+          "onSite": "On site from the System Snapshot up; the Culture Snapshot runs remote in one day.",
           "report": "A written report with ranked actions."
         }
       },
@@ -358,44 +361,56 @@
     },
     "packages": {
       "compliance": {
-        "name": "Compliance assessment",
-        "promise": "Where you stand against the law, in one visit.",
+        "name": "Compliance Check, EHS System & Culture Snapshot",
+        "promise": "Know what to fix and how",
+        "bestFor": "fix systematically",
+        "delivery": "On-site · 5 Days",
         "included": {
-          "gapReview": "Gap review against Swiss EHS law and your permits",
-          "onSite": "One day on site with a senior expert",
-          "report": "Written report within ten working days",
-          "actions": "Ranked actions with effort and deadline"
-        }
+          "systemSnapshot": "System & Culture Snapshot",
+          "standards": "5 selected standards",
+          "roadmap": "Roadmap"
+        },
+        "output": "Compliance gaps & plan",
+        "outcome": "Clear action plan"
       },
       "sms": {
-        "name": "Safety management system assessment",
-        "promise": "Does your system work, or does it only exist on paper?",
+        "name": "EHS System & Culture Snapshot",
+        "promise": "Know your real risks",
+        "bestFor": "validate real risks",
+        "delivery": "On-site · 2 Days",
         "included": {
-          "systemReview": "Review of your management system against ISO 45001",
-          "onSite": "One day on site with a senior expert",
-          "report": "Written report within ten working days",
-          "actions": "Ranked actions with effort and deadline"
-        }
+          "cultureSnapshot": "Culture Snapshot",
+          "iso": "ISO 45001 · 7 categories",
+          "interviews": "Interviews"
+        },
+        "output": "Culture + system gaps",
+        "outcome": "Audit-ready reality"
       },
       "culture": {
-        "name": "Safety culture assessment",
-        "promise": "What your people do when nobody is watching.",
+        "name": "EHS Culture Snapshot",
+        "promise": "Know where you stand",
+        "bestFor": "quick visibility",
+        "delivery": "Remote · 1 Day",
         "included": {
-          "interviews": "Interviews and observations across shifts",
-          "onSite": "Two days on site with a senior expert",
-          "report": "Written report within ten working days",
-          "actions": "Ranked actions with effort and deadline"
-        }
+          "categories": "8 culture categories",
+          "levels": "5 levels",
+          "report": "Report"
+        },
+        "output": "Culture level per category",
+        "outcome": "Your culture level, rated"
       },
       "retainer": {
-        "name": "Retainer",
-        "promise": "A senior expert as your EHS partner, month after month.",
+        "name": "EHS Implementation Partner",
+        "promise": "Risks eliminated",
+        "bestFor": "deliver results",
+        "delivery": "On-site + Ongoing",
         "included": {
-          "namedExpert": "A named senior expert for your company",
-          "monthlyVisit": "A site visit every month",
-          "hotline": "A direct line for questions between visits",
-          "tracking": "Progress tracking against your action list"
-        }
+          "implementation": "Implementation",
+          "pmo": "PMO",
+          "coaching": "Coaching"
+        },
+        "output": "Measured risk reduction",
+        "outcome": "Execution & culture shift"
       }
     }
   },

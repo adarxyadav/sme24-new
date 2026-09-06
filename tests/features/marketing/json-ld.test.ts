@@ -34,6 +34,20 @@ describe("JSON-LD builders (AC-3)", () => {
     });
   });
 
+  it("omits the profiles key while no profile exists", () => {
+    const organization = organizationJsonLd({
+      name: "SME24",
+      url: "https://sme24.ch",
+      logo: "https://sme24.ch/icon.svg",
+      email: "service@sme24.ch",
+      sameAs: [],
+    });
+    expect("sameAs" in organization).toBe(false);
+    expect(JSON.parse(serializeJsonLd(organization))).toMatchObject({
+      contactPoint: { "@type": "ContactPoint", contactType: "sales", email: "service@sme24.ch" },
+    });
+  });
+
   it("builds the three page types with their language", () => {
     const page = {
       name: "About",

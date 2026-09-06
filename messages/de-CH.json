@@ -142,7 +142,7 @@
       "packages": {
         "eyebrow": "Pakete",
         "title": "Fixpreis. Keine Überraschungen.",
-        "lead": "Drei Assessments zum Fixpreis, und ein Retainer, wenn Sie einen Partner statt ein Projekt wollen."
+        "lead": "Drei Snapshots zum Fixpreis, und ein Umsetzungspartner, wenn Sie Resultate wollen statt ein Projekt."
       },
       "wall": {
         "eyebrow": "Unsere KMU",
@@ -182,7 +182,7 @@
     "pricing": {
       "meta": {
         "title": "Preise",
-        "description": "Drei EHS-Assessments zum Fixpreis in CHF und ein Retainer auf Anfrage. Jedes Paket enthält einen Senior-Experten vor Ort und einen schriftlichen Bericht."
+        "description": "Drei EHS-Snapshots zum Fixpreis in CHF und ein Umsetzungspartner auf Anfrage. Jedes Paket enthält einen Senior-Experten und einen schriftlichen Bericht."
       },
       "og": {
         "statement": "Fixpreis. Keine Überraschungen."
@@ -192,16 +192,19 @@
       "lead": "Jedes Paket ist ein Preis, ein Senior-Experte, ein Bericht. Preise exkl. 8.1% MWST.",
       "packagesLabel": "Die Pakete",
       "vatNote": "exkl. 8.1% MWST",
-      "priceOnRequest": "Preis auf Anfrage",
+      "onDemand": "Auf Anfrage",
+      "bestForLabel": "Ideal für",
+      "outputLabel": "Ergebnis",
+      "outcomeLabel": "Wirkung",
       "cta": "Mit dem kostenlosen Benchmark starten",
-      "retainerCta": "Retainer anfragen",
+      "retainerCta": "Sprechen wir",
       "overviewLink": "Alle Preise ansehen",
       "included": {
         "title": "Was jedes Paket enthält.",
         "items": {
           "expert": "Ein Senior-Experte, kein Junior mit Vorlage.",
           "fixedPrice": "Ein Fixpreis, vereinbart vor dem ersten Besuch.",
-          "onSite": "Vor Ort in Ihrem Unternehmen, nicht am Telefon.",
+          "onSite": "Vor Ort ab dem System-Snapshot; der Kultur-Snapshot läuft remote an einem Tag.",
           "report": "Ein schriftlicher Bericht mit priorisierten Massnahmen."
         }
       },
@@ -358,44 +361,56 @@
     },
     "packages": {
       "compliance": {
-        "name": "Compliance-Assessment",
-        "promise": "Wo Sie gegenüber dem Gesetz stehen, in einem Besuch.",
+        "name": "Compliance-Check, EHS-System- & Kultur-Snapshot",
+        "promise": "Wissen, was zu tun ist und wie",
+        "bestFor": "systematisch beheben",
+        "delivery": "Vor Ort · 5 Tage",
         "included": {
-          "gapReview": "Gap-Review gegen das Schweizer EHS-Recht und Ihre Bewilligungen",
-          "onSite": "Ein Tag vor Ort mit einem Senior-Experten",
-          "report": "Schriftlicher Bericht innerhalb von zehn Arbeitstagen",
-          "actions": "Priorisierte Massnahmen mit Aufwand und Frist"
-        }
+          "systemSnapshot": "System- & Kultur-Snapshot",
+          "standards": "5 ausgewählte Standards",
+          "roadmap": "Roadmap"
+        },
+        "output": "Compliance-Lücken & Plan",
+        "outcome": "Klarer Massnahmenplan"
       },
       "sms": {
-        "name": "Assessment Sicherheitsmanagementsystem",
-        "promise": "Funktioniert Ihr System, oder existiert es nur auf Papier?",
+        "name": "EHS-System- & Kultur-Snapshot",
+        "promise": "Ihre echten Risiken kennen",
+        "bestFor": "echte Risiken validieren",
+        "delivery": "Vor Ort · 2 Tage",
         "included": {
-          "systemReview": "Prüfung Ihres Managementsystems gegen ISO 45001",
-          "onSite": "Ein Tag vor Ort mit einem Senior-Experten",
-          "report": "Schriftlicher Bericht innerhalb von zehn Arbeitstagen",
-          "actions": "Priorisierte Massnahmen mit Aufwand und Frist"
-        }
+          "cultureSnapshot": "Kultur-Snapshot",
+          "iso": "ISO 45001 · 7 Kategorien",
+          "interviews": "Interviews"
+        },
+        "output": "Kultur- und Systemlücken",
+        "outcome": "Audit-fähige Realität"
       },
       "culture": {
-        "name": "Assessment Sicherheitskultur",
-        "promise": "Was Ihre Leute tun, wenn niemand hinschaut.",
+        "name": "EHS-Kultur-Snapshot",
+        "promise": "Wissen, wo Sie stehen",
+        "bestFor": "schnelle Sichtbarkeit",
+        "delivery": "Remote · 1 Tag",
         "included": {
-          "interviews": "Interviews und Beobachtungen über alle Schichten",
-          "onSite": "Zwei Tage vor Ort mit einem Senior-Experten",
-          "report": "Schriftlicher Bericht innerhalb von zehn Arbeitstagen",
-          "actions": "Priorisierte Massnahmen mit Aufwand und Frist"
-        }
+          "categories": "8 Kulturkategorien",
+          "levels": "5 Stufen",
+          "report": "Bericht"
+        },
+        "output": "Kulturstufe pro Kategorie",
+        "outcome": "Ihre Kulturstufe, bewertet"
       },
       "retainer": {
-        "name": "Retainer",
-        "promise": "Ein Senior-Experte als Ihr EHS-Partner, Monat für Monat.",
+        "name": "EHS-Umsetzungspartner",
+        "promise": "Risiken beseitigt",
+        "bestFor": "Resultate liefern",
+        "delivery": "Vor Ort + laufend",
         "included": {
-          "namedExpert": "Ein fester Senior-Experte für Ihr Unternehmen",
-          "monthlyVisit": "Ein Standortbesuch pro Monat",
-          "hotline": "Ein direkter Draht für Fragen zwischen den Besuchen",
-          "tracking": "Fortschrittskontrolle entlang Ihrer Massnahmenliste"
-        }
+          "implementation": "Umsetzung",
+          "pmo": "PMO",
+          "coaching": "Coaching"
+        },
+        "output": "Gemessene Risikoreduktion",
+        "outcome": "Umsetzung & Kulturwandel"
       }
     }
   },

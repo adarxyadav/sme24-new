@@ -37,24 +37,32 @@ if (!compliance || !retainer)
   throw new Error("the catalog needs the compliance and retainer packages");
 
 describe("PackageCard (spec 0009, AC-5, AC-6)", () => {
-  it("shows the price without decimals in CHF, the VAT note, the points and the sign up call to action", () => {
+  it("shows the price without decimals in CHF, the VAT note, the card lines, the pills and the sign up call to action", () => {
     renderIn("en-CH", <PackageCard entry={{ ...compliance, priceChf: 4900 }} />);
-    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
-      en.marketing.packages.compliance.name,
-    );
+    const messages = en.marketing.packages.compliance;
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(messages.name);
+    expect(screen.getByText(messages.promise)).toBeInTheDocument();
+    expect(screen.getByText(messages.bestFor)).toBeInTheDocument();
     // ICU's Swiss grouping character differs between Node versions: match CHF, the digits and any mark.
     expect(screen.getByText(/CHF\s?4.?900$/)).toBeInTheDocument();
     expect(screen.getByText(en.marketing.pricing.vatNote)).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem")).toHaveLength(compliance.included.length);
+    expect(screen.getByText(messages.delivery)).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem").map((item) => item.textContent)).toEqual(
+      compliance.included.map(
+        (point) => messages.included[point as keyof typeof messages.included],
+      ),
+    );
+    expect(screen.getByText(messages.output)).toBeInTheDocument();
+    expect(screen.getByText(messages.outcome)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: en.marketing.pricing.cta })).toHaveAttribute(
       "href",
       "/en/sign-up",
     );
   });
 
-  it("shows price on request and the contact call to action with the retainer topic", () => {
+  it("shows on demand and the contact call to action with the retainer topic", () => {
     renderIn("de-CH", <PackageCard entry={retainer} />);
-    expect(screen.getByText(de.marketing.pricing.priceOnRequest)).toBeInTheDocument();
+    expect(screen.getByText(de.marketing.pricing.onDemand)).toBeInTheDocument();
     expect(screen.queryByText(de.marketing.pricing.vatNote)).toBeNull();
     expect(screen.getByRole("link", { name: de.marketing.pricing.retainerCta })).toHaveAttribute(
       "href",
@@ -62,9 +70,11 @@ describe("PackageCard (spec 0009, AC-5, AC-6)", () => {
     );
   });
 
-  it("links to the pricing page and hides the points in the overview variant", () => {
+  it("links to the pricing page and hides the details in the overview variant", () => {
     renderIn("en-CH", <PackageCard entry={{ ...compliance, priceChf: 4900 }} variant="overview" />);
     expect(screen.queryByRole("list")).toBeNull();
+    expect(screen.queryByText(en.marketing.packages.compliance.delivery)).toBeNull();
+    expect(screen.queryByText(en.marketing.packages.compliance.bestFor)).toBeNull();
     expect(screen.getByRole("link", { name: en.marketing.pricing.overviewLink })).toHaveAttribute(
       "href",
       "/en/pricing",

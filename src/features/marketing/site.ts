@@ -9,8 +9,9 @@ export type Site = {
   readonly postalCode: string;
   readonly city: string;
   readonly email: string;
-  readonly phone: string;
-  /** Profile URLs for the organization's `sameAs` (LinkedIn first). */
+  /** The phone number in international form, or null while the company has none (the page omits the row). */
+  readonly phone: string | null;
+  /** Profile URLs for the organization's `sameAs` (LinkedIn first); empty while none exists (the key is omitted). */
   readonly sameAs: readonly string[];
 };
 
@@ -20,16 +21,16 @@ export const SITE: Site = {
   postalCode: "6340",
   city: "Baar",
   email: "service@sme24.ch",
-  phone: "+41 44 000 00 00",
-  sameAs: ["https://www.linkedin.com/company/sme24"],
+  phone: null,
+  sameAs: [],
 };
 
 /**
- * The fields still carrying a placeholder from the build (spec 0009, Follow-up): the owner
- * replaces the values above and empties this list. The site facts test (AC-17) fails while it is
- * not empty, so a placeholder can never reach production unnoticed.
+ * The fields still carrying a placeholder from the build (spec 0009, Follow-up): empty since the
+ * owner's facts of 2026-09-06. A future placeholder goes on this list, and the site facts test
+ * (AC-17) fails while it is not empty, so a placeholder can never reach production unnoticed.
  */
-export const SITE_PLACEHOLDERS: readonly (keyof Site)[] = ["phone", "sameAs"];
+export const SITE_PLACEHOLDERS: readonly (keyof Site)[] = [];
 
 /** The postal address on one line, as the structured data and the email footer show it. Pure. */
 export function postalAddress(site: Site = SITE): string {

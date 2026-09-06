@@ -76,15 +76,17 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
                 {SITE.email}
               </a>
             </span>
-            <span className="flex flex-col">
-              <span className="text-muted-foreground text-xs">{t("facts.phone")}</span>
-              <a
-                href={`tel:${SITE.phone.replaceAll(" ", "")}`}
-                className="underline underline-offset-4"
-              >
-                {SITE.phone}
-              </a>
-            </span>
+            {SITE.phone ? (
+              <span className="flex flex-col">
+                <span className="text-muted-foreground text-xs">{t("facts.phone")}</span>
+                <a
+                  href={`tel:${SITE.phone.replaceAll(" ", "")}`}
+                  className="underline underline-offset-4"
+                >
+                  {SITE.phone}
+                </a>
+              </span>
+            ) : null}
           </address>
         </section>
         <section aria-labelledby="enquiry-heading" className="flex max-w-2xl flex-col gap-6">
