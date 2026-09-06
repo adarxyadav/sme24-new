@@ -7,6 +7,7 @@ Part of the [SME24 scope](index.md). After payment an expert visits the client a
 ### 16. Expert accounts & profiles · needs a decision
 Ops invites senior EHS experts. An expert signs in to an expert area, keeps a profile (competencies, industries, standards covered, languages, region, availability), and sees the assessments and programs assigned to them. Profile data feeds matching in Slice 6.
 **Done when:** ops can invite an expert, the expert completes a profile and sees only their assigned assessments and clients; a client can see the name and profile summary of the expert assigned to them.
+Carried over from earlier specs: reuse the `pnpm user:invite` path (invite, fixed role, confirm handler) behind an ops UI and record the expert's own consent at first sign in (spec 0005).
 - [ ] Design it (spec): `/architect expert accounts & profiles`
 
 ### 17. Structured assessment forms · needs a decision

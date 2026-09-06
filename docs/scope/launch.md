@@ -23,9 +23,21 @@ spec [0009](../specs/0009-marketing-site-retainer-enquiry/index.md)
 ### 14. Legal, privacy & cookie consent · needs a decision
 Swiss revised FADP basics with GDPR readiness for EU clients: privacy policy, terms, a data processing agreement template, a record of what is processed and where it is stored, deletion and export on request, and a cookie consent banner that gates analytics and marketing scripts until consent is given. The consent pattern is cross cutting, so it needs a decision before analytics ships.
 **Done when:** privacy, terms and DPA pages exist in both languages; no analytics or marketing script loads before consent and the choice is remembered; a client can request deletion or export and ops can fulfil it with a record.
+Carried over from earlier specs: point the sign up consent links at the real pages, add a terms version beside `terms_accepted_at` and re consent when it changes (spec 0005); fill the footer's legal group and the enquiry form's privacy link (spec 0009); the retention rules for `benchmark_snapshots` and for enquiries belong in the record of processing (specs 0008 and 0009).
 - [ ] Design it (spec): `/architect legal, privacy & cookie consent`
 
 ### 15. Analytics & monitoring · needs a decision
 Conversion funnel events (lookup started, run finished, benchmark viewed, checkout started, payment completed, enquiry sent) plus runtime error monitoring, failed background job alerts and slow page reporting. The event taxonomy is the decision; consent from feature 14 gates the client side part.
 **Done when:** each funnel event is recorded with organization and language, a funnel view shows drop off between steps, runtime errors and failed research runs alert your team with enough context to reproduce.
+Carried over from earlier specs: `benchmark.viewed` and `benchmark.computed` with their properties (spec 0008), `kpi.client_saved` and `kpi.client_cleared` (spec 0010), and confirm or rename the provisional `enquiry_sent` event and add the marketing funnel events (spec 0009).
 - [ ] Design it (spec): `/architect analytics & monitoring`
+
+### 25. Peer data curation & launch gate · Beta
+The first peer seed is provisional by design (spec 0008): every row in `supabase/seed-data/*.csv` was read from a named source on 6 Sep 2026 and is marked so on every benchmark card. Before Release 1 the rows are replaced from the published tables named in `docs/benchmark.md`, the seed migration is regenerated, every company on staging is recomputed, and the pgTAP seed assertions flip from "all provisional" to "none". Data work with the scripts that already exist, not a new design; you sign off the sources.
+**Done when:** no row in `supabase/seed-data/*.csv` is provisional, the seed migration is committed, `pnpm benchmarks:recompute` has refreshed staging, and the gate query in `docs/benchmark.md` returns zero rows on both tables.
+- [ ] Build it: `/develop peer data curation & launch gate`
+
+### 26. Production environment & go live
+No production exists yet: `main` deploys to staging and the `production` branch has nowhere to go. This row is the production half of every runbook: a production Supabase project in Zurich, the Vercel production environment on the product domain, the sending domain verified in Resend with the auth and product email keys, the Parallel, AI Gateway, Trigger.dev and Slack values, the Supabase custom auth domain so consent screens and email links show the product domain (spec 0005), the Vercel firewall rules from spec 0001, branch protection on `main` and `production`, and the first promotion pull request. `docs/auth.md`, `docs/email.md`, `docs/research.md`, `docs/benchmark.md` and `docs/marketing.md` already carry the per environment checklists; this is where they get ticked for production. Feature 25 must be done first.
+**Done when:** the `production` branch deploys to the product domain; every runbook's production checklist is ticked; a pilot client can sign up, run a research, see a benchmark and send an enquiry on production; the e2e job is green on the production deployment.
+- [ ] Build it: `/develop production environment & go live`
