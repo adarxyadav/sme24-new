@@ -42,6 +42,8 @@ export type EnquiryStatusFormProps = {
  */
 export function EnquiryStatusForm({ id, status, opsNote }: EnquiryStatusFormProps) {
   const t = useTranslations("enquiries");
+  // The note's rule carries a key of `enquiries.form.errors` (`noteLong`), so its own translator.
+  const errorText = useTranslations("enquiries.form.errors");
   const locale = useLocale();
   const router = useRouter();
   const form = useForm<UpdateEnquiryInput, unknown, UpdateEnquiryValues>({
@@ -105,7 +107,7 @@ export function EnquiryStatusForm({ id, status, opsNote }: EnquiryStatusFormProp
           />
           <FieldDescription id="enquiry-ops-note-hint">{t("form.opsNoteHint")}</FieldDescription>
           <FieldError id="enquiry-ops-note-error">
-            {issueMessage(errors.opsNote?.message, t)}
+            {issueMessage(errors.opsNote?.message, errorText)}
           </FieldError>
         </Field>
       </FieldGroup>
