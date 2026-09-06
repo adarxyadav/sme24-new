@@ -56,7 +56,11 @@ function LocaleMenu({ query }: { query?: Query }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={t("language")}
+        // The trigger's visible text is the language name, so the accessible name has to contain
+        // it (WCAG 2.5.3, Label in Name): "Language: English", never a bare "Language" that would
+        // replace it. axe cannot catch a regression here -- `label-content-name-mismatch` ships
+        // disabled as experimental, so `WCAG_TAGS` never runs it; the unit test is the guard.
+        aria-label={t("languageNamed", { language: t(LABEL_KEY[locale]) })}
         className="inline-flex h-[34px] items-center gap-1 rounded-full border bg-background pr-2.5 pl-3 text-muted-foreground text-xs outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-open:text-foreground"
       >
         {t(LABEL_KEY[locale])}

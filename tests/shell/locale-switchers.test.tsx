@@ -81,10 +81,22 @@ beforeEach(() => {
   boundary.setLocale.mockResolvedValue({ ok: true, data: { persisted: true } });
 });
 
+/**
+ * The dropdown trigger's accessible name, "Sprache: Deutsch" / "Language: English": the visible
+ * language name prefixed by the label, so the spoken name contains what a sighted user reads
+ * (WCAG 2.5.3, Label in Name).
+ */
+function triggerName(locale: "de-CH" | "en-CH", shown: "german" | "english" = "german") {
+  const common = MESSAGES[locale].common;
+  return common.languageNamed.replace("{language}", common[shown]);
+}
+
 describe("LocaleSwitcher, the marketing dropdown (spec 0004, AC-2)", () => {
   /** Opens the menu and answers its items; Radix renders them in a portal only once open. */
   async function openMenu(user: ReturnType<typeof userEvent.setup>, locale: "de-CH" | "en-CH") {
-    const trigger = screen.getByRole("button", { name: MESSAGES[locale].common.language });
+    const trigger = screen.getByRole("button", {
+      name: triggerName(locale, locale === "de-CH" ? "german" : "english"),
+    });
     await user.click(trigger);
     return trigger;
   }
@@ -92,7 +104,7 @@ describe("LocaleSwitcher, the marketing dropdown (spec 0004, AC-2)", () => {
   it("is a button labelled with the language label, showing the current language, that opens a menu of one link per locale", async () => {
     const user = userEvent.setup();
     renderSwitcher();
-    const trigger = screen.getByRole("button", { name: de.common.language });
+    const trigger = screen.getByRole("button", { name: triggerName("de-CH") });
     expect(trigger).toHaveTextContent(de.common.german);
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     await user.click(trigger);
@@ -101,6 +113,24 @@ describe("LocaleSwitcher, the marketing dropdown (spec 0004, AC-2)", () => {
     expect(items.map((item) => item.textContent)).toEqual([de.common.german, de.common.english]);
     for (const item of items) expect(item.tagName).toBe("A");
   });
+
+  // axe cannot guard this: `label-content-name-mismatch` ships disabled as experimental in
+  // axe-core, so the e2e gate's WCAG_TAGS never runs it and a green suite proves nothing here.
+  it.each([
+    ["de-CH", "german"],
+    ["en-CH", "english"],
+  ] as const)(
+    "names the trigger with its own visible text included, in %s (WCAG 2.5.3)",
+    (locale, shown) => {
+      boundary.params = { locale };
+      renderSwitcher(locale);
+      const visible = MESSAGES[locale].common[shown];
+      const trigger = screen.getByRole("button", { name: triggerName(locale, shown) });
+      expect(trigger).toHaveTextContent(visible);
+      // The accessible name is a superset of the visible label, not a replacement for it.
+      expect(trigger.getAttribute("aria-label")).toContain(visible);
+    },
+  );
 
   it("keeps the path and the whole query string, repeated keys included, in both links", async () => {
     const user = userEvent.setup();
@@ -185,7 +215,7 @@ describe("LocaleSwitcher, the marketing dropdown (spec 0004, AC-2)", () => {
     const user = userEvent.setup();
     renderSwitcher();
     await user.tab();
-    const trigger = screen.getByRole("button", { name: de.common.language });
+    const trigger = screen.getByRole("button", { name: triggerName("de-CH") });
     expect(trigger).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(await screen.findByRole("menuitem", { name: de.common.german })).toHaveFocus();
