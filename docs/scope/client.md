@@ -41,16 +41,16 @@ The core thread. A client enters a company name, a background pipeline researche
 **Done when:** entering a company name starts a background run visible in the dashboard; within a few minutes the run stores KPIs with source references and the dashboard renders them; a failed or empty run shows a clear state the client can act on.
 spec [0007](../specs/0007-company-research-pipeline/index.md) · code in `src/features/research/`, `src/lib/research/`, `src/lib/ai/`, `src/trigger/research-company.ts`, `src/trigger/sweep-research-runs.ts`
 - [x] Design it (spec): `/architect company lookup & research pipeline`
-- [ ] Build it: `/develop company lookup & research pipeline`
+- [x] Build it: `/develop company lookup & research pipeline`
   - [x] Thin thread on the fixture: the migration (KPI seed, `provider_run_id`, the open run index, the quota helper, the insert and update policies) with pgTAP, the catalogue and schemas, `requestResearch`, the lookup form on `/app`, the fixture provider, the `research-company` task writing KPI rows, the live dashboard with the progress list and the KPI table (AC-1, AC-2, AC-3, AC-9, AC-12, AC-6 and AC-7 in part)
-  - [ ] Real provider (code built, the spike against the real Task API is owed until a Parallel key exists): the basis spike, the Parallel SDK provider with the output schema, poll and resume on `wait.for`, error classification, env and structured logs (AC-4, AC-10, AC-13, AC-15, AC-16)
+  - [x] Real provider (proven on a real Parallel run for Geberit AG on 6 Sep 2026, 18 KPIs from 11 sources in 4.4 minutes): the basis spike, the Parallel SDK provider with the output schema, poll and resume on `wait.for`, error classification, env and structured logs (AC-4, AC-10, AC-13, AC-15, AC-16)
   - [x] Validation pass: `src/lib/ai/` on the AI SDK through the gateway, the validation schema and prompt, the unit, range and conflict rules, the skipped fallback, the company facts write (AC-5, AC-6, AC-7, AC-13)
   - [x] Failure rail and reruns: the `onFailure` hook with error codes, the `research.run_failed` alert with the Trigger.dev link, the stale sweep schedule, `rerunResearch` and the empty and failed states (AC-8, AC-10, AC-11)
   - [x] Hardening and docs: Vitest, pgTAP and the Playwright fixture thread with axe, the design gallery section, `docs/research.md` with the hosted checklist (AC-1, AC-12, AC-14, AC-16)
-- [ ] Verify it: `/check verify company lookup & research pipeline`
+- [x] Verify it: `/check verify company lookup & research pipeline`
 - [x] Test it: `/test company lookup & research pipeline`
-- [ ] Review it (fresh model): `/check review company lookup & research pipeline`
-- [ ] Document it: `/document company lookup & research pipeline`
+- [x] Review it (fresh model): `/check review company lookup & research pipeline`
+- [x] Document it: `/document company lookup & research pipeline`
 
 ## Slice 2: Show the opportunity
 
