@@ -54,7 +54,7 @@ spec [0007](../specs/0007-company-research-pipeline/index.md) · code in `src/fe
 
 ## Slice 2: Show the opportunity
 
-### 9. Peer benchmark & CHF opportunity · in-progress
+### 9. Peer benchmark & CHF opportunity · done
 Thickens the dashboard segment. Extracted KPIs are compared against industry peers, the highest priority gaps are ranked, and the annual cost of incidents is estimated in CHF so the client sees the size of the saving. The peer data set, the cost model and how confidence is shown are the decisions.
 **Done when:** the dashboard shows the company's position against peers per KPI, a ranked list of priority gaps, and an annual incident cost estimate in CHF with its assumptions visible; the numbers are traceable to stored inputs.
 spec [0008](../specs/0008-peer-benchmark-chf-opportunity/index.md) · code in `src/features/benchmark/`, `src/trigger/benchmark-company.ts`, `supabase/schemas/24_benchmarks.sql` to `26_benchmark_snapshots.sql`, `supabase/seed-data/`

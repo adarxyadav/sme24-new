@@ -1,7 +1,7 @@
 # 0008. Peer benchmark and CHF opportunity
 
 **Date**: 2026-09-06
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
