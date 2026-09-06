@@ -15,18 +15,21 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import type { StaticPathname } from "@/i18n/pathnames";
 
 export type MarketingLink = { readonly href: StaticPathname; readonly label: string };
 
 /**
- * Public site header (spec 0003): wordmark, navigation links, language, theme and sign in. Links
- * collapse into a sheet below `md`. Runs in the browser; the marketing layout passes the links.
+ * Public site header (spec 0003; spec 0009, AC-7): wordmark, navigation links with
+ * `aria-current="page"` on the active one, language, theme and sign in. Links collapse into a
+ * sheet below `md`. Runs in the browser; the marketing layout passes the links.
  */
 export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) {
   const t = useTranslations();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const current = (href: StaticPathname) => (pathname === href ? ("page" as const) : undefined);
 
   return (
     <header className="border-b bg-background">
@@ -40,7 +43,8 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
             <Link
               key={link.href}
               href={link.href}
-              className="font-medium text-muted-foreground text-sm underline-offset-4 hover:text-foreground hover:underline"
+              aria-current={current(link.href)}
+              className="font-medium text-muted-foreground text-sm underline-offset-4 hover:text-foreground hover:underline aria-[current=page]:text-foreground aria-[current=page]:underline"
             >
               {link.label}
             </Link>
@@ -77,8 +81,9 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
                   <Link
                     key={link.href}
                     href={link.href}
+                    aria-current={current(link.href)}
                     onClick={() => setOpen(false)}
-                    className="rounded-md px-2 py-2 font-medium text-sm hover:bg-muted"
+                    className="rounded-md px-2 py-2 font-medium text-sm hover:bg-muted aria-[current=page]:bg-muted"
                   >
                     {link.label}
                   </Link>

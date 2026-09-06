@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import type { StaticPathname } from "@/i18n/pathnames";
-import { localeFromCode, routing } from "@/i18n/routing";
+import { LOCALES, localeFromCode, routing } from "@/i18n/routing";
 import { localizedPath, roleHomePath } from "@/lib/auth/redirects";
 import {
   AREA_ROLE,
@@ -12,7 +12,8 @@ import {
 import { createProxyClient } from "@/lib/supabase/proxy";
 
 /**
- * Request proxy (spec 0001, spec 0005). Runs on the Node runtime. Order:
+ * Request proxy (spec 0001, spec 0005, spec 0009). Runs on the Node runtime. Order:
+ * 0. The generated social card routes pass through under their internal locale segment.
  * 1. next-intl: `/` -> `/en`, locale prefix always, locale cookie on explicit switch.
  * 2. Supabase: refresh the session cookies on the response we are about to return.
  * 3. A signed in user on a sign in, sign up, code or forgot password page goes to their role home
@@ -23,6 +24,16 @@ import { createProxyClient } from "@/lib/supabase/proxy";
  *    with one is sent from `/app/onboarding` to `/app`.
  */
 const handleI18n = createIntlMiddleware(routing);
+
+/**
+ * The generated social card routes (spec 0009, AC-2): Next builds their URLs from the internal
+ * locale segment (`/en-CH/pricing/opengraph-image-<hash>/card`), which next-intl would otherwise
+ * treat as an unprefixed path and redirect into a 404. Only these image routes pass through
+ * under the full tag; every other `/de-CH/...` path still lands on the not found page.
+ */
+const METADATA_IMAGE_PATH = new RegExp(
+  `^/(?:${LOCALES.join("|")})/(?:.+/)?(?:opengraph|twitter)-image[^/]*(?:/.*)?$`,
+);
 
 /** The auth pages a signed in user is bounced from (spec 0005, AC-8). */
 const AUTH_PAGES: readonly StaticPathname[] = [
@@ -45,6 +56,8 @@ function redirectKeepingCookies(path: string, request: NextRequest, response: Ne
 }
 
 export async function proxy(request: NextRequest) {
+  if (METADATA_IMAGE_PATH.test(request.nextUrl.pathname)) return NextResponse.next();
+
   const response = handleI18n(request);
 
   // A redirect or rewrite from next-intl (for example `/` -> `/en`) needs no auth work.

@@ -24,9 +24,10 @@ const codeSchema = signUpSchema.extend({ password: z.string().max(256) });
 /**
  * Sign up with a password or with an emailed code (AC-1, AC-2, AC-11): React Hook Form with the
  * feature schema, inline errors, the consent box, and the inbox state after a successful submit.
- * Browser.
+ * `defaultCompany` prefills the organization name from the landing page's lookup field (spec
+ * 0009, AC-5). Browser.
  */
-export function SignUpForm() {
+export function SignUpForm({ defaultCompany = "" }: { readonly defaultCompany?: string }) {
   const t = useTranslations("auth.signUp");
   const v = useTranslations("auth.validation");
   const locale = useLocale();
@@ -38,7 +39,7 @@ export function SignUpForm() {
     }),
     defaultValues: {
       fullName: "",
-      organizationName: "",
+      organizationName: defaultCompany,
       email: "",
       password: "",
       termsAccepted: false,
@@ -97,6 +98,7 @@ export function SignUpForm() {
           <Input
             id="organizationName"
             autoComplete="organization"
+            defaultValue={defaultCompany}
             aria-invalid={errors.organizationName ? true : undefined}
             aria-describedby={errors.organizationName ? "organizationName-error" : undefined}
             {...form.register("organizationName")}

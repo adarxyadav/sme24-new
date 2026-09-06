@@ -65,6 +65,8 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Captcha or edge rate limiting on the enquiry form**: the honeypot, the timing check and the two counted limits ship first; add a challenge or an edge limiter only if the flood guard proves too weak in production · from spec 0009
 - **Lighthouse in CI**: a Lighthouse CI job on the Vercel preview once the hand recorded numbers are stable · from spec 0009
 - **Dismissing a research value**: a client marks a research figure as unreliable without replacing it (a dismissal flag or table plus a benchmark rule); clearing only removes the client's own figure · from spec 0010 · needs a decision
+- **Lighter public shell**: move the toaster and the tooltip provider out of the root layout and replace the header's Radix sheet and menus on the public path with a CSS only disclosure (about 55 kB gzipped together), only if Lighthouse mobile misses LCP on a marketing page · from spec 0009 amendment
+- **zod locales out of the form pages**: `/contact` and the auth pages carry zod's forty message locales (about 45 kB gzipped) because zod's index re exports them; lower the contact budget to 300 kB when a zod release stops that · from spec 0009 amendment
 
 ## Legend
 

@@ -489,6 +489,91 @@ export type Database = {
           },
         ]
       }
+      enquiries: {
+        Row: {
+          company_name: string
+          contact_name: string
+          created_at: string
+          email: string
+          handled_at: string | null
+          handled_by: string | null
+          headcount_band: string | null
+          id: string
+          ip_hash: string | null
+          locale: string
+          message: string
+          ops_note: string | null
+          organization_id: string | null
+          phone: string | null
+          status: string
+          submitted_by: string | null
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          contact_name: string
+          created_at?: string
+          email: string
+          handled_at?: string | null
+          handled_by?: string | null
+          headcount_band?: string | null
+          id?: string
+          ip_hash?: string | null
+          locale: string
+          message: string
+          ops_note?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          status?: string
+          submitted_by?: string | null
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          contact_name?: string
+          created_at?: string
+          email?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          headcount_band?: string | null
+          id?: string
+          ip_hash?: string | null
+          locale?: string
+          message?: string
+          ops_note?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          status?: string
+          submitted_by?: string | null
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enquiries_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enquiries_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enquiries_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expert_assignments: {
         Row: {
           assigned_by: string | null

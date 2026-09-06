@@ -5,11 +5,10 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { clientMessages } from "@/i18n/client-messages";
 import { routing } from "@/i18n/routing";
 import { AnalyticsProvider } from "@/lib/analytics/client";
+import { clientEnv } from "@/lib/env";
 
 // Geist is the one brand typeface (spec 0003, amendment of 2026-09-04); Helvetica and Arial are its fallback.
 const geistSans = Geist({
@@ -19,7 +18,7 @@ const geistSans = Geist({
 });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
-/** Site title and the localized description (AC-12); an unknown locale gets the default one. */
+/** Site title, the localized description (AC-12) and the metadata base for social images; an unknown locale gets the default one. */
 export async function generateMetadata({
   params,
 }: Pick<LayoutProps<"/[locale]">, "params">): Promise<Metadata> {
@@ -29,6 +28,8 @@ export async function generateMetadata({
     namespace: "metadata",
   });
   return {
+    // Relative image URLs (the generated social cards, spec 0009 AC-2) resolve against the app URL.
+    metadataBase: new URL(clientEnv().NEXT_PUBLIC_APP_URL),
     title: { default: "SME24", template: "%s · SME24" },
     description: t("description"),
   };
@@ -57,10 +58,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
       <body className="min-h-dvh antialiased" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            <TooltipProvider>
-              <AnalyticsProvider>{children}</AnalyticsProvider>
-            </TooltipProvider>
-            <Toaster />
+            {/*
+              `TooltipProvider` and `Toaster` live in `AreaShell`, not here: only the signed in
+              areas use them, and in the root layout their ~25 kB gzipped sat on the critical path
+              of every static marketing page (spec 0009, Follow-up, first LCP cut).
+            */}
+            <AnalyticsProvider>{children}</AnalyticsProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

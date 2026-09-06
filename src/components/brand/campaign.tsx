@@ -127,6 +127,8 @@ export type CampaignImageProps = {
   readonly grayscale?: boolean;
   readonly sizes?: string;
   readonly priority?: boolean;
+  /** `lazy` (the default of next/image) or `eager`; the first image below a hero says `lazy` explicitly (spec 0009, AC-16). */
+  readonly loading?: "lazy" | "eager";
 };
 
 /** The object image, cut out on white, filling its `CampaignFrame`. */
@@ -136,6 +138,7 @@ export function CampaignImage({
   grayscale = false,
   sizes = "(min-width: 768px) 50vw, 100vw",
   priority,
+  loading,
 }: CampaignImageProps) {
   return (
     <Image
@@ -144,6 +147,7 @@ export function CampaignImage({
       fill
       sizes={sizes}
       priority={priority}
+      loading={loading}
       className={cn("object-contain", grayscale ? "grayscale" : "")}
     />
   );

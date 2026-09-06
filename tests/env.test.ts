@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { clientEnv, EnvError, resetEnvCache, serverEnv, taskEnv } from "@/lib/env";
+import { publicEnv } from "@/lib/env.public";
 
 const valid = {
   NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
@@ -168,5 +171,56 @@ describe("the research provider variables (spec 0007, AC-12, AC-16)", () => {
     const keyed = await import("@/lib/env");
     expect(keyed.taskEnv().RESEARCH_PROVIDER).toBe("parallel");
     vi.resetModules();
+  });
+});
+
+describe("publicEnv, the browser view without zod (spec 0009 amendment, AC-16)", () => {
+  it("passes the six public values through, trimmed", () => {
+    stubAll({
+      ...valid,
+      NEXT_PUBLIC_APP_URL: " https://sme24.ch ",
+      NEXT_PUBLIC_SENTRY_DSN: "https://k@o.ingest.de.sentry.io/1",
+      NEXT_PUBLIC_POSTHOG_KEY: "phc_test",
+      NEXT_PUBLIC_POSTHOG_HOST: "https://eu.i.posthog.com",
+    });
+    expect(publicEnv()).toEqual({
+      NEXT_PUBLIC_SUPABASE_URL: valid.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: valid.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      NEXT_PUBLIC_APP_URL: "https://sme24.ch",
+      NEXT_PUBLIC_SENTRY_DSN: "https://k@o.ingest.de.sentry.io/1",
+      NEXT_PUBLIC_POSTHOG_KEY: "phc_test",
+      NEXT_PUBLIC_POSTHOG_HOST: "https://eu.i.posthog.com",
+    });
+  });
+
+  it("turns empty optional keys into undefined and defaults the PostHog host", () => {
+    stubAll({
+      ...valid,
+      NEXT_PUBLIC_SENTRY_DSN: " ",
+      NEXT_PUBLIC_POSTHOG_KEY: "",
+      NEXT_PUBLIC_POSTHOG_HOST: "",
+    });
+    const env = publicEnv();
+    expect(env.NEXT_PUBLIC_SENTRY_DSN).toBeUndefined();
+    expect(env.NEXT_PUBLIC_POSTHOG_KEY).toBeUndefined();
+    expect(env.NEXT_PUBLIC_POSTHOG_HOST).toBe("https://eu.i.posthog.com");
+  });
+
+  it("never throws: a missing required value is an empty string, validated on the server instead", () => {
+    stubAll({ ...valid, NEXT_PUBLIC_SUPABASE_URL: "" });
+    expect(() => publicEnv()).not.toThrow();
+    expect(publicEnv().NEXT_PUBLIC_SUPABASE_URL).toBe("");
+    expect(() => clientEnv()).toThrowError(EnvError);
+  });
+
+  it("reads the same six keys the browser schema validates", () => {
+    stubAll({ ...valid, NEXT_PUBLIC_SENTRY_DSN: "", NEXT_PUBLIC_POSTHOG_KEY: "" });
+    expect(Object.keys(publicEnv()).sort()).toEqual(Object.keys(clientEnv()).sort());
+  });
+
+  it("imports no zod, so the browser bundle of a content page carries none", () => {
+    const source = readFileSync(join(process.cwd(), "src/lib/env.public.ts"), "utf8");
+    expect(source).not.toMatch(/from "zod"/);
+    expect(source).not.toMatch(/from "@\/lib\/env"/);
   });
 });

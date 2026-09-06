@@ -2,7 +2,7 @@ import { render } from "@react-email/render";
 import { createElement, type ReactElement } from "react";
 import { localeFromCode } from "@/i18n/routing";
 import { createTranslatorFor } from "@/i18n/standalone";
-import { EMAIL_TEMPLATES, isEmailTemplateName } from "./registry";
+import { isEmailTemplateName, templateEntry } from "./registry";
 import type { EmailTemplateName } from "./schema";
 import type { TemplateProps } from "./templates/props";
 
@@ -30,10 +30,11 @@ export type RenderInput = {
  * the send-email task, the ops preview (server component) and the Vitest render test.
  */
 export async function renderEmail(input: RenderInput): Promise<RenderedEmail> {
-  const entry = EMAIL_TEMPLATES[input.template];
+  const entry = templateEntry(input.template);
   const data = entry.schema.parse(input.data);
   const t = await createTranslatorFor(localeFromCode(input.locale));
-  const href = `${input.appUrl.replace(/\/$/, "")}/${input.locale}${entry.link}`;
+  // The root link (`/`) gives the bare locale prefix, so the button never carries a trailing slash.
+  const href = `${input.appUrl.replace(/\/$/, "")}/${input.locale}${entry.link === "/" ? "" : entry.link}`;
   const subject = t(`email.${input.template}.subject`, messageValues(data));
   // The registry maps each name to its own data type; the entry's schema just parsed `data`, so
   // the component receives what it expects even though the union hides that from TypeScript.

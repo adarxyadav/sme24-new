@@ -53,7 +53,8 @@
     "admin": {
       "overview": "Übersicht",
       "design": "Design Galerie",
-      "emails": "E-Mails"
+      "emails": "E-Mails",
+      "enquiries": "Anfragen"
     }
   },
   "theme": {
@@ -72,24 +73,344 @@
       "reference": "Referenz: {id}"
     }
   },
-  "landing": {
-    "eyebrow": "EHS-Beratung zum Fixpreis",
-    "title": "Senior-Experten. Keine Slides. Nur Resultate.",
-    "lead": "Ein benchmarktes Risikoprofil, eine Shortlist erfahrener Expertinnen und Experten und ein Fixpreis-Angebot, bevor Sie sich festlegen.",
-    "signInCta": "Anmelden",
-    "pointsLabel": "Warum SME24",
-    "points": {
-      "price": {
-        "title": "Fixpreis.",
-        "body": "Kein Verhandeln, keine Überraschungen auf der Rechnung."
+  "marketing": {
+    "nav": {
+      "pricing": "Preise",
+      "about": "Über uns",
+      "contact": "Kontakt",
+      "freeBenchmark": "Kostenloser Benchmark"
+    },
+    "footer": {
+      "product": "Produkt",
+      "company": "Unternehmen",
+      "legal": "Rechtliches"
+    },
+    "landing": {
+      "meta": {
+        "title": "EHS-Beratung zum Fixpreis",
+        "description": "Benchmarken Sie das EHS-Risiko Ihres Unternehmens kostenlos, sehen Sie, was Unfälle Sie in CHF kosten, und buchen Sie eine Senior-Expertin zum Fixpreis."
       },
-      "negotiation": {
-        "title": "Kein Projekt-Setup.",
-        "body": "Vier Schritte. Keine Kickoff-Folien."
+      "og": {
+        "statement": "Senior-Experten. Keine Slides. Nur Resultate."
       },
-      "kickoff": {
-        "title": "Start in derselben Woche.",
-        "body": "Benchmark sehen, Expertin wählen, loslegen."
+      "eyebrow": "EHS-Beratung zum Fixpreis",
+      "title": "Senior-Experten. Keine Slides. Nur Resultate.",
+      "lead": "Ein benchmarktes Risikoprofil, eine Shortlist erfahrener Expertinnen und Experten und ein Fixpreis-Angebot, bevor Sie sich festlegen.",
+      "lookup": {
+        "label": "Ihr Unternehmen",
+        "placeholder": "Name des Unternehmens",
+        "cta": "Unternehmen kostenlos benchmarken"
+      },
+      "signIn": "Schon Kunde? Anmelden",
+      "pointsLabel": "Warum SME24",
+      "points": {
+        "price": {
+          "title": "Fixpreis.",
+          "body": "Kein Verhandeln, keine Überraschungen auf der Rechnung."
+        },
+        "negotiation": {
+          "title": "Kein Projekt-Setup.",
+          "body": "Vier Schritte. Keine Kickoff-Folien."
+        },
+        "kickoff": {
+          "title": "Start in derselben Woche.",
+          "body": "Benchmark sehen, Expertin wählen, loslegen."
+        }
+      },
+      "how": {
+        "eyebrow": "So funktioniert es",
+        "title": "Vier Schritte. Kein Kickoff.",
+        "steps": {
+          "lookup": {
+            "title": "Unternehmen suchen.",
+            "body": "Name eingeben. Wir recherchieren öffentliche Angaben im Hintergrund."
+          },
+          "benchmark": {
+            "title": "Benchmark in CHF sehen.",
+            "body": "Ihr Risikoprofil im Vergleich zu Ihren Peers, und was Unfälle Sie pro Jahr kosten."
+          },
+          "package": {
+            "title": "Paket wählen.",
+            "body": "Drei Fixpreise. Oder der Retainer, im Gespräch."
+          },
+          "expert": {
+            "title": "Experte vor Ort.",
+            "body": "Ein Senior-Experte, in derselben Woche. Bericht, Massnahmen, erledigt."
+          }
+        }
+      },
+      "packages": {
+        "eyebrow": "Pakete",
+        "title": "Fixpreis. Keine Überraschungen.",
+        "lead": "Drei Snapshots zum Fixpreis, und ein Umsetzungspartner, wenn Sie Resultate wollen statt ein Projekt."
+      },
+      "wall": {
+        "eyebrow": "Unsere KMU",
+        "title": "Worauf wir verzichten.",
+        "items": {
+          "teamevent": {
+            "statement": "Teamevent.",
+            "alt": "Grüner Bierharass mit Flaschen auf Eis"
+          },
+          "firmenwagen": {
+            "statement": "Firmenwagen.",
+            "alt": "Blaues Rennrad, freigestellt"
+          },
+          "dresscode": {
+            "statement": "Dresscode.",
+            "alt": "Dunkelblauer Overall mit Reflexstreifen"
+          },
+          "jahresbonus": {
+            "statement": "Jahresbonus.",
+            "alt": "Bergweg mit Blick auf das Matterhorn"
+          },
+          "noCosmetics": {
+            "statement": "Keine Kosmetik.",
+            "alt": "Stark geschminkte Frau mit übergrossen roten Lippen"
+          },
+          "noOverhead": {
+            "statement": "Kein Overhead.",
+            "alt": "Mann im Anzug mit Champagner zwischen Privatjet, Cabrio und Pool"
+          }
+        }
+      },
+      "closing": {
+        "title": "Starten Sie mit dem Benchmark. Er ist kostenlos.",
+        "lead": "Geben Sie den Namen Ihres Unternehmens ein. Der Benchmark folgt, ohne Kosten."
+      }
+    },
+    "pricing": {
+      "meta": {
+        "title": "Preise",
+        "description": "Drei EHS-Snapshots zum Fixpreis in CHF und ein Umsetzungspartner auf Anfrage. Jedes Paket enthält einen Senior-Experten und einen schriftlichen Bericht."
+      },
+      "og": {
+        "statement": "Fixpreis. Keine Überraschungen."
+      },
+      "eyebrow": "Preise",
+      "title": "Fixpreis. Keine Überraschungen.",
+      "lead": "Jedes Paket ist ein Preis, ein Senior-Experte, ein Bericht. Preise exkl. 8.1% MWST.",
+      "packagesLabel": "Die Pakete",
+      "vatNote": "exkl. 8.1% MWST",
+      "onDemand": "Auf Anfrage",
+      "bestForLabel": "Ideal für",
+      "outputLabel": "Ergebnis",
+      "outcomeLabel": "Wirkung",
+      "cta": "Mit dem kostenlosen Benchmark starten",
+      "retainerCta": "Sprechen wir",
+      "overviewLink": "Alle Preise ansehen",
+      "included": {
+        "title": "Was jedes Paket enthält.",
+        "items": {
+          "expert": "Ein Senior-Experte, kein Junior mit Vorlage.",
+          "fixedPrice": "Ein Fixpreis, vereinbart vor dem ersten Besuch.",
+          "onSite": "Vor Ort ab dem System-Snapshot; der Kultur-Snapshot läuft remote an einem Tag.",
+          "report": "Ein schriftlicher Bericht mit priorisierten Massnahmen."
+        }
+      },
+      "faq": {
+        "title": "Fragen.",
+        "items": {
+          "vat": {
+            "question": "Ist die MWST inbegriffen?",
+            "answer": "Nein. Die Preise sind in CHF und exkl. 8.1% MWST, die auf der Rechnung dazukommt."
+          },
+          "afterPayment": {
+            "question": "Was passiert nach der Zahlung?",
+            "answer": "Sie erhalten eine Quittung und einen Auftrag in Ihrem Dashboard. Innerhalb eines Arbeitstags meldet sich ein Senior-Experte, um den Besuch vorzubereiten."
+          },
+          "date": {
+            "question": "Wie wird der Termin festgelegt?",
+            "answer": "Der Experte schlägt Termine innerhalb von zwei Wochen nach dem Auftrag vor. Sie wählen einen, und der Besuch wird schriftlich bestätigt."
+          },
+          "cancellation": {
+            "question": "Kann ich stornieren?",
+            "answer": "Bis fünf Arbeitstage vor dem Besuch kostenlos. Danach verschieben wir den Termin einmal ohne Kosten."
+          }
+        }
+      },
+      "closing": {
+        "title": "Nicht sicher, welches? Starten Sie mit dem Benchmark.",
+        "cta": "Unternehmen kostenlos benchmarken"
+      }
+    },
+    "about": {
+      "meta": {
+        "title": "Über uns",
+        "description": "Warum SME24 EHS-Beratung zum Fixpreis verkauft, mit Senior-Experten und ohne Slides."
+      },
+      "og": {
+        "statement": "Keine Slides. Resultate."
+      },
+      "eyebrow": "Über uns",
+      "title": "Keine Slides. Resultate.",
+      "lead": "SME24 ist EHS-Beratung für Unternehmen, die rechtlich für Sicherheit verantwortlich sind und keine Zeit für ein Projekt haben.",
+      "story": {
+        "title": "Warum wir so arbeiten.",
+        "fixedPrice": "Beratung wird meist nach Stunden verkauft, also lohnt es sich, länger zu brauchen. Wir verkaufen ein Resultat zum Fixpreis, vereinbart bevor jemand vorbeikommt. Dauert es länger, ist das unser Problem, nicht Ihres.",
+        "seniors": "Die Menschen, die Ihren Standort besuchen, haben jahrzehntelang Sicherheit in der Industrie verantwortet. Keine Juniors mit Vorlage, keine Übergabe nach dem Verkaufsgespräch. Die Expertin, die Sie treffen, schreibt auch den Bericht.",
+        "noSlides": "Sie brauchen kein Deck. Sie müssen wissen, wo Sie stehen, was es kostet und was zuerst zu tun ist. Genau das sagt der Bericht, in dieser Reihenfolge."
+      },
+      "grid": {
+        "label": "Die Kampagne",
+        "statement": "Resultate geliefert.",
+        "philipp": {
+          "caption": "Philipp",
+          "alt": "Philipp in Warnweste und Helm vor einer Pfanne im Stahlwerk"
+        },
+        "dresscode": {
+          "caption": "Dresscode.",
+          "alt": "Dunkelblauer Overall mit Reflexstreifen"
+        },
+        "firmenwagen": {
+          "caption": "Firmenwagen.",
+          "alt": "Blaues Rennrad, freigestellt"
+        }
+      },
+      "how": {
+        "title": "So arbeiten wir.",
+        "items": {
+          "data": {
+            "title": "Daten zuerst.",
+            "body": "Der Benchmark kommt aus öffentlichen Angaben und Ihren Peers, vor jedem Besuch."
+          },
+          "fixed": {
+            "title": "Fixpreis.",
+            "body": "Der Preis steht auf der Seite. Er ändert sich vor Ort nicht."
+          },
+          "senior": {
+            "title": "Nur Senior.",
+            "body": "Jeden Besuch macht eine Expertin mit Jahrzehnten in der Industrie."
+          },
+          "written": {
+            "title": "Schriftlich.",
+            "body": "Ein Bericht mit priorisierten Massnahmen, kein Workshop."
+          }
+        }
+      },
+      "closing": {
+        "title": "Sehen Sie, wo Sie stehen. Kostenlos.",
+        "cta": "Unternehmen kostenlos benchmarken"
+      }
+    },
+    "contact": {
+      "meta": {
+        "title": "Kontakt",
+        "description": "Fragen Sie nach dem Retainer oder stellen Sie eine Frage. Ein Mensch antwortet innerhalb eines Arbeitstags."
+      },
+      "og": {
+        "statement": "Reden Sie mit einem Menschen."
+      },
+      "eyebrow": "Kontakt",
+      "title": "Reden Sie mit einem Menschen. Nicht mit einem Formular.",
+      "lead": "Für den Retainer, eine Frage zu einem Paket oder alles andere: Schreiben Sie uns oder nutzen Sie das Formular. Ein Senior-Experte antwortet innerhalb eines Arbeitstags.",
+      "facts": {
+        "heading": "So erreichen Sie uns",
+        "email": "E-Mail",
+        "phone": "Telefon"
+      },
+      "form": {
+        "heading": "Ihre Anfrage",
+        "fields": {
+          "topic": "Thema",
+          "companyName": "Unternehmen",
+          "contactName": "Ihr Name",
+          "email": "Geschäftliche E-Mail",
+          "phone": "Telefon (optional)",
+          "headcountBand": "Mitarbeitende (optional)",
+          "message": "Nachricht"
+        },
+        "topics": {
+          "retainer": "Retainer",
+          "general": "Allgemeine Frage"
+        },
+        "topicHints": {
+          "retainer": "Ein dauerhafter EHS-Partner für Ihre Standorte, Preis auf Anfrage.",
+          "general": "Ein Paket, ein Termin oder etwas anderes."
+        },
+        "headcountPlaceholder": "Keine Angabe",
+        "bands": {
+          "1-49": "1 bis 49",
+          "50-249": "50 bis 249",
+          "250+": "250 oder mehr"
+        },
+        "messageHint": "Was Sie brauchen, welche Standorte und wann. 20 bis 2000 Zeichen.",
+        "characterCount": "{count} von {max} Zeichen",
+        "honeypot": "Dieses Feld leer lassen",
+        "privacyNote": "Wir verwenden Ihre Angaben nur, um diese Anfrage zu beantworten. <link>Datenschutzerklärung</link>",
+        "submit": "Anfrage senden",
+        "submitting": "Wird gesendet",
+        "summaryTitle": "Bitte prüfen Sie diese Felder",
+        "errors": {
+          "companyRequired": "Geben Sie den Namen Ihres Unternehmens ein.",
+          "companyLong": "Höchstens 200 Zeichen.",
+          "nameRequired": "Geben Sie Ihren Namen ein.",
+          "nameLong": "Höchstens 200 Zeichen.",
+          "phoneLong": "Höchstens 40 Zeichen.",
+          "messageShort": "Mindestens 20 Zeichen.",
+          "messageLong": "Höchstens 2000 Zeichen.",
+          "rateLimited": "Bitte versuchen Sie es später erneut oder schreiben Sie an {email}.",
+          "unavailable": "Die Anfrage konnte nicht gespeichert werden. Bitte versuchen Sie es gleich noch einmal oder schreiben Sie an {email}."
+        }
+      },
+      "success": {
+        "title": "Danke. Ihre Anfrage ist bei uns.",
+        "body": "Sie erhalten eine kurze Bestätigung per E-Mail. Ein Mensch antwortet innerhalb eines Arbeitstags.",
+        "back": "Zurück zum Start"
+      }
+    },
+    "packages": {
+      "compliance": {
+        "name": "Compliance-Check, EHS-System- & Kultur-Snapshot",
+        "promise": "Wissen, was zu tun ist und wie",
+        "bestFor": "systematisch beheben",
+        "delivery": "Vor Ort · 5 Tage",
+        "included": {
+          "systemSnapshot": "System- & Kultur-Snapshot",
+          "standards": "5 ausgewählte Standards",
+          "roadmap": "Roadmap"
+        },
+        "output": "Compliance-Lücken & Plan",
+        "outcome": "Klarer Massnahmenplan"
+      },
+      "sms": {
+        "name": "EHS-System- & Kultur-Snapshot",
+        "promise": "Ihre echten Risiken kennen",
+        "bestFor": "echte Risiken validieren",
+        "delivery": "Vor Ort · 2 Tage",
+        "included": {
+          "cultureSnapshot": "Kultur-Snapshot",
+          "iso": "ISO 45001 · 7 Kategorien",
+          "interviews": "Interviews"
+        },
+        "output": "Kultur- und Systemlücken",
+        "outcome": "Audit-fähige Realität"
+      },
+      "culture": {
+        "name": "EHS-Kultur-Snapshot",
+        "promise": "Wissen, wo Sie stehen",
+        "bestFor": "schnelle Sichtbarkeit",
+        "delivery": "Remote · 1 Tag",
+        "included": {
+          "categories": "8 Kulturkategorien",
+          "levels": "5 Stufen",
+          "report": "Bericht"
+        },
+        "output": "Kulturstufe pro Kategorie",
+        "outcome": "Ihre Kulturstufe, bewertet"
+      },
+      "retainer": {
+        "name": "EHS-Umsetzungspartner",
+        "promise": "Risiken beseitigt",
+        "bestFor": "Resultate liefern",
+        "delivery": "Vor Ort + laufend",
+        "included": {
+          "implementation": "Umsetzung",
+          "pmo": "PMO",
+          "coaching": "Coaching"
+        },
+        "output": "Gemessene Risikoreduktion",
+        "outcome": "Umsetzung & Kulturwandel"
       }
     }
   },
@@ -313,6 +634,10 @@
       "benchmark": {
         "title": "Benchmark",
         "description": "Das Quartilband, die Potenzialkarte und die Aufklappfläche des Branchenvergleichs (Spec 0008)."
+      },
+      "marketing": {
+        "title": "Marketing",
+        "description": "Die Grundelemente der öffentlichen Website: die Paketkarte mit Fixpreis und auf Anfrage, das FAQ-Akkordeon und das Anfrageformular leer und mit allen Fehlern."
       }
     },
     "tokens": {
@@ -623,6 +948,16 @@
       "card": "Potenzialkarte",
       "collapsible": "Aufklappbare Erklärung",
       "confidenceMedium": "Mittel"
+    },
+    "marketing": {
+      "packages": "Paketkarte: Fixpreis und Preis auf Anfrage",
+      "faq": "FAQ auf dem Akkordeon",
+      "faqQuestion": "Ist die MWST inbegriffen?",
+      "faqAnswer": "Nein. Die Preise sind exkl. 8.1% MWST.",
+      "faqQuestionTwo": "Kann ich stornieren?",
+      "faqAnswerTwo": "Bis fünf Arbeitstage vor dem Besuch.",
+      "formEmpty": "Anfrageformular, leer",
+      "formInvalid": "Anfrageformular, alle Fehler angezeigt"
     }
   },
   "email": {
@@ -651,6 +986,19 @@
       "noCost": "Die Jahreskosten konnten wir noch nicht schätzen. Erfassen Sie Ihre Mitarbeiterzahl im Kundenbereich, dann rechnen wir sofort neu.",
       "nextStep": "Der Kundenbereich zeigt Ihre Position pro Kennzahl, die prioritären Lücken und wie jede Zahl berechnet wird.",
       "button": "Benchmark ansehen"
+    },
+    "enquiry_received": {
+      "subject": "Ihre Anfrage ist bei SME24 eingegangen",
+      "preview": "Ihre {topic} ist bei uns. Ein Mensch antwortet innerhalb eines Arbeitstags.",
+      "greeting": "Guten Tag {contactName}",
+      "intro": "Danke für Ihre {topic}. Sie ist beim SME24 Team eingegangen.",
+      "reply": "Ein Senior-Experte antwortet innerhalb eines Arbeitstags. Keine Broschüre, kein Verkaufsskript.",
+      "button": "Zurück zu SME24",
+      "footerLegal": "Sie erhalten diese E-Mail, weil Sie über sme24.ch eine Anfrage gesendet haben.",
+      "topics": {
+        "retainer": "Retainer-Anfrage",
+        "general": "Frage"
+      }
     }
   },
   "emails": {
@@ -757,6 +1105,89 @@
     },
     "errors": {
       "loadFailed": "Die E-Mails konnten nicht geladen werden."
+    }
+  },
+  "enquiries": {
+    "title": "Anfragen",
+    "description": "Jede Anfrage aus dem Kontaktformular: Retainer-Anfragen und allgemeine Fragen, neueste zuerst.",
+    "detailTitle": "Anfrage",
+    "listHeading": "Anfragen",
+    "status": {
+      "new": "Neu",
+      "contacted": "Kontaktiert",
+      "closed": "Abgeschlossen"
+    },
+    "topics": {
+      "retainer": "Retainer",
+      "general": "Allgemeine Frage"
+    },
+    "bands": {
+      "1-49": "1 bis 49",
+      "50-249": "50 bis 249",
+      "250+": "250 oder mehr"
+    },
+    "filters": {
+      "legend": "Filter",
+      "status": "Status",
+      "all": "Alle",
+      "apply": "Filtern",
+      "reset": "Zurücksetzen"
+    },
+    "columns": {
+      "received": "Eingegangen",
+      "topic": "Thema",
+      "company": "Unternehmen",
+      "contact": "Kontakt",
+      "status": "Status"
+    },
+    "fields": {
+      "status": "Status",
+      "topic": "Thema",
+      "company": "Unternehmen",
+      "contact": "Kontakt",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "headcount": "Mitarbeitende",
+      "message": "Nachricht",
+      "language": "Sprache",
+      "organization": "Organisation",
+      "handledBy": "Bearbeitet von",
+      "handledAt": "Bearbeitet am",
+      "created": "Eingegangen",
+      "updated": "Aktualisiert",
+      "id": "Anfrage",
+      "none": "–"
+    },
+    "sections": {
+      "details": "Details",
+      "workflow": "Bearbeitung"
+    },
+    "form": {
+      "status": "Status",
+      "opsNote": "Notiz",
+      "opsNoteHint": "Was vereinbart wurde, wer angerufen hat, was als Nächstes kommt. Bis zu 2000 Zeichen.",
+      "submit": "Speichern",
+      "saving": "Wird gespeichert",
+      "saved": "Anfrage gespeichert",
+      "errors": {
+        "noteLong": "Höchstens 2000 Zeichen.",
+        "validation": "Bitte prüfen Sie das Formular.",
+        "forbidden": "Nur das Ops Team kann eine Anfrage ändern.",
+        "not_found": "Diese Anfrage existiert nicht mehr.",
+        "unavailable": "Die Änderung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      }
+    },
+    "empty": {
+      "title": "Noch keine Anfragen",
+      "description": "Sobald jemand das Kontaktformular sendet, erscheint die Anfrage hier."
+    },
+    "noResults": {
+      "title": "Keine Treffer",
+      "description": "Keine Anfrage hat diesen Status. Setzen Sie den Filter zurück."
+    },
+    "pagination": {
+      "next": "Ältere anzeigen",
+      "first": "Zurück zur ersten Seite"
     }
   },
   "research": {

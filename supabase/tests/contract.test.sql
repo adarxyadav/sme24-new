@@ -14,7 +14,7 @@
 -- exists so a table that never got a policy at all cannot reach them unnoticed.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(31);
+select plan(32);
 
 -- Every table in public (regular and partitioned).
 create function pg_temp.public_tables()
@@ -54,14 +54,19 @@ select is_empty(
          and g.tgname = t || '_audit'
          and pn.nspname = 'private' and p.proname = 'audit_row') $$,
   'every audited table has a <table>_audit trigger calling private.audit_row()');
--- tgtype 29 = for each row (1) after insert (4), delete (8) and update (16).
+-- tgtype 29 = for each row (1) after insert (4), delete (8) and update (16). enquiries (spec 0009,
+-- kind I) is the recorded exception: after insert or update of status, ops_note only (tgtype 21),
+-- because the purge's ip_hash null out and its deletes are logged by the task, not audited.
 select is_empty(
   $$ select g.tgname from pg_trigger g
      join pg_proc p on p.oid = g.tgfoid
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
-       and g.tgtype <> 29 $$,
+       and g.tgtype <> 29 and g.tgname <> 'enquiries_audit' $$,
   'every audit trigger fires after insert, update and delete for each row');
+select is(
+  (select g.tgtype from pg_trigger g where g.tgname = 'enquiries_audit' and not g.tgisinternal),
+  21::smallint, 'the enquiries audit trigger fires after insert and after update of status and ops_note only');
 select is_empty(
   $$ select c.relname from pg_trigger g
      join pg_class c on c.oid = g.tgrelid
@@ -81,8 +86,10 @@ select is_empty(
 -- organization_id on kind T tables -------------------------------------------------------
 -- Kind T is every table with an organization_id column other than profiles (kind U, nullable
 -- current organization), audit_log (kind I, no foreign key so the trail outlives the tenant),
--- email_deliveries (kind I, spec 0006: the organization is a nullable reference for the ops view)
--- and notifications (kind U, spec 0006: owned by recipient_id, the organization is a reference).
+-- email_deliveries (kind I, spec 0006: the organization is a nullable reference for the ops view),
+-- notifications (kind U, spec 0006: owned by recipient_id, the organization is a reference) and
+-- enquiries (kind I, spec 0009: a signed in client's enquiry references their organization for the
+-- ops view, set null on delete).
 create function pg_temp.tenant_tables()
 returns setof name language sql stable as $$
   select c.relname
@@ -91,7 +98,7 @@ returns setof name language sql stable as $$
   join pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relkind in ('r', 'p')
     and a.attname = 'organization_id' and not a.attisdropped
-    and c.relname not in ('profiles', 'audit_log', 'email_deliveries', 'notifications')
+    and c.relname not in ('profiles', 'audit_log', 'email_deliveries', 'notifications', 'enquiries')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.tenant_tables()), '>=', 5::bigint,
@@ -163,7 +170,7 @@ select results_eq(
 -- decision is forced rather than defaulted.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
-  values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('expert_assignments'),
+  values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('enquiries'), ('expert_assignments'),
          ('kpi_definitions'), ('notifications'), ('organization_members'), ('organizations'), ('profiles')
 $$;
 select is_empty(

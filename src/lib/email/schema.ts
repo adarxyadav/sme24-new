@@ -7,7 +7,7 @@ import { z } from "zod";
  */
 
 /** The template names the registry knows. A new template adds its name here and its entry in `registry.ts`. */
-export const EMAIL_TEMPLATE_NAMES = ["welcome", "benchmark_ready"] as const;
+export const EMAIL_TEMPLATE_NAMES = ["welcome", "benchmark_ready", "enquiry_received"] as const;
 export type EmailTemplateName = (typeof EMAIL_TEMPLATE_NAMES)[number];
 
 /** The short language codes the database stores (`profiles.locale`, `email_deliveries.locale`). */
@@ -32,6 +32,16 @@ export const benchmarkReadyDataSchema = templateDataBaseSchema.extend({
   savingMedianChf: z.number().nonnegative().optional(),
 });
 export type BenchmarkReadyData = z.infer<typeof benchmarkReadyDataSchema>;
+/**
+ * `enquiry_received` (spec 0009, AC-14): the acknowledgement of a contact form submission,
+ * sent to the outside address the visitor typed. The topic picks the sentence that names what
+ * was asked for; the reply time is a constant of the body.
+ */
+export const enquiryReceivedDataSchema = templateDataBaseSchema.extend({
+  contactName: z.string().trim().min(1).max(200),
+  topic: z.enum(["retainer", "general"]),
+});
+export type EnquiryReceivedData = z.infer<typeof enquiryReceivedDataSchema>;
 
 /** A known user (address and language resolved by the task) or a raw address with its language. */
 export const emailRecipientSchema = z.union([
@@ -86,3 +96,5 @@ export const ORGANIZATION_CREATED_EVENT = "auth.organization_created";
 
 /** The source event of the benchmark ready email (spec 0008, AC-7). */
 export const BENCHMARK_SNAPSHOT_CREATED_EVENT = "benchmark.snapshot_created";
+/** The source event of the enquiry acknowledgement, the same string as the alert kind so ops can correlate the two (spec 0009, AC-9). */
+export const ENQUIRY_RECEIVED_EVENT = "enquiry.received";

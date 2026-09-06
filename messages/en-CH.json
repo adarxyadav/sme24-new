@@ -53,7 +53,8 @@
     "admin": {
       "overview": "Overview",
       "design": "Design gallery",
-      "emails": "Emails"
+      "emails": "Emails",
+      "enquiries": "Enquiries"
     }
   },
   "theme": {
@@ -72,24 +73,344 @@
       "reference": "Reference: {id}"
     }
   },
-  "landing": {
-    "eyebrow": "Fixed-price EHS consulting",
-    "title": "Senior experts. No slides. Just results.",
-    "lead": "A benchmarked risk profile, a ranked shortlist of senior experts and a fixed-price proposal, before you commit.",
-    "signInCta": "Sign in",
-    "pointsLabel": "Why SME24",
-    "points": {
-      "price": {
-        "title": "Fixed price.",
-        "body": "No negotiation, no surprises on the invoice."
+  "marketing": {
+    "nav": {
+      "pricing": "Pricing",
+      "about": "About",
+      "contact": "Contact",
+      "freeBenchmark": "Free benchmark"
+    },
+    "footer": {
+      "product": "Product",
+      "company": "Company",
+      "legal": "Legal"
+    },
+    "landing": {
+      "meta": {
+        "title": "Fixed-price EHS consulting",
+        "description": "Benchmark your company's EHS risk for free, see what incidents cost you in CHF, then book a senior expert at a fixed price."
       },
-      "negotiation": {
-        "title": "No project setup.",
-        "body": "Four steps. No kickoff slides."
+      "og": {
+        "statement": "Senior experts. No slides. Just results."
       },
-      "kickoff": {
-        "title": "Kick off the same week.",
-        "body": "See your benchmark, pick your expert, start."
+      "eyebrow": "Fixed-price EHS consulting",
+      "title": "Senior experts. No slides. Just results.",
+      "lead": "A benchmarked risk profile, a ranked shortlist of senior experts and a fixed-price proposal, before you commit.",
+      "lookup": {
+        "label": "Your company",
+        "placeholder": "Company name",
+        "cta": "Benchmark your company for free"
+      },
+      "signIn": "Already a client? Sign in",
+      "pointsLabel": "Why SME24",
+      "points": {
+        "price": {
+          "title": "Fixed price.",
+          "body": "No negotiation, no surprises on the invoice."
+        },
+        "negotiation": {
+          "title": "No project setup.",
+          "body": "Four steps. No kickoff slides."
+        },
+        "kickoff": {
+          "title": "Kick off the same week.",
+          "body": "See your benchmark, pick your expert, start."
+        }
+      },
+      "how": {
+        "eyebrow": "How it works",
+        "title": "Four steps. No kickoff.",
+        "steps": {
+          "lookup": {
+            "title": "Look up your company.",
+            "body": "Type the name. We research public disclosures in the background."
+          },
+          "benchmark": {
+            "title": "See your benchmark in CHF.",
+            "body": "Your risk profile against your peers, and what incidents cost you a year."
+          },
+          "package": {
+            "title": "Pick a package.",
+            "body": "Three fixed prices. Or the retainer, by conversation."
+          },
+          "expert": {
+            "title": "Expert on site.",
+            "body": "A senior expert, the same week. Report, actions, done."
+          }
+        }
+      },
+      "packages": {
+        "eyebrow": "Packages",
+        "title": "Fixed price. No surprises.",
+        "lead": "Three snapshots at a fixed price, and an implementation partner when you want results delivered rather than a project."
+      },
+      "wall": {
+        "eyebrow": "Our SMEs",
+        "title": "What we do without.",
+        "items": {
+          "teamevent": {
+            "statement": "Team event.",
+            "alt": "Green beer crate with bottles on ice"
+          },
+          "firmenwagen": {
+            "statement": "Company car.",
+            "alt": "Blue road bike, cut out"
+          },
+          "dresscode": {
+            "statement": "Dress code.",
+            "alt": "Navy coverall with reflective stripes"
+          },
+          "jahresbonus": {
+            "statement": "Annual bonus.",
+            "alt": "Mountain path with a view of the Matterhorn"
+          },
+          "noCosmetics": {
+            "statement": "No cosmetics.",
+            "alt": "Heavily made up woman with oversized red lips"
+          },
+          "noOverhead": {
+            "statement": "No overhead.",
+            "alt": "Man in a suit with champagne between a private jet, a convertible and a pool"
+          }
+        }
+      },
+      "closing": {
+        "title": "Start with the benchmark. It is free.",
+        "lead": "Type your company name. The benchmark follows, at no cost."
+      }
+    },
+    "pricing": {
+      "meta": {
+        "title": "Pricing",
+        "description": "Three EHS snapshots at a fixed price in CHF and an implementation partner on demand. Every package includes a senior expert and a written report."
+      },
+      "og": {
+        "statement": "Fixed price. No surprises."
+      },
+      "eyebrow": "Pricing",
+      "title": "Fixed price. No surprises.",
+      "lead": "Every package is one price, one senior expert, one report. Prices exclude 8.1% VAT.",
+      "packagesLabel": "The packages",
+      "vatNote": "excl. 8.1% VAT",
+      "onDemand": "On demand",
+      "bestForLabel": "Best for",
+      "outputLabel": "Output",
+      "outcomeLabel": "Outcome",
+      "cta": "Start with the free benchmark",
+      "retainerCta": "Let's talk",
+      "overviewLink": "See all prices",
+      "included": {
+        "title": "What every package includes.",
+        "items": {
+          "expert": "A senior expert, not a junior with a template.",
+          "fixedPrice": "One fixed price, agreed before the first visit.",
+          "onSite": "On site from the System Snapshot up; the Culture Snapshot runs remote in one day.",
+          "report": "A written report with ranked actions."
+        }
+      },
+      "faq": {
+        "title": "Questions.",
+        "items": {
+          "vat": {
+            "question": "Is VAT included?",
+            "answer": "No. Prices are in CHF and exclude 8.1% VAT, which the invoice adds."
+          },
+          "afterPayment": {
+            "question": "What happens after payment?",
+            "answer": "You get a receipt and an order in your dashboard. Within one working day a senior expert contacts you to prepare the visit."
+          },
+          "date": {
+            "question": "How is the date set?",
+            "answer": "The expert proposes dates within two weeks of the order. You pick one, and the visit is confirmed in writing."
+          },
+          "cancellation": {
+            "question": "Can I cancel?",
+            "answer": "Up to five working days before the visit, free of charge. Later, we move the date once at no cost."
+          }
+        }
+      },
+      "closing": {
+        "title": "Not sure which one? Start with the benchmark.",
+        "cta": "Benchmark your company for free"
+      }
+    },
+    "about": {
+      "meta": {
+        "title": "About",
+        "description": "Why SME24 sells EHS consulting at a fixed price, with senior experts and without slides."
+      },
+      "og": {
+        "statement": "No slides. Results."
+      },
+      "eyebrow": "About",
+      "title": "No slides. Results.",
+      "lead": "SME24 is EHS consulting for companies that carry legal responsibility for safety and have no time for a project.",
+      "story": {
+        "title": "Why we work this way.",
+        "fixedPrice": "Consulting is usually sold by the hour, so the incentive is to take longer. We sell a result at a fixed price, agreed before anyone visits. If it takes us longer, that is our problem, not yours.",
+        "seniors": "The people who visit your site have run safety in industry for decades. No juniors with a template, no handover after the sales call. The expert you meet is the expert who writes the report.",
+        "noSlides": "You do not need a deck. You need to know where you stand, what it costs and what to do first. That is what the report says, in that order."
+      },
+      "grid": {
+        "label": "The campaign",
+        "statement": "Results delivered.",
+        "philipp": {
+          "caption": "Philipp",
+          "alt": "Philipp in a high visibility vest and helmet in front of a ladle in a steelworks"
+        },
+        "dresscode": {
+          "caption": "Dress code.",
+          "alt": "Navy coverall with reflective stripes"
+        },
+        "firmenwagen": {
+          "caption": "Company car.",
+          "alt": "Blue road bike, cut out"
+        }
+      },
+      "how": {
+        "title": "How we work.",
+        "items": {
+          "data": {
+            "title": "Data first.",
+            "body": "The benchmark comes from public disclosures and your peers, before any visit."
+          },
+          "fixed": {
+            "title": "Fixed price.",
+            "body": "The price is on the page. It does not change on site."
+          },
+          "senior": {
+            "title": "Senior only.",
+            "body": "Every visit is done by an expert with decades in industry."
+          },
+          "written": {
+            "title": "In writing.",
+            "body": "A report with ranked actions, not a workshop."
+          }
+        }
+      },
+      "closing": {
+        "title": "See where you stand. For free.",
+        "cta": "Benchmark your company for free"
+      }
+    },
+    "contact": {
+      "meta": {
+        "title": "Contact",
+        "description": "Ask about the retainer or send a question. A person answers within one working day."
+      },
+      "og": {
+        "statement": "Talk to a person."
+      },
+      "eyebrow": "Contact",
+      "title": "Talk to a person. Not to a form.",
+      "lead": "For the retainer, a question about a package, or anything else: write to us or use the form. A senior expert answers within one working day.",
+      "facts": {
+        "heading": "Reach us",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "form": {
+        "heading": "Your enquiry",
+        "fields": {
+          "topic": "Topic",
+          "companyName": "Company",
+          "contactName": "Your name",
+          "email": "Work email",
+          "phone": "Phone (optional)",
+          "headcountBand": "Employees (optional)",
+          "message": "Message"
+        },
+        "topics": {
+          "retainer": "Retainer",
+          "general": "General question"
+        },
+        "topicHints": {
+          "retainer": "An ongoing EHS partner for your sites, priced on request.",
+          "general": "A package, a date, or anything else."
+        },
+        "headcountPlaceholder": "Not specified",
+        "bands": {
+          "1-49": "1 to 49",
+          "50-249": "50 to 249",
+          "250+": "250 or more"
+        },
+        "messageHint": "What you need, which sites, and when. 20 to 2000 characters.",
+        "characterCount": "{count} of {max} characters",
+        "honeypot": "Leave this field empty",
+        "privacyNote": "We use your details only to answer this enquiry. <link>Privacy policy</link>",
+        "submit": "Send enquiry",
+        "submitting": "Sending",
+        "summaryTitle": "Please check these fields",
+        "errors": {
+          "companyRequired": "Enter your company name.",
+          "companyLong": "At most 200 characters.",
+          "nameRequired": "Enter your name.",
+          "nameLong": "At most 200 characters.",
+          "phoneLong": "At most 40 characters.",
+          "messageShort": "At least 20 characters.",
+          "messageLong": "At most 2000 characters.",
+          "rateLimited": "Please try again later or write to {email}.",
+          "unavailable": "The enquiry could not be saved. Please try again in a moment or write to {email}."
+        }
+      },
+      "success": {
+        "title": "Thank you. Your enquiry has reached us.",
+        "body": "You will get a short confirmation by email. A person answers within one working day.",
+        "back": "Back to the start"
+      }
+    },
+    "packages": {
+      "compliance": {
+        "name": "Compliance Check, EHS System & Culture Snapshot",
+        "promise": "Know what to fix and how",
+        "bestFor": "fix systematically",
+        "delivery": "On-site · 5 Days",
+        "included": {
+          "systemSnapshot": "System & Culture Snapshot",
+          "standards": "5 selected standards",
+          "roadmap": "Roadmap"
+        },
+        "output": "Compliance gaps & plan",
+        "outcome": "Clear action plan"
+      },
+      "sms": {
+        "name": "EHS System & Culture Snapshot",
+        "promise": "Know your real risks",
+        "bestFor": "validate real risks",
+        "delivery": "On-site · 2 Days",
+        "included": {
+          "cultureSnapshot": "Culture Snapshot",
+          "iso": "ISO 45001 · 7 categories",
+          "interviews": "Interviews"
+        },
+        "output": "Culture + system gaps",
+        "outcome": "Audit-ready reality"
+      },
+      "culture": {
+        "name": "EHS Culture Snapshot",
+        "promise": "Know where you stand",
+        "bestFor": "quick visibility",
+        "delivery": "Remote · 1 Day",
+        "included": {
+          "categories": "8 culture categories",
+          "levels": "5 levels",
+          "report": "Report"
+        },
+        "output": "Culture level per category",
+        "outcome": "Your culture level, rated"
+      },
+      "retainer": {
+        "name": "EHS Implementation Partner",
+        "promise": "Risks eliminated",
+        "bestFor": "deliver results",
+        "delivery": "On-site + Ongoing",
+        "included": {
+          "implementation": "Implementation",
+          "pmo": "PMO",
+          "coaching": "Coaching"
+        },
+        "output": "Measured risk reduction",
+        "outcome": "Execution & culture shift"
       }
     }
   },
@@ -313,6 +634,10 @@
       "benchmark": {
         "title": "Benchmark",
         "description": "The quartile band, the opportunity card and the disclosure of the peer benchmark (spec 0008)."
+      },
+      "marketing": {
+        "title": "Marketing",
+        "description": "The public site's primitives: the package card with a fixed price and on request, the FAQ accordion, and the enquiry form empty and with every error shown."
       }
     },
     "tokens": {
@@ -623,6 +948,16 @@
       "card": "Opportunity card",
       "collapsible": "Collapsible disclosure",
       "confidenceMedium": "Medium"
+    },
+    "marketing": {
+      "packages": "Package card: fixed price and price on request",
+      "faq": "FAQ on the accordion",
+      "faqQuestion": "Is VAT included?",
+      "faqAnswer": "No. Prices exclude 8.1% VAT.",
+      "faqQuestionTwo": "Can I cancel?",
+      "faqAnswerTwo": "Up to five working days before the visit.",
+      "formEmpty": "Enquiry form, empty",
+      "formInvalid": "Enquiry form, every error shown"
     }
   },
   "email": {
@@ -651,6 +986,19 @@
       "noCost": "We could not estimate the annual cost yet. Add your headcount in the client area and we recalculate at once.",
       "nextStep": "The client area shows your position per KPI, the priority gaps and how every number is calculated.",
       "button": "See the benchmark"
+    },
+    "enquiry_received": {
+      "subject": "Your enquiry has reached SME24",
+      "preview": "Your {topic} has reached us. A person answers within one working day.",
+      "greeting": "Hello {contactName}",
+      "intro": "Thank you for your {topic}. It has reached the SME24 team.",
+      "reply": "A senior expert answers within one working day. No brochure, no sales script.",
+      "button": "Back to SME24",
+      "footerLegal": "You receive this email because you sent an enquiry through sme24.ch.",
+      "topics": {
+        "retainer": "retainer request",
+        "general": "question"
+      }
     }
   },
   "emails": {
@@ -757,6 +1105,89 @@
     },
     "errors": {
       "loadFailed": "The emails could not be loaded."
+    }
+  },
+  "enquiries": {
+    "title": "Enquiries",
+    "description": "Every enquiry from the contact form: retainer requests and general questions, newest first.",
+    "detailTitle": "Enquiry",
+    "listHeading": "Enquiries",
+    "status": {
+      "new": "New",
+      "contacted": "Contacted",
+      "closed": "Closed"
+    },
+    "topics": {
+      "retainer": "Retainer",
+      "general": "General question"
+    },
+    "bands": {
+      "1-49": "1 to 49",
+      "50-249": "50 to 249",
+      "250+": "250 or more"
+    },
+    "filters": {
+      "legend": "Filters",
+      "status": "Status",
+      "all": "All",
+      "apply": "Filter",
+      "reset": "Reset"
+    },
+    "columns": {
+      "received": "Received",
+      "topic": "Topic",
+      "company": "Company",
+      "contact": "Contact",
+      "status": "Status"
+    },
+    "fields": {
+      "status": "Status",
+      "topic": "Topic",
+      "company": "Company",
+      "contact": "Contact",
+      "email": "Email",
+      "phone": "Phone",
+      "headcount": "Employees",
+      "message": "Message",
+      "language": "Language",
+      "organization": "Organization",
+      "handledBy": "Handled by",
+      "handledAt": "Handled at",
+      "created": "Received",
+      "updated": "Updated",
+      "id": "Enquiry",
+      "none": "–"
+    },
+    "sections": {
+      "details": "Details",
+      "workflow": "Workflow"
+    },
+    "form": {
+      "status": "Status",
+      "opsNote": "Note",
+      "opsNoteHint": "What was agreed, who called, what comes next. Up to 2000 characters.",
+      "submit": "Save",
+      "saving": "Saving",
+      "saved": "Enquiry saved",
+      "errors": {
+        "noteLong": "At most 2000 characters.",
+        "validation": "Please check the form.",
+        "forbidden": "Only the ops team can change an enquiry.",
+        "not_found": "This enquiry no longer exists.",
+        "unavailable": "The change could not be saved. Please try again."
+      }
+    },
+    "empty": {
+      "title": "No enquiries yet",
+      "description": "As soon as someone sends the contact form it appears here."
+    },
+    "noResults": {
+      "title": "No matches",
+      "description": "No enquiry has this status. Reset the filter."
+    },
+    "pagination": {
+      "next": "Show older",
+      "first": "Back to the first page"
     }
   },
   "research": {
