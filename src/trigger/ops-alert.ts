@@ -32,7 +32,11 @@ export const opsAlertTask = schemaTask({
 
     const context = await resolveContext(payload, env);
     const view = presentAlert(payload.kind, payload.fields, context);
-    const message = buildSlackMessage(view, payload.link, env.NEXT_PUBLIC_APP_URL);
+    const message = buildSlackMessage(view, {
+      link: payload.link,
+      externalUrl: payload.externalUrl,
+      appUrl: env.NEXT_PUBLIC_APP_URL,
+    });
 
     const response = await fetch(env.OPS_ALERT_WEBHOOK_URL, {
       method: "POST",

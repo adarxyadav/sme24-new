@@ -31,8 +31,8 @@ describe("stored locale queries (spec 0004, AC-7)", () => {
   });
 
   it("falls back to the default locale when no row exists, so a retried task never fails forever", async () => {
-    await expect(localeForUser(client, "gone")).resolves.toBe("de-CH");
-    await expect(localeForOrganization(client, "gone")).resolves.toBe("de-CH");
+    await expect(localeForUser(client, "gone")).resolves.toBe("en-CH");
+    await expect(localeForOrganization(client, "gone")).resolves.toBe("en-CH");
   });
 
   it("throws on a database error like every query", async () => {

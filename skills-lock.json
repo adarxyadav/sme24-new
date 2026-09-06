@@ -79,6 +79,24 @@
       "skillPath": "skills/tools/nodemailer/SKILL.md",
       "computedHash": "c9a8c08c0fa6ab15d6331e5346e33768a83b5e337d1160c620f87893122061a6"
     },
+    "parallel-cli-setup": {
+      "source": "parallel-web/parallel-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/parallel-cli-setup/SKILL.md",
+      "computedHash": "bfab39ec64284fa6439fd6b5bcc510a7b4e5e4257d9f12fbaaf45af6861e121f"
+    },
+    "parallel-data-enrichment": {
+      "source": "parallel-web/parallel-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/parallel-data-enrichment/SKILL.md",
+      "computedHash": "c41056eefa19af8dae9afab4ae700f4c0f830c5a7364429d0a728061bcb2e85e"
+    },
+    "parallel-deep-research": {
+      "source": "parallel-web/parallel-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/parallel-deep-research/SKILL.md",
+      "computedHash": "73e5099d3889c422f49b18ee34f57df7cbc84daaf64617a5097f3bbe71ae5f32"
+    },
     "playwright-skill": {
       "source": "testdino-hq/playwright-skill",
       "sourceType": "github",

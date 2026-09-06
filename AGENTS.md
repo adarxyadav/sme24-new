@@ -16,7 +16,7 @@ AI powered EHS consulting marketplace for regulated companies in Switzerland. On
 
 - **Language / Runtime**: TypeScript, strict mode plus `noUncheckedIndexedAccess`, everywhere (app, tasks, scripts); Node 22 (`.nvmrc`, `engines`)
 - **Framework**: Next.js 16 App Router with React 19 Server Components; Node runtime only (no Edge), Vercel functions in `fra1`
-- **Key dependencies**: Supabase in Zurich (Postgres, Auth, Storage, Realtime) through `@supabase/ssr` with RLS always on and no ORM; Trigger.dev v4 (EU) for all long running work; Tailwind v4 with shadcn/ui; next-intl v4 (`de` default, `en`); Zod v4; Sentry EU and PostHog EU. Later features add Vercel AI SDK via AI Gateway (Claude Sonnet 5), Stripe, Resend.
+- **Key dependencies**: Supabase in Zurich (Postgres, Auth, Storage, Realtime) through `@supabase/ssr` with RLS always on and no ORM; Trigger.dev v4 (EU) for all long running work; Tailwind v4 with shadcn/ui; next-intl v4 (`en` default, `de`); Zod v4; Sentry EU and PostHog EU; Resend with React Email for product email (Mailpit over SMTP locally). Later features add Vercel AI SDK via AI Gateway (Claude Sonnet 5), Stripe.
 - **Package manager**: pnpm
 
 ## Build approach
@@ -27,8 +27,8 @@ Tracer Bullet (vertical slices; each feature runs end to end through database, b
 
 ```bash
 pnpm install                 # Node 22 via .nvmrc; Docker and the Supabase CLI are needed too
-supabase start               # local Postgres, Auth, Storage, Realtime; applies migrations and seed.sql
-pnpm dev                     # http://localhost:3000 redirects to /de (falls to 3001 when 3000 is busy)
+supabase start               # local Postgres, Auth, Storage, Realtime; applies migrations and seed.sql; Mailpit inbox at http://127.0.0.1:54324
+pnpm dev                     # http://localhost:3000 redirects to /en (falls to 3001 when 3000 is busy)
 pnpm build                   # next build
 pnpm typecheck               # next typegen + tsc --noEmit
 pnpm lint / pnpm lint:fix    # Biome: lint, format, import order, a11y rules
@@ -37,7 +37,8 @@ pnpm test:e2e                # Playwright + axe (e2e/); starts its own dev serve
 pnpm test:db                 # pgTAP policy tests in supabase/tests/; needs the local stack running
 pnpm db:diff <name>          # migration from supabase/schemas/ (declarative sync)
 pnpm db:reset && pnpm db:types   # reapply locally, then regenerate src/lib/supabase/database.types.ts (CI fails when stale)
-pnpm trigger:dev             # Trigger.dev tasks locally (needs a project ref)
+pnpm trigger:dev             # Trigger.dev tasks locally (needs a project ref; the `trigger` binary comes from the pinned `trigger.dev` dev dependency)
+pnpm email:dev               # React Email preview server on port 3200, one preview per template and language (src/lib/email/previews/)
 pnpm user:invite --email <address> --role expert|ops [--locale de|en] [--name "…"]   # invite a staff user with the role fixed; needs the target environment's Supabase keys in .env.local (docs/auth.md)
 ```
 
@@ -58,6 +59,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md` (decision and 
 - **Database changes** start in `supabase/schemas/*.sql` (table, RLS and policies in the same file), then `pnpm db:diff`, `db:reset`, `test:db`, `db:types`. Migrations stay backward compatible (add, switch, remove later) because previews share staging. The diff misses three things that must be re-added by hand in the migration: column grants dropped by a table level `REVOKE ALL`, the `anon` execute revoke on a new `public` function, and a view body rewritten from `select *` to a column list. Every new kind T (tenant) table copies the tenant table contract from spec 0002 and gets a pgTAP file in `supabase/tests/`.
 - **Membership rows are never inserted directly.** Direct `INSERT` on `organization_members` is revoked for the app roles; an owner adds a member through `public.add_organization_member`, which checks the target consented. Nothing in `src/` calls it yet; feature 22 (client team invitations) does.
 - **Auth flows follow `docs/auth.md`** (spec 0005). Every emailed link goes through `/api/auth/confirm` and is verified from its token hash (never `{{ .ConfirmationURL }}` in a template); `profiles.terms_accepted_at` is written only by the profiles trigger or `accept_terms()`; the role never comes from user input (the profiles trigger defaults to `client`, only `pnpm user:invite` sets `expert` or `ops`). Auth email templates live in `supabase/templates/` (German above English) and the hosted settings (Resend SMTP, templates, Google and Microsoft) are a per environment checklist in `docs/auth.md`.
+- **Product email and ops alerts follow `docs/email.md`** (spec 0006). Every product email goes through `sendEmail` in `src/lib/email/send.ts`, which triggers the `send-email` task: one `email_deliveries` row per send, a React Email template from the registry rendered in the recipient's stored language, Resend when `RESEND_API_KEY` is set, else SMTP through `EMAIL_SMTP_URL` (Mailpit locally), else `skipped`; never call a transport directly. Team alerts go through `sendOpsAlert` in `src/lib/alerts/` and the `ops-alert` task to the Slack webhook. A new template is a schema entry, a component, a registry entry, `email.<name>` keys in both catalogs and a preview; a new alert kind is a schema plus a presenter. Auth emails stay on the Supabase path in `docs/auth.md`. Ops watch deliveries on `/admin/emails`; the per environment checklist (domain, keys, webhook, allowlist, Slack) lives in the runbook.
 - **Authenticated areas are `force-dynamic`**; static rendering only under `(marketing)`. Every user facing string goes through next-intl (`messages/de-CH.json` and `messages/en-CH.json`; the database and the URL use the short codes `de` and `en`, see `docs/localization.md`). The app role lives in `app_metadata.role`, never a top level `role` claim.
 - **Accessibility WCAG 2.2 AA**: Biome a11y rules in the editor, axe in Playwright as the second net. No ESLint.
 - **Design system**: build all UI to `docs/design.md` (art direction, the component inventory and the build mandate); token values live in `src/app/globals.css`, and every new primitive gets a section on the ops only `/admin/design` gallery so axe scans it.
@@ -97,6 +99,9 @@ Chosen by `/audit` on 2026-09-03; `/develop tooling` installs what is not yet th
 - [stripe-best-practices](.claude/skills/stripe-best-practices/): `stripe/ai`, Checkout, webhooks, Stripe Tax, key handling (feature 11 on).
 - [resend](.claude/skills/resend/): `resend/resend-skills`, Resend API, idempotency keys, webhooks (feature 7 on).
 - [react-email](.claude/skills/react-email/): `resend/resend-skills`, React Email templates (feature 7 on).
+- [nodemailer](.claude/skills/nodemailer/): `aidotnet/moyucode`, Nodemailer SMTP sending (the local Mailpit transport in `src/lib/email/transport.ts`).
+- [email-testing](.claude/skills/email-testing/): `petrkindlmann/qa-skills`, testing email flows through a capture inbox (Mailpit polling in Playwright, link and code extraction, deliverability checks).
+- [trigger-authoring-tasks](.claude/skills/trigger-authoring-tasks/) plus `trigger-getting-started`, `trigger-realtime-and-frontend`, `trigger-cost-savings`, `trigger-authoring-chat-agent` and `trigger-chat-agent-advanced`: installed and refreshed by the `trigger.dev` CLI (the pointer block in `CLAUDE.md` is the CLI's own); they overlap with `trigger-tasks` and `trigger-realtime` above.
 - [next-themes](.claude/skills/next-themes/): `pharbuz/ai-agent-skills`, theme switching with next-themes (ThemeProvider, useTheme, no flash on first paint, forced themes).
 - [recharts](.claude/skills/recharts/): `andy-spike/skills`, Recharts charts behind the shadcn Chart wrapper (axes, tooltips, legends, responsive sizing, accessibility).
 - [ask-sonner](.claude/skills/ask-sonner/): `emilkowalski/skills`, Sonner toasts (the single root toaster, promise and loading toasts, theming, dark mode).

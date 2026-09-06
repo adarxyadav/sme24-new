@@ -573,6 +573,7 @@ export type Database = {
           finished_at: string | null
           id: string
           organization_id: string
+          provider_run_id: string | null
           requested_by: string | null
           started_at: string | null
           status: string
@@ -588,6 +589,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           organization_id: string
+          provider_run_id?: string | null
           requested_by?: string | null
           started_at?: string | null
           status?: string
@@ -603,6 +605,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           organization_id?: string
+          provider_run_id?: string | null
           requested_by?: string | null
           started_at?: string | null
           status?: string

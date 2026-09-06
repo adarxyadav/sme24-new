@@ -37,7 +37,7 @@ const { values } = parseArgs({
   options: {
     email: { type: "string" },
     role: { type: "string" },
-    locale: { type: "string", default: "de" },
+    locale: { type: "string", default: "en" },
     name: { type: "string" },
   },
 });

@@ -19,7 +19,7 @@ export function absoluteUrl(href: LocalizedHref, locale: Locale): string {
 
 /**
  * Language alternates for a route (spec 0004, AC-10): the canonical URL of the current locale plus
- * `de-CH`, `en-CH` and `x-default` (German) links, with absolute URLs from `NEXT_PUBLIC_APP_URL`.
+ * `de-CH`, `en-CH` and `x-default` (English) links, with absolute URLs from `NEXT_PUBLIC_APP_URL`.
  * Pages spread it into `alternates` in `generateMetadata`; the sitemap uses the same `languages`.
  * Pure, runs on the server.
  */

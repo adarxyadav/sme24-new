@@ -1,7 +1,8 @@
--- kpi_definitions: every signed in user reads, only ops write (spec 0002 AC-3).
+-- kpi_definitions: every signed in user reads, only ops write (spec 0002 AC-3); the data migration
+-- of spec 0007 (AC-1) seeds the eight catalogue rows a client reads and cannot write.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(13);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -13,7 +14,7 @@ begin
      or exists (select 1 from public.companies)
      or exists (select 1 from public.company_kpis)
      or exists (select 1 from public.research_runs)
-     or exists (select 1 from public.kpi_definitions) then
+     or exists (select 1 from public.kpi_definitions where key not in ('ltifr', 'trifr', 'fatalities', 'lost_days_per_incident', 'accident_rate_per_1000_fte', 'absenteeism_rate', 'near_miss_rate', 'iso_45001_certified')) then
     raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
   end if;
 end $$;
@@ -93,10 +94,18 @@ insert into public.companies (id, organization_id, name, created_by) values
   ('0c000000-0000-4000-8000-00000000000a', '0a000000-0000-4000-8000-000000000000', 'Company A', 'a0000000-0000-4000-8000-000000000001'),
   ('0c000000-0000-4000-8000-00000000000b', '0b000000-0000-4000-8000-000000000000', 'Company B', 'b0000000-0000-4000-8000-000000000001');
 insert into public.kpi_definitions (key, name, unit, direction) values
-  ('ltifr', '{"de":"LTIFR","en":"LTIFR"}', 'per 1M hours', 'lower_is_better');
+  ('ltifr', '{"de":"LTIFR","en":"LTIFR"}', 'per 1M hours', 'lower_is_better')
+on conflict (key) do nothing;
 
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
 select is((select count(*) from public.kpi_definitions where key = 'ltifr'), 1::bigint, 'a client reads the catalogue');
+select is((select count(*) from public.kpi_definitions where is_active), 8::bigint, 'the migration seeded eight active KPIs');
+select results_eq(
+  $$ select key from public.kpi_definitions where is_active order by sort_order $$,
+  $$ values ('ltifr'), ('trifr'), ('fatalities'), ('lost_days_per_incident'), ('accident_rate_per_1000_fte'), ('absenteeism_rate'), ('near_miss_rate'), ('iso_45001_certified') $$,
+  'the eight KPIs come in the catalogue sort order');
+select is((select count(*) from public.kpi_definitions where name ? 'de' and name ? 'en' and description ? 'de' and description ? 'en'), 8::bigint,
+  'every seeded KPI carries a German and an English name and description');
 select throws_ok(
   $$ insert into public.kpi_definitions (key, name, unit, direction) values ('trir', '{"de":"TRIR","en":"TRIR"}', 'per 200k hours', 'lower_is_better') $$,
   '42501', null, 'a client cannot insert a definition');

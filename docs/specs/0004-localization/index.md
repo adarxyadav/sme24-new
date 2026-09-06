@@ -17,7 +17,7 @@ SME24 speaks German and English from the first screen, and this spec turns the r
 - As a developer building a later feature, I want typed message keys, one formatting helper and one rule for every string so that localization is not a review item on each pull request.
 
 **Acceptance criteria** (the contract, each criterion is IDed and independently checkable):
-- **AC-1**: The next-intl locales are `de-CH` and `en-CH` with the URL prefixes `/de` and `/en`; `/` redirects to `/de`; the `html` element carries `lang="de-CH"` or `lang="en-CH"`; a request to `/de-CH/...` or `/en-CH/...` never serves a second copy of a page (next-intl sees no known prefix, answers 307 to `/de/de-CH/...`, and that route does not exist, so the final answer is 404); and one table in `src/i18n/routing.ts` maps each locale to its short language code (`de-CH` to `de`, `en-CH` to `en`) for the database, and the URL prefixes are derived from that same table so the prefix and the short code are one string by construction.
+- **AC-1**: The next-intl locales are `de-CH` and `en-CH` with the URL prefixes `/de` and `/en`; `/` redirects to `/en` (amended 2026-09-05, was `/de`); the `html` element carries `lang="de-CH"` or `lang="en-CH"`; a request to `/de-CH/...` or `/en-CH/...` never serves a second copy of a page (next-intl sees no known prefix, answers 307 to `/en/de-CH/...`, and that route does not exist, so the final answer is 404); and one table in `src/i18n/routing.ts` maps each locale to its short language code (`de-CH` to `de`, `en-CH` to `en`) for the database, and the URL prefixes are derived from that same table so the prefix and the short code are one string by construction.
 - **AC-2**: The sidebar menu and the marketing switcher both change the language while keeping the path and the query string, and they translate a route through the pathnames map when it has a localised slug. For a signed in user the switch also writes the short code to `profiles.locale` through the `setLocale` action; for a signed out visitor the action returns ok without writing. Signing in never redirects to another language: the URL wins.
 - **AC-3**: The named formats in `src/i18n/formats.ts` produce exactly these strings in a Vitest test for both locales, through the request formatter and through the standalone formatter a task uses: `chf` gives `CHF 4’900.00` for 4900; `chfWhole` gives `CHF 48’313` for 48312.5; `dateShort` gives `04.09.2026`; `dateLong` gives `4. September 2026` in `de-CH` and `4 September 2026` in `en-CH`; `dateTime` gives `04.09.2026, 15:05` for 13:05 UTC on that day; `percent` gives `12.3%` for 0.1234. All dates and times render in `Europe/Zurich`.
 - **AC-4**: `messages/de-CH.json` is the authoritative catalog and `messages/en-CH.json` mirrors it exactly (the existing parity and placeholder tests, updated); every top level namespace is a feature or a shared group named in `docs/localization.md`; message keys are typed through next-intl's `AppConfig` so `pnpm typecheck` fails on an unknown key or namespace; and `docs/localization.md` records the content rules (formal Sie, Swiss spelling with `ss`, British English, glossary, key naming, ICU plural and rich text usage, the named formats, the timezone rule).
@@ -26,8 +26,8 @@ SME24 speaks German and English from the first screen, and this spec turns the r
 - **AC-7**: `createTranslatorFor(locale)` and `createFormatterFor(locale)` in `src/i18n/standalone.ts` return next-intl's translator and formatter with the same catalogs, formats and timezone as the app, without a request; `localeForUser(client, userId)` and `localeForOrganization(client, organizationId)` in `src/features/localization/queries.ts` return the next-intl locale from the stored short code, use `maybeSingle` and fall back to the default locale when no row exists (a deleted recipient must not fail a retried task forever), and throw only on a database error; and the scaffold check task takes an optional `userId`, resolves the locale with `localeForUser` (default locale without an id), and stores `payload.message` plus `" · "` plus the `scaffold.summary` message (new key in both catalogs, with the insert time formatted as `dateTime`) in its `message` column, visible on the ops admin page.
 - **AC-8**: `parseWith(schema, input, locale)` in `src/lib/validation.ts` takes the full locale (`de-CH` or `en-CH`), maps it through `LOCALE_CODE` and parses with the Zod locale map for `de` or `en` (built in messages such as required, too short, invalid email arrive in the request language), `zodLocaleError(locale)` gives the same map to `zodResolver` in the browser, and a custom rule carries a message key that the form translates from the feature's `validation` namespace; the gallery form on `/admin/design` shows its errors in German on `/de` and in English on `/en`.
 - **AC-9**: `organizations.locale text not null default 'de'` with the check `in ('de','en')` exists; `create_organization` copies the caller's `profiles.locale` into it; an owner may update `locale` through the existing owner update policy (the owner column trigger is a deny list that pins only `archived_at`, `created_by` and `id`, so it needs no change); a plain member has no update path at all; ops keep full access; pgTAP gains assertions for each rule and the generated types are current.
-- **AC-10**: `localizedAlternates(pathname)` in `src/i18n/metadata.ts` returns the canonical URL plus `de-CH`, `en-CH` and `x-default` (pointing at `/de`) language alternates for a route, resolving localised slugs through the pathnames map; the landing page uses it in `generateMetadata`; and `sitemap.ts` lists every route in the marketing route list for both locales with those alternates.
-- **AC-11**: Playwright renders every public page in `en` with axe (no WCAG 2.2 AA violations), switches from `/de?x=1` to `/en?x=1` keeping the query, switches back from the sidebar menu as a signed in user and sees the menu show the new language after a reload, reads one CHF amount in the gallery Formatting section as `CHF 4’900.00` in the real browser, and asserts that `/de-CH` ends on `/de/de-CH` with status 404.
+- **AC-10**: `localizedAlternates(pathname)` in `src/i18n/metadata.ts` returns the canonical URL plus `de-CH`, `en-CH` and `x-default` (pointing at `/en` since the amendment of 2026-09-05) language alternates for a route, resolving localised slugs through the pathnames map; the landing page uses it in `generateMetadata`; and `sitemap.ts` lists every route in the marketing route list for both locales with those alternates.
+- **AC-11**: Playwright renders every public page in `en` with axe (no WCAG 2.2 AA violations), switches from `/de?x=1` to `/en?x=1` keeping the query, switches back from the sidebar menu as a signed in user and sees the menu show the new language after a reload, reads one CHF amount in the gallery Formatting section as `CHF 4’900.00` in the real browser, and asserts that `/de-CH` ends on `/en/de-CH` with status 404 (amended 2026-09-05).
 - **AC-12**: A missing message key throws in development and test; in production `onError` reports `MISSING_MESSAGE` to Sentry once per key per process (a module level set of reported keys, keyed on the message key next-intl quotes so one key is one report across locales, guards the call; the Sentry fingerprint only groups) and `getMessageFallback` renders the key path instead of crashing. Both live in `src/i18n/on-error.ts`, shared by the request config and the standalone factory, and a Vitest test imports and covers them.
 - **AC-13**: Every existing route (`/`, `/sign-in`, `/forbidden`, the area roots and `/admin/design`) is in the `pathnames` map, so `Link`, `redirect`, `useRouter` and `getPathname` are typed; `pnpm typecheck` fails on an unknown href; the proxy builds its sign in and forbidden redirects with `getPathname`; and the area gate keeps working for every area in both languages.
 
@@ -56,7 +56,7 @@ export function localeFromCode(code: string): Locale            // unknown code 
 
 export const routing = defineRouting({
   locales: LOCALES,
-  defaultLocale: "de-CH",
+  defaultLocale: "en-CH", // amended 2026-09-05, was "de-CH"
   // The URL prefix is the short code, so `localeFromCode(prefix)` also serves the proxy.
   localePrefix: { mode: "always", prefixes: { "de-CH": `/${LOCALE_CODE["de-CH"]}`, "en-CH": `/${LOCALE_CODE["en-CH"]}` } },
   localeDetection: false,
@@ -132,7 +132,7 @@ export const formats = {
 
 ### Metadata and sitemap (`src/i18n/metadata.ts`, `src/app/sitemap.ts`)
 
-- `localizedAlternates(pathname, params?)`: returns `{ canonical, languages: { "de-CH": url, "en-CH": url, "x-default": url } }` with absolute URLs from `NEXT_PUBLIC_APP_URL` and `getPathname` per locale, `x-default` pointing at the German URL. Pages spread it into `alternates` in `generateMetadata`; `canonical` is the URL of the current locale.
+- `localizedAlternates(pathname, params?)`: returns `{ canonical, languages: { "de-CH": url, "en-CH": url, "x-default": url } }` with absolute URLs from `NEXT_PUBLIC_APP_URL` and `getPathname` per locale, `x-default` pointing at the English URL (amended 2026-09-05). Pages spread it into `alternates` in `generateMetadata`; `canonical` is the URL of the current locale.
 - `sitemap.ts` maps `MARKETING_ROUTES` times the locales, each entry with the same alternates; `robots.ts` is unchanged.
 
 ### Content rules (`docs/localization.md`)
@@ -143,8 +143,8 @@ The written reference `/develop` reads for every feature, next to `docs/design.m
 
 | Table | Change | Column | Rule |
 |---|---|---|---|
-| `profiles` | exists (spec 0002) | `locale text not null default 'de' check (locale in ('de','en'))` | Own row editable through the column grant; written by `setLocale` |
-| `organizations` | add | `locale text not null default 'de' check (locale in ('de','en'))` | `create_organization` copies the caller's `profiles.locale`; owners update it through the existing owner policy (the deny list trigger is unchanged); ops full access |
+| `profiles` | exists (spec 0002) | `locale text not null default 'en' check (locale in ('de','en'))` (default amended 2026-09-05) | Own row editable through the column grant; written by `setLocale` |
+| `organizations` | add | `locale text not null default 'en' check (locale in ('de','en'))` (default amended 2026-09-05) | `create_organization` copies the caller's `profiles.locale`; owners update it through the existing owner policy (the deny list trigger is unchanged); ops full access |
 | `kpi_definitions` | exists | `name`, `description` jsonb keyed by short code | Read with `LOCALE_CODE[locale]` |
 
 No new table, no new relationship. The `organizations` change lands as one migration from `supabase/schemas/10_organizations.sql` and `11_organization_members.sql` (`create_organization` body), `pnpm db:diff`, then the hand checks from `AGENTS.md` (no column grant, function or view is touched, so nothing to re add), `db:reset`, `test:db`, `db:types`.
@@ -156,7 +156,7 @@ No new table, no new relationship. The `organizations` change lands as one migra
 | Endpoint | Method | Key inputs | Key outputs | Auth | Key errors |
 |---|---|---|---|---|---|
 | `setLocale` (server action) | POST | `locale: "de" \| "en"` | `{ ok: true, data: { persisted: boolean } }` | any; writes only with a session, own row only | `{ ok: false, error: "invalid_input" }`, `{ ok: false, error: "persist_failed" }` |
-| `/` | GET | none | 307 to `/de` | none | none |
+| `/` | GET | none | 307 to `/en` | none | none |
 | `/de-CH/...`, `/en-CH/...` | GET | none | 307 to `/de/de-CH/...`, then 404 | none | never a rendered page |
 | `/sitemap.xml` | GET | none | every marketing route in both locales with alternates | none | none |
 | `scaffoldCheck` task | trigger | `message`, `shouldFail`, new `userId?` | row whose `message` is the payload message, `" · "`, and the `scaffold.summary` text with the insert time as `dateTime` | service client, explicit id | throws so Trigger.dev retries |
@@ -177,7 +177,7 @@ No new table, no new relationship. The `organizations` change lands as one migra
 | Email or task | Recipient locale | `localeForUser(serviceClient, userId)` at send time |
 | Report or organisation document | Document locale | `localeForOrganization(serviceClient, organizationId)` |
 | `create_organization` | Organisation locale | The caller's `profiles.locale` inside the function |
-| New profile | Locale | `raw_user_meta_data.locale` set by feature 6 from `LOCALE_CODE[urlLocale]`, else `de` (existing default) |
+| New profile | Locale | `raw_user_meta_data.locale` set by feature 6 from `LOCALE_CODE[urlLocale]`, else `en` (the default since 2026-09-05) |
 | KPI label | Name in the viewer's language | `kpi_definitions.name ->> LOCALE_CODE[locale]` |
 | Zod error text | Localized built in message | `zodLocaleError(locale)` passed per parse or to the resolver |
 | Zod error text | Custom rule message | The key in the schema, translated by `issueMessage` from `<feature>.validation` |
@@ -274,4 +274,10 @@ Ordered as Tracer Bullet slices: the first slice changes the locale tags and thr
 - [ ] Feature 15 (analytics): capture `locale` (the short code) as a property on every server side event.
 - [ ] Feature 18 (gap report): generate in the organisation locale; the document renderer uses the standalone formatter.
 - [ ] After merge, `/sync` records in root `AGENTS.md`: the catalog file names, `docs/localization.md` as the content reference, the route map rule (every route in `pathnames.ts`, links with params as objects), the formats rule (never call `Intl` directly), and `src/i18n/standalone.ts` for tasks and emails.
-- [ ] French and Italian (deferred in the scope): follow the "how to add a locale" section of `docs/localization.md`; the `x-default` alternate stays German.
+- [ ] French and Italian (deferred in the scope): follow the "how to add a locale" section of `docs/localization.md`; the `x-default` alternate stays English.
+
+## Amendment 2026-09-05: English as the default language
+
+Owner decision, recorded in spec 0001's amendment of the same day: the default locale is `en-CH`. In this spec that changes `DEFAULT_LOCALE` and `routing.defaultLocale` (AC-1), the `x-default` alternate (AC-10), the fallback of `localeFromCode`, `resolveLocale`, `localeForUser` and `localeForOrganization` (AC-7), the column defaults of `profiles.locale` and `organizations.locale` (AC-9) and the fallback inside `handle_new_user` and `create_organization`. The migration `20260905182208_english_default.sql` switches the two column defaults and the two function bodies; existing rows keep their stored language. The lines above marked "amended 2026-09-05" are read with this section.
+
+- **Follow-up for `/architect`**: fold the amended values into `## Feature design` and the value sourcing table.

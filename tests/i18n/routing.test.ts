@@ -15,10 +15,10 @@ import {
  * mapping each locale to the short code the database stores, and the prefixes derived from it.
  */
 describe("locales and short codes (spec 0004, AC-1)", () => {
-  it("offers exactly de-CH and en-CH with German as the default", () => {
+  it("offers exactly de-CH and en-CH with English as the default", () => {
     expect([...LOCALES]).toEqual(["de-CH", "en-CH"]);
-    expect(DEFAULT_LOCALE).toBe("de-CH");
-    expect(routing.defaultLocale).toBe("de-CH");
+    expect(DEFAULT_LOCALE).toBe("en-CH");
+    expect(routing.defaultLocale).toBe("en-CH");
     expect([...routing.locales]).toEqual([...LOCALES]);
   });
 
@@ -43,12 +43,12 @@ describe("locales and short codes (spec 0004, AC-1)", () => {
   });
 
   it("gives the default locale for an unknown, empty or missing code", () => {
-    expect(localeFromCode("fr")).toBe("de-CH");
-    expect(localeFromCode("de-CH")).toBe("de-CH");
-    expect(localeFromCode("en-CH")).toBe("de-CH");
-    expect(localeFromCode("")).toBe("de-CH");
-    expect(localeFromCode(null)).toBe("de-CH");
-    expect(localeFromCode(undefined)).toBe("de-CH");
+    expect(localeFromCode("fr")).toBe("en-CH");
+    expect(localeFromCode("de-CH")).toBe("en-CH");
+    expect(localeFromCode("en-CH")).toBe("en-CH");
+    expect(localeFromCode("")).toBe("en-CH");
+    expect(localeFromCode(null)).toBe("en-CH");
+    expect(localeFromCode(undefined)).toBe("en-CH");
   });
 
   it("round trips every locale through its short code", () => {
@@ -65,7 +65,7 @@ describe("locales and short codes (spec 0004, AC-1)", () => {
     expect(isLocale(null)).toBe(false);
     expect(isLocale(42)).toBe(false);
     expect(resolveLocale("en-CH")).toBe("en-CH");
-    expect(resolveLocale("en")).toBe("de-CH");
+    expect(resolveLocale("en")).toBe("en-CH");
   });
 
   it("switches languages only through an explicit choice: no detection, one cookie, no middleware alternates", () => {

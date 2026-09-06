@@ -41,11 +41,11 @@ test("the marketing switcher keeps the query string (AC-2, AC-11)", async ({ pag
   await expect(page).toHaveURL(/\/de\?x=1$/);
 });
 
-test("/de-CH is not a second copy of the site: it ends on /de/de-CH with a 404 (AC-1, AC-11)", async ({
+test("/de-CH is not a second copy of the site: it ends on /en/de-CH (the default prefix) with a 404 (AC-1, AC-11)", async ({
   page,
 }) => {
   const response = await page.goto("/de-CH");
-  await expect(page).toHaveURL(/\/de\/de-CH$/);
+  await expect(page).toHaveURL(/\/en\/de-CH$/);
   expect(response?.status()).toBe(404);
 });
 

@@ -1,9 +1,10 @@
 -- research_runs: a member requests a queued run for their own company, the task moves it on as
 -- the service key, the transition trigger rejects every other move, the table is in the realtime
--- publication (spec 0002 AC-3, AC-4, AC-5, AC-10).
+-- publication (spec 0002 AC-3, AC-4, AC-5, AC-10). Spec 0007 AC-2 adds one open run per company,
+-- five runs per organization per day, and the narrow members update policy.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(38);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -15,7 +16,7 @@ begin
      or exists (select 1 from public.companies)
      or exists (select 1 from public.company_kpis)
      or exists (select 1 from public.research_runs)
-     or exists (select 1 from public.kpi_definitions) then
+     or exists (select 1 from public.kpi_definitions where key not in ('ltifr', 'trifr', 'fatalities', 'lost_days_per_incident', 'accident_rate_per_1000_fte', 'absenteeism_rate', 'near_miss_rate', 'iso_45001_certified')) then
     raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
   end if;
 end $$;
@@ -95,7 +96,8 @@ insert into public.companies (id, organization_id, name, created_by) values
   ('0c000000-0000-4000-8000-00000000000a', '0a000000-0000-4000-8000-000000000000', 'Company A', 'a0000000-0000-4000-8000-000000000001'),
   ('0c000000-0000-4000-8000-00000000000b', '0b000000-0000-4000-8000-000000000000', 'Company B', 'b0000000-0000-4000-8000-000000000001');
 insert into public.kpi_definitions (key, name, unit, direction) values
-  ('ltifr', '{"de":"LTIFR","en":"LTIFR"}', 'per 1M hours', 'lower_is_better');
+  ('ltifr', '{"de":"LTIFR","en":"LTIFR"}', 'per 1M hours', 'lower_is_better')
+on conflict (key) do nothing;
 
 -- Member of A requests a run
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
@@ -120,8 +122,9 @@ select throws_ok(
   $$ insert into public.research_runs (organization_id, company_id, requested_by)
      values ('0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000b', 'a0000000-0000-4000-8000-000000000002') $$,
   '42501', null, 'a member cannot request a run for another organization''s company');
-select is(pg_temp.affected($$ update public.research_runs set status = 'running' where id = '0d000000-0000-4000-8000-000000000001' $$), 0::bigint,
-  'a member cannot progress a run (zero rows)');
+select throws_ok(
+  $$ update public.research_runs set status = 'running' where id = '0d000000-0000-4000-8000-000000000001' $$,
+  '42501', null, 'a member cannot progress their own queued run to running (the update policy only allows failed)');
 select is(pg_temp.affected($$ delete from public.research_runs where id = '0d000000-0000-4000-8000-000000000001' $$), 0::bigint,
   'a member cannot delete a run (zero rows)');
 
@@ -173,13 +176,90 @@ select results_eq(
 select is((select count(*) from transitions where outcome = '23514'), 20::bigint,
   'every other pair, including a repeat of the same state, raises 23514');
 
+-- One open run per company, the members update policy and the daily quota (spec 0007, AC-2).
+-- At this point organization A holds run 1 (succeeded) and run 2 (failed): two runs today.
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select lives_ok(
+  $$ insert into public.research_runs (id, organization_id, company_id, requested_by)
+     values ('0d000000-0000-4000-8000-000000000003', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002') $$,
+  'a member requests a third run once the earlier ones are closed');
+select throws_like(
+  $$ insert into public.research_runs (organization_id, company_id, requested_by)
+     values ('0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002') $$,
+  '%research_runs_one_open_per_company_idx%',
+  'a second open run for the same company fails with a unique violation naming the index');
+select is(pg_temp.affected($$ update public.research_runs set trigger_run_id = 'run_3' where id = '0d000000-0000-4000-8000-000000000003' $$), 1::bigint,
+  'a member sets trigger_run_id on their own queued run');
+select throws_ok(
+  $$ update public.research_runs set summary = '{"step":"done"}' where id = '0d000000-0000-4000-8000-000000000003' $$,
+  '42501', null, 'a member cannot touch summary (no column grant)');
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
+select is(pg_temp.affected($$ update public.research_runs set status = 'failed' where id = '0d000000-0000-4000-8000-000000000003' $$), 0::bigint,
+  'another member of the organization cannot close the run (zero rows)');
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select is(pg_temp.affected($$ update public.research_runs set status = 'failed', error_code = 'trigger_failed', error_message = 'x', finished_at = now() where id = '0d000000-0000-4000-8000-000000000003' $$), 1::bigint,
+  'a member moves their own queued run to failed with trigger_failed');
+select pg_temp.as_postgres();
+insert into public.research_runs (id, organization_id, company_id, requested_by, status, started_at) values
+  ('0d000000-0000-4000-8000-000000000004', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002', 'running', now());
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select is(pg_temp.affected($$ update public.research_runs set status = 'failed' where id = '0d000000-0000-4000-8000-000000000004' $$), 0::bigint,
+  'a member cannot touch their own running run (zero rows)');
+-- Four runs count today (run 3 is trigger_failed); two more make five.
+select pg_temp.as_postgres();
+update public.research_runs set status = 'failed', error_code = 'provider_unavailable', finished_at = now() where id = '0d000000-0000-4000-8000-000000000004';
+insert into public.research_runs (id, organization_id, company_id, requested_by, status, finished_at) values
+  ('0d000000-0000-4000-8000-000000000005', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002', 'succeeded', now()),
+  ('0d000000-0000-4000-8000-000000000006', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002', 'succeeded', now());
+select is((select private.research_run_allowed('0a000000-0000-4000-8000-000000000000')), false, 'the helper says no at five runs in 24 hours');
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select throws_ok(
+  $$ insert into public.research_runs (organization_id, company_id, requested_by)
+     values ('0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002') $$,
+  '42501', null, 'the sixth run in 24 hours fails the insert policy');
+select pg_temp.as_postgres();
+update public.research_runs set created_at = now() - interval '25 hours' where id = '0d000000-0000-4000-8000-000000000005';
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select lives_ok(
+  $$ insert into public.research_runs (id, organization_id, company_id, requested_by)
+     values ('0d000000-0000-4000-8000-000000000007', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002') $$,
+  'a run created 25 hours ago does not count');
+select is(pg_temp.affected($$ update public.research_runs set status = 'failed', error_code = 'trigger_failed', finished_at = now() where id = '0d000000-0000-4000-8000-000000000007' $$), 1::bigint,
+  'the member closes the run the trigger call lost');
+select lives_ok(
+  $$ insert into public.research_runs (id, organization_id, company_id, requested_by)
+     values ('0d000000-0000-4000-8000-000000000008', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000002') $$,
+  'a trigger_failed row does not count');
+select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
+select is(pg_temp.affected($$ update public.research_runs set status = 'failed', error_code = 'stale', finished_at = now() where id = '0d000000-0000-4000-8000-000000000008' $$), 1::bigint,
+  'ops close any run, whoever requested it');
+select lives_ok(
+  $$ insert into public.research_runs (id, organization_id, company_id, requested_by)
+     values ('0d000000-0000-4000-8000-000000000009', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'c0000000-0000-4000-8000-000000000001') $$,
+  'an ops user is unaffected by the quota');
+
+-- `loadQuota` in src/features/research/queries.ts counts the same rows the helper's predicate
+-- does, spelled as PostgREST's `error_code.is.null,error_code.neq.trigger_failed`. If the two
+-- ever drift, the dashboard's "n of 5 runs left" stops matching what the insert policy enforces.
+select pg_temp.as_postgres();
+select is(
+  (select count(*) from public.research_runs r
+   where r.organization_id = '0a000000-0000-4000-8000-000000000000'
+     and r.created_at > now() - interval '24 hours'
+     and (r.error_code is null or r.error_code <> 'trigger_failed')),
+  (select count(*) from public.research_runs r
+   where r.organization_id = '0a000000-0000-4000-8000-000000000000'
+     and r.created_at > now() - interval '24 hours'
+     and r.error_code is distinct from 'trigger_failed'),
+  'the dashboard quota filter counts exactly what private.research_run_allowed counts');
+
 -- Expert and ops
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');
-select is((select count(*) from public.research_runs), 2::bigint, 'the assigned expert reads the runs of A');
+select is((select count(*) from public.research_runs), 9::bigint, 'the assigned expert reads the runs of A');
 select pg_temp.impersonate('b0000000-0000-4000-8000-000000000001', 'client', '0b000000-0000-4000-8000-000000000000');
 select is((select count(*) from public.research_runs), 0::bigint, 'a member of B reads no run of A');
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
-select is((select count(*) from public.research_runs where organization_id = '0a000000-0000-4000-8000-000000000000'), 2::bigint, 'ops read the runs');
+select is((select count(*) from public.research_runs where organization_id = '0a000000-0000-4000-8000-000000000000'), 9::bigint, 'ops read the runs');
 
 -- Realtime and audit
 select pg_temp.as_postgres();

@@ -13,7 +13,7 @@ import { createProxyClient } from "@/lib/supabase/proxy";
 
 /**
  * Request proxy (spec 0001, spec 0005). Runs on the Node runtime. Order:
- * 1. next-intl: `/` -> `/de`, locale prefix always, locale cookie on explicit switch.
+ * 1. next-intl: `/` -> `/en`, locale prefix always, locale cookie on explicit switch.
  * 2. Supabase: refresh the session cookies on the response we are about to return.
  * 3. A signed in user on a sign in, sign up, code or forgot password page goes to their role home
  *    (`/reset-password` is left alone: a recovery session is signed in on purpose).
@@ -47,7 +47,7 @@ function redirectKeepingCookies(path: string, request: NextRequest, response: Ne
 export async function proxy(request: NextRequest) {
   const response = handleI18n(request);
 
-  // A redirect or rewrite from next-intl (for example `/` -> `/de`) needs no auth work.
+  // A redirect or rewrite from next-intl (for example `/` -> `/en`) needs no auth work.
   if (response.headers.has("location")) return response;
 
   const supabase = createProxyClient(request, response);

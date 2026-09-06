@@ -14,7 +14,7 @@ begin
      or exists (select 1 from public.companies)
      or exists (select 1 from public.company_kpis)
      or exists (select 1 from public.research_runs)
-     or exists (select 1 from public.kpi_definitions) then
+     or exists (select 1 from public.kpi_definitions where key not in ('ltifr', 'trifr', 'fatalities', 'lost_days_per_incident', 'accident_rate_per_1000_fte', 'absenteeism_rate', 'near_miss_rate', 'iso_45001_certified')) then
     raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
   end if;
 end $$;
@@ -95,8 +95,8 @@ select results_eq(
   'handle_new_user copies full_name and locale from user metadata');
 select results_eq(
   $$ select full_name, locale from public.profiles where id = 'b0000000-0000-4000-8000-000000000001' $$,
-  $$ values (null::text, 'de') $$,
-  'an empty name becomes null and an unknown locale falls back to de');
+  $$ values (null::text, 'en') $$,
+  'an empty name becomes null and an unknown locale falls back to en');
 
 -- Owner of A
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
