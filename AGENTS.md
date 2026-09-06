@@ -115,6 +115,7 @@ Chosen by `/audit` on 2026-09-03; `/develop tooling` installs what is not yet th
 - [next-themes](.claude/skills/next-themes/): `pharbuz/ai-agent-skills`, theme switching with next-themes (ThemeProvider, useTheme, no flash on first paint, forced themes).
 - [recharts](.claude/skills/recharts/): `andy-spike/skills`, Recharts charts behind the shadcn Chart wrapper (axes, tooltips, legends, responsive sizing, accessibility).
 - [ask-sonner](.claude/skills/ask-sonner/): `emilkowalski/skills`, Sonner toasts (the single root toaster, promise and loading toasts, theming, dark mode).
+- [frontend-design](.claude/skills/frontend-design/): `anthropics/skills`, art direction for new or reshaped UI (aesthetic direction, typography, choices that do not read as templated defaults); `docs/design.md` wins on conflicts.
 
 Declined: lackeyjb/playwright-skill (same skill name as the installed one). MCP servers: Supabase (recommended), Sentry (recommended), Stripe (recommended), PostHog (recommended), Resend (recommended, feature 7); connect them in your MCP settings, none is connected yet.
 

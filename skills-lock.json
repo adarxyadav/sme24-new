@@ -61,6 +61,12 @@
       "skillPath": "skills/email-testing/SKILL.md",
       "computedHash": "57732c5ccb5d35c5180b5609e923ee4697de354e27ac9d35150ed4e04857fe41"
     },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
+    },
     "next-intl-app-router": {
       "source": "liuchiawei/agent-skills",
       "sourceType": "github",
