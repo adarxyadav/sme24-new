@@ -2,11 +2,11 @@ import { expect, type Page, test } from "@playwright/test";
 
 /**
  * The sticky marketing header (spec 0009): the bar stays at the top as the page scrolls, is
- * transparent until it passes the 8px threshold and then takes its hairline over the frosted
- * ground, inverts over the landing hero so it meets the jet ground without a seam in light mode
- * as well as dark, and stays plain on the three pages that open on the page background. The
- * scroll margin that keeps a focused field and its error summary clear of the bar is scoped to
- * these pages only.
+ * transparent until the page has scrolled the bar's own height and then takes its hairline over
+ * the frosted ground, inverts over the landing hero so it meets the jet ground without a seam in
+ * light mode as well as dark, and stays plain on the three pages that open on the page
+ * background. The scroll margin that keeps a focused field and its error summary clear of the bar
+ * is scoped to these pages only.
  */
 
 /**
@@ -56,10 +56,9 @@ async function readBar(page: Page) {
 }
 
 /**
- * Scrolls past the 8px threshold and waits for the bar to finish taking its frosted ground. The
- * class lands first and `transition-colors` then animates the alpha up, so waiting on the class
- * alone hands back a mid-transition colour (measured on CI: `oklab(... / 0.782878)`); this polls
- * the settled alpha instead.
+ * Scrolls clear of the threshold and waits for the bar to take a frosted ground. Which ground that
+ * is depends on what is behind the bar: over the landing hero it is the dark token, elsewhere the
+ * page theme's. Only the alpha is asserted here, so this holds for both.
  */
 async function scrollPast(page: Page) {
   await page.evaluate(() => window.scrollTo(0, 400));
@@ -124,9 +123,48 @@ test("the unscrolled bar inverts over the landing hero, in light mode too (no se
   });
   expect(isBlack(logoColor)).toBe(false);
 
-  // Once scrolled the bar drops the inversion and takes the page theme's frosted ground.
+  // The bar keeps the inversion for as long as the hero is behind it, then drops it and takes the
+  // page theme's frosted ground once the hero's bottom edge has passed under.
   await scrollPast(page);
-  expect((await readBar(page)).dark).toBe(false);
+  expect((await readBar(page)).dark).toBe(true);
+
+  await page.evaluate(() => {
+    const hero = document.querySelector("main section") as HTMLElement;
+    window.scrollTo(0, hero.getBoundingClientRect().bottom + window.scrollY + 100);
+  });
+  await expect.poll(async () => (await readBar(page)).dark, { timeout: 10_000 }).toBe(false);
+});
+
+test("the bar never shows dark ink over the jet hero while the hero is still behind it", async ({
+  page,
+}) => {
+  await forceTheme(page, "light");
+  await page.goto("/en");
+
+  // The hero is pulled up behind the bar (`-mt-16`) and is taller than the viewport, so the jet
+  // ground stays behind the header for hundreds of pixels of scroll. The bar has to keep its
+  // inversion for every one of them: the regression dropped it at 8px, leaving a black lockup on
+  // a bar whose 85% white ground barely covered the black hero, with the hero's text showing
+  // through. Sampling only the first few pixels would step straight over that.
+  const heroBottom = await page.evaluate(
+    () => (document.querySelector("main section") as HTMLElement).getBoundingClientRect().bottom,
+  );
+  expect(
+    heroBottom,
+    "the hero should be tall enough for this to be worth sampling",
+  ).toBeGreaterThan(400);
+
+  for (const y of [0, 9, 24, 63, 120, 400, Math.round(heroBottom) - 120]) {
+    await page.evaluate((to) => window.scrollTo(0, to), y);
+    await page.evaluate(
+      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    );
+
+    const bar = await readBar(page);
+    // Inverted is the correct answer here; an opaque light bar would also be readable, but over
+    // this hero it is the wrong one, and `bg-background/85` is never opaque anyway.
+    expect(bar.dark, `bar dropped its inversion over the jet hero at scrollY ${y}`).toBe(true);
+  }
 });
 
 for (const path of ["/pricing", "/about", "/contact"] as const) {

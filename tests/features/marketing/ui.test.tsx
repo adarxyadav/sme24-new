@@ -218,7 +218,7 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     });
   }
 
-  it("sticks to the top, transparent until the 8px threshold and frosted with a hairline past it", () => {
+  it("sticks to the top, transparent until the bar's own height and frosted with a hairline past it", () => {
     boundary.pathname = "/de/preise";
     const { container } = renderIn("de-CH", <MarketingHeader links={links} />);
     const header = container.querySelector("header") as HTMLElement;
@@ -228,10 +228,10 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     // At rest and at the threshold itself the bar stays transparent, so the page shows through.
     expect(header.className).toContain("bg-transparent");
     expect(header.className).toContain("border-transparent");
-    scrollTo(8);
+    scrollTo(64);
     expect(header.className).toContain("bg-transparent");
 
-    scrollTo(9);
+    scrollTo(65);
     expect(header.className).toContain("bg-background/85");
     expect(header.className).toContain("border-border");
     expect(header.className).not.toContain("bg-transparent");
@@ -241,14 +241,32 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     expect(header.className).toContain("bg-transparent");
   });
 
-  it("inverts the unscrolled bar on the landing page only, and drops it once scrolled", () => {
+  it("keeps the landing bar inverted while the hero is behind it, and drops it once past", () => {
     boundary.pathname = "/de";
     const { container, unmount } = renderIn("de-CH", <MarketingHeader links={links} />);
     const header = container.querySelector("header") as HTMLElement;
     // The landing hero forces the jet ground in both themes, so the bar over it must invert.
     expect(header.className).toContain("dark");
+
+    // The inversion is held by the hero's own bottom edge, not a scroll offset: while the jet
+    // ground is still behind the bar it has to stay inverted, or the lockup goes black on black.
+    // The component finds the hero as `main section` in the document, and jsdom gives every
+    // element a zero rect, so a stand in with a stubbed geometry stands in for the real hero.
+    const main = document.createElement("main");
+    const hero = document.createElement("section");
+    main.append(hero);
+    document.body.append(main);
+    const heroBottom = vi.spyOn(hero, "getBoundingClientRect");
+
+    heroBottom.mockReturnValue({ bottom: 900 } as DOMRect);
     scrollTo(200);
+    expect(header.className).toContain("dark");
+
+    // Once the hero's bottom edge has passed under the bar, it takes the page theme's ground.
+    heroBottom.mockReturnValue({ bottom: -10 } as DOMRect);
+    scrollTo(1200);
     expect(header.className).not.toContain("dark");
+    main.remove();
     unmount();
 
     // The other three pages open on the page background: inverting would hide the lockup.
