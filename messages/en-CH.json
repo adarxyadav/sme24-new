@@ -305,6 +305,10 @@
       "charts": {
         "title": "Charts",
         "description": "Recharts on the chart tokens. Tooltip and legend follow the theme."
+      },
+      "research": {
+        "title": "Research",
+        "description": "The progress list of a background run and the confidence badges of the KPI table (spec 0007)."
       }
     },
     "tokens": {
@@ -599,6 +603,13 @@
         "m5": "May",
         "m6": "Jun"
       }
+    },
+    "research": {
+      "progressIdle": "Progress list, idle",
+      "progressRunning": "Progress list, running",
+      "progressFailed": "Progress list, failed",
+      "confidence": "Confidence",
+      "notVerified": "Not verified"
     }
   },
   "email": {
@@ -721,6 +732,130 @@
     },
     "errors": {
       "loadFailed": "The emails could not be loaded."
+    }
+  },
+  "research": {
+    "title": "Your company",
+    "description": "Enter your company. We research its public safety figures and show them with their sources.",
+    "lookup": {
+      "title": "Research your company",
+      "description": "The name comes from your organization. A website helps us find the right reports.",
+      "name": "Company name",
+      "website": "Website (optional)",
+      "websiteHint": "For example example.ch",
+      "submit": "Start research",
+      "submitting": "Starting …",
+      "nextTitle": "What happens next",
+      "nextBody": "A background run searches sustainability, annual and safety reports, extracts eight KPIs for the latest three reporting years, and checks every value against its source.",
+      "durationNote": "Takes a few minutes. You can keep the page open.",
+      "quotaNote": "Up to {limit} runs per day.",
+      "trustNote": "Every value shows where it came from and how sure the system is.",
+      "websitePlaceholder": "example.ch"
+    },
+    "details": {
+      "legalName": "Legal name",
+      "website": "Website",
+      "canton": "Canton",
+      "uid": "UID",
+      "employees": "Employees",
+      "industry": "NOGA",
+      "none": "–"
+    },
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "succeeded": "Completed",
+      "empty": "Nothing found",
+      "failed": "Failed"
+    },
+    "steps": {
+      "queued": "Queued",
+      "searching": "Searching public sources",
+      "extracting": "Extracting KPIs",
+      "saving": "Saving results",
+      "done": "Done"
+    },
+    "progress": {
+      "heading": "Research",
+      "live": "Live",
+      "polling": "Refreshes every 5 seconds",
+      "sourcesFound": "{count, plural, =1 {1 source found} other {# sources found}}",
+      "kpisExtracted": "{count, plural, =1 {1 KPI extracted} other {# KPIs extracted}}",
+      "started": "Started {time}",
+      "finished": "Finished {time}",
+      "requested": "Requested {time}",
+      "quotaLeft": "{remaining} of {limit} runs left today",
+      "resultsPending": "The results appear here once the run has finished.",
+      "stepLabel": "Step {step}"
+    },
+    "table": {
+      "heading": "Safety KPIs",
+      "kpi": "KPI",
+      "unit": "Unit",
+      "notFound": "Not found",
+      "coverage": "{found} of {total} KPIs found",
+      "yes": "Yes",
+      "no": "No",
+      "notVerified": "Not verified",
+      "notVerifiedHint": "The check against the source did not run for this run. The value comes straight from the research.",
+      "sources": "Sources",
+      "sourcesFor": "Sources for {kpi}, {year}",
+      "openSources": "{count, plural, =1 {1 source} other {# sources}}",
+      "noExcerpt": "No excerpt",
+      "confidence": {
+        "label": "Confidence",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "sources": {
+      "heading": "Where we looked",
+      "description": "The sources of this run. Each KPI names its own supporting passages.",
+      "retrieved": "Retrieved {time}",
+      "none": "This run found no sources."
+    },
+    "empty": {
+      "title": "No public disclosures found",
+      "description": "We found no safety figures for this company. Check the name and the website and run the research again.",
+      "manualNote": "Entering the KPIs by hand arrives with a later feature."
+    },
+    "failed": {
+      "title": "The research failed",
+      "manualNote": "Entering the KPIs by hand arrives with a later feature."
+    },
+    "rerun": {
+      "title": "Correct the details and research again",
+      "description": "Your details take precedence over the research.",
+      "name": "Company name",
+      "legalName": "Legal name (optional)",
+      "website": "Website (optional)",
+      "submit": "Research again",
+      "submitting": "Starting …",
+      "blockedOpen": "A run is still open. Wait until it has finished.",
+      "blockedQuota": "The daily limit is used up. You can research again tomorrow.",
+      "websitePlaceholder": "example.ch"
+    },
+    "errors": {
+      "validation": "Please check your entries.",
+      "forbidden": "You are not signed in for this.",
+      "not_found": "This company was not found.",
+      "company_exists": "Your company is already on file. The page has been refreshed.",
+      "run_in_progress": "A research run is already in progress for this company.",
+      "quota_exceeded": "The daily limit of {limit} runs has been reached.",
+      "unexpected": "Something went wrong. Please try again later.",
+      "provider_rejected": "The research provider rejected the request. Check the company name and try again.",
+      "provider_unavailable": "The research provider was not reachable. Try again in a few minutes.",
+      "provider_timeout": "The research took longer than 20 minutes and was stopped. Try again.",
+      "internal": "The research stopped unexpectedly. Our team has been informed.",
+      "stale": "The run got stuck and was closed. Try again.",
+      "trigger_failed": "The research could not be started. Try again."
+    },
+    "validation": {
+      "nameShort": "The company name needs at least 2 characters.",
+      "nameLong": "The company name can have at most 200 characters.",
+      "legalNameLong": "The legal name can have at most 200 characters.",
+      "websiteInvalid": "Please enter a valid website, for example example.ch."
     }
   }
 }

@@ -305,6 +305,10 @@
       "charts": {
         "title": "Diagramme",
         "description": "Recharts auf den Diagrammfarben. Tooltip und Legende folgen dem Theme."
+      },
+      "research": {
+        "title": "Recherche",
+        "description": "Die Fortschrittsliste eines Hintergrundlaufs und die Verlässlichkeitsabzeichen der Kennzahlen (Spezifikation 0007)."
       }
     },
     "tokens": {
@@ -599,6 +603,13 @@
         "m5": "Mai",
         "m6": "Jun"
       }
+    },
+    "research": {
+      "progressIdle": "Fortschrittsliste, wartend",
+      "progressRunning": "Fortschrittsliste, laufend",
+      "progressFailed": "Fortschrittsliste, fehlgeschlagen",
+      "confidence": "Verlässlichkeit",
+      "notVerified": "Nicht geprüft"
     }
   },
   "email": {
@@ -721,6 +732,130 @@
     },
     "errors": {
       "loadFailed": "Die E-Mails konnten nicht geladen werden."
+    }
+  },
+  "research": {
+    "title": "Ihr Unternehmen",
+    "description": "Geben Sie Ihr Unternehmen ein. Wir recherchieren die öffentlichen Sicherheitskennzahlen und zeigen sie mit Quellen.",
+    "lookup": {
+      "title": "Unternehmen recherchieren",
+      "description": "Der Name ist aus Ihrer Organisation übernommen. Eine Website hilft, die richtigen Berichte zu finden.",
+      "name": "Firmenname",
+      "website": "Website (optional)",
+      "websiteHint": "Zum Beispiel example.ch",
+      "submit": "Recherche starten",
+      "submitting": "Wird gestartet …",
+      "nextTitle": "Was als Nächstes passiert",
+      "nextBody": "Ein Hintergrundlauf durchsucht Nachhaltigkeits-, Geschäfts- und Sicherheitsberichte, zieht acht Kennzahlen für die letzten drei Berichtsjahre heraus und prüft jeden Wert gegen seine Quelle.",
+      "durationNote": "Dauert einige Minuten. Sie können die Seite offen lassen.",
+      "quotaNote": "Bis zu {limit} Läufe pro Tag.",
+      "trustNote": "Jeder Wert zeigt seine Quelle und wie sicher das System ist.",
+      "websitePlaceholder": "example.ch"
+    },
+    "details": {
+      "legalName": "Rechtlicher Name",
+      "website": "Website",
+      "canton": "Kanton",
+      "uid": "UID",
+      "employees": "Mitarbeitende",
+      "industry": "NOGA",
+      "none": "–"
+    },
+    "status": {
+      "queued": "In Warteschlange",
+      "running": "Läuft",
+      "succeeded": "Abgeschlossen",
+      "empty": "Nichts gefunden",
+      "failed": "Fehlgeschlagen"
+    },
+    "steps": {
+      "queued": "In Warteschlange",
+      "searching": "Öffentliche Quellen durchsuchen",
+      "extracting": "Kennzahlen herausziehen",
+      "saving": "Ergebnisse speichern",
+      "done": "Fertig"
+    },
+    "progress": {
+      "heading": "Recherche",
+      "live": "Live",
+      "polling": "Aktualisiert alle 5 Sekunden",
+      "sourcesFound": "{count, plural, =1 {1 Quelle gefunden} other {# Quellen gefunden}}",
+      "kpisExtracted": "{count, plural, =1 {1 Kennzahl herausgezogen} other {# Kennzahlen herausgezogen}}",
+      "started": "Gestartet {time}",
+      "finished": "Beendet {time}",
+      "requested": "Angefragt {time}",
+      "quotaLeft": "{remaining} von {limit} Läufen heute übrig",
+      "resultsPending": "Die Ergebnisse erscheinen hier, sobald der Lauf abgeschlossen ist.",
+      "stepLabel": "Schritt {step}"
+    },
+    "table": {
+      "heading": "Sicherheitskennzahlen",
+      "kpi": "Kennzahl",
+      "unit": "Einheit",
+      "notFound": "Nicht gefunden",
+      "coverage": "{found} von {total} Kennzahlen gefunden",
+      "yes": "Ja",
+      "no": "Nein",
+      "notVerified": "Nicht geprüft",
+      "notVerifiedHint": "Die Prüfung gegen die Quelle ist bei diesem Lauf ausgefallen. Der Wert stammt direkt aus der Recherche.",
+      "sources": "Quellen",
+      "sourcesFor": "Quellen für {kpi}, {year}",
+      "openSources": "{count, plural, =1 {1 Quelle} other {# Quellen}}",
+      "noExcerpt": "Kein Auszug",
+      "confidence": {
+        "label": "Verlässlichkeit",
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig"
+      }
+    },
+    "sources": {
+      "heading": "Wo wir gesucht haben",
+      "description": "Die Quellen dieses Laufs. Jede Kennzahl nennt ihre eigenen Belegstellen.",
+      "retrieved": "Abgerufen {time}",
+      "none": "Dieser Lauf hat keine Quellen gefunden."
+    },
+    "empty": {
+      "title": "Keine öffentlichen Angaben gefunden",
+      "description": "Wir haben keine Sicherheitskennzahlen zu diesem Unternehmen gefunden. Prüfen Sie den Namen und die Website und starten Sie die Recherche erneut.",
+      "manualNote": "Die manuelle Erfassung der Kennzahlen folgt mit einer späteren Funktion."
+    },
+    "failed": {
+      "title": "Die Recherche ist fehlgeschlagen",
+      "manualNote": "Die manuelle Erfassung der Kennzahlen folgt mit einer späteren Funktion."
+    },
+    "rerun": {
+      "title": "Angaben korrigieren und erneut recherchieren",
+      "description": "Ihre Angaben haben Vorrang vor der Recherche.",
+      "name": "Firmenname",
+      "legalName": "Rechtlicher Name (optional)",
+      "website": "Website (optional)",
+      "submit": "Erneut recherchieren",
+      "submitting": "Wird gestartet …",
+      "blockedOpen": "Ein Lauf ist noch offen. Warten Sie, bis er abgeschlossen ist.",
+      "blockedQuota": "Das Tageslimit ist erreicht. Morgen können Sie erneut recherchieren.",
+      "websitePlaceholder": "example.ch"
+    },
+    "errors": {
+      "validation": "Bitte prüfen Sie Ihre Eingaben.",
+      "forbidden": "Sie sind dafür nicht angemeldet.",
+      "not_found": "Dieses Unternehmen wurde nicht gefunden.",
+      "company_exists": "Ihr Unternehmen ist bereits erfasst. Die Seite wurde aktualisiert.",
+      "run_in_progress": "Für dieses Unternehmen läuft bereits eine Recherche.",
+      "quota_exceeded": "Das Tageslimit von {limit} Läufen ist erreicht.",
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut.",
+      "provider_rejected": "Der Rechercheanbieter hat die Anfrage abgelehnt. Prüfen Sie den Firmennamen und versuchen Sie es erneut.",
+      "provider_unavailable": "Der Rechercheanbieter war nicht erreichbar. Versuchen Sie es in ein paar Minuten erneut.",
+      "provider_timeout": "Die Recherche hat länger als 20 Minuten gedauert und wurde abgebrochen. Versuchen Sie es erneut.",
+      "internal": "Die Recherche ist unerwartet abgebrochen. Unser Team wurde informiert.",
+      "stale": "Der Lauf ist stecken geblieben und wurde geschlossen. Versuchen Sie es erneut.",
+      "trigger_failed": "Die Recherche konnte nicht gestartet werden. Versuchen Sie es erneut."
+    },
+    "validation": {
+      "nameShort": "Der Firmenname braucht mindestens 2 Zeichen.",
+      "nameLong": "Der Firmenname darf höchstens 200 Zeichen haben.",
+      "legalNameLong": "Der rechtliche Name darf höchstens 200 Zeichen haben.",
+      "websiteInvalid": "Bitte geben Sie eine gültige Website ein, zum Beispiel example.ch."
     }
   }
 }
