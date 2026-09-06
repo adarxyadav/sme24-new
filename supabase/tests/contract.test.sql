@@ -35,10 +35,14 @@ select is_empty(
 
 -- Audit trigger ---------------------------------------------------------------------------
 -- Every table except the recorded exceptions carries <table>_audit calling private.audit_row().
+-- Spec 0011 adds three: packages and stripe_events are keyed on `key` and `event_id` rather than
+-- `id`, which private.audit_row() requires for audit_log.row_id (the same reason kpi_definitions
+-- and benchmark_assumptions are exceptions), and order_events is itself the append only history
+-- of public.orders, so auditing it would only duplicate rows the audit log already holds.
 create function pg_temp.audited_tables()
 returns setof name language sql stable as $$
   select t from pg_temp.public_tables() t
-  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions')
+  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.audited_tables()), '>=', 7::bigint,
@@ -73,8 +77,8 @@ select is_empty(
      join pg_proc p on p.oid = g.tgfoid
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
-       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions') $$,
-  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks and benchmark_assumptions are not audited');
+       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events') $$,
+  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events and order_events are not audited');
 -- private.audit_row() stores subject ->> 'id' as row_id (not null), so an audited table needs one.
 select is_empty(
   $$ select t from pg_temp.audited_tables() t
@@ -167,11 +171,15 @@ select results_eq(
   $$ values ('benchmark_snapshots'::name), ('email_deliveries'::name), ('research_runs'::name), ('scaffold_checks'::name) $$,
   'benchmark_snapshots, email_deliveries, research_runs and scaffold_checks are the tables in supabase_realtime');
 -- Tables deliberately outside the publication. A table that is on neither list fails, so the
--- decision is forced rather than defaulted.
+-- decision is forced rather than defaulted. The five checkout tables of spec 0011 are all out:
+-- the order detail page polls a pending card order for up to 60 seconds while the webhook lands
+-- (AC-5) rather than subscribing, because the wait is short, bounded and happens on one page, and
+-- because orders and invoices carry billing data that has no business on a realtime channel.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
   values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('enquiries'), ('expert_assignments'),
-         ('kpi_definitions'), ('notifications'), ('organization_members'), ('organizations'), ('profiles')
+         ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'), ('organization_members'), ('organizations'),
+         ('packages'), ('profiles'), ('stripe_events')
 $$;
 select is_empty(
   $$ select t from pg_temp.public_tables() t
