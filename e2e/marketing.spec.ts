@@ -65,16 +65,18 @@ test("a slug of the other language redirects to the language's own slug, so no s
   request,
 }) => {
   // next-intl redirects an unlocalized or foreign slug to the requested language's slug (a 307),
-  // so neither `/de/pricing` nor `/en/preise` ever renders a page of its own.
+  // so neither `/de/pricing` nor `/en/preise` ever renders a page of its own. The chain is
+  // followed rather than read hop by hop: on a Vercel deployment the protection bypass answers
+  // the first request with a 307 to the same path to set its cookie, before next-intl runs.
   for (const [path, target] of [
     ["/de/pricing", "/de/preise"],
     ["/de/about", "/de/ueber-uns"],
     ["/en/preise", "/en/pricing"],
     ["/en/kontakt", "/en/contact"],
   ] as const) {
-    const response = await request.get(path, { maxRedirects: 0 });
-    expect(response.status(), path).toBe(307);
-    expect(response.headers().location, path).toBe(target);
+    const response = await request.get(path);
+    expect(response.status(), path).toBe(200);
+    expect(new URL(response.url()).pathname, path).toBe(target);
   }
 });
 
