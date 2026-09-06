@@ -69,7 +69,7 @@ spec [0008](../specs/0008-peer-benchmark-chf-opportunity/index.md) · code in `s
 - [x] Review it (fresh model): `/check review peer benchmark & CHF opportunity`
 - [x] Document it: `/document peer benchmark & CHF opportunity`
 
-### 10. Self assessment fallback · Beta · done
+### 10. Self assessment fallback · done
 When the pipeline finds little or nothing, or the client wants to correct it, the client fills in the same KPIs by hand and the benchmark recalculates. Extends the KPI schema and dashboard from features 8 and 9.
 **Done when:** a client can enter or edit each KPI in a form with validation, the benchmark and CHF estimate update, and the dashboard shows which values came from research and which from the client.
 spec [0010](../specs/0010-self-assessment-fallback/index.md) · code in `src/features/self-assessment/`, `e2e/self-assessment.spec.ts`, the `selfAssessment` namespace, the `kpiRows` field of `getCompanyDashboard` and the badge in `src/features/research/ui/kpi-table.tsx`
@@ -80,6 +80,8 @@ spec [0010](../specs/0010-self-assessment-fallback/index.md) · code in `src/fea
   - [x] Harden and document: Vitest tables and component tests, the action tests, the pgTAP assertion, the `seedCompanyKpi` helper and the Playwright thread with axe, the "Client figures" section in `docs/benchmark.md` (AC-11, AC-12)
 - [x] Verify it: `/check verify self assessment fallback`
 - [x] Test it: `/test self assessment fallback`
+- [x] Review it (fresh model): `/check review self assessment fallback`
+- [ ] Document it: `/document self assessment fallback`
 
 ## Slice 8: Thicken the accounts
 
