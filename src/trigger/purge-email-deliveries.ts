@@ -3,6 +3,7 @@ import "./instrumentation";
 import { logger, schedules } from "@trigger.dev/sdk";
 import { TIME_ZONE } from "@/i18n/formats";
 import { taskEnv } from "@/lib/env";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /** Deliveries older than this are gone (spec 0006, AC-12); notifications keep their own life. */
@@ -25,7 +26,7 @@ export const purgeEmailDeliveries = schedules.task({
       .from("email_deliveries")
       .delete({ count: "exact" })
       .lt("created_at", cutoff);
-    if (error) throw error;
+    if (error) throw queryError(error);
 
     const deleted = count ?? 0;
     logger.info("email deliveries purged", { deleted, cutoff });

@@ -5,6 +5,7 @@ import { Resend, type WebhookEventPayload } from "resend";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import type { Database } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { DeliveryStatus } from "./schema";
 
@@ -105,7 +106,7 @@ export async function handleResendWebhook(
     .select("id, status")
     .eq("provider_message_id", emailId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   if (!row) {
     log.info("resend webhook for an unknown message id", { type: event.type, emailId });
     return Response.json({ received: true });
@@ -127,7 +128,7 @@ export async function handleResendWebhook(
     .update(decision.patch)
     .eq("id", row.id)
     .eq("status", row.status);
-  if (updateError) throw updateError;
+  if (updateError) throw queryError(updateError);
   log.info("resend webhook applied", {
     type: event.type,
     deliveryId: row.id,

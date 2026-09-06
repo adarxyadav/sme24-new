@@ -111,4 +111,9 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-        run: pnpm trigger:deploy:${{ github.ref_name == 'production' && 'prod' || 'staging' }}
+        # The Trigger.dev free plan has no Staging environment (it sits behind "Upgrade"), so main
+        # deploys the tasks into the project's Production environment, which is the staging worker
+        # until a real production exists. Before the production branch goes live either upgrade
+        # the plan and switch this back to `--env staging` for main, or give production its own
+        # Trigger.dev project (spec 0001 assumed a staging environment; owed to /architect).
+        run: pnpm trigger:deploy:prod

@@ -46,7 +46,7 @@ Do these once per hosted environment (staging, production). The variables live i
 ### Trigger.dev and Vercel
 
 - [ ] `TRIGGER_SECRET_KEY` for the environment in Vercel (the app triggers runs).
-- [ ] Deploy the tasks (`deploy.yml`, or `pnpm trigger:deploy:staging` and `trigger:deploy:prod`); the `purge-email-deliveries` schedule registers itself on deploy.
+- [ ] Deploy the tasks (`deploy.yml`, or `pnpm trigger:deploy:prod`; the free plan has no Staging environment, so `main` uses the Production environment for now); the `purge-email-deliveries` schedule registers itself on deploy.
 - [ ] `NEXT_PUBLIC_APP_URL` is the absolute host the button links use.
 
 ### Prove it

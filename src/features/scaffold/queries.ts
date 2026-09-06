@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 
 export type ScaffoldCheck = Database["public"]["Tables"]["scaffold_checks"]["Row"];
 
@@ -10,6 +11,6 @@ export async function listScaffoldChecks(supabase: SupabaseClient<Database>, lim
     .select("*")
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data;
 }

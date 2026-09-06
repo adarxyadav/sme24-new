@@ -26,6 +26,7 @@ import {
 import { type KeptValue, resolveValues } from "@/lib/research/resolve";
 import { validateResearch } from "@/lib/research/validate";
 import type { Database, Tables } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import { raiseAlertFromTask } from "./ops-alert";
 
@@ -341,7 +342,7 @@ async function loadRun(supabase: Service, runId: string): Promise<RunRow> {
     .select("*")
     .eq("id", runId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   if (!data) throw new AbortTaskRunError(`internal: research run ${runId} not found`);
   return data;
 }
@@ -353,7 +354,7 @@ async function loadCompany(supabase: Service, ids: RunIds): Promise<CompanyRow> 
     .eq("id", ids.companyId)
     .eq("organization_id", ids.organizationId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   if (!data) throw new AbortTaskRunError(`internal: company ${ids.companyId} not found`);
   return data;
 }
@@ -398,7 +399,7 @@ async function patchRun(
   if (typeof guard === "string") query = query.eq("status", guard);
   else if (guard) query = query.in("status", [...guard]);
   const { data, error } = await query.select("id");
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data.length;
 }
 
@@ -414,7 +415,7 @@ async function patchSummary(
     .eq("id", ids.runId)
     .eq("organization_id", ids.organizationId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   const current = parseSummary(data?.summary) ?? {
     version: 1 as const,
     step: "searching" as const,
@@ -453,13 +454,13 @@ async function insertKpis(
   if (rows.length === 0) return;
   const { error } = await supabase.from("company_kpis").insert(rows);
   if (!error) return;
-  if (error.code !== UNIQUE_VIOLATION) throw error;
+  if (error.code !== UNIQUE_VIOLATION) throw queryError(error);
 
   const nowStored = await storedKpiSlots(supabase, ids);
   for (const row of rows) {
     if (nowStored.has(`${row.kpi_key}:${row.period_year}`)) continue;
     const { error: rowError } = await supabase.from("company_kpis").insert(row);
-    if (rowError && rowError.code !== UNIQUE_VIOLATION) throw rowError;
+    if (rowError && rowError.code !== UNIQUE_VIOLATION) throw queryError(rowError);
   }
 }
 
@@ -470,7 +471,7 @@ async function storedKpiSlots(supabase: Service, ids: RunIds): Promise<ReadonlyS
     .select("kpi_key, period_year")
     .eq("research_run_id", ids.runId)
     .eq("company_id", ids.companyId);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return new Set((data ?? []).map((row) => `${row.kpi_key}:${row.period_year}`));
 }
 
@@ -481,7 +482,7 @@ async function countRunKpis(supabase: Service, ids: RunIds): Promise<number> {
     .select("id", { count: "exact", head: true })
     .eq("research_run_id", ids.runId)
     .eq("company_id", ids.companyId);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return count ?? 0;
 }
 
@@ -512,7 +513,7 @@ async function fillCompanyFacts(
       .eq("id", ids.companyId)
       .eq("organization_id", ids.organizationId)
       .is(column, null);
-    if (error) throw error;
+    if (error) throw queryError(error);
   }
 }
 

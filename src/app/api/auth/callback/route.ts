@@ -1,8 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { finalizeSignIn } from "@/features/auth/session";
-import { DEFAULT_LOCALE } from "@/i18n/routing";
-import { localeOfPath, localizedPath, nextWithinLocale, roleHomePath } from "@/lib/auth/redirects";
+import { localeFromCode } from "@/i18n/routing";
+import { localizedPath, nextWithinLocale, roleHomePath } from "@/lib/auth/redirects";
 import { roleFromClaims } from "@/lib/auth/roles";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
@@ -10,15 +10,16 @@ import { createActionClient } from "@/lib/supabase/action";
 /**
  * Where Google and Microsoft return (spec 0005, AC-5): exchanges the PKCE code for a session on
  * the action client (the verifier cookie was set by `signInWithProvider`) and lands the user
- * through `finalizeSignIn`. A failed exchange, including a link opened in another browser, goes to
+ * through `finalizeSignIn` (`next` when requested, else the role home). A failed exchange, including a link opened in another browser, goes to
  * sign in with the provider error. Route handler, anonymous.
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const code = params.get("code");
-  const rawNext = params.get("next");
-  const locale = (rawNext && localeOfPath(rawNext)) || DEFAULT_LOCALE;
-  const next = nextWithinLocale(rawNext, locale);
+  // `signInWithProvider` sends the locale code on its own parameter and `next` only when the
+  // user asked for one; an unknown or missing code falls back to the default locale.
+  const locale = localeFromCode(params.get("locale"));
+  const next = nextWithinLocale(params.get("next"), locale);
   const redirectTo = (path: string) => NextResponse.redirect(new URL(path, request.url));
   const providerError = () => redirectTo(`${localizedPath(locale, "/sign-in")}?error=provider`);
 

@@ -5,6 +5,7 @@ import { localeForUser } from "@/features/localization/queries";
 import { routing } from "@/i18n/routing";
 import { createTranslatorFor } from "@/i18n/standalone";
 import { taskEnv } from "@/lib/env";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 
 export type ScaffoldCheckPayload = {
@@ -39,7 +40,7 @@ export const scaffoldCheck = task({
       .insert({ run_id: ctx.run.id, message, status: "running" })
       .select("id")
       .single();
-    if (error) throw error;
+    if (error) throw queryError(error);
 
     logger.info("scaffold check row written", { id: row.id, runId: ctx.run.id, locale });
 
@@ -52,7 +53,7 @@ export const scaffoldCheck = task({
       .from("scaffold_checks")
       .update({ status: "done" })
       .eq("id", row.id);
-    if (updateError) throw updateError;
+    if (updateError) throw queryError(updateError);
 
     return { id: row.id };
   },

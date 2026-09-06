@@ -3,6 +3,7 @@ import "./instrumentation";
 import { logger, schedules } from "@trigger.dev/sdk";
 import { taskEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import { raiseAlertFromTask } from "./ops-alert";
 
@@ -57,7 +58,7 @@ async function sweep(
     .select("id, organization_id, company_id")
     .eq("status", status)
     .lt(column, new Date(olderThanMs).toISOString());
-  if (error) throw error;
+  if (error) throw queryError(error);
   let swept = 0;
   for (const run of stale ?? []) {
     const { data: closed, error: closeError } = await supabase
@@ -71,7 +72,7 @@ async function sweep(
       .eq("id", run.id)
       .eq("status", status)
       .select("id");
-    if (closeError) throw closeError;
+    if (closeError) throw queryError(closeError);
     if (closed.length === 0) continue;
     swept += 1;
     logger.warn("stale research run closed", { runId: run.id, status });
