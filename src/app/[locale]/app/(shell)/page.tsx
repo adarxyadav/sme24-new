@@ -21,6 +21,8 @@ import { LookupForm } from "@/features/research/ui/lookup-form";
 import { RerunForm } from "@/features/research/ui/rerun-form";
 import { RunProgress } from "@/features/research/ui/run-progress";
 import { SourceList } from "@/features/research/ui/source-list";
+import { SelfAssessmentSection } from "@/features/self-assessment/ui/self-assessment-section";
+import { currentYear } from "@/features/self-assessment/years";
 import { clientMessages } from "@/i18n/client-messages";
 import { LOCALE_CODE, resolveLocale } from "@/i18n/routing";
 import { organizationIdFromClaims } from "@/lib/auth/roles";
@@ -30,7 +32,9 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
  * The client dashboard (spec 0007, AC-3, AC-7, AC-8): the lookup form while the organization has
  * no company, else the company details, the latest run's live progress, the benchmark segment
  * (spec 0008, AC-9) once a run succeeded or a snapshot exists, the KPI table with its sources
- * once a run finished, and the edit and rerun form on the empty and failed states.
+ * once a run finished, the "Your figures" card in every run state (spec 0010, AC-1: after the
+ * table once a run finished, else after the failed alert, else after the progress section),
+ * and the edit and rerun form on the empty and failed states.
  */
 export default async function AppPage() {
   const t = await getTranslations("research");
@@ -38,7 +42,7 @@ export default async function AppPage() {
   const { data } = await supabase.auth.getClaims();
   const organizationId = organizationIdFromClaims(data?.claims);
   const locale = LOCALE_CODE[resolveLocale(await getLocale())];
-  const messages = clientMessages(await getMessages(), ["research", "benchmark"]);
+  const messages = clientMessages(await getMessages(), ["research", "benchmark", "selfAssessment"]);
 
   if (!organizationId) {
     const areas = await getTranslations("areas.app");
@@ -117,6 +121,16 @@ export default async function AppPage() {
   const finished = latestRun?.status === "succeeded" || latestRun?.status === "empty";
   const blocked = quota.openRunId ? "open" : quota.remaining <= 0 ? "quota" : null;
   const details = companyDetails(dashboard, t);
+  const failed = latestRun?.status === "failed";
+  const selfAssessment = (
+    <SelfAssessmentSection
+      companyId={company.id}
+      catalogue={dashboard.catalogue}
+      rows={dashboard.kpiRows}
+      currentYear={currentYear(new Date())}
+      locale={locale}
+    />
+  );
 
   return (
     <PageStack>
@@ -141,6 +155,7 @@ export default async function AppPage() {
             </CardContent>
           </Card>
         </section>
+        {!finished && !failed ? selfAssessment : null}
 
         {dashboard.benchmark || latestRun?.status === "succeeded" ? (
           <BenchmarkSegment
@@ -181,6 +196,7 @@ export default async function AppPage() {
             </AlertDescription>
           </Alert>
         ) : null}
+        {failed ? selfAssessment : null}
 
         {finished ? (
           <section aria-labelledby="kpis-heading" className="flex flex-col gap-4">
@@ -195,6 +211,7 @@ export default async function AppPage() {
             />
           </section>
         ) : null}
+        {finished ? selfAssessment : null}
 
         {latestRun?.status === "empty" || latestRun?.status === "failed" ? (
           <section aria-labelledby="rerun-heading" className="flex flex-col gap-4">

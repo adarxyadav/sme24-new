@@ -1,7 +1,7 @@
 # 0010. Self assessment fallback: client entered KPIs
 
 **Date**: 2026-09-06
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

@@ -166,6 +166,8 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
       benchmark: null,
       benchmarkState: "unavailable",
       benchmarkAssumptions: [],
+      kpiRows: [],
+      clientKpiUpdatedAt: null,
     });
     expect(calls.map((call) => call.table).sort()).toEqual([
       "companies",

@@ -821,6 +821,7 @@
       "coverage": "{found} von {total} Kennzahlen gefunden",
       "yes": "Ja",
       "no": "Nein",
+      "clientValue": "Ihre Angabe",
       "notVerified": "Nicht geprüft",
       "notVerifiedHint": "Die Prüfung gegen die Quelle ist bei diesem Lauf ausgefallen. Der Wert stammt direkt aus der Recherche.",
       "sources": "Quellen",
@@ -843,11 +844,11 @@
     "empty": {
       "title": "Keine öffentlichen Angaben gefunden",
       "description": "Wir haben keine Sicherheitskennzahlen zu diesem Unternehmen gefunden. Prüfen Sie den Namen und die Website und starten Sie die Recherche erneut.",
-      "manualNote": "Die manuelle Erfassung der Kennzahlen folgt mit einer späteren Funktion."
+      "manualNote": "Erfassen Sie Ihre Kennzahlen unten unter «Ihre Angaben» von Hand."
     },
     "failed": {
       "title": "Die Recherche ist fehlgeschlagen",
-      "manualNote": "Die manuelle Erfassung der Kennzahlen folgt mit einer späteren Funktion."
+      "manualNote": "Erfassen Sie Ihre Kennzahlen unten unter «Ihre Angaben» von Hand."
     },
     "rerun": {
       "title": "Angaben korrigieren und erneut recherchieren",
@@ -1096,6 +1097,45 @@
       "validation": "Bitte prüfen Sie Ihre Eingaben.",
       "forbidden": "Sie sind dafür nicht angemeldet.",
       "not_found": "Dieses Unternehmen wurde nicht gefunden.",
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
+    }
+  },
+  "selfAssessment": {
+    "heading": "Ihre Angaben",
+    "description": "Erfassen Sie die Kennzahlen, die Sie für ein Berichtsjahr haben, oder korrigieren Sie einen Recherchewert. Ihre Angabe ersetzt für dieses Jahr den Recherchewert in der Tabelle und im Benchmark.",
+    "year": "Berichtsjahr",
+    "yearHint": "Jede Kennzahl unten gilt für dieses Jahr. Ein Jahreswechsel verwirft ungespeicherte Änderungen.",
+    "submit": "Speichern und neu berechnen",
+    "submitting": "Speichern …",
+    "saved": "Gespeichert. Wir berechnen Ihren Benchmark neu.",
+    "savedNotQueued": "Gespeichert. Die Neuberechnung konnte nicht gestartet werden und läuft mit der nächsten Recherche.",
+    "cleared": "Gelöscht. Der Recherchewert gilt wieder und wir berechnen Ihren Benchmark neu.",
+    "clearedNotQueued": "Gelöscht. Die Neuberechnung konnte nicht gestartet werden und läuft mit der nächsten Recherche.",
+    "clear": "{kpi} löschen",
+    "clearShort": "Löschen",
+    "clearing": "Löschen …",
+    "source": {
+      "client": "Ihre Angabe",
+      "research": "Aus der Recherche",
+      "none": "Nicht erfasst"
+    },
+    "yesNo": {
+      "unset": "Nicht gesetzt",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "olderYearIntro": "Der Benchmark verwendet je Kennzahl das neueste erfasste Jahr.",
+    "olderYearApplies": "Für {kpis} gilt weiterhin der Wert aus {year}.",
+    "validation": {
+      "yearInvalid": "Wählen Sie ein Berichtsjahr aus der Liste.",
+      "valueInvalid": "Geben Sie einen plausiblen Wert für diese Kennzahl mit höchstens zwei Nachkommastellen ein.",
+      "nothingToSave": "Erfassen oder ändern Sie mindestens eine Kennzahl vor dem Speichern."
+    },
+    "errors": {
+      "validation": "Bitte prüfen Sie Ihre Eingaben.",
+      "forbidden": "Sie sind dafür nicht angemeldet.",
+      "not_found": "Diese Angabe wurde nicht gefunden. Laden Sie die Seite neu und versuchen Sie es erneut.",
+      "conflict": "Jemand hat diese Angaben gleichzeitig gespeichert. Laden Sie die Seite neu und versuchen Sie es erneut.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
     }
   }

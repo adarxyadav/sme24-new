@@ -70,12 +70,44 @@ describe("parseSnapshotRow (spec 0008, AC-9)", () => {
 describe("benchmarkStateOf (spec 0008, AC-9)", () => {
   const succeeded = (finishedAt: string) => ({ status: "succeeded", finished_at: finishedAt });
 
+  it("is calculating within the wait window after a client KPI save with no snapshot yet (spec 0010, AC-13)", () => {
+    const old = ago(60 * 60 * 1000);
+    expect(
+      benchmarkStateOf({
+        snapshot: null,
+        latestRun: { status: "empty", finished_at: old },
+        companyUpdatedAt: old,
+        clientKpiUpdatedAt: ago(20_000),
+        now: NOW,
+      }),
+    ).toBe("calculating");
+    expect(
+      benchmarkStateOf({
+        snapshot: null,
+        latestRun: { status: "empty", finished_at: old },
+        companyUpdatedAt: old,
+        clientKpiUpdatedAt: ago(BENCHMARK_WAIT_MS + 1),
+        now: NOW,
+      }),
+    ).toBe("unavailable");
+    expect(
+      benchmarkStateOf({
+        snapshot: snapshot(3),
+        latestRun: null,
+        companyUpdatedAt: old,
+        clientKpiUpdatedAt: ago(1_000),
+        now: NOW,
+      }),
+    ).toBe("ready");
+  });
+
   it("is ready with a snapshot and noData when nothing compared", () => {
     expect(
       benchmarkStateOf({
         snapshot: snapshot(3),
         latestRun: null,
         companyUpdatedAt: ago(0),
+        clientKpiUpdatedAt: null,
         now: NOW,
       }),
     ).toBe("ready");
@@ -84,6 +116,7 @@ describe("benchmarkStateOf (spec 0008, AC-9)", () => {
         snapshot: snapshot(0),
         latestRun: null,
         companyUpdatedAt: ago(0),
+        clientKpiUpdatedAt: null,
         now: NOW,
       }),
     ).toBe("noData");
@@ -96,6 +129,7 @@ describe("benchmarkStateOf (spec 0008, AC-9)", () => {
         snapshot: null,
         latestRun: succeeded(ago(30_000)),
         companyUpdatedAt: old,
+        clientKpiUpdatedAt: null,
         now: NOW,
       }),
     ).toBe("calculating");
@@ -104,6 +138,7 @@ describe("benchmarkStateOf (spec 0008, AC-9)", () => {
         snapshot: null,
         latestRun: succeeded(ago(3 * 60_000)),
         companyUpdatedAt: old,
+        clientKpiUpdatedAt: null,
         now: NOW,
       }),
     ).toBe("unavailable");
@@ -112,6 +147,7 @@ describe("benchmarkStateOf (spec 0008, AC-9)", () => {
         snapshot: null,
         latestRun: succeeded(ago(3 * 60_000)),
         companyUpdatedAt: ago(BENCHMARK_WAIT_MS - 1),
+        clientKpiUpdatedAt: null,
         now: NOW,
       }),
     ).toBe("calculating");
@@ -120,11 +156,18 @@ describe("benchmarkStateOf (spec 0008, AC-9)", () => {
         snapshot: null,
         latestRun: { status: "empty", finished_at: ago(0) },
         companyUpdatedAt: old,
+        clientKpiUpdatedAt: null,
         now: NOW,
       }),
     ).toBe("unavailable");
     expect(
-      benchmarkStateOf({ snapshot: null, latestRun: null, companyUpdatedAt: old, now: NOW }),
+      benchmarkStateOf({
+        snapshot: null,
+        latestRun: null,
+        companyUpdatedAt: old,
+        clientKpiUpdatedAt: null,
+        now: NOW,
+      }),
     ).toBe("unavailable");
   });
 });
