@@ -61,7 +61,8 @@ export const PAGES: readonly BudgetPage[] = [
 ];
 
 export const KB = 1024;
-const CHUNK_PREFIX = "/_next/static/chunks/";
+// A Vercel deployment serves the same files under an `immutable` segment.
+const CHUNK_PATH = /^\/_next\/static\/(?:immutable\/)?chunks\//;
 
 /** One module script of a page: its `src`, its gzipped size and the markers found in its text. */
 export type ScriptFile = {
@@ -81,14 +82,14 @@ export type PageResult = {
   readonly ok: boolean;
 };
 
-/** The `src` of every module script tag under `/_next/static/chunks/`: `noModule` tags dropped, duplicates removed, document order kept. Pure. */
+/** The `src` of every module script tag under `/_next/static/chunks/` (or `/_next/static/immutable/chunks/` on Vercel): `noModule` tags dropped, duplicates removed, document order kept. Pure. */
 export function moduleScriptSources(html: string): readonly string[] {
   const tags = html.match(/<script\b[^>]*>/gi) ?? [];
   const sources = tags
     .filter((tag) => !/\snomodule(?=[\s=>/])/i.test(tag))
     .map((tag) => /\ssrc\s*=\s*"([^"]+)"/i.exec(tag)?.[1])
     .filter((src): src is string => src !== undefined)
-    .filter((src) => src.startsWith(CHUNK_PREFIX));
+    .filter((src) => CHUNK_PATH.test(src));
   return [...new Set(sources)];
 }
 

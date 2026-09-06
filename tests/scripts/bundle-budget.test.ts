@@ -91,6 +91,14 @@ describe("the bundle budget script (spec 0009 amendment, AC-16)", () => {
     });
   });
 
+  it("accepts the immutable chunk path a Vercel deployment serves", () => {
+    expect(
+      moduleScriptSources(
+        '<script src="/_next/static/immutable/chunks/a.js" async=""></script><script src="/cdn/x.js"></script>',
+      ),
+    ).toEqual(["/_next/static/immutable/chunks/a.js"]);
+  });
+
   describe("the comparison", () => {
     const landing = { locale: "en-CH", route: "/" } as const;
     const contact = { locale: "de-CH", route: "/contact" } as const;
