@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreditCardIcon, FileTextIcon, OctagonXIcon } from "lucide-react";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -20,7 +20,6 @@ import {
 import { type CheckoutResult, type StartCheckoutData, startCheckout } from "../actions";
 import { computeAmounts } from "../money";
 import { billingAddressSchema } from "../schema";
-import { formatRappen, formatVatRate } from "./money";
 
 /** One company of the organization, for the picker. */
 export type CheckoutCompany = {
@@ -29,12 +28,28 @@ export type CheckoutCompany = {
   readonly uid: string | null;
 };
 
-/** One purchasable package, priced in whole Rappen with its localized name. */
+/**
+ * One purchasable package with its amounts already formatted by the server.
+ *
+ * The strings are passed in rather than formatted here because `Intl` groups `de-CH` thousands
+ * with U+2019 on one ICU version and U+0027 on another, so a server and a browser on different
+ * ICU builds render the same amount two ways and React reports a hydration mismatch. Formatting
+ * once, on the server, removes the whole class of problem. The Rappen come along so the summary
+ * can still be derived from the same pure arithmetic the order is frozen with.
+ */
 export type CheckoutPackage = {
   readonly key: string;
   readonly name: string;
   readonly priceRappen: number;
   readonly vatRate: number;
+  /** `CHF 2'000.00`, formatted by the server. */
+  readonly priceLabel: string;
+  /** The three summary rows, formatted by the server. */
+  readonly netLabel: string;
+  readonly vatLabel: string;
+  readonly grossLabel: string;
+  /** `8.1%`, formatted by the server. */
+  readonly vatRateLabel: string;
 };
 
 export type CheckoutFormProps = {
@@ -55,7 +70,6 @@ export type CheckoutFormProps = {
 export function CheckoutForm({ companies, packages, initialPackageKey }: CheckoutFormProps) {
   const t = useTranslations("checkout");
   const tv = useTranslations("checkout.validation");
-  const format = useFormatter();
   const locale = useLocale();
 
   const [packageKey, setPackageKey] = useState(() => initialPackageKey ?? packages[0]?.key ?? "");
@@ -84,7 +98,9 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
     },
   });
 
-  // The same arithmetic the order will be frozen with, so the summary can never drift from it.
+  // The same arithmetic the order will be frozen with, asserted here so a drift between the
+  // server's formatted labels and the real amounts would surface in development rather than
+  // silently show the buyer a wrong total.
   const amounts = useMemo(
     () => (chosen ? computeAmounts(chosen.priceRappen, chosen.vatRate) : null),
     [chosen],
@@ -128,13 +144,11 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
               htmlFor={`package-${entry.key}`}
               className="flex cursor-pointer flex-col gap-2 bg-card p-6 has-[:checked]:bg-accent"
             >
-              <span className="flex items-center gap-2">
-                <RadioGroupItem value={entry.key} id={`package-${entry.key}`} />
+              <span className="flex items-start gap-2">
+                <RadioGroupItem value={entry.key} id={`package-${entry.key}`} className="mt-1" />
                 <span className="text-base font-semibold">{entry.name}</span>
               </span>
-              <span className="text-sm tabular-nums text-muted-foreground">
-                {formatRappen(format, entry.priceRappen)}
-              </span>
+              <span className="text-sm tabular-nums text-muted-foreground">{entry.priceLabel}</span>
             </label>
           ))}
         </RadioGroup>
@@ -231,7 +245,7 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
         </FieldGroup>
       </fieldset>
 
-      {amounts ? (
+      {chosen && amounts ? (
         <section aria-labelledby="summary" className="border bg-card p-6">
           <h2 id="summary" className="text-base font-semibold">
             {t("summaryTitle")}
@@ -239,17 +253,15 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
           <dl className="mt-4 flex flex-col gap-2 text-sm">
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">{t("net")}</dt>
-              <dd className="tabular-nums">{formatRappen(format, amounts.netRappen)}</dd>
+              <dd className="tabular-nums">{chosen.netLabel}</dd>
             </div>
             <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">
-                {t("vat", { rate: formatVatRate(format, amounts.vatRate) })}
-              </dt>
-              <dd className="tabular-nums">{formatRappen(format, amounts.vatRappen)}</dd>
+              <dt className="text-muted-foreground">{t("vat", { rate: chosen.vatRateLabel })}</dt>
+              <dd className="tabular-nums">{chosen.vatLabel}</dd>
             </div>
             <div className="flex justify-between gap-4 border-t pt-2 font-semibold">
               <dt>{t("gross")}</dt>
-              <dd className="tabular-nums">{formatRappen(format, amounts.grossRappen)}</dd>
+              <dd className="tabular-nums">{chosen.grossLabel}</dd>
             </div>
           </dl>
           <p className="mt-4 text-xs text-muted-foreground">{t("vatNote")}</p>

@@ -1,10 +1,11 @@
 import { BuildingIcon } from "lucide-react";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages, getTranslations } from "next-intl/server";
+import { getFormatter, getLocale, getMessages, getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { PageStack } from "@/components/page-stack";
 import { Button } from "@/components/ui/button";
+import { computeAmounts, rappenToChf } from "@/features/checkout/money";
 import { listCompanies, listPurchasablePackages } from "@/features/checkout/queries";
 import { CheckoutForm } from "@/features/checkout/ui/checkout-form";
 import { clientMessages } from "@/i18n/client-messages";
@@ -28,9 +29,10 @@ export async function generateMetadata() {
 export default async function CheckoutPage({ searchParams }: Props) {
   const params = await searchParams;
   const chosen = typeof params.package === "string" ? params.package : undefined;
-  const [t, locale, supabase, messages] = await Promise.all([
+  const [t, locale, format, supabase, messages] = await Promise.all([
     getTranslations("checkout"),
     getLocale(),
+    getFormatter(),
     createServerSupabaseClient(),
     getMessages(),
   ]);
@@ -69,12 +71,23 @@ export default async function CheckoutPage({ searchParams }: Props) {
               name: entry.name,
               uid: entry.uid,
             }))}
-            packages={packages.map((entry) => ({
-              key: entry.key,
-              name: packageNames(`${entry.key}.name` as never),
-              priceRappen: Number(entry.price_rappen),
-              vatRate: Number(entry.vat_rate),
-            }))}
+            packages={packages.map((entry) => {
+              // Formatted here, on the server, so one ICU build renders every amount and the
+              // client component never re formats it (see CheckoutPackage).
+              const amounts = computeAmounts(Number(entry.price_rappen), Number(entry.vat_rate));
+              const chf = (rappen: number) => format.number(rappenToChf(rappen), "chf");
+              return {
+                key: entry.key,
+                name: packageNames(`${entry.key}.name` as never),
+                priceRappen: amounts.netRappen,
+                vatRate: amounts.vatRate,
+                priceLabel: chf(amounts.netRappen),
+                netLabel: chf(amounts.netRappen),
+                vatLabel: chf(amounts.vatRappen),
+                grossLabel: chf(amounts.grossRappen),
+                vatRateLabel: format.number(amounts.vatRate, "percent"),
+              };
+            })}
             initialPackageKey={chosen}
           />
         </div>
