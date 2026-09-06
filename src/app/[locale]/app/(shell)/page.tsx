@@ -13,6 +13,7 @@ import { PageStack } from "@/components/page-stack";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressList } from "@/components/ui/progress-list";
+import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
 import { RUN_LIMIT_PER_DAY, RUN_STEPS } from "@/features/research/catalogue";
 import { type CompanyDashboard, getCompanyDashboard } from "@/features/research/queries";
 import { KpiTable } from "@/features/research/ui/kpi-table";
@@ -27,8 +28,9 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 /**
  * The client dashboard (spec 0007, AC-3, AC-7, AC-8): the lookup form while the organization has
- * no company, else the company details, the latest run's live progress, the KPI table with its
- * sources once a run finished, and the edit and rerun form on the empty and failed states.
+ * no company, else the company details, the latest run's live progress, the benchmark segment
+ * (spec 0008, AC-9) once a run succeeded or a snapshot exists, the KPI table with its sources
+ * once a run finished, and the edit and rerun form on the empty and failed states.
  */
 export default async function AppPage() {
   const t = await getTranslations("research");
@@ -127,13 +129,27 @@ export default async function AppPage() {
           <Card>
             <CardContent>
               {latestRun ? (
-                <RunProgress run={latestRun} quota={quota} />
+                <RunProgress
+                  run={latestRun}
+                  quota={quota}
+                  companyId={company.id}
+                  benchmarkState={dashboard.benchmarkState}
+                />
               ) : (
                 <p className="text-muted-foreground text-sm">{t("progress.resultsPending")}</p>
               )}
             </CardContent>
           </Card>
         </section>
+
+        {dashboard.benchmark || latestRun?.status === "succeeded" ? (
+          <BenchmarkSegment
+            snapshot={dashboard.benchmark}
+            state={dashboard.benchmarkState}
+            catalogue={dashboard.catalogue}
+            locale={locale}
+          />
+        ) : null}
 
         {latestRun?.status === "empty" ? (
           <Alert variant="info">

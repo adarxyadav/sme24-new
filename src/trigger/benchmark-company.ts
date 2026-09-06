@@ -1,0 +1,299 @@
+import "./instrumentation";
+
+import * as Sentry from "@sentry/node";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { queue, schemaTask } from "@trigger.dev/sdk";
+import { z } from "zod";
+import { MODEL_VERSION, TRIGGER_KINDS } from "@/features/benchmark/catalogue";
+import {
+  computeBenchmark,
+  type ModelAssumption,
+  type ModelCatalogueEntry,
+  type ModelKpiRow,
+  type ModelPeerRow,
+} from "@/features/benchmark/model";
+import { snapshotBlocksV1Schema } from "@/features/benchmark/snapshot";
+import { isKpiKey } from "@/features/research/catalogue";
+import { taskEnv } from "@/lib/env";
+import { log } from "@/lib/logger";
+import type { Database, Json, Tables } from "@/lib/supabase/database.types";
+import { createServiceClient } from "@/lib/supabase/service";
+
+type Service = SupabaseClient<Database>;
+type CompanyRow = Tables<"companies">;
+
+/** The ids every read and write is keyed by: from the loaded company row, never the payload alone. */
+type CompanyIds = {
+  readonly companyId: string;
+  readonly organizationId: string;
+};
+
+/** The benchmark queue: five computations at a time across the project (AC-5). */
+export const benchmarkQueue = queue({ name: "benchmark", concurrencyLimit: 5 });
+
+export const benchmarkCompanyPayloadSchema = z.object({
+  companyId: z.uuid(),
+  triggerKind: z.enum(TRIGGER_KINDS),
+  researchRunId: z.uuid().optional(),
+});
+export type BenchmarkCompanyPayload = z.infer<typeof benchmarkCompanyPayloadSchema>;
+
+/**
+ * The benchmark task (spec 0008, AC-5): loads the company by id with the service client (a
+ * missing or archived company is skipped without a write), the active catalogue, the company's
+ * current KPI rows, the peer rows for the KPI keys present and every assumption, re reads the
+ * company right before computing, runs the pure model, validates the body with the version 1
+ * schema and inserts one immutable `benchmark_snapshots` row. A snapshot is inserted even when
+ * nothing compared or the cost is null, so the dashboard state is always decided by a row. Every
+ * read and write filters by the loaded company's id and organization. Throws on a database error
+ * so Trigger.dev retries. Runs in the Trigger.dev EU environment.
+ */
+export const benchmarkCompanyTask = schemaTask({
+  id: "benchmark-company",
+  schema: benchmarkCompanyPayloadSchema,
+  queue: benchmarkQueue,
+  maxDuration: 120,
+  retry: { maxAttempts: 3 },
+  run: async (payload, { ctx }) => {
+    const started = Date.now();
+    const env = taskEnv();
+    const supabase = createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
+    const company = await loadCompany(supabase, payload.companyId);
+    if (!company) {
+      log.info("benchmark skipped: company missing or archived", {
+        companyId: payload.companyId,
+        triggerKind: payload.triggerKind,
+      });
+      return { status: "skipped" as const };
+    }
+    const ids: CompanyIds = { companyId: company.id, organizationId: company.organization_id };
+    const step = (message: string, fields: Record<string, unknown> = {}) =>
+      log.info(message, { ...ids, elapsedMs: Date.now() - started, ...fields });
+    step("benchmark started", {
+      triggerKind: payload.triggerKind,
+      researchRunId: payload.researchRunId ?? null,
+      attempt: ctx.attempt.number,
+    });
+
+    const [catalogue, kpis, assumptions] = await Promise.all([
+      loadCatalogue(supabase),
+      loadKpis(supabase, ids),
+      loadAssumptions(supabase),
+    ]);
+    const peers = await loadPeers(supabase, [...new Set(kpis.map((row) => row.kpiKey))]);
+    // The re read right before computing: its updated_at becomes inputs.companyUpdatedAt (AC-5).
+    const fresh = (await loadCompany(supabase, ids.companyId, ids.organizationId)) ?? company;
+    const body = computeBenchmark({
+      company: {
+        id: fresh.id,
+        employeesCount: fresh.employees_count,
+        industryCode: fresh.industry_code,
+        updatedAt: fresh.updated_at,
+      },
+      catalogue,
+      kpis,
+      peers,
+      assumptions,
+    });
+    const blocks = snapshotBlocksV1Schema.parse({
+      inputs: body.inputs,
+      results: body.results,
+      gaps: body.gaps,
+      cost: body.cost,
+      assumptions: body.assumptions,
+    });
+    for (const result of blocks.results) {
+      step("benchmark peer selected", {
+        kpi: result.key,
+        rung: result.peer?.rung ?? null,
+        section: result.peer?.industrySection ?? null,
+        band: result.peer?.sizeBand ?? null,
+        year: result.peer?.periodYear ?? null,
+        yearMatch: result.peer?.yearMatch ?? null,
+        position: result.position,
+      });
+    }
+    step("benchmark computed", {
+      kpiRows: kpis.length,
+      peerRows: peers.length,
+      kpisCompared: body.kpisCompared,
+      gaps: blocks.gaps.length,
+      costChf: body.costChf,
+      confidence: body.confidence,
+      peerProvisional: body.peerProvisional,
+    });
+
+    const { data: inserted, error } = await supabase
+      .from("benchmark_snapshots")
+      .insert({
+        organization_id: ids.organizationId,
+        company_id: ids.companyId,
+        research_run_id:
+          payload.triggerKind === "research" ? (payload.researchRunId ?? null) : null,
+        trigger_kind: payload.triggerKind,
+        model_version: MODEL_VERSION,
+        peer_provisional: body.peerProvisional,
+        kpis_compared: body.kpisCompared,
+        confidence: body.confidence,
+        cost_chf: body.costChf,
+        cost_low_chf: body.costLowChf,
+        cost_high_chf: body.costHighChf,
+        saving_median_chf: body.savingMedianChf,
+        saving_top_chf: body.savingTopChf,
+        inputs: blocks.inputs as unknown as Json,
+        results: blocks.results as unknown as Json,
+        gaps: blocks.gaps as unknown as Json,
+        cost: blocks.cost as unknown as Json,
+        assumptions: blocks.assumptions as unknown as Json,
+      })
+      .select("id, created_at")
+      .single();
+    if (error) throw error;
+    const first = await isFirstSnapshot(supabase, ids, inserted.id);
+    step("benchmark snapshot stored", {
+      snapshotId: inserted.id,
+      createdAt: inserted.created_at,
+      first,
+    });
+    return { status: "stored" as const, snapshotId: inserted.id, first };
+  },
+});
+
+/** The company by id (and organization on the re read), skipping archived rows (AC-5). */
+async function loadCompany(
+  supabase: Service,
+  companyId: string,
+  organizationId?: string,
+): Promise<CompanyRow | null> {
+  let query = supabase.from("companies").select("*").eq("id", companyId).is("archived_at", null);
+  if (organizationId) query = query.eq("organization_id", organizationId);
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+async function loadCatalogue(supabase: Service): Promise<readonly ModelCatalogueEntry[]> {
+  const { data, error } = await supabase
+    .from("kpi_definitions")
+    .select("key, direction, sort_order")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data.flatMap((row) =>
+    isKpiKey(row.key)
+      ? [
+          {
+            key: row.key,
+            direction: row.direction as ModelCatalogueEntry["direction"],
+            sortOrder: row.sort_order,
+          },
+        ]
+      : [],
+  );
+}
+
+/** The company's effective KPI rows (the view already picks client over research per year). */
+async function loadKpis(supabase: Service, ids: CompanyIds): Promise<readonly ModelKpiRow[]> {
+  const { data, error } = await supabase
+    .from("company_kpi_current")
+    .select("id, kpi_key, value, period_year, source, confidence, research_run_id")
+    .eq("company_id", ids.companyId)
+    .eq("organization_id", ids.organizationId);
+  if (error) throw error;
+  return data.flatMap((row) => {
+    if (
+      row.id === null ||
+      row.value === null ||
+      row.period_year === null ||
+      !isKpiKey(row.kpi_key) ||
+      (row.source !== "research" && row.source !== "client")
+    ) {
+      return [];
+    }
+    return [
+      {
+        id: row.id,
+        kpiKey: row.kpi_key,
+        value: Number(row.value),
+        periodYear: row.period_year,
+        source: row.source,
+        confidence: row.confidence === null ? null : Number(row.confidence),
+        researchRunId: row.research_run_id,
+      },
+    ];
+  });
+}
+
+async function loadPeers(
+  supabase: Service,
+  keys: readonly string[],
+): Promise<readonly ModelPeerRow[]> {
+  if (keys.length === 0) return [];
+  const { data, error } = await supabase
+    .from("benchmarks")
+    .select("*")
+    .in("kpi_key", [...keys]);
+  if (error) throw error;
+  return data.flatMap((row) =>
+    isKpiKey(row.kpi_key)
+      ? [
+          {
+            id: row.id,
+            kpiKey: row.kpi_key,
+            industrySection: row.industry_section,
+            sizeBand: row.size_band as ModelPeerRow["sizeBand"],
+            periodYear: row.period_year,
+            p25: Number(row.p25),
+            median: Number(row.median),
+            p75: Number(row.p75),
+            sampleSize: row.sample_size,
+            provisional: row.provisional,
+          },
+        ]
+      : [],
+  );
+}
+
+async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumption[]> {
+  const { data, error } = await supabase.from("benchmark_assumptions").select("*");
+  if (error) throw error;
+  return data.map((row) => ({
+    key: row.key as ModelAssumption["key"],
+    value: Number(row.value),
+    unit: row.unit,
+    sourceName: row.source_name,
+    sourceUrl: row.source_url,
+    provisional: row.provisional,
+    effectiveFrom: row.effective_from,
+  }));
+}
+
+/**
+ * True when the inserted row is the company's oldest snapshot (AC-5): a retry that inserts a
+ * second row is not first, so the benchmark ready email is sent once and never lost.
+ */
+async function isFirstSnapshot(
+  supabase: Service,
+  ids: CompanyIds,
+  snapshotId: string,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("benchmark_snapshots")
+    .select("id")
+    .eq("company_id", ids.companyId)
+    .eq("organization_id", ids.organizationId)
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.id === snapshotId;
+}
+
+/** Reports a task error to Sentry with the company ids (AC-8 wiring; the alert follows in slice 3). */
+export function reportBenchmarkError(error: unknown, ids: CompanyIds, triggerRunId: string): void {
+  Sentry.captureException(error, {
+    tags: { company_id: ids.companyId, source: "benchmark-company" },
+    extra: { ...ids, triggerRunId },
+  });
+}

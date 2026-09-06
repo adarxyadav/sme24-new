@@ -51,6 +51,204 @@ export type Database = {
         }
         Relationships: []
       }
+      benchmark_assumptions: {
+        Row: {
+          created_at: string
+          effective_from: string
+          key: string
+          label: Json
+          note: Json | null
+          provisional: boolean
+          source_name: string
+          source_url: string | null
+          unit: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          effective_from: string
+          key: string
+          label: Json
+          note?: Json | null
+          provisional?: boolean
+          source_name: string
+          source_url?: string | null
+          unit: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          effective_from?: string
+          key?: string
+          label?: Json
+          note?: Json | null
+          provisional?: boolean
+          source_name?: string
+          source_url?: string | null
+          unit?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      benchmark_snapshots: {
+        Row: {
+          assumptions: Json
+          company_id: string
+          confidence: number | null
+          cost: Json | null
+          cost_chf: number | null
+          cost_high_chf: number | null
+          cost_low_chf: number | null
+          created_at: string
+          gaps: Json
+          id: string
+          inputs: Json
+          kpis_compared: number
+          model_version: string
+          organization_id: string
+          peer_provisional: boolean
+          research_run_id: string | null
+          results: Json
+          saving_median_chf: number | null
+          saving_top_chf: number | null
+          trigger_kind: string
+          updated_at: string
+        }
+        Insert: {
+          assumptions: Json
+          company_id: string
+          confidence?: number | null
+          cost?: Json | null
+          cost_chf?: number | null
+          cost_high_chf?: number | null
+          cost_low_chf?: number | null
+          created_at?: string
+          gaps: Json
+          id?: string
+          inputs: Json
+          kpis_compared: number
+          model_version: string
+          organization_id: string
+          peer_provisional: boolean
+          research_run_id?: string | null
+          results: Json
+          saving_median_chf?: number | null
+          saving_top_chf?: number | null
+          trigger_kind: string
+          updated_at?: string
+        }
+        Update: {
+          assumptions?: Json
+          company_id?: string
+          confidence?: number | null
+          cost?: Json | null
+          cost_chf?: number | null
+          cost_high_chf?: number | null
+          cost_low_chf?: number | null
+          created_at?: string
+          gaps?: Json
+          id?: string
+          inputs?: Json
+          kpis_compared?: number
+          model_version?: string
+          organization_id?: string
+          peer_provisional?: boolean
+          research_run_id?: string | null
+          results?: Json
+          saving_median_chf?: number | null
+          saving_top_chf?: number | null
+          trigger_kind?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benchmark_snapshots_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benchmark_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "benchmark_snapshots_research_run_id_fkey"
+            columns: ["research_run_id"]
+            isOneToOne: false
+            referencedRelation: "research_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      benchmarks: {
+        Row: {
+          created_at: string
+          id: string
+          industry_section: string
+          kpi_key: string
+          median: number
+          p25: number
+          p75: number
+          period_year: number
+          provisional: boolean
+          sample_size: number | null
+          size_band: string
+          source_name: string
+          source_note: Json | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          industry_section: string
+          kpi_key: string
+          median: number
+          p25: number
+          p75: number
+          period_year: number
+          provisional?: boolean
+          sample_size?: number | null
+          size_band: string
+          source_name: string
+          source_note?: Json | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          industry_section?: string
+          kpi_key?: string
+          median?: number
+          p25?: number
+          p75?: number
+          period_year?: number
+          provisional?: boolean
+          sample_size?: number | null
+          size_band?: string
+          source_name?: string
+          source_note?: Json | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "benchmarks_kpi_key_fkey"
+            columns: ["kpi_key"]
+            isOneToOne: false
+            referencedRelation: "kpi_definitions"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       companies: {
         Row: {
           archived_at: string | null

@@ -2,7 +2,14 @@ import "./instrumentation";
 
 import * as Sentry from "@sentry/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { AbortTaskRunError, queue, schemaTask, wait } from "@trigger.dev/sdk";
+import {
+  AbortTaskRunError,
+  idempotencyKeys,
+  queue,
+  schemaTask,
+  tasks,
+  wait,
+} from "@trigger.dev/sdk";
 import { z } from "zod";
 import { KPI_KEYS, type KpiKey, type RUN_STEPS } from "@/features/research/catalogue";
 import { websiteHost } from "@/features/research/schema";
@@ -27,6 +34,7 @@ import { type KeptValue, resolveValues } from "@/lib/research/resolve";
 import { validateResearch } from "@/lib/research/validate";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 import { createServiceClient } from "@/lib/supabase/service";
+import type { benchmarkCompanyTask } from "./benchmark-company";
 import { raiseAlertFromTask } from "./ops-alert";
 
 type Service = SupabaseClient<Database>;
@@ -235,6 +243,7 @@ export const researchCompanyTask = schemaTask({
       stored,
       totalMs: summary.durations?.totalMs,
     });
+    if (status === "succeeded") await triggerBenchmark(ids, ctx.run.id);
     return { status };
   },
   onFailure: async ({ payload, error, ctx }) => {
@@ -290,6 +299,31 @@ export const researchCompanyTask = schemaTask({
     });
   },
 });
+
+/**
+ * Queues the benchmark computation once the run ended `succeeded` (spec 0008, AC-6): the key
+ * `benchmark/run/<runId>` makes a retried terminal write a no op. A trigger failure is logged and
+ * reported and never changes the run's status.
+ */
+async function triggerBenchmark(ids: RunIds, triggerRunId: string): Promise<void> {
+  try {
+    const idempotencyKey = await idempotencyKeys.create(`benchmark/run/${ids.runId}`, {
+      scope: "global",
+    });
+    const handle = await tasks.trigger<typeof benchmarkCompanyTask>(
+      "benchmark-company",
+      { companyId: ids.companyId, triggerKind: "research", researchRunId: ids.runId },
+      { idempotencyKey, idempotencyKeyTTL: "24h" },
+    );
+    log.info("benchmark queued after the research run", { ...ids, benchmarkRunId: handle.id });
+  } catch (error) {
+    log.error("benchmark trigger failed after the research run", {
+      ...ids,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+    reportToSentry(error, ids, triggerRunId);
+  }
+}
 
 /** Short safe sentences per error code, stored on the row (AC-10); the catalogs carry the client wording. */
 const SAFE_MESSAGES: Record<ResearchErrorCode, string> = {

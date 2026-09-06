@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { type ProgressItem, ProgressList } from "@/components/ui/progress-list";
+import type { BenchmarkState } from "@/features/benchmark/catalogue";
 import { RUN_LIMIT_PER_DAY, RUN_STEPS, type RunStep } from "@/features/research/catalogue";
 import { parseSummary, type ResearchSummary } from "@/features/research/summary";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
@@ -22,6 +23,9 @@ export type RunProgressProps = {
     "id" | "status" | "summary" | "created_at" | "started_at" | "finished_at" | "error_code"
   >;
   readonly quota: { readonly remaining: number; readonly limit: number };
+  /** The company whose snapshot inserts refresh the page (spec 0008, AC-12). */
+  readonly companyId: string;
+  readonly benchmarkState: BenchmarkState;
 };
 
 /** The state of each of the five steps for a run (AC-7). Pure. */
@@ -48,9 +52,16 @@ export function stepItems(
  * The live progress of the latest run (spec 0007, AC-7): subscribes to the run's row over
  * Supabase Realtime (re keyed when the id changes after a rerun), refreshes the page every five
  * seconds while the run is open as the fallback, and once more when the status turns terminal so
- * the table renders on the server. Browser.
+ * the table renders on the server. A second channel follows `benchmark_snapshots` inserts for the
+ * company and refreshes on each, and the poll also runs while the benchmark is `calculating`
+ * (spec 0008, AC-12). Browser.
  */
-export function RunProgress({ run: initialRun, quota }: RunProgressProps) {
+export function RunProgress({
+  run: initialRun,
+  quota,
+  companyId,
+  benchmarkState,
+}: RunProgressProps) {
   const t = useTranslations("research");
   const format = useFormatter();
   const router = useRouter();
@@ -96,10 +107,36 @@ export function RunProgress({ run: initialRun, quota }: RunProgressProps) {
   }, [initialRun.id, router]);
 
   useEffect(() => {
-    if (!open) return;
+    const supabase = createBrowserSupabaseClient();
+    let cancelled = false;
+    const channel = supabase.channel(`benchmark_snapshots:${companyId}`).on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "benchmark_snapshots",
+        filter: `company_id=eq.${companyId}`,
+      },
+      () => router.refresh(),
+    );
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      if (data.session?.access_token) supabase.realtime.setAuth(data.session.access_token);
+      channel.subscribe();
+    });
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [companyId, router]);
+
+  const polling = open || benchmarkState === "calculating";
+
+  useEffect(() => {
+    if (!polling) return;
     const timer = setInterval(() => router.refresh(), POLL_MS);
     return () => clearInterval(timer);
-  }, [open, router]);
+  }, [polling, router]);
 
   const summary = useMemo(() => parseSummary(run.summary), [run.summary]);
   const failedDetail =

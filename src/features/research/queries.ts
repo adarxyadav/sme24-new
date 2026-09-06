@@ -1,4 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { BenchmarkState } from "@/features/benchmark/catalogue";
+import {
+  benchmarkStateOf,
+  loadLatestSnapshot,
+  type ParsedSnapshot,
+} from "@/features/benchmark/queries";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 import { RUN_LIMIT_PER_DAY, YEARS_PER_RUN } from "./catalogue";
 import { parseSummary, type ResearchSummary } from "./summary";
@@ -32,6 +38,9 @@ export type CompanyDashboard = {
   readonly years: readonly number[];
   readonly catalogue: readonly KpiDefinitionRow[];
   readonly quota: Quota;
+  /** The newest parsed benchmark snapshot (spec 0008, AC-9), `null` when none is readable. */
+  readonly benchmark: ParsedSnapshot | null;
+  readonly benchmarkState: BenchmarkState;
 };
 
 /** The reporting years the table shows: the three highest present, newest first. Pure. */
@@ -48,7 +57,8 @@ export function newestYears(
  * Everything `/app` renders (spec 0007, AC-7, AC-8): the organization's company, its latest run
  * with the parsed summary, the effective KPI rows for the three newest years joined to their
  * run's validation flag, the active catalogue in sort order, and the daily quota (the same rule
- * as the SQL helper, RLS scoped, a courtesy count; the policy is the guard). Throws on a database
+ * as the SQL helper, RLS scoped, a courtesy count; the policy is the guard), plus the newest
+ * benchmark snapshot and the derived benchmark state (spec 0008, AC-9). Throws on a database
  * error. Server component.
  */
 export async function getCompanyDashboard(
@@ -61,11 +71,23 @@ export async function getCompanyDashboard(
     loadCatalogue(supabase),
     loadQuota(supabase, organizationId, now),
   ]);
-  if (!company) return { company: null, latestRun: null, kpis: [], years: [], catalogue, quota };
+  if (!company) {
+    return {
+      company: null,
+      latestRun: null,
+      kpis: [],
+      years: [],
+      catalogue,
+      quota,
+      benchmark: null,
+      benchmarkState: "unavailable",
+    };
+  }
 
-  const [latestRun, currentRows] = await Promise.all([
+  const [latestRun, currentRows, benchmark] = await Promise.all([
     loadLatestRun(supabase, company.id),
     loadCurrentKpis(supabase, company.id),
+    loadLatestSnapshot(supabase, company.id),
   ]);
   const years = newestYears(currentRows);
   const rows = currentRows.filter(
@@ -76,7 +98,13 @@ export async function getCompanyDashboard(
     ...row,
     validation: (row.research_run_id ? validationByRun.get(row.research_run_id) : null) ?? "passed",
   }));
-  return { company, latestRun, kpis, years, catalogue, quota };
+  const benchmarkState = benchmarkStateOf({
+    snapshot: benchmark,
+    latestRun,
+    companyUpdatedAt: company.updated_at,
+    now,
+  });
+  return { company, latestRun, kpis, years, catalogue, quota, benchmark, benchmarkState };
 }
 
 async function loadCompany(supabase: Client, organizationId: string): Promise<Company | null> {
