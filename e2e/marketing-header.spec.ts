@@ -10,13 +10,29 @@ import { expect, type Page, test } from "@playwright/test";
  */
 
 /**
- * The tokens are authored in oklch, and Chromium reports the computed value in `lab()` rather
- * than `rgb()`, so the ground is matched on being fully opaque and black rather than on a string.
+ * Chromium reports the computed value of the oklch tokens in a colour space of its own choosing
+ * (`lab()` locally, `oklab()` on a newer build), so nothing here matches a colour string. The
+ * alpha is parsed out of whatever notation came back, and the ground is judged on that alone.
  */
-const JET = /^(rgb\(0, 0, 0\)|lab\(0 0 0\))$/;
+function alphaOf(colour: string) {
+  if (colour === "transparent") return 0;
+  const slash = colour.match(/\/\s*([\d.]+%?)\s*\)/);
+  if (slash?.[1]) {
+    const raw = slash[1];
+    return raw.endsWith("%") ? Number.parseFloat(raw) / 100 : Number.parseFloat(raw);
+  }
+  // Four components means the last one is the alpha; a three component `rgb(...)`, and any
+  // `lab()`/`oklab()` without a slash, carries no alpha at all and is fully opaque.
+  const rgba = colour.match(/^rgba?\(\s*[\d.]+,\s*[\d.]+,\s*[\d.]+,\s*([\d.]+)\s*\)$/);
+  return rgba?.[1] ? Number.parseFloat(rgba[1]) : 1;
+}
 
-/** A computed colour with no alpha at all: the transparent bar, in any colour space. */
-const TRANSPARENT = /^(rgba\(0, 0, 0, 0\)|transparent)$/;
+/** The lightness of a `lab()`/`oklab()` value, used only to tell jet from white. */
+function isBlack(colour: string) {
+  const lab = colour.match(/^(?:ok)?lab\(\s*(-?[\d.]+)/);
+  if (lab?.[1]) return Number.parseFloat(lab[1]) < 0.01;
+  return /^rgba?\(0,\s*0,\s*0/.test(colour);
+}
 
 async function forceTheme(page: Page, theme: "light" | "dark") {
   await page.addInitScript((value) => {
@@ -24,7 +40,7 @@ async function forceTheme(page: Page, theme: "light" | "dark") {
   }, theme);
 }
 
-/** The header's own computed ground and border, read after the scroll listener has settled. */
+/** The header's own computed ground and border, read as they stand right now. */
 async function readBar(page: Page) {
   return page.evaluate(() => {
     const header = document.querySelector("header") as HTMLElement;
@@ -39,12 +55,17 @@ async function readBar(page: Page) {
   });
 }
 
-/** Scrolls past the 8px threshold and waits for the class change the listener drives. */
+/**
+ * Scrolls past the 8px threshold and waits for the bar to finish taking its frosted ground. The
+ * class lands first and `transition-colors` then animates the alpha up, so waiting on the class
+ * alone hands back a mid-transition colour (measured on CI: `oklab(... / 0.782878)`); this polls
+ * the settled alpha instead.
+ */
 async function scrollPast(page: Page) {
   await page.evaluate(() => window.scrollTo(0, 400));
   await expect
-    .poll(async () => page.evaluate(() => document.querySelector("header")?.className ?? ""))
-    .toContain("bg-background/85");
+    .poll(async () => alphaOf((await readBar(page)).background), { timeout: 10_000 })
+    .toBeGreaterThan(0.5);
 }
 
 for (const theme of ["light", "dark"] as const) {
@@ -57,19 +78,21 @@ for (const theme of ["light", "dark"] as const) {
     const atTop = await readBar(page);
     expect(atTop.top).toBe(0);
     // Transparent, so whatever the page opens with shows through: this is the seam fix.
-    expect(atTop.background).toMatch(TRANSPARENT);
-    expect(atTop.borderColor).toMatch(TRANSPARENT);
+    expect(alphaOf(atTop.background)).toBe(0);
+    expect(alphaOf(atTop.borderColor)).toBe(0);
 
     await scrollPast(page);
 
     const scrolled = await readBar(page);
     // Still pinned to the viewport top after the page has moved under it.
     expect(scrolled.top).toBe(0);
-    // The frosted ground is the theme background at 85%, so it is translucent but not absent,
-    // and the hairline is now painted.
-    expect(scrolled.background).not.toMatch(TRANSPARENT);
-    expect(scrolled.background).toMatch(/0\.85|85%/);
-    expect(scrolled.borderColor).not.toMatch(TRANSPARENT);
+    // The frosted ground is the theme background at 85%: translucent, so the page still shows
+    // through, but no longer absent. The exact alpha is the token's business, not the test's.
+    const ground = alphaOf(scrolled.background);
+    expect(ground).toBeGreaterThan(0.5);
+    expect(ground).toBeLessThan(1);
+    // The hairline is now painted.
+    expect(alphaOf(scrolled.borderColor)).toBeGreaterThan(0);
   });
 }
 
@@ -92,14 +115,14 @@ test("the unscrolled bar inverts over the landing hero, in light mode too (no se
     };
   });
   expect(heroTop.top).toBeLessThan(8);
-  expect(heroTop.background).toMatch(JET);
+  expect(isBlack(heroTop.background)).toBe(true);
 
   // The lockup inverts with the bar, so it reads on the jet ground instead of vanishing.
   const logoColor = await page.evaluate(() => {
     const logo = document.querySelector("header [data-slot=logo]") as HTMLElement;
     return getComputedStyle(logo).color;
   });
-  expect(logoColor).not.toMatch(JET);
+  expect(isBlack(logoColor)).toBe(false);
 
   // Once scrolled the bar drops the inversion and takes the page theme's frosted ground.
   await scrollPast(page);
@@ -114,7 +137,7 @@ for (const path of ["/pricing", "/about", "/contact"] as const) {
     const bar = await readBar(page);
     // No dark hero here, so inverting would put white text on the white page ground.
     expect(bar.dark).toBe(false);
-    expect(bar.background).toMatch(TRANSPARENT);
+    expect(alphaOf(bar.background)).toBe(0);
   });
 }
 
