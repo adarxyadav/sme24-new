@@ -34,7 +34,8 @@ Carried over from earlier specs: `benchmark.viewed` and `benchmark.computed` wit
 
 ### 25. Peer data curation & launch gate · Beta
 The first peer seed is provisional by design (spec 0008): every row in `supabase/seed-data/*.csv` was read from a named source on 6 Sep 2026 and is marked so on every benchmark card. Before Release 1 the rows are replaced from the published tables named in `docs/benchmark.md`, the seed migration is regenerated, every company on staging is recomputed, and the pgTAP seed assertions flip from "all provisional" to "none". Data work with the scripts that already exist, not a new design; you sign off the sources.
-**Done when:** no row in `supabase/seed-data/*.csv` is provisional, the seed migration is committed, `pnpm benchmarks:recompute` has refreshed staging, and the gate query in `docs/benchmark.md` returns zero rows on both tables.
+From spec 0011 the gate also covers the seller facts printed on every invoice: the legal name, address, the `CHE-...MWST` UID and the IBAN the QR-bill pays into, held behind `SELLER_PLACEHOLDERS` until they are real. Confirm with your accountant that SME24 is MWST registered before the first sale, since charging 8.1% without a registration is a real problem.
+**Done when:** no row in `supabase/seed-data/*.csv` is provisional, the seed migration is committed, `pnpm benchmarks:recompute` has refreshed staging, the gate query in `docs/benchmark.md` returns zero rows on both tables, and `SELLER_PLACEHOLDERS` is empty with the MWST registration confirmed.
 - [ ] Build it: `/develop peer data curation & launch gate`
 
 ### 26. Production environment & go live
