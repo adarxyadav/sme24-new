@@ -5,8 +5,6 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import "../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { clientMessages } from "@/i18n/client-messages";
 import { routing } from "@/i18n/routing";
 import { AnalyticsProvider } from "@/lib/analytics/client";
@@ -60,10 +58,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
       <body className="min-h-dvh antialiased" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            <TooltipProvider>
-              <AnalyticsProvider>{children}</AnalyticsProvider>
-            </TooltipProvider>
-            <Toaster />
+            {/*
+              `TooltipProvider` and `Toaster` live in `AreaShell`, not here: only the signed in
+              areas use them, and in the root layout their ~25 kB gzipped sat on the critical path
+              of every static marketing page (spec 0009, Follow-up, first LCP cut).
+            */}
+            <AnalyticsProvider>{children}</AnalyticsProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

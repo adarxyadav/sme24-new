@@ -5,6 +5,8 @@ import { AppSidebar } from "@/components/shell/app-sidebar";
 import { SkipLink } from "@/components/skip-link";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { clientMessages } from "@/i18n/client-messages";
 import type { Area } from "@/lib/auth/roles";
 import { roleFromClaims } from "@/lib/auth/roles";
@@ -28,20 +30,25 @@ export async function AreaShell({ area, children }: { area: Area; children: Reac
   // The sidebar names the area from `areas`, a feature namespace outside the shared client bundle.
   const messages = clientMessages(await getMessages(), ["areas"]);
 
+  // Both providers moved out of the root layout so their weight leaves the static marketing
+  // pages (spec 0009, Follow-up); every `toast()` and `Tooltip` in the app renders inside here.
   return (
-    <SidebarProvider defaultOpen={sidebarOpen}>
-      <SkipLink />
-      <NextIntlClientProvider messages={messages}>
-        <AppSidebar area={area} email={email} role={role} locale={locale} />
-      </NextIntlClientProvider>
-      <SidebarInset id="main" tabIndex={-1} className="outline-none">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
-          <span className="text-muted-foreground text-sm">{t(`areas.${area}.title`)}</span>
-        </header>
-        {children}
-      </SidebarInset>
-    </SidebarProvider>
+    <TooltipProvider>
+      <SidebarProvider defaultOpen={sidebarOpen}>
+        <SkipLink />
+        <NextIntlClientProvider messages={messages}>
+          <AppSidebar area={area} email={email} role={role} locale={locale} />
+        </NextIntlClientProvider>
+        <SidebarInset id="main" tabIndex={-1} className="outline-none">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+            <span className="text-muted-foreground text-sm">{t(`areas.${area}.title`)}</span>
+          </header>
+          {children}
+        </SidebarInset>
+        <Toaster />
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }
