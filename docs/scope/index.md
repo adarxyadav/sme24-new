@@ -22,7 +22,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 7 | Transactional email & ops alerts | Slice 1 | done |
 | 8 | Company lookup & research pipeline | Slice 1 | done |
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | done |
-| 10 | Self assessment fallback | Slice 2 | planned |
+| 10 | Self assessment fallback | Slice 2 | in-progress |
 | 11 | Package checkout with Swiss VAT | Slice 3 | planned |
 | 12 | Ops admin: orders, companies & scheduling | Slice 3 | planned |
 | 13 | Marketing site & retainer enquiry | Slice 4 | in-progress |
@@ -64,6 +64,7 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Headless CMS for marketing copy**: page copy edited without a deploy; the catalogs and one catalog file per fact set are enough while the site is four pages · from spec 0009
 - **Captcha or edge rate limiting on the enquiry form**: the honeypot, the timing check and the two counted limits ship first; add a challenge or an edge limiter only if the flood guard proves too weak in production · from spec 0009
 - **Lighthouse in CI**: a Lighthouse CI job on the Vercel preview once the hand recorded numbers are stable · from spec 0009
+- **Dismissing a research value**: a client marks a research figure as unreliable without replacing it (a dismissal flag or table plus a benchmark rule); clearing only removes the client's own figure · from spec 0010 · needs a decision
 
 ## Legend
 
