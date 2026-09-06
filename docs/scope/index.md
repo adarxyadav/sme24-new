@@ -21,11 +21,11 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 6 | Auth, organizations & roles | Slice 1 | in-progress |
 | 7 | Transactional email & ops alerts | Slice 1 | done |
 | 8 | Company lookup & research pipeline | Slice 1 | done |
-| 9 | Peer benchmark & CHF opportunity | Slice 2 | planned |
+| 9 | Peer benchmark & CHF opportunity | Slice 2 | in-progress |
 | 10 | Self assessment fallback | Slice 2 | planned |
 | 11 | Package checkout with Swiss VAT | Slice 3 | planned |
 | 12 | Ops admin: orders, companies & scheduling | Slice 3 | planned |
-| 13 | Marketing site & retainer enquiry | Slice 4 | planned |
+| 13 | Marketing site & retainer enquiry | Slice 4 | in-progress |
 | 14 | Legal, privacy & cookie consent | Slice 4 | planned |
 | 15 | Analytics & monitoring | Slice 4 | planned |
 | 16 | Expert accounts & profiles | Slice 5 | planned |
@@ -59,6 +59,11 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Public API and integrations**: client systems pulling benchmark and program data · needs a decision
 - **Account settings page**: name, language, password change and sign out everywhere; the sign in flows ship without it · from spec 0005
 - **Zefix register lookup**: a type ahead against the federal commercial register (free REST API behind a registered account) so the legal name, UID and canton come from the register instead of the research · from spec 0007
+- **Absenteeism cost line**: extend the incident cost model with absence cost (rate × FTE × working days × absence day cost) as a second CHF line; the assumption table already holds the day cost · from spec 0008
+- **Peer rows for fatalities and near misses**: a fatal rate per 100 000 workers scaled to the size band, and a near miss source if one is published; both KPIs show "no peer data yet" until then · from spec 0008
+- **Headless CMS for marketing copy**: page copy edited without a deploy; the catalogs and one catalog file per fact set are enough while the site is four pages · from spec 0009
+- **Captcha or edge rate limiting on the enquiry form**: the honeypot, the timing check and the two counted limits ship first; add a challenge or an edge limiter only if the flood guard proves too weak in production · from spec 0009
+- **Lighthouse in CI**: a Lighthouse CI job on the Vercel preview once the hand recorded numbers are stable · from spec 0009
 
 ## Legend
 
