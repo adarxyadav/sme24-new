@@ -71,8 +71,14 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         })}
       />
 
-      <section className="dark bg-background text-foreground">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 py-24 sm:px-6 md:py-36">
+      {/*
+        The hero runs up behind the sticky header (`-mt-16`, the bar's `h-16`, given back as
+        `pt-16` inside) so the jet ground reaches the top of the viewport. The unscrolled bar is
+        transparent and inverts over it, which is what makes the two meet without a seam in light
+        mode as well as dark; `DARK_HERO_ROUTES` in the header names this page for that.
+      */}
+      <section className="dark -mt-16 bg-background text-foreground">
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 pt-40 pb-24 sm:px-6 md:pt-52 md:pb-36">
           <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
           <Statement
             as="h1"

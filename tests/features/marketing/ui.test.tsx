@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -163,9 +163,9 @@ describe("MarketingFooter (spec 0009, AC-7)", () => {
     );
   });
 
-  it("has no language navigation of its own, so the header's stays the only one on the page", () => {
+  it("has no language switch of its own, so the header's stays the only one on the page", () => {
     renderIn("de-CH", <MarketingFooter />);
-    expect(screen.queryByRole("navigation", { name: de.common.language })).toBeNull();
+    expect(screen.queryByRole("button", { name: de.common.language })).toBeNull();
   });
 
   it("renders the legal group once links are given", () => {
@@ -208,6 +208,56 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     for (const link of links) {
       expect(screen.getByRole("link", { name: link.label })).not.toHaveAttribute("aria-current");
     }
+  });
+
+  /** The bar reads `window.scrollY` on scroll; jsdom needs the value set and the event fired. */
+  function scrollTo(y: number) {
+    window.scrollY = y;
+    act(() => {
+      window.dispatchEvent(new Event("scroll"));
+    });
+  }
+
+  it("sticks to the top, transparent until the 8px threshold and frosted with a hairline past it", () => {
+    boundary.pathname = "/de/preise";
+    const { container } = renderIn("de-CH", <MarketingHeader links={links} />);
+    const header = container.querySelector("header") as HTMLElement;
+    expect(header.className).toContain("sticky");
+    expect(header.className).toContain("top-0");
+
+    // At rest and at the threshold itself the bar stays transparent, so the page shows through.
+    expect(header.className).toContain("bg-transparent");
+    expect(header.className).toContain("border-transparent");
+    scrollTo(8);
+    expect(header.className).toContain("bg-transparent");
+
+    scrollTo(9);
+    expect(header.className).toContain("bg-background/85");
+    expect(header.className).toContain("border-border");
+    expect(header.className).not.toContain("bg-transparent");
+
+    // Back at the top it lets go of the hairline again.
+    scrollTo(0);
+    expect(header.className).toContain("bg-transparent");
+  });
+
+  it("inverts the unscrolled bar on the landing page only, and drops it once scrolled", () => {
+    boundary.pathname = "/de";
+    const { container, unmount } = renderIn("de-CH", <MarketingHeader links={links} />);
+    const header = container.querySelector("header") as HTMLElement;
+    // The landing hero forces the jet ground in both themes, so the bar over it must invert.
+    expect(header.className).toContain("dark");
+    scrollTo(200);
+    expect(header.className).not.toContain("dark");
+    unmount();
+
+    // The other three pages open on the page background: inverting would hide the lockup.
+    scrollTo(0);
+    boundary.pathname = "/de/kontakt";
+    const plain = renderIn("de-CH", <MarketingHeader links={links} />);
+    expect((plain.container.querySelector("header") as HTMLElement).className).not.toContain(
+      "dark",
+    );
   });
 
   it("opens the small screen menu from a labelled button and repeats the links with the current mark", async () => {

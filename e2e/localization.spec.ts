@@ -28,16 +28,12 @@ for (const route of [...MARKETING_ROUTES, "/sign-in"]) {
 
 test("the marketing switcher keeps the query string (AC-2, AC-11)", async ({ page }) => {
   await page.goto("/de?x=1");
-  await page
-    .getByRole("navigation", { name: /sprache/i })
-    .getByRole("link", { name: "English" })
-    .click();
+  await page.getByRole("button", { name: /sprache/i }).click();
+  await page.getByRole("menuitem", { name: "English" }).click();
   await expect(page).toHaveURL(/\/en\?x=1$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en-CH");
-  await page
-    .getByRole("navigation", { name: /language/i })
-    .getByRole("link", { name: "Deutsch" })
-    .click();
+  await page.getByRole("button", { name: /language/i }).click();
+  await page.getByRole("menuitem", { name: "Deutsch" }).click();
   await expect(page).toHaveURL(/\/de\?x=1$/);
 });
 

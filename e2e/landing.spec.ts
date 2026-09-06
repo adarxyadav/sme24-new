@@ -24,10 +24,8 @@ for (const locale of ["de", "en"] as const) {
 
 test("the language switcher changes the URL and the document language", async ({ page }) => {
   await page.goto("/de");
-  await page
-    .getByRole("navigation", { name: /sprache/i })
-    .getByRole("link", { name: "English" })
-    .click();
+  await page.getByRole("button", { name: /sprache/i }).click();
+  await page.getByRole("menuitem", { name: "English" }).click();
   await expect(page).toHaveURL(/\/en$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en-CH");
 });
