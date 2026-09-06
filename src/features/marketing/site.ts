@@ -15,10 +15,10 @@ export type Site = {
 };
 
 export const SITE: Site = {
-  legalName: "SME24 AG",
-  street: "Musterstrasse 1",
-  postalCode: "8000",
-  city: "Zürich",
+  legalName: "IC Hotz GmbH",
+  street: "Obermühle 5",
+  postalCode: "6340",
+  city: "Baar",
   email: "service@sme24.ch",
   phone: "+41 44 000 00 00",
   sameAs: ["https://www.linkedin.com/company/sme24"],
@@ -29,14 +29,7 @@ export const SITE: Site = {
  * replaces the values above and empties this list. The site facts test (AC-17) fails while it is
  * not empty, so a placeholder can never reach production unnoticed.
  */
-export const SITE_PLACEHOLDERS: readonly (keyof Site)[] = [
-  "legalName",
-  "street",
-  "postalCode",
-  "city",
-  "phone",
-  "sameAs",
-];
+export const SITE_PLACEHOLDERS: readonly (keyof Site)[] = ["phone", "sameAs"];
 
 /** The postal address on one line, as the structured data and the email footer show it. Pure. */
 export function postalAddress(site: Site = SITE): string {

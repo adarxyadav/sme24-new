@@ -25,7 +25,7 @@ The header (`src/components/marketing-header.tsx`) shows Pricing, About and Cont
 ## Changing copy, a price or a contact fact
 
 - **Copy**: every string is a key under `marketing.*` in `messages/de-CH.json` and `messages/en-CH.json` (`landing`, `pricing`, `about`, `contact`, `packages`, `nav`, `footer`). `tests/messages.test.ts` fails when the two catalogs drift.
-- **A price**: `PACKAGES` in `src/features/marketing/packages.ts` holds the price per package (`priceChf`, null for the retainer) and the order. Names, promises and included points are catalog keys under `marketing.packages.<key>.*`. `tests/features/marketing/catalog.test.ts` fails while a fixed price package carries the placeholder `0`.
+- **A price**: `PACKAGES` in `src/features/marketing/packages.ts` holds the price per package (`priceChf`, null for the retainer) and the order. Names, promises and included points are catalog keys under `marketing.packages.<key>.*`. `tests/features/marketing/catalog.test.ts` fails while a fixed price package carries a price of `0` or less.
 - **A contact fact**: `SITE` in `src/features/marketing/site.ts` (legal name, street, postal code, city, email, phone, profiles). Empty `SITE_PLACEHOLDERS` once the owner's facts are in; the same test fails while the list is not empty.
 - **The email footer address** is a separate key, `email.layout.footerAddress` (see [email.md](email.md)).
 

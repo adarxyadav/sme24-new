@@ -24,29 +24,22 @@ export type Package = {
  */
 export const VAT_RATE = 0.081;
 
-/**
- * Placeholder prices until the owner gives the three fixed prices (spec 0009, Follow-up): zero is
- * never a real price, so the catalog test (AC-6) fails until each is replaced with a positive
- * number, and the pages cannot go live half real.
- */
-const PRICE_PLACEHOLDER = 0;
-
 export const PACKAGES: readonly Package[] = [
   {
     key: "compliance",
-    priceChf: PRICE_PLACEHOLDER,
+    priceChf: 10_000,
     sortOrder: 1,
     included: ["gapReview", "onSite", "report", "actions"],
   },
   {
     key: "sms",
-    priceChf: PRICE_PLACEHOLDER,
+    priceChf: 5_000,
     sortOrder: 2,
     included: ["systemReview", "onSite", "report", "actions"],
   },
   {
     key: "culture",
-    priceChf: PRICE_PLACEHOLDER,
+    priceChf: 2_000,
     sortOrder: 3,
     included: ["interviews", "onSite", "report", "actions"],
   },
