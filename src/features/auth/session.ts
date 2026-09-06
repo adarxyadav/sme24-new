@@ -20,9 +20,11 @@ const CREATE_ORGANIZATION_CODES = { notAClient: "SM403", alreadyMember: "SM409" 
 /**
  * The absolute destination `signUp`, `requestCode`, `resendConfirmation` and
  * `requestPasswordReset` pass as `emailRedirectTo`; the template puts it into `next` and the
- * confirm handler reads the locale from it (spec 0005, AC-13). Server actions and the invite script.
+ * confirm handler reads the locale from it (spec 0005, AC-13). Sign in and sign up links pass no
+ * path (the bare locale root), so `finalizeSignIn` lands every role on its home instead of `/app`
+ * (AC-5); only the password reset names its page. Server actions and the invite script.
  */
-export function confirmRedirectUrl(locale: Locale, path: "/app" | "/reset-password"): string {
+export function confirmRedirectUrl(locale: Locale, path: "/reset-password" | "" = ""): string {
   return buildConfirmRedirectUrl(clientEnv().NEXT_PUBLIC_APP_URL, LOCALE_CODE[locale], path);
 }
 

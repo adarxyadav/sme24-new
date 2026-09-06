@@ -99,7 +99,7 @@ export async function signUp(
     email,
     password,
     options: {
-      emailRedirectTo: confirmRedirectUrl(locale, "/app"),
+      emailRedirectTo: confirmRedirectUrl(locale),
       data: signUpMetadata(parsed.data, locale),
     },
   });
@@ -131,10 +131,10 @@ export async function requestCode(
       values.purpose === "sign-up"
         ? {
             shouldCreateUser: true,
-            emailRedirectTo: confirmRedirectUrl(locale, "/app"),
+            emailRedirectTo: confirmRedirectUrl(locale),
             data: signUpMetadata(values, locale),
           }
-        : { shouldCreateUser: false, emailRedirectTo: confirmRedirectUrl(locale, "/app") },
+        : { shouldCreateUser: false, emailRedirectTo: confirmRedirectUrl(locale) },
   });
   if (error) {
     const result = failure(error, "request-code");
@@ -239,7 +239,7 @@ export async function resendConfirmation(
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
-    options: { emailRedirectTo: confirmRedirectUrl(locale, "/app") },
+    options: { emailRedirectTo: confirmRedirectUrl(locale) },
   });
   if (error) {
     const result = failure(error, "resend-confirmation");
