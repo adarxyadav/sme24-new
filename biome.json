@@ -77,6 +77,30 @@
       }
     },
     {
+      "includes": [
+        "src/components/**",
+        "src/features/**/ui/**",
+        "src/lib/analytics/client.tsx",
+        "src/lib/supabase/client.ts",
+        "src/instrumentation-client.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@/lib/supabase/service": "The service client bypasses RLS. Use it only from src/trigger and server only code in src/features/*/actions.ts.",
+                  "@/lib/env": "zod must not reach the browser; read public variables through @/lib/env.public"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["src/components/ui/sidebar.tsx"],
       "linter": {
         "rules": {

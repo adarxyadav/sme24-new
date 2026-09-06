@@ -6,6 +6,7 @@
     "prepare": "[ -n \"$CI\" ] || lefthook install",
     "dev": "next dev",
     "build": "next build",
+    "budget": "node scripts/bundle-budget.mts",
     "start": "next start",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "biome check .",
