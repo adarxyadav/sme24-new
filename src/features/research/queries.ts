@@ -150,7 +150,13 @@ async function loadValidation(
   );
 }
 
-/** The daily quota (AC-8): runs in the last 24 hours, `trigger_failed` rows excluded, plus the open run if any. */
+/**
+ * The daily quota (AC-8): runs in the last 24 hours, `trigger_failed` rows excluded, plus the open
+ * run if any. This is only what the dashboard displays; `private.research_run_allowed` is the
+ * guard that actually refuses the insert, so the two must count the same rows. The PostgREST
+ * `error_code.is.null,error_code.neq.trigger_failed` below is `error_code is distinct from
+ * 'trigger_failed'`, and `supabase/tests/research_runs.test.sql` asserts the two agree.
+ */
 async function loadQuota(supabase: Client, organizationId: string, now: Date): Promise<Quota> {
   const since = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
   const [{ count, error }, { data: open, error: openError }] = await Promise.all([

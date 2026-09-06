@@ -4,7 +4,7 @@
 -- five runs per organization per day, and the narrow members update policy.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(37);
+select plan(38);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -237,6 +237,21 @@ select lives_ok(
   $$ insert into public.research_runs (id, organization_id, company_id, requested_by)
      values ('0d000000-0000-4000-8000-000000000009', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'c0000000-0000-4000-8000-000000000001') $$,
   'an ops user is unaffected by the quota');
+
+-- `loadQuota` in src/features/research/queries.ts counts the same rows the helper's predicate
+-- does, spelled as PostgREST's `error_code.is.null,error_code.neq.trigger_failed`. If the two
+-- ever drift, the dashboard's "n of 5 runs left" stops matching what the insert policy enforces.
+select pg_temp.as_postgres();
+select is(
+  (select count(*) from public.research_runs r
+   where r.organization_id = '0a000000-0000-4000-8000-000000000000'
+     and r.created_at > now() - interval '24 hours'
+     and (r.error_code is null or r.error_code <> 'trigger_failed')),
+  (select count(*) from public.research_runs r
+   where r.organization_id = '0a000000-0000-4000-8000-000000000000'
+     and r.created_at > now() - interval '24 hours'
+     and r.error_code is distinct from 'trigger_failed'),
+  'the dashboard quota filter counts exactly what private.research_run_allowed counts');
 
 -- Expert and ops
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');
