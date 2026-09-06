@@ -1,5 +1,8 @@
+import { MailIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Signature } from "@/components/brand/signature";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { SITE } from "@/features/marketing/site";
 import { Link } from "@/i18n/navigation";
 import type { StaticPathname } from "@/i18n/pathnames";
@@ -13,10 +16,15 @@ export type MarketingFooterProps = {
   readonly legal?: readonly FooterLink[];
 };
 
+const LINK_CLASS =
+  "text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline";
+
 /**
- * The public site footer (spec 0009, AC-7): the signature and the tagline, then the Product,
- * Company and (once feature 14 fills it) Legal link groups. Every route link is a typed `Link`.
- * Server component.
+ * The public site footer (spec 0009, AC-7): the signature, the one line site description and
+ * the mail address on the left, the Product, Company and (once feature 14 fills it) Legal link
+ * groups on the right, then a bottom bar with the copyright line, the language switch and the
+ * theme control. Every route link is a typed `Link`. Server component; the copyright year is
+ * the build year, static pages rebuild on deploy.
  */
 export function MarketingFooter({ legal = [] }: MarketingFooterProps) {
   const t = useTranslations();
@@ -39,7 +47,6 @@ export function MarketingFooter({ legal = [] }: MarketingFooterProps) {
       links: [
         { kind: "route", href: "/about", label: t("marketing.nav.about") },
         { kind: "route", href: "/contact", label: t("marketing.nav.contact") },
-        { kind: "external", href: `mailto:${SITE.email}`, label: SITE.email },
       ],
     },
     ...(legal.length > 0
@@ -49,40 +56,61 @@ export function MarketingFooter({ legal = [] }: MarketingFooterProps) {
 
   return (
     <footer className="border-t">
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-3">
-          {groups.map((group) => (
-            <nav
-              key={group.key}
-              aria-labelledby={`footer-${group.key}`}
-              className="flex flex-col gap-3"
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="grid gap-10 py-12 md:grid-cols-[minmax(0,1fr)_auto] md:gap-16 md:py-16">
+          <div className="flex max-w-sm flex-col gap-4">
+            <Signature className="font-medium text-lg" />
+            <p className="text-muted-foreground text-sm">{t("metadata.description")}</p>
+            <a
+              href={`mailto:${SITE.email}`}
+              className="inline-flex w-fit items-center gap-2 text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline"
             >
-              <h2 id={`footer-${group.key}`} className="eyebrow text-muted-foreground">
-                {group.title}
-              </h2>
-              <ul className="flex flex-col gap-2 text-sm">
-                {group.links.map((link) => (
-                  <li key={link.label}>
-                    {link.kind === "route" ? (
-                      <Link href={link.href} className="underline-offset-4 hover:underline">
-                        {link.label}
-                      </Link>
-                    ) : (
-                      <a href={link.href} className="underline-offset-4 hover:underline">
-                        {link.label}
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          ))}
+              <MailIcon aria-hidden="true" className="size-4" />
+              {SITE.email}
+            </a>
+          </div>
+
+          <div className="flex flex-wrap gap-x-10 gap-y-8 lg:gap-x-16">
+            {groups.map((group) => (
+              <nav
+                key={group.key}
+                aria-labelledby={`footer-${group.key}`}
+                className="flex min-w-32 flex-col gap-3.5"
+              >
+                <h2 id={`footer-${group.key}`} className="eyebrow">
+                  {group.title}
+                </h2>
+                <ul className="flex flex-col gap-2.5">
+                  {group.links.map((link) => (
+                    <li key={link.label}>
+                      {link.kind === "route" ? (
+                        <Link href={link.href} className={LINK_CLASS}>
+                          {link.label}
+                        </Link>
+                      ) : (
+                        <a href={link.href} className={LINK_CLASS}>
+                          {link.label}
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-6 border-t pt-8">
-          <Signature />
-          <p className="eyebrow text-muted-foreground">
-            {t("brand.tagline")} · {t("brand.domain")}
+
+        <div className="flex flex-col gap-4 border-t py-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground text-xs">
+            {t("marketing.footer.copyright", {
+              year: String(new Date().getFullYear()),
+              name: SITE.legalName,
+            })}
           </p>
+          <div className="flex items-center gap-4">
+            <LocaleSwitcher />
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </footer>
