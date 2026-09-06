@@ -3,7 +3,7 @@
 -- and ops read (spec 0002 AC-3, AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(25);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -150,6 +150,13 @@ select throws_ok(
   '42501', null, 'a member cannot name another organization''s company under their own organization');
 select lives_ok($$ update public.company_kpis set value = 2.4 where id = '0f000000-0000-4000-8000-000000000002' $$,
   'a member updates their client row');
+-- The update policy is per creator (spec 0010, AC-5, AC-11): a client row another member of the
+-- same organization created is read but not writable, so the action answers `forbidden` on zero
+-- rows. Feature 22 relaxes this to organization scope.
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
+select is(pg_temp.affected($$ update public.company_kpis set value = 9 where id = '0f000000-0000-4000-8000-000000000002' $$), 0::bigint,
+  'a member cannot update a client row another member of their organization created (zero rows)');
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
 -- The row's identity never moves. Without this the update policy would let a member repoint
 -- company_id at another organization's company, leaving organization_id and company_id
 -- disagreeing: no read leak today, but any later join from company to KPI would make it one.

@@ -189,4 +189,32 @@ describe("KpiTable (AC-7)", () => {
     expect(within(tr).getByText("ltifr")).toBeInTheDocument();
     expect(within(tr).queryByText("Rate")).not.toBeInTheDocument();
   });
+
+  it("marks a client entered cell with the Your figure badge instead of a confidence (spec 0010, AC-8)", async () => {
+    await renderTable({
+      kpis: [
+        ...kpis,
+        row({
+          id: "k7",
+          kpi_key: "fatalities",
+          period_year: 2024,
+          value: 1,
+          source: "client",
+          confidence: null,
+          sources: [],
+          research_run_id: null,
+        }),
+      ],
+    });
+    const clientCell = cell("fatalities", 2024);
+    expect(within(clientCell).getByText(en.research.table.clientValue)).toHaveAttribute(
+      "data-source",
+      "client",
+    );
+    expect(clientCell.querySelector("[data-confidence]")).toBeNull();
+    expect(clientCell.querySelector("[data-not-verified]")).toBeNull();
+    expect(within(clientCell).queryByRole("button")).toBeNull();
+    expect(within(cell("ltifr", 2025)).queryByText(en.research.table.clientValue)).toBeNull();
+    expect(screen.getByText("4 of 4 KPIs found")).toBeInTheDocument();
+  });
 });
