@@ -22,8 +22,10 @@ export default async function MarketingLayout({ children, params }: LayoutProps<
   ]);
   const appUrl = clientEnv().NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
 
+  // `data-marketing` scopes the sticky header's `scroll-margin-top` in `globals.css` to these
+  // pages; the signed in areas have no sticky bar and must not inherit it.
   return (
-    <>
+    <div data-marketing>
       <JsonLd
         data={organizationJsonLd({
           name: common("appName"),
@@ -45,6 +47,6 @@ export default async function MarketingLayout({ children, params }: LayoutProps<
         {children}
       </main>
       <MarketingFooter />
-    </>
+    </div>
   );
 }

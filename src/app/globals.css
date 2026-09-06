@@ -265,13 +265,12 @@
    * The marketing header is sticky (spec 0009), so anything the browser scrolls into view -- a
    * fragment link's target, or the field React Hook Form focuses on an invalid submit -- would
    * otherwise land under the bar, unreadable and unclickable. Clearing the bar's 4rem plus air on
-   * every scroll anchor keeps the element and the error summary above it in view.
+   * every scroll anchor keeps the element and the error summary above it in view. Scoped to the
+   * marketing layout root (`[data-marketing]`): the signed in areas and the auth pages have no
+   * sticky header, and `sign-in-form.tsx` focuses a field on error, so the margin would only
+   * open an unexplained gap there.
    */
-  :target,
-  input,
-  select,
-  textarea,
-  fieldset {
+  [data-marketing] :is(:target, input, select, textarea, fieldset) {
     scroll-margin-top: calc(var(--spacing) * 28);
   }
 }
