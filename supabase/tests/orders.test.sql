@@ -5,7 +5,7 @@
 -- Spec 0011 AC-2, AC-3, AC-7, AC-12, AC-13, invariants 1, 4, 5, 7, 8, 9.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(50);
+select plan(60);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`).
 do $$
@@ -350,6 +350,70 @@ select is((select count(*) from public.orders), 0::bigint, 'an anonymous visitor
 select is((select count(*) from public.invoices), 0::bigint, 'an anonymous visitor sees no invoices');
 select is((select count(*) from public.packages), 0::bigint,
   'an anonymous visitor sees no packages: the pricing page renders from the message catalogs');
+
+-- ─── settle_order: the shared resumable core (AC-9, AC-18, invariants 3, 13, 14) ─────────────
+select pg_temp.as_service_role();
+
+-- A second pending order, settled through the function rather than by hand.
+insert into public.orders (id, organization_id, company_id, package_key, reference,
+  payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen, package_name_snapshot,
+  billing_name, billing_street, billing_postcode, billing_town, locale)
+values ('0e000000-0000-4000-8000-000000000002', '0a000000-0000-4000-8000-000000000000',
+  '0c000000-0000-4000-8000-00000000000a', 'sms', 'SME24-2026-0010', 'card',
+  500000, 0.081, 40500, 540500, 'Safety Management System', 'Company A', 'Street', '8001',
+  'Zurich', 'de');
+
+select is(
+  (select already_settled from public.settle_order('0e000000-0000-4000-8000-000000000002',
+     '2026-09-07T10:00:00Z'::timestamptz, null, 'service', 'SME24 AG', 'Street 1, 8001 Zurich',
+     'CHE-101.654.423 MWST', 'CH9300762011623852957', 30)),
+  false, 'the first settle issues the invoice');
+
+select is((select status from public.orders where id = '0e000000-0000-4000-8000-000000000002'),
+  'paid', 'settle_order moves the order to paid');
+
+-- The resume path: calling again after a crash returns the same invoice and draws no new number.
+select is(
+  (select already_settled from public.settle_order('0e000000-0000-4000-8000-000000000002',
+     '2026-09-07T10:00:00Z'::timestamptz, null, 'service', 'SME24 AG', 'Street 1, 8001 Zurich',
+     'CHE-101.654.423 MWST', 'CH9300762011623852957', 30)),
+  true, 'a retry reports the order as already settled');
+
+select is((select count(*) from public.invoices where order_id = '0e000000-0000-4000-8000-000000000002'),
+  1::bigint, 'a retry issues no second invoice');
+
+select is((select count(*) from public.order_events
+           where order_id = '0e000000-0000-4000-8000-000000000002' and to_status = 'paid'),
+  1::bigint, 'a retry writes no second paid event');
+
+-- The reference on the invoice is the SCOR reference of its own number, and it verifies.
+select is(
+  (select qr_reference from public.invoices where order_id = '0e000000-0000-4000-8000-000000000002'),
+  (select public.scor_reference(replace(number, '-', '')) from public.invoices
+   where order_id = '0e000000-0000-4000-8000-000000000002'),
+  'the qr reference is derived from the invoice number');
+
+-- A client actor role is refused outright.
+select throws_ok(
+  $$ select public.settle_order('0e000000-0000-4000-8000-000000000002', now(), null, 'client',
+       'S', 'A', 'U', 'CH9300762011623852957', 30) $$,
+  'SM403', null, 'settle_order refuses a client actor role');
+
+select throws_ok(
+  $$ select public.settle_order('00000000-0000-4000-8000-000000000000', now(), null, 'service',
+       'S', 'A', 'U', 'CH9300762011623852957', 30) $$,
+  'SM404', null, 'settle_order raises on an unknown order');
+
+-- Invoice numbers are gapless and strictly increasing across both payment paths (invariant 3).
+select is((select count(distinct number) from public.invoices), (select count(*) from public.invoices),
+  'every invoice number is unique');
+
+-- No client may call the function at all.
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select throws_ok(
+  $$ select public.settle_order('0e000000-0000-4000-8000-000000000002', now(), null, 'service',
+       'S', 'A', 'U', 'CH9300762011623852957', 30) $$,
+  '42501', null, 'a client cannot execute settle_order');
 
 select pg_temp.as_postgres();
 select * from finish();

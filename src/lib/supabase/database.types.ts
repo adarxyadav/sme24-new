@@ -1321,6 +1321,26 @@ export type Database = {
       }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      scor_reference: { Args: { body: string }; Returns: string }
+      settle_order: {
+        Args: {
+          actor_id: string
+          actor_role: string
+          due_days?: number
+          order_id: string
+          paid_at: string
+          seller_address: string
+          seller_iban: string
+          seller_name: string
+          seller_uid: string
+        }
+        Returns: {
+          already_settled: boolean
+          invoice_id: string
+          invoice_number: string
+          qr_reference: string
+        }[]
+      }
     }
     Enums: {
       app_role: "client" | "expert" | "ops"
