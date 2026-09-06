@@ -36,10 +36,21 @@ spec [0006](../specs/0006-transactional-email-ops-alerts/index.md)
 - [x] Review it (fresh model): `/check review transactional email & ops alerts`
 - [x] Document it: `/document transactional email & ops alerts`
 
-### 8. Company lookup & research pipeline · needs a decision
+### 8. Company lookup & research pipeline · in-progress
 The core thread. A client enters a company name, a background pipeline researches public disclosures, extracts safety KPIs with sources, and stores them. The dashboard shows the run's progress and the extracted KPIs when it finishes. Real database, real jobs, real AI, narrow scope: KPIs only, no benchmark yet.
 **Done when:** entering a company name starts a background run visible in the dashboard; within a few minutes the run stores KPIs with source references and the dashboard renders them; a failed or empty run shows a clear state the client can act on.
-- [ ] Design it (spec): `/architect company lookup & research pipeline`
+spec [0007](../specs/0007-company-research-pipeline/index.md)
+- [x] Design it (spec): `/architect company lookup & research pipeline`
+- [ ] Build it: `/develop company lookup & research pipeline`
+  - [ ] Thin thread on the fixture: the migration (KPI seed, `provider_run_id`, the open run index, the quota helper, the insert and update policies) with pgTAP, the catalogue and schemas, `requestResearch`, the lookup form on `/app`, the fixture provider, the `research-company` task writing KPI rows, the live dashboard with the progress list and the KPI table (AC-1, AC-2, AC-3, AC-9, AC-12, AC-6 and AC-7 in part)
+  - [ ] Real provider: the basis spike, the Parallel SDK provider with the output schema, poll and resume on `wait.for`, error classification, env and structured logs (AC-4, AC-10, AC-13, AC-15, AC-16)
+  - [ ] Validation pass: `src/lib/ai/` on the AI SDK through the gateway, the validation schema and prompt, the unit, range and conflict rules, the skipped fallback, the company facts write (AC-5, AC-6, AC-7, AC-13)
+  - [ ] Failure rail and reruns: the `onFailure` hook with error codes, the `research.run_failed` alert with the Trigger.dev link, the stale sweep schedule, `rerunResearch` and the empty and failed states (AC-8, AC-10, AC-11)
+  - [ ] Hardening and docs: Vitest, pgTAP and the Playwright fixture thread with axe, the design gallery section, `docs/research.md` with the hosted checklist (AC-1, AC-12, AC-14, AC-16)
+- [ ] Verify it: `/check verify company lookup & research pipeline`
+- [ ] Test it: `/test company lookup & research pipeline`
+- [ ] Review it (fresh model): `/check review company lookup & research pipeline`
+- [ ] Document it: `/document company lookup & research pipeline`
 
 ## Slice 2: Show the opportunity
 

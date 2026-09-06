@@ -20,7 +20,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 5 | Localization (German & English) | Foundation | done |
 | 6 | Auth, organizations & roles | Slice 1 | in-progress |
 | 7 | Transactional email & ops alerts | Slice 1 | done |
-| 8 | Company lookup & research pipeline | Slice 1 | planned |
+| 8 | Company lookup & research pipeline | Slice 1 | in-progress |
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | planned |
 | 10 | Self assessment fallback | Slice 2 | planned |
 | 11 | Package checkout with Swiss VAT | Slice 3 | planned |
@@ -58,6 +58,7 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **EU VAT and multi currency**: only CHF with Swiss MWST is in scope now · needs a decision
 - **Public API and integrations**: client systems pulling benchmark and program data · needs a decision
 - **Account settings page**: name, language, password change and sign out everywhere; the sign in flows ship without it · from spec 0005
+- **Zefix register lookup**: a type ahead against the federal commercial register (free REST API behind a registered account) so the legal name, UID and canton come from the register instead of the research · from spec 0007
 
 ## Legend
 
