@@ -35,7 +35,8 @@ export function localizedText(value: unknown, locale: LocaleCode): string {
  * The KPI table (spec 0007, AC-7): one row per catalogue KPI in sort order, one column per
  * reporting year, each cell with the formatted value, its confidence badge, its sources and a
  * "not verified" mark when the row's run skipped validation; "not found" for an empty cell, and
- * a coverage line. Server component.
+ * a coverage line. A client entered row shows the "Your figure" badge instead of a confidence
+ * (spec 0010, AC-8). Server component.
  */
 export async function KpiTable({ catalogue, years, kpis, locale }: KpiTableProps) {
   const t = await getTranslations("research.table");
@@ -118,7 +119,11 @@ export async function KpiTable({ catalogue, years, kpis, locale }: KpiTableProps
                             {render(Number(row.value), kind)}
                           </span>
                           <div className="flex flex-wrap items-center justify-end gap-1">
-                            {row.confidence !== null ? (
+                            {row.source === "client" ? (
+                              <Badge variant="secondary" data-source="client">
+                                {t("clientValue")}
+                              </Badge>
+                            ) : row.confidence !== null ? (
                               <ConfidenceBadge confidence={Number(row.confidence)} />
                             ) : null}
                             {row.validation === "skipped" ? (

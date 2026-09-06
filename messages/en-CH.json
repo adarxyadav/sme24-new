@@ -821,6 +821,7 @@
       "coverage": "{found} of {total} KPIs found",
       "yes": "Yes",
       "no": "No",
+      "clientValue": "Your figure",
       "notVerified": "Not verified",
       "notVerifiedHint": "The check against the source did not run for this run. The value comes straight from the research.",
       "sources": "Sources",
@@ -843,11 +844,11 @@
     "empty": {
       "title": "No public disclosures found",
       "description": "We found no safety figures for this company. Check the name and the website and run the research again.",
-      "manualNote": "Entering the KPIs by hand arrives with a later feature."
+      "manualNote": "Enter your figures by hand in the “Your figures” card below."
     },
     "failed": {
       "title": "The research failed",
-      "manualNote": "Entering the KPIs by hand arrives with a later feature."
+      "manualNote": "Enter your figures by hand in the “Your figures” card below."
     },
     "rerun": {
       "title": "Correct the details and research again",
@@ -1096,6 +1097,45 @@
       "validation": "Please check your entries.",
       "forbidden": "You are not signed in for this.",
       "not_found": "This company was not found.",
+      "unexpected": "Something went wrong. Please try again later."
+    }
+  },
+  "selfAssessment": {
+    "heading": "Your figures",
+    "description": "Enter the figures you have for one reporting year, or correct a research value. Your figure replaces the research value for that year in the table and in the benchmark.",
+    "year": "Reporting year",
+    "yearHint": "Every figure below belongs to this year. Changing the year drops unsaved edits.",
+    "submit": "Save and recalculate",
+    "submitting": "Saving …",
+    "saved": "Saved. We are recalculating your benchmark.",
+    "savedNotQueued": "Saved. The recalculation could not be started and runs with the next research.",
+    "cleared": "Cleared. The research value applies again and we are recalculating your benchmark.",
+    "clearedNotQueued": "Cleared. The recalculation could not be started and runs with the next research.",
+    "clear": "Clear {kpi}",
+    "clearShort": "Clear",
+    "clearing": "Clearing …",
+    "source": {
+      "client": "Your figure",
+      "research": "From research",
+      "none": "Not on file"
+    },
+    "yesNo": {
+      "unset": "Not set",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "olderYearIntro": "The benchmark uses the newest year on file per KPI.",
+    "olderYearApplies": "For {kpis} the value from {year} still applies.",
+    "validation": {
+      "yearInvalid": "Choose a reporting year from the list.",
+      "valueInvalid": "Enter a plausible figure for this KPI with at most two decimals.",
+      "nothingToSave": "Enter or change at least one figure before saving."
+    },
+    "errors": {
+      "validation": "Please check your entries.",
+      "forbidden": "You are not signed in for this.",
+      "not_found": "This figure was not found. Reload the page and try again.",
+      "conflict": "Someone saved these figures at the same time. Reload the page and try again.",
       "unexpected": "Something went wrong. Please try again later."
     }
   }

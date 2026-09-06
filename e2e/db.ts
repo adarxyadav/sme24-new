@@ -166,3 +166,70 @@ export async function createUnconfirmedClient(email: string, password: string) {
   });
   if (error) throw error;
 }
+
+/**
+ * A company of the organization with one finished research run, the state the dashboard needs
+ * before the self assessment form prefills from research rows (spec 0010, AC-11). Returns the
+ * company and run ids; `deleteAccount` removes both through the organization cascade.
+ */
+export async function seedResearchedCompany(input: {
+  readonly organizationId: string;
+  readonly userId: string;
+  readonly name: string;
+  readonly status?: "succeeded" | "empty" | "failed";
+}) {
+  const supabase = serviceClient();
+  const { data: company, error } = await supabase
+    .from("companies")
+    .insert({
+      organization_id: input.organizationId,
+      name: input.name,
+      created_by: input.userId,
+      industry_code: "23.61",
+      employees_count: 420,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  const now = new Date().toISOString();
+  const { data: run, error: runError } = await supabase
+    .from("research_runs")
+    .insert({
+      organization_id: input.organizationId,
+      company_id: company.id,
+      requested_by: input.userId,
+      status: input.status ?? "succeeded",
+      started_at: now,
+      finished_at: now,
+      error_code: input.status === "failed" ? "internal" : null,
+    })
+    .select("id")
+    .single();
+  if (runError) throw runError;
+  return { companyId: company.id, runId: run.id };
+}
+
+/** A research row as the task stores it (spec 0010, AC-11): `source 'research'`, one confidence, no sources. */
+export async function seedCompanyKpi(input: {
+  readonly organizationId: string;
+  readonly companyId: string;
+  readonly runId: string;
+  readonly kpiKey: string;
+  readonly periodYear: number;
+  readonly value: number;
+  readonly confidence?: number;
+}) {
+  const supabase = serviceClient();
+  const { error } = await supabase.from("company_kpis").insert({
+    organization_id: input.organizationId,
+    company_id: input.companyId,
+    research_run_id: input.runId,
+    kpi_key: input.kpiKey,
+    period_year: input.periodYear,
+    value: input.value,
+    source: "research",
+    confidence: input.confidence ?? 0.9,
+    sources: [],
+  });
+  if (error) throw error;
+}

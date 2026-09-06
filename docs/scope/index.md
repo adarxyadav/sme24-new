@@ -21,8 +21,8 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 6 | Auth, organizations & roles | Slice 1 | in-progress |
 | 7 | Transactional email & ops alerts | Slice 1 | done |
 | 8 | Company lookup & research pipeline | Slice 1 | done |
-| 9 | Peer benchmark & CHF opportunity | Slice 2 | in-progress |
-| 10 | Self assessment fallback | Slice 2 | planned |
+| 9 | Peer benchmark & CHF opportunity | Slice 2 | done |
+| 10 | Self assessment fallback | Slice 2 | done |
 | 11 | Package checkout with Swiss VAT | Slice 3 | planned |
 | 12 | Ops admin: orders, companies & scheduling | Slice 3 | planned |
 | 13 | Marketing site & retainer enquiry | Slice 4 | in-progress |
@@ -43,7 +43,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 Build order is the `#` above. Each epic file holds its features grouped by phase.
 
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
-- [Client funnel](client.md) · 6 to 10, 22, 23 · 2 of 7 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
+- [Client funnel](client.md) · 6 to 10, 22, 23 · 3 of 7 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
 - [Commerce & ops](commerce.md) · 11, 12, 24 · 0 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
 - [Launch](launch.md) · 13 to 15 · 0 of 3 done · marketing site, legal and consent, analytics and monitoring. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 0 of 3 done · experts, the three structured assessments, the generated gap report.
@@ -64,6 +64,7 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Headless CMS for marketing copy**: page copy edited without a deploy; the catalogs and one catalog file per fact set are enough while the site is four pages · from spec 0009
 - **Captcha or edge rate limiting on the enquiry form**: the honeypot, the timing check and the two counted limits ship first; add a challenge or an edge limiter only if the flood guard proves too weak in production · from spec 0009
 - **Lighthouse in CI**: a Lighthouse CI job on the Vercel preview once the hand recorded numbers are stable · from spec 0009
+- **Dismissing a research value**: a client marks a research figure as unreliable without replacing it (a dismissal flag or table plus a benchmark rule); clearing only removes the client's own figure · from spec 0010 · needs a decision
 
 ## Legend
 

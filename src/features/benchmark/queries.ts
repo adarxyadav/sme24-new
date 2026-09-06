@@ -109,24 +109,29 @@ export type BenchmarkStateInput = {
   readonly snapshot: ParsedSnapshot | null;
   readonly latestRun: { readonly status: string; readonly finished_at: string | null } | null;
   readonly companyUpdatedAt: string;
+  /** The newest client KPI write (spec 0010, AC-13), `null` when the client entered nothing. */
+  readonly clientKpiUpdatedAt: string | null;
   readonly now: Date;
 };
 
 /**
  * The dashboard state (AC-9): a snapshot with nothing compared is `noData`, any other snapshot is
- * `ready`; with no snapshot, a run that succeeded or a company edit younger than the wait window
- * is `calculating`, anything older is `unavailable`. Pure.
+ * `ready`; with no snapshot, a run that succeeded, a company edit or a client KPI save (spec
+ * 0010, AC-13) younger than the wait window is `calculating`, anything older is `unavailable`.
+ * Pure.
  */
 export function benchmarkStateOf({
   snapshot,
   latestRun,
   companyUpdatedAt,
+  clientKpiUpdatedAt,
   now,
 }: BenchmarkStateInput): BenchmarkState {
   if (snapshot) return snapshot.kpisCompared === 0 ? "noData" : "ready";
   const moments = [
     latestRun?.status === "succeeded" ? latestRun.finished_at : null,
     companyUpdatedAt,
+    clientKpiUpdatedAt,
   ].flatMap((value) => {
     const time = value ? Date.parse(value) : Number.NaN;
     return Number.isFinite(time) ? [time] : [];

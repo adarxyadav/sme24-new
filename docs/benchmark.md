@@ -41,7 +41,18 @@ The `benchmark-company` task (`src/trigger/benchmark-company.ts`) runs after a r
 
 `model_version` names the rule set and the block schema (`MODEL_VERSION` in `src/features/benchmark/catalogue.ts`, `benchmark-model@1`). The reader (`src/features/benchmark/queries.ts`) picks the schema through `SNAPSHOT_SCHEMAS` in `snapshot.ts`; a row with an unknown version or blocks that fail their schema is treated as absent and reported to Sentry. A formula change bumps the constant, adds a schema to the map and never rewrites or blanks old rows.
 
-The dashboard state is derived, never stored: a snapshot with nothing compared is `noData` (with the facts form), any other snapshot is `ready`; with no snapshot, a run that succeeded or a company edit younger than two minutes (`BENCHMARK_WAIT_MS`) is `calculating`, anything older is `unavailable`.
+The dashboard state is derived, never stored: a snapshot with nothing compared is `noData` (with the facts form), any other snapshot is `ready`; with no snapshot, a run that succeeded, a company edit or a client figure save (`clientKpiUpdatedAt`, the newest client row) younger than two minutes (`BENCHMARK_WAIT_MS`) is `calculating`, anything older is `unavailable`.
+
+## Client figures
+
+Feature 10 (spec 0010) lets a client type the same eight KPIs by hand in the "Your figures" card under the KPI table (`src/features/self-assessment/`). Nothing changed in the schema; the rules worth knowing:
+
+- **One year per save.** The picker offers one contiguous run of years, newest first, from the current `Europe/Zurich` year down to the smaller of four years back and the oldest year on file, never below 2000 (`yearOptions` in `years.ts`); it starts on the newest year on file, else last year. Every figure in the form belongs to that year, and a year change refills the fields from the rows already on the page.
+- **The view decides what is current.** A client value is an ordinary `company_kpis` row with `source 'client'`, no run, no confidence and no sources; `company_kpi_current` puts it before the research row of the same year, so the table, the coverage line and the benchmark (which reads the newest year per KPI and applies confidence 1 to a client row) follow without any app logic. The table marks such a cell "Your figure" instead of a confidence badge.
+- **Clearing is a delete.** The clear button beside a field deletes the client row; the research row of that year, when there is one, is current again by the view's ordering. There is no "cleared" state.
+- **The write path works around the partial index.** The client unique index is partial (`where source = 'client'`), which PostgREST cannot upsert onto, so `saveClientKpis` reads the existing client rows for the sent keys, updates each by id (zero rows means another member created it: `forbidden`, and nothing is inserted) and inserts the rest in one statement; a `23505` on that insert is a second tab racing and answers `conflict`. Only fields the client changed reach the action, so an untouched research value is never copied into a client row.
+- **Two idempotency keys.** A save triggers `benchmark-company` with `triggerKind 'client_edit'` under `benchmark/kpis/<companyId>/<newest updated_at the writes returned>`, a clear under `benchmark/kpis-clear/<deleted row id>`, both with a one hour TTL. Saves inside one write moment collapse; a save followed by a clear are two snapshots a minute apart, which is expected.
+- **Policies are per creator.** Members update and delete only client rows they created (`created_by = auth.uid()`); with one member per organization this is invisible. Feature 22 (client team invitations) relaxes both policies to organization scope and updates `supabase/tests/company_kpis.test.sql`, where one assertion pins today's behaviour.
 
 ## The seed: format and generator
 
@@ -89,6 +100,7 @@ It reads `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` (the project's name f
 
 - The research task triggers the benchmark right after its terminal `succeeded` write under `benchmark/run/<runId>`; a trigger failure is logged and reported and never changes the run.
 - `updateCompanyFacts` (the form in the disclosure and on the "missing input" card) triggers it under `benchmark/edit/<companyId>/<updated_at>` (one hour TTL).
+- `saveClientKpis` and `clearClientKpi` (the "Your figures" card, spec 0010) trigger it under `benchmark/kpis/<companyId>/<updated_at>` and `benchmark/kpis-clear/<rowId>` (one hour TTL); see "Client figures" above.
 - The company's first snapshot sends the `benchmark_ready` email to every member (one delivery per member, key `benchmark-ready/<companyId>/<userId>`); a retry that inserts a second row is not first, so the email is never sent twice.
 - A task that fails after its retries raises the `benchmark.failed` Slack alert with the Trigger.dev run page; the dashboard keeps showing the previous snapshot or "not available yet".
 
