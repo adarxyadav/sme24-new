@@ -15,10 +15,10 @@ spec [0009](../specs/0009-marketing-site-retainer-enquiry/index.md)
   - [x] Ops, retention, hardening and docs: `/admin/enquiries` list with filter and cursor, the `purge-enquiries` task, gallery sections, Vitest, pgTAP and Playwright with axe, the Rich Results and Lighthouse checks, `docs/marketing.md` (AC-13, AC-15, AC-17, completes AC-12 and AC-16)
   - [x] First load budget (spec amendment 2026-09-06): `src/lib/env.public.ts` for the browser without zod, Sentry loaded after the page in `src/instrumentation-client.ts`, `scripts/bundle-budget.mts` behind `pnpm budget` with its `e2e.yml` step, the Biome override, the Vitest suites, `docs/marketing.md` and the verify rerun (completes AC-16 at 250 kB per content page and 350 kB for contact)
   - [x] The owner's package ladder (second spec amendment 2026-09-06): `PACKAGES` reordered by price with the four prices, `PackageCard` rebuilt with the best for, delivery, pills, output and outcome lines and "On demand", the new catalog keys in both languages, the phone and profiles optional in `site.ts` with the contact page and the `Organization` JSON-LD omitting them, the tests, `docs/marketing.md` and the verify record (the amended AC-6, AC-8 and AC-3)
-- [ ] Verify it: `/check verify marketing site & retainer enquiry`
+- [x] Verify it: `/check verify marketing site & retainer enquiry`
 - [x] Test it: `/test marketing site & retainer enquiry`
 - [x] Review it (fresh model): `/check review marketing site & retainer enquiry`
-- [ ] Document it: `/document marketing site & retainer enquiry`
+- [x] Document it: `/document marketing site & retainer enquiry`
 
 ### 14. Legal, privacy & cookie consent · needs a decision
 Swiss revised FADP basics with GDPR readiness for EU clients: privacy policy, terms, a data processing agreement template, a record of what is processed and where it is stored, deletion and export on request, and a cookie consent banner that gates analytics and marketing scripts until consent is given. The consent pattern is cross cutting, so it needs a decision before analytics ships.
