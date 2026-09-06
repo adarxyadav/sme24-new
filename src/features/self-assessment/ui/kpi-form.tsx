@@ -78,7 +78,12 @@ export function prefillValues(
   ) as FieldValues;
 }
 
-/** The values that differ from the prefilled ones; an untouched field is `undefined` and never sent (AC-4). Pure. */
+/**
+ * The values that differ from the prefilled ones; an untouched field is `undefined` and never sent (AC-4). Pure.
+ * This is a deliberate value diff against the last prefilled snapshot, not react-hook-form's
+ * `formState.dirtyFields`: the form calls `reset(..., { keepDirtyValues: true })` on a year change
+ * and on a rows refresh, which can leave the dirty tracking stale. Keep it this way.
+ */
 export function changedValues(values: FieldValues, prefilled: FieldValues): FieldValues {
   return Object.fromEntries(
     Object.entries(values).map(([key, value]) => {
