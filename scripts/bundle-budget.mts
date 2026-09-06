@@ -189,7 +189,19 @@ function remoteSource(base: string, bypassSecret: string | undefined): Source {
   return {
     html: async (page) => {
       const response = await fetch(new URL(pageUrlPath(page), base), { headers });
-      return response.ok ? await response.text() : undefined;
+      // A protected deployment answers a request without a valid bypass with a redirect to the
+      // sign in page on another origin; `fetch` follows it and hands back that page with a 200.
+      // Say so instead of reporting the sign in page's scripts as the measurement.
+      const sameOrigin = new URL(response.url).origin === new URL(base).origin;
+      if (!response.ok || !sameOrigin) {
+        console.error(
+          `${pageUrlPath(page)}: HTTP ${response.status} at ${response.url}${
+            sameOrigin ? "" : " (another origin: is VERCEL_AUTOMATION_BYPASS_SECRET set and valid?)"
+          }`,
+        );
+        return undefined;
+      }
+      return await response.text();
     },
     script: async (src) => {
       const response = await fetch(new URL(src, base), {
