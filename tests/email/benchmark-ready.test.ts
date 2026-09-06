@@ -13,6 +13,13 @@ import {
  * languages with the rounded money when a cost exists and the headcount ask when it does not,
  * and points its button at the client area.
  */
+/**
+ * de-CH groups thousands with U+2019 on ICU 77 and with the straight apostrophe U+0027 on ICU 78
+ * (Node 22 in CI), which React escapes to `&#x27;` in HTML; the money assertions accept all three.
+ */
+const GROUP = "(?:’|'|&#x27;|&#39;)";
+const chfPattern = (grouped: string) => new RegExp(`CHF.${grouped.split("’").join(GROUP)}`);
+
 describe("renderEmail benchmark_ready", () => {
   const appUrl = "https://sme24.example";
 
@@ -45,8 +52,8 @@ describe("renderEmail benchmark_ready", () => {
     expect(rendered.subject).toBe("Ihr Benchmark für Musterfirma AG ist bereit");
     expect(rendered.html).toContain("Guten Tag Clara");
     expect(rendered.html).toContain("5 Kennzahlen verglichen");
-    expect(rendered.html).toMatch(/CHF.1.961.000/);
-    expect(rendered.html).toMatch(/CHF.522.000/);
+    expect(rendered.html).toMatch(chfPattern("1’961’000"));
+    expect(rendered.html).toMatch(chfPattern("522’000"));
     expect(rendered.html).toContain(`href="${appUrl}/de/app"`);
     expect(rendered.text).toContain("Benchmark ansehen");
   });
