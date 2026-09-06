@@ -130,8 +130,10 @@ One time setup, outside the repo:
 3. **Trigger.dev**: create the project in the EU region; put its ref in `TRIGGER_PROJECT_REF`, the
    staging and prod secret keys in the matching Vercel scopes, a personal access token in the repo
    secret `TRIGGER_ACCESS_TOKEN`; add the task variables (Supabase URL and secret key, app URL,
-   Sentry DSN, PostHog key) to each Trigger.dev environment. Run one manual
-   `pnpm trigger:deploy:staging` before the first pull request.
+   Sentry DSN, PostHog key) to each Trigger.dev environment. The free plan has no Staging
+   environment, so `deploy.yml` deploys `main` into the Production environment for now and the
+   Vercel Preview scope holds that environment's `tr_prod_` key. Run one manual
+   `pnpm trigger:deploy:prod` before the first pull request.
 4. **Sentry (EU) and PostHog (EU)**: create the projects in the EU regions; DSN and key go to
    Vercel and Trigger.dev; `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` go to the repo
    secrets and the Vercel build for source maps.

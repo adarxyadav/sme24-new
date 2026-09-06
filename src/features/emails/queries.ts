@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import type { Database, Tables } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 import { type DeliveryFilters, PAGE_SIZE } from "./schema";
 
 type Client = SupabaseClient<Database>;
@@ -60,7 +61,7 @@ export async function listDeliveries(
   }
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) throw queryError(error);
   const hasMore = data.length > PAGE_SIZE;
   const rows = hasMore ? data.slice(0, PAGE_SIZE) : data;
   const last = rows[rows.length - 1];
@@ -78,7 +79,7 @@ export async function getDelivery(supabase: Client, id: string): Promise<Deliver
     .select("*")
     .eq("id", id)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   if (!data) notFound();
   return data;
 }

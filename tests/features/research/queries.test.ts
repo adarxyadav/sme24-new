@@ -266,6 +266,19 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
     expect(dashboard.quota).toMatchObject({ used: 6, remaining: 0, openRunId: null });
   });
 
+  it("throws a real Error when supabase-js answers with its plain error object (E394 regression)", async () => {
+    // At runtime the `error` is the parsed PostgREST body, not a `PostgrestError` instance; a
+    // thrown plain object reached the error boundary as "[object Object]".
+    const raw = { message: "JWT expired", code: "PGRST301", details: null, hint: null };
+    const { client } = fakeClient(baseAnswers({ research_runs: () => ({ error: raw }) }));
+    const thrown = await getCompanyDashboard(client as never, ORG, NOW).then(
+      () => null,
+      (error: unknown) => error,
+    );
+    expect(thrown).toBeInstanceOf(Error);
+    expect(thrown).toMatchObject({ message: "JWT expired", code: "PGRST301" });
+  });
+
   it("throws on a database error instead of rendering a half dashboard", async () => {
     const { client } = fakeClient(
       baseAnswers({ company_kpi_current: () => ({ error: new Error("permission denied") }) }),
