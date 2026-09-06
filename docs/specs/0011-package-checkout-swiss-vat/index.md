@@ -1,7 +1,7 @@
 # 0011. Package checkout with Swiss VAT
 
 **Date**: 2026-09-07
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -289,17 +289,17 @@ The project builds by **Tracer Bullet**: a thin thread runs end to end through d
 
 **Slice 1: one card purchase, end to end**
 
-1. Write `supabase/schemas/40_packages.sql`, `41_orders.sql`, `42_order_events.sql`, `43_invoices.sql` and `44_stripe_events.sql` with tables, RLS, policies, the two sequences and the transition trigger in the same files; run `pnpm db:diff`, `db:reset`, `db:types`. Re add by hand the three things the diff misses (column grants after the table level revoke, the `anon` execute revoke on any new public function, and any view column list). Satisfies **AC-2**, **AC-3**, **AC-12**, **AC-13**.
-2. Seed `packages` through a data migration from `PACKAGES`, and add the Vitest equality test. Satisfies **AC-14**.
-3. Write the pure money module `src/features/checkout/money.ts` (`computeAmounts`, Rappen helpers) and its tests, plus the display formatter that applies the 0.05 Rappen rounding. Satisfies **AC-2**, **AC-15**.
-4. Write the pure validation helpers `isValidSwissUid` (shape plus mod 11 check digit) and the billing address Zod schema in `schema.ts`, with tests over known good and bad UIDs. Satisfies **AC-11**.
+1. [x] Write `supabase/schemas/40_packages.sql`, `41_orders.sql`, `42_order_events.sql`, `43_invoices.sql` and `44_stripe_events.sql` with tables, RLS, policies, the two sequences and the transition trigger in the same files; run `pnpm db:diff`, `db:reset`, `db:types`. Re add by hand the three things the diff misses (column grants after the table level revoke, the `anon` execute revoke on any new public function, and any view column list). Satisfies **AC-2**, **AC-3**, **AC-12**, **AC-13**.
+2. [x] Seed `packages` through a data migration from `PACKAGES`, and add the Vitest equality test. Satisfies **AC-14**.
+3. [x] Write the pure money module `src/features/checkout/money.ts` (`computeAmounts`, Rappen helpers) and its tests, plus the display formatter that applies the 0.05 Rappen rounding. Satisfies **AC-2**, **AC-15**.
+4. [x] Write the pure validation helpers `isValidSwissUid` (shape plus mod 11 check digit) and the billing address Zod schema in `schema.ts`, with tests over known good and bad UIDs. Satisfies **AC-11**.
 5. Write `startCheckout` in `src/features/checkout/actions.ts`: validate, read the package and reject a null price or inactive one with a typed error, freeze the amounts and billing address, insert the `pending` order and its first `order_events` row, **then** create the Stripe Checkout Session (a `StripeClient` instance, `locale` from the order, no `payment_method_types`), **then** store the session id, return the URL. The ordering is load bearing for the sweep. Satisfies **AC-1**, **AC-11**, **AC-19**.
 6. Write `settleOrder` in `src/features/checkout/settle.ts`, the single shared core taking `(orderId, paidAt, actor)`: read the order and any existing invoice first and skip whatever is already done, then in one small transaction mark the order `paid`, write the `order_events` row, draw the invoice number and insert the `invoices` row (nothing else in that transaction), then enqueue the render, and on its success the email and the alert. Cover the resume path with tests that call it twice and kill it partway. Satisfies **AC-3**, **AC-10**, **AC-18**.
 7. Write `/api/webhooks/stripe`: read the raw body, verify the signature, insert into `stripe_events`, enqueue `confirm-order` under the idempotency key `order/confirm/<eventId>`, return 200. Handle `checkout.session.completed` **and** `checkout.session.async_payment_succeeded` gated on `payment_status`, plus `checkout.session.expired`. The task is a thin wrapper calling `settleOrder` with the event timestamp and `'service'`. Satisfies **AC-5**, **AC-6**, **AC-7**.
 8. Build the checkout entry on the opportunity dashboard plus the billing address form, the company setup redirect, and the order detail page doubling as the Stripe return page, including the "confirming your payment" state for a webhook that has not landed. Satisfies **AC-1**, **AC-11**.
 9. Build `/app/orders` with pagination and the paid, pending, expired and cancelled states. Satisfies **AC-1**, **AC-6**.
 10. Add the `order_confirmed` email template: schema entry, component, registry entry, `email.order_confirmed.*` keys in both catalogs, and a preview. Satisfies **AC-9**.
-11. Write the pgTAP file `supabase/tests/orders.sql` covering all three roles, the expert denial and the cross tenant denial on `orders`, `invoices` and `order_events`. Satisfies **AC-12**, **AC-13**.
+11. [x] Write the pgTAP file `supabase/tests/orders.sql` covering all three roles, the expert denial and the cross tenant denial on `orders`, `invoices` and `order_events`. Satisfies **AC-12**, **AC-13**.
 
 **Slice 2: the invoice document**
 

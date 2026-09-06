@@ -11,7 +11,7 @@ Carried over from earlier specs: the four packages and prices already live in `s
 Spec: [0011](../specs/0011-package-checkout-swiss-vat/index.md). Cards go through Stripe Checkout, and a bank transfer path issues a real Swiss invoice with a QR-bill, because Swiss SMEs will not put a five figure purchase on a card. Payment confirmation reaches the database only through the Stripe webhook, so closing the browser cannot lose an order.
 - [x] Design it (spec): `/architect package checkout with Swiss VAT`
 - [ ] Build it: `/develop package checkout with Swiss VAT`
-  - [ ] Tables, money arithmetic and the catalogue promotion: five tables with their policies, integer Rappen amounts, the `packages` seed and its equality test (AC-2, AC-3, AC-12, AC-13, AC-14, AC-15)
+  - [x] Tables, money arithmetic and the catalogue promotion: five tables with their policies, integer Rappen amounts, the `packages` seed and its equality test (AC-2, AC-3, AC-12, AC-13, AC-14, AC-15)
   - [ ] One card purchase end to end: the checkout action, the Stripe webhook, the shared resumable `settleOrder` core, the orders UI and the confirmation email (AC-1, AC-5, AC-6, AC-7, AC-9, AC-10, AC-11, AC-18, AC-19)
   - [ ] The invoice document: seller configuration with its placeholder guard, the SCOR reference, the private Storage bucket, and the QR-bill PDF render (AC-4, AC-17)
   - [ ] Bank transfer and ops control: the invoice first path, ops mark paid and cancel, the pricing page buttons, and the sweep (AC-8, AC-16)
