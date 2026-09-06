@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "next-themes";
@@ -22,29 +22,28 @@ describe("ThemeToggle (spec 0003, AC-3)", () => {
     document.documentElement.className = "";
   });
 
-  it("is a labelled button that opens a three way radio menu with system preselected", async () => {
-    const user = userEvent.setup();
+  it("is a labelled radio group of three icon radios with system preselected after mount", async () => {
     renderToggle();
-    const button = screen.getByRole("button", { name: de.theme.toggle });
-    await user.click(button);
-    const options = screen.getAllByRole("menuitemradio");
-    expect(options.map((option) => option.textContent)).toEqual([
+    const group = screen.getByRole("radiogroup", { name: de.theme.toggle });
+    const options = within(group).getAllByRole("radio");
+    expect(options.map((option) => option.getAttribute("aria-label"))).toEqual([
       de.theme.system,
       de.theme.light,
       de.theme.dark,
     ]);
-    expect(screen.getByRole("menuitemradio", { name: de.theme.system })).toHaveAttribute(
-      "aria-checked",
-      "true",
+    await waitFor(() =>
+      expect(screen.getByRole("radio", { name: de.theme.system })).toHaveAttribute(
+        "aria-checked",
+        "true",
+      ),
     );
   });
 
   it("writes the choice through next-themes only: localStorage.theme and the html class", async () => {
     const user = userEvent.setup();
     renderToggle();
-    await user.click(screen.getByRole("button", { name: de.theme.toggle }));
     await act(async () => {
-      await user.click(screen.getByRole("menuitemradio", { name: de.theme.dark }));
+      await user.click(screen.getByRole("radio", { name: de.theme.dark }));
     });
     expect(window.localStorage.getItem("theme")).toBe("dark");
     expect(document.documentElement.classList.contains("dark")).toBe(true);

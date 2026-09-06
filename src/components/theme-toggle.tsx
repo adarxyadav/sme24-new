@@ -3,19 +3,16 @@
 import { MonitorIcon, MoonIcon, SunIcon, SunMoonIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
+import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import { useSyncExternalStore } from "react";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 /** The three preferences a user can pick; `next-themes` stores them in `localStorage.theme`. */
 export const THEME_OPTIONS = ["system", "light", "dark"] as const;
@@ -98,26 +95,42 @@ export function ThemeSubmenu() {
 }
 
 /**
- * Icon button that opens the three way theme menu (marketing header, gallery). Shows a neutral
- * icon until mounted so server and client markup match. Runs in the browser.
+ * Segmented pill with one icon radio per theme (system, light, dark), the pattern of the Vercel
+ * dashboard: a `radiogroup` with roving arrow key focus, each radio named by its label. Nothing is
+ * checked until mount so server and client markup match. Used in the marketing header and footer,
+ * the auth pages and the gallery. Runs in the browser.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const t = useTranslations("theme");
-  const { mounted, choice } = useThemeChoice();
-  const Icon = mounted ? ICONS[choice] : SunMoonIcon;
+  const { mounted, choice, setTheme } = useThemeChoice();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={t("toggle")} className={className}>
-          <Icon aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          <ThemeRadioItems />
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <RadioGroupPrimitive.Root
+      aria-label={t("toggle")}
+      orientation="horizontal"
+      value={mounted ? choice : ""}
+      onValueChange={(value) => {
+        if (isThemeOption(value)) setTheme(value);
+      }}
+      className={cn(
+        "inline-flex items-center gap-0.5 rounded-full border bg-background p-0.5",
+        className,
+      )}
+    >
+      {THEME_OPTIONS.map((option) => {
+        const Icon = ICONS[option];
+        return (
+          <RadioGroupPrimitive.Item
+            key={option}
+            value={option}
+            aria-label={t(option)}
+            title={t(option)}
+            className="inline-flex size-7 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-[state=checked]:bg-accent data-[state=checked]:text-accent-foreground data-[state=checked]:shadow-xs"
+          >
+            <Icon aria-hidden="true" className="size-4" />
+          </RadioGroupPrimitive.Item>
+        );
+      })}
+    </RadioGroupPrimitive.Root>
   );
 }

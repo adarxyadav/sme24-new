@@ -163,6 +163,11 @@ describe("MarketingFooter (spec 0009, AC-7)", () => {
     );
   });
 
+  it("has no language navigation of its own, so the header's stays the only one on the page", () => {
+    renderIn("de-CH", <MarketingFooter />);
+    expect(screen.queryByRole("navigation", { name: de.common.language })).toBeNull();
+  });
+
   it("renders the legal group once links are given", () => {
     renderIn(
       "en-CH",
