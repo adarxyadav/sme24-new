@@ -69,7 +69,7 @@ spec [0008](../specs/0008-peer-benchmark-chf-opportunity/index.md) · code in `s
 - [x] Review it (fresh model): `/check review peer benchmark & CHF opportunity`
 - [x] Document it: `/document peer benchmark & CHF opportunity`
 
-### 10. Self assessment fallback · Beta · in-progress
+### 10. Self assessment fallback · Beta · done
 When the pipeline finds little or nothing, or the client wants to correct it, the client fills in the same KPIs by hand and the benchmark recalculates. Extends the KPI schema and dashboard from features 8 and 9.
 **Done when:** a client can enter or edit each KPI in a form with validation, the benchmark and CHF estimate update, and the dashboard shows which values came from research and which from the client.
 spec [0010](../specs/0010-self-assessment-fallback/index.md) · code in `src/features/self-assessment/`, `e2e/self-assessment.spec.ts`, the `selfAssessment` namespace, the `kpiRows` field of `getCompanyDashboard` and the badge in `src/features/research/ui/kpi-table.tsx`
@@ -78,8 +78,8 @@ spec [0010](../specs/0010-self-assessment-fallback/index.md) · code in `src/fea
   - [x] Thin thread: the schema, the year rules, the save action with the read then write path and the `client_edit` trigger, `kpiRows` on the dashboard query, the "Your figures" card in every run state, the "Your figure" badge in the KPI table, the third moment in `benchmarkStateOf`, the `selfAssessment` catalogs (AC-1, AC-2, AC-4, AC-5, AC-8, AC-9, AC-10, AC-13, AC-3 in part)
   - [x] Thicken the form: prefill captions per source, the refill on a year change, typed fields with comma decimals and the yes or no select, the clear action with its per field button, the older year hint, the conflict and error states, axe (AC-3, AC-6, AC-7, completes AC-1)
   - [x] Harden and document: Vitest tables and component tests, the action tests, the pgTAP assertion, the `seedCompanyKpi` helper and the Playwright thread with axe, the "Client figures" section in `docs/benchmark.md` (AC-11, AC-12)
-- [ ] Verify it: `/check verify self assessment fallback`
-- [ ] Test it: `/test self assessment fallback`
+- [x] Verify it: `/check verify self assessment fallback`
+- [x] Test it: `/test self assessment fallback`
 
 ## Slice 8: Thicken the accounts
 

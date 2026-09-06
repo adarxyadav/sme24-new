@@ -22,7 +22,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 7 | Transactional email & ops alerts | Slice 1 | done |
 | 8 | Company lookup & research pipeline | Slice 1 | done |
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | done |
-| 10 | Self assessment fallback | Slice 2 | in-progress |
+| 10 | Self assessment fallback | Slice 2 | done |
 | 11 | Package checkout with Swiss VAT | Slice 3 | planned |
 | 12 | Ops admin: orders, companies & scheduling | Slice 3 | planned |
 | 13 | Marketing site & retainer enquiry | Slice 4 | in-progress |
