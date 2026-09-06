@@ -7,6 +7,8 @@
  */
 export const PATHNAMES = {
   "/": "/",
+  "/pricing": { "de-CH": "/preise", "en-CH": "/pricing" },
+  "/about": { "de-CH": "/ueber-uns", "en-CH": "/about" },
   "/contact": { "de-CH": "/kontakt", "en-CH": "/contact" },
   "/sign-in": "/sign-in",
   "/sign-up": "/sign-up",
@@ -40,4 +42,4 @@ export type StaticPathname = Pathname extends infer P
  * marketing page, with its German slug resolved through `PATHNAMES`. Static routes only: a
  * template route (`/foo/[id]`) has no single URL, so listing one fails `pnpm typecheck`.
  */
-export const MARKETING_ROUTES: readonly StaticPathname[] = ["/", "/contact"];
+export const MARKETING_ROUTES: readonly StaticPathname[] = ["/", "/pricing", "/about", "/contact"];

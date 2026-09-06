@@ -4,6 +4,8 @@ export type StatementProps = {
   /** One or more sentences. Each becomes a line; a line that ended in "." gets the square stop. */
   readonly text: string;
   readonly as?: "h1" | "h2" | "h3" | "p";
+  /** An id, so a section can name the statement as its heading through `aria-labelledby`. */
+  readonly id?: string;
   readonly className?: string;
 };
 
@@ -42,10 +44,10 @@ export function SquareStop() {
  * each closed by the square stop. "Senior experts. No slides. Just results." Pair with a display
  * size (`text-display-*`) or a headline size. Server or browser.
  */
-export function Statement({ text, as: Tag = "p", className }: StatementProps) {
+export function Statement({ text, as: Tag = "p", id, className }: StatementProps) {
   const sentences = splitSentences(text);
   return (
-    <Tag data-slot="statement" className={cn("text-balance", className)}>
+    <Tag id={id} data-slot="statement" className={cn("text-balance", className)}>
       {sentences.map((sentence, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: the lines are static per render and derived from one string, and a repeated sentence must keep its own line
         <span key={index} className="block">
