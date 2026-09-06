@@ -4,7 +4,7 @@ Part of the [SME24 scope](index.md). What Release 1 needs before pilot clients a
 
 ## Slice 4: Launch readiness
 
-### 13. Marketing site & retainer enquiry · in-progress
+### 13. Marketing site & retainer enquiry · done
 Server rendered public pages in German and English: landing page leading into the free company lookup, pricing for the four packages, about, contact, and a retainer enquiry form for the package sold without checkout. Metadata, sitemap, structured data and social cards on every page, so the free benchmark works as the lead magnet.
 **Done when:** every public page renders server side in both languages with correct metadata, canonical and language alternate links, sitemap and social cards; the retainer form stores the enquiry and alerts ops; pages meet WCAG 2.2 AA and Core Web Vitals targets.
 spec [0009](../specs/0009-marketing-site-retainer-enquiry/index.md)
