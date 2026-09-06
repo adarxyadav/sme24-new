@@ -81,54 +81,75 @@ beforeEach(() => {
   boundary.setLocale.mockResolvedValue({ ok: true, data: { persisted: true } });
 });
 
-describe("LocaleSwitcher, the segmented pill of links (spec 0004, AC-2)", () => {
-  it("is a navigation landmark named after the language label with one link per locale", () => {
+describe("LocaleSwitcher, the marketing dropdown (spec 0004, AC-2)", () => {
+  /** Opens the menu and answers its items; Radix renders them in a portal only once open. */
+  async function openMenu(user: ReturnType<typeof userEvent.setup>, locale: "de-CH" | "en-CH") {
+    const trigger = screen.getByRole("button", { name: MESSAGES[locale].common.language });
+    await user.click(trigger);
+    return trigger;
+  }
+
+  it("is a button labelled with the language label, showing the current language, that opens a menu of one link per locale", async () => {
+    const user = userEvent.setup();
     renderSwitcher();
-    const nav = screen.getByRole("navigation", { name: de.common.language });
-    expect(nav).toBeInTheDocument();
-    expect(screen.getAllByRole("link")).toHaveLength(2);
+    const trigger = screen.getByRole("button", { name: de.common.language });
+    expect(trigger).toHaveTextContent(de.common.german);
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await user.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const items = await screen.findAllByRole("menuitem");
+    expect(items.map((item) => item.textContent)).toEqual([de.common.german, de.common.english]);
+    for (const item of items) expect(item.tagName).toBe("A");
   });
 
-  it("keeps the path and the whole query string, repeated keys included, in both links", () => {
+  it("keeps the path and the whole query string, repeated keys included, in both links", async () => {
+    const user = userEvent.setup();
     renderSwitcher();
-    expect(screen.getByRole("link", { name: de.common.german })).toHaveAttribute(
+    await openMenu(user, "de-CH");
+    expect(await screen.findByRole("menuitem", { name: de.common.german })).toHaveAttribute(
       "href",
       "/de/admin/design?x=1&tab=a&tab=b",
     );
-    expect(screen.getByRole("link", { name: de.common.english })).toHaveAttribute(
+    expect(screen.getByRole("menuitem", { name: de.common.english })).toHaveAttribute(
       "href",
       "/en/admin/design?x=1&tab=a&tab=b",
     );
   });
 
-  it("links the bare path when there is no query string", () => {
+  it("links the bare path when there is no query string", async () => {
     boundary.search = "";
+    const user = userEvent.setup();
     renderSwitcher();
-    expect(screen.getByRole("link", { name: de.common.english })).toHaveAttribute(
+    await openMenu(user, "de-CH");
+    expect(await screen.findByRole("menuitem", { name: de.common.english })).toHaveAttribute(
       "href",
       "/en/admin/design",
     );
   });
 
-  it("keeps the id of a dynamic route such as a delivery detail page, the reason the params travel with the pathname", () => {
+  it("keeps the id of a dynamic route such as a delivery detail page, the reason the params travel with the pathname", async () => {
     boundary.pathname = `/de/admin/emails/${DELIVERY_ID}`;
     boundary.search = "";
     boundary.params = { locale: "de-CH", id: DELIVERY_ID };
+    const user = userEvent.setup();
     renderSwitcher();
-    expect(screen.getByRole("link", { name: de.common.english })).toHaveAttribute(
+    await openMenu(user, "de-CH");
+    expect(await screen.findByRole("menuitem", { name: de.common.english })).toHaveAttribute(
       "href",
       `/en/admin/emails/${DELIVERY_ID}`,
     );
-    expect(screen.getByRole("link", { name: de.common.german })).toHaveAttribute(
+    expect(screen.getByRole("menuitem", { name: de.common.german })).toHaveAttribute(
       "href",
       `/de/admin/emails/${DELIVERY_ID}`,
     );
   });
 
-  it("marks the current language and tags every option with its own language and hreflang", () => {
+  it("marks the current language and tags every option with its own language and hreflang", async () => {
+    const user = userEvent.setup();
     renderSwitcher("en-CH");
-    const german = screen.getByRole("link", { name: en.common.german });
-    const english = screen.getByRole("link", { name: en.common.english });
+    await openMenu(user, "en-CH");
+    const german = await screen.findByRole("menuitem", { name: en.common.german });
+    const english = screen.getByRole("menuitem", { name: en.common.english });
     expect(english).toHaveAttribute("aria-current", "true");
     expect(german).not.toHaveAttribute("aria-current");
     expect(german).toHaveAttribute("lang", "de-CH");
@@ -137,25 +158,11 @@ describe("LocaleSwitcher, the segmented pill of links (spec 0004, AC-2)", () => 
     expect(english).toHaveAttribute("hreflang", "en-CH");
   });
 
-  it("renders as the sibling of the theme pill: a bordered rounded nav whose active segment alone carries the accent fill and the medium weight", () => {
-    renderSwitcher("en-CH");
-    const nav = screen.getByRole("navigation", { name: en.common.language });
-    expect(nav).toHaveClass("inline-flex", "rounded-full", "border", "bg-background", "p-0.5");
-    const german = screen.getByRole("link", { name: en.common.german });
-    const english = screen.getByRole("link", { name: en.common.english });
-    for (const segment of [german, english]) {
-      expect(segment).toHaveClass("h-7", "rounded-full");
-      expect(segment.tagName).toBe("A");
-    }
-    expect(english).toHaveClass("bg-accent", "text-accent-foreground", "shadow-xs", "font-medium");
-    expect(german).toHaveClass("text-muted-foreground");
-    expect(german).not.toHaveClass("bg-accent", "font-medium");
-  });
-
   it("stores the short code of the chosen language through setLocale on click, best effort", async () => {
     const user = userEvent.setup();
     renderSwitcher();
-    await user.click(screen.getByRole("link", { name: de.common.english }));
+    await openMenu(user, "de-CH");
+    await user.click(await screen.findByRole("menuitem", { name: de.common.english }));
     expect(boundary.setLocale).toHaveBeenCalledWith({ locale: "en" });
   });
 
@@ -165,23 +172,25 @@ describe("LocaleSwitcher, the segmented pill of links (spec 0004, AC-2)", () => 
     boundary.setLocale.mockRejectedValue(new Error("offline"));
     const user = userEvent.setup();
     renderSwitcher();
-    await user.click(screen.getByRole("link", { name: de.common.english }));
-    expect(screen.getByRole("link", { name: de.common.english })).toHaveAttribute(
-      "href",
-      "/en/admin/design?x=1&tab=a&tab=b",
-    );
+    await openMenu(user, "de-CH");
+    const english = await screen.findByRole("menuitem", { name: de.common.english });
+    expect(english).toHaveAttribute("href", "/en/admin/design?x=1&tab=a&tab=b");
+    await user.click(english);
     await new Promise((resolve) => setImmediate(resolve));
     process.off("unhandledRejection", unhandled);
     expect(unhandled).not.toHaveBeenCalled();
   });
 
-  it("is reachable by keyboard in reading order", async () => {
+  it("opens from the keyboard and moves through the options with the arrow keys", async () => {
     const user = userEvent.setup();
     renderSwitcher();
     await user.tab();
-    expect(screen.getByRole("link", { name: de.common.german })).toHaveFocus();
-    await user.tab();
-    expect(screen.getByRole("link", { name: de.common.english })).toHaveFocus();
+    const trigger = screen.getByRole("button", { name: de.common.language });
+    expect(trigger).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(await screen.findByRole("menuitem", { name: de.common.german })).toHaveFocus();
+    await user.keyboard("{ArrowDown}");
+    expect(screen.getByRole("menuitem", { name: de.common.english })).toHaveFocus();
   });
 });
 
