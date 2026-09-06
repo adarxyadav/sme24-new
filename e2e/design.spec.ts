@@ -98,6 +98,8 @@ test("the sidebar shell is operable by keyboard: skip link, nav, user menu, them
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "E-Mails" })).toBeFocused();
   await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Anfragen" })).toBeFocused();
+  await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Design Galerie" })).toBeFocused();
 
   const userMenu = page.getByRole("button", { name: "Benutzermenü" });

@@ -57,6 +57,23 @@ describe("request proxy (spec 0004, AC-13)", () => {
     expect(boundary.getClaims).not.toHaveBeenCalled();
   });
 
+  it("lets the generated social card routes through under the internal locale segment (spec 0009, AC-2)", async () => {
+    for (const path of [
+      "/en-CH/pricing/opengraph-image-ptzax/card",
+      "/de-CH/opengraph-image-ds8rmm/card",
+      "/de-CH/kontakt/twitter-image/card",
+    ]) {
+      const response = await proxy(request(path));
+      expect(redirectedTo(response)).toBeNull();
+    }
+    expect(boundary.intl).not.toHaveBeenCalled();
+    expect(boundary.getClaims).not.toHaveBeenCalled();
+    // Every other internal locale path still goes through next-intl (and lands on the not found page).
+    await proxy(request("/de-CH"));
+    await proxy(request("/de-CH/preise"));
+    expect(boundary.intl).toHaveBeenCalledTimes(2);
+  });
+
   it("lets public pages through in both languages without a session", async () => {
     for (const path of ["/de", "/en", "/de/sign-in", "/en/forbidden"]) {
       const response = await proxy(request(path));

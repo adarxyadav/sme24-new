@@ -9,6 +9,7 @@ import { FeedbackSection } from "@/components/gallery/feedback-section";
 import { FormattingSection } from "@/components/gallery/formatting-section";
 import { FormsSection } from "@/components/gallery/forms-section";
 import { GallerySection } from "@/components/gallery/gallery-section";
+import { MarketingSection } from "@/components/gallery/marketing-section";
 import { OverlaysSection } from "@/components/gallery/overlays-section";
 import { ResearchSection } from "@/components/gallery/research-section";
 import { StatesSection } from "@/components/gallery/states-section";
@@ -34,6 +35,7 @@ const SECTIONS = [
   ["states", StatesSection],
   ["research", ResearchSection],
   ["benchmark", BenchmarkSection],
+  ["marketing", MarketingSection],
   ["charts", ChartsSection],
 ] as const;
 
@@ -44,13 +46,15 @@ const SECTIONS = [
 export default async function DesignGalleryPage() {
   const t = await getTranslations("gallery");
   const nav = await getTranslations("nav.admin");
-  // The client sections read `gallery` (the states example reads `areas`, the research one `research`, the benchmark one `benchmark`), which leave the
+  // The client sections read `gallery` (the states example reads `areas`, the research one
+  // `research`, the benchmark one `benchmark`, the marketing one `marketing`), which leave the
   // shared bundle (spec 0004, AC-6); this provider hands them to this page only.
   const messages = clientMessages(await getMessages(), [
     "gallery",
     "areas",
     "research",
     "benchmark",
+    "marketing",
   ]);
 
   return (

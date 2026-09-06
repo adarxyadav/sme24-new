@@ -47,6 +47,8 @@ export type EnquiryFormProps = {
   readonly defaultTopic: EnquiryTopic;
   /** The privacy page once feature 14 ships it; until then the note renders without a link. */
   readonly privacyHref?: string;
+  /** Shows every field error and the summary right after mount, without moving focus (the gallery's error state). */
+  readonly validateOnMount?: boolean;
 };
 
 const FIELD_ORDER = [
@@ -66,7 +68,11 @@ type FieldName = (typeof FIELD_ORDER)[number];
  * and the mount time the server checks, and the confirmation panel after a successful submit.
  * Browser; the page hands it the `marketing` messages through a nested provider.
  */
-export function EnquiryForm({ defaultTopic, privacyHref }: EnquiryFormProps) {
+export function EnquiryForm({
+  defaultTopic,
+  privacyHref,
+  validateOnMount = false,
+}: EnquiryFormProps) {
   const t = useTranslations("marketing.contact.form");
   const e = useTranslations("marketing.contact.form.errors");
   const locale = useLocale();
@@ -96,6 +102,13 @@ export function EnquiryForm({ defaultTopic, privacyHref }: EnquiryFormProps) {
   useEffect(() => {
     setStartedAt(String(Date.now()));
   }, []);
+
+  useEffect(() => {
+    if (!validateOnMount) return;
+    form.trigger().then((valid) => {
+      if (!valid) setSummary(FIELD_ORDER.filter((name) => name in form.formState.errors));
+    });
+  }, [validateOnMount, form]);
 
   useEffect(() => {
     if (result?.ok === false && result.error === "validation") {

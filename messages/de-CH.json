@@ -619,6 +619,10 @@
       "benchmark": {
         "title": "Benchmark",
         "description": "Das Quartilband, die Potenzialkarte und die Aufklappfläche des Branchenvergleichs (Spec 0008)."
+      },
+      "marketing": {
+        "title": "Marketing",
+        "description": "Die Grundelemente der öffentlichen Website: die Paketkarte mit Fixpreis und auf Anfrage, das FAQ-Akkordeon und das Anfrageformular leer und mit allen Fehlern."
       }
     },
     "tokens": {
@@ -929,6 +933,16 @@
       "card": "Potenzialkarte",
       "collapsible": "Aufklappbare Erklärung",
       "confidenceMedium": "Mittel"
+    },
+    "marketing": {
+      "packages": "Paketkarte: Fixpreis und Preis auf Anfrage",
+      "faq": "FAQ auf dem Akkordeon",
+      "faqQuestion": "Ist die MWST inbegriffen?",
+      "faqAnswer": "Nein. Die Preise sind exkl. 8.1% MWST.",
+      "faqQuestionTwo": "Kann ich stornieren?",
+      "faqAnswerTwo": "Bis fünf Arbeitstage vor dem Besuch.",
+      "formEmpty": "Anfrageformular, leer",
+      "formInvalid": "Anfrageformular, alle Fehler angezeigt"
     }
   },
   "email": {

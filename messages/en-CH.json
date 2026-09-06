@@ -619,6 +619,10 @@
       "benchmark": {
         "title": "Benchmark",
         "description": "The quartile band, the opportunity card and the disclosure of the peer benchmark (spec 0008)."
+      },
+      "marketing": {
+        "title": "Marketing",
+        "description": "The public site's primitives: the package card with a fixed price and on request, the FAQ accordion, and the enquiry form empty and with every error shown."
       }
     },
     "tokens": {
@@ -929,6 +933,16 @@
       "card": "Opportunity card",
       "collapsible": "Collapsible disclosure",
       "confidenceMedium": "Medium"
+    },
+    "marketing": {
+      "packages": "Package card: fixed price and price on request",
+      "faq": "FAQ on the accordion",
+      "faqQuestion": "Is VAT included?",
+      "faqAnswer": "No. Prices exclude 8.1% VAT.",
+      "faqQuestionTwo": "Can I cancel?",
+      "faqAnswerTwo": "Up to five working days before the visit.",
+      "formEmpty": "Enquiry form, empty",
+      "formInvalid": "Enquiry form, every error shown"
     }
   },
   "email": {

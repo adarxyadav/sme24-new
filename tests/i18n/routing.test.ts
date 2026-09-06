@@ -114,6 +114,15 @@ describe("typed route map (spec 0004, AC-13)", () => {
     }
   });
 
+  it("localises the German slug of every marketing page and lists all four in the sitemap set (spec 0009, AC-1)", () => {
+    expect(PATHNAMES["/pricing"]).toEqual({ "de-CH": "/preise", "en-CH": "/pricing" });
+    expect(PATHNAMES["/about"]).toEqual({ "de-CH": "/ueber-uns", "en-CH": "/about" });
+    expect(PATHNAMES["/contact"]).toEqual({ "de-CH": "/kontakt", "en-CH": "/contact" });
+    expect([...MARKETING_ROUTES]).toEqual(["/", "/pricing", "/about", "/contact"]);
+    expect(PATHNAMES["/admin/enquiries"]).toBe("/admin/enquiries");
+    expect(PATHNAMES["/admin/enquiries/[id]"]).toBe("/admin/enquiries/[id]");
+  });
+
   it("only iterates marketing routes that exist in the map", () => {
     expect(MARKETING_ROUTES).toContain("/");
     for (const route of MARKETING_ROUTES) {
