@@ -24,6 +24,10 @@ const state = vi.hoisted(() => ({
     patch?: unknown;
   }>,
   alerts: [] as Array<Record<string, unknown>>,
+  /** Every `tasks.trigger` call: the task id, its payload and its options (spec 0008, AC-6). */
+  triggers: [] as Array<{ id: string; payload: unknown; options: unknown }>,
+  /** When set, the next `tasks.trigger` rejects with this message. */
+  triggerFailure: null as null | string,
   onKpiInsert: null as null | (() => void),
   /** Fires after a `company_kpis` select, so a test can land a concurrent row mid save. */
   onKpiSelect: null as null | (() => void),
@@ -42,7 +46,15 @@ const state = vi.hoisted(() => ({
 vi.mock("@trigger.dev/sdk", () => ({
   schemaTask: (options: unknown) => options,
   queue: (options: unknown) => options,
-  tasks: { onFailure: vi.fn() },
+  tasks: {
+    onFailure: vi.fn(),
+    trigger: async (id: string, payload: unknown, options: unknown) => {
+      if (state.triggerFailure) throw new Error(state.triggerFailure);
+      state.triggers.push({ id, payload, options });
+      return { id: `run_${state.triggers.length}` };
+    },
+  },
+  idempotencyKeys: { create: async (key: string) => key },
   wait: { for: vi.fn() },
   AbortTaskRunError: class AbortTaskRunError extends Error {},
   logger: { debug: vi.fn(), log: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
@@ -264,6 +276,8 @@ beforeEach(() => {
   state.nextId = 1;
   state.providerStatus = null;
   state.validation = null;
+  state.triggers = [];
+  state.triggerFailure = null;
 });
 
 describe("research-company (AC-4, AC-6, AC-14)", () => {
@@ -593,12 +607,16 @@ describe("the step logs (AC-15)", () => {
       "provider result received",
       "values resolved",
       "research run finished",
+      "benchmark queued after the research run",
     ]);
     for (const line of ours) {
       expect(line).toMatchObject({ level: "info", organizationId: ORG, companyId: COMPANY });
-      expect(typeof line.elapsedMs).toBe("number");
     }
-    const finished = ours.at(-1) as Row;
+    // The five research steps carry the elapsed time; the benchmark line (spec 0008, AC-6) names the queued run instead.
+    const steps = ours.slice(0, 5);
+    for (const line of steps) expect(typeof line.elapsedMs).toBe("number");
+    expect(ours.at(-1)).toMatchObject({ benchmarkRunId: "run_1" });
+    const finished = steps.at(-1) as Row;
     expect(finished.providerRunId).toMatch(/^fixture_/);
     expect(finished).toMatchObject({ status: "succeeded", stored: 24 });
     expect(typeof finished.totalMs).toBe("number");
@@ -629,5 +647,55 @@ describe("the helpers (AC-10)", () => {
     expect(errorCodeOf(new Error("maxDuration exceeded"))).toBe("internal");
     expect(errorCodeOf("a string")).toBe("internal");
     expect(errorCodeOf(undefined)).toBe("internal");
+  });
+});
+
+describe("the benchmark trigger after the run (spec 0008, AC-6)", () => {
+  it("queues benchmark-company once the run ended succeeded, keyed by the run, with a 24 hour TTL", async () => {
+    seed();
+    const task = await loadTask();
+    await task.run({ runId: RUN }, { ctx });
+    expect(state.triggers).toEqual([
+      {
+        id: "benchmark-company",
+        payload: { companyId: COMPANY, triggerKind: "research", researchRunId: RUN },
+        options: { idempotencyKey: `benchmark/run/${RUN}`, idempotencyKeyTTL: "24h" },
+      },
+    ]);
+  });
+
+  it("queues nothing when the run ends empty", async () => {
+    seed();
+    (state.tables.companies?.[0] as Row).name = "Empty AG";
+    const task = await loadTask();
+    const result = await task.run({ runId: RUN }, { ctx });
+    expect(result).toEqual({ status: "empty" });
+    expect(state.triggers).toEqual([]);
+  });
+
+  it("queues nothing when the sweep closed the run before the terminal write", async () => {
+    seed();
+    state.onKpiInsert = () => {
+      (state.tables.research_runs?.[0] as Row).status = "failed";
+    };
+    const task = await loadTask();
+    await task.run({ runId: RUN }, { ctx });
+    expect(state.triggers).toEqual([]);
+  });
+
+  it("keeps the run succeeded and reports to Sentry when the trigger fails", async () => {
+    seed();
+    state.triggerFailure = "trigger down";
+    const Sentry = await import("@sentry/node");
+    const task = await loadTask();
+    const result = await task.run({ runId: RUN }, { ctx });
+    expect(result).toEqual({ status: "succeeded" });
+    const run = state.tables.research_runs?.[0] as Row;
+    expect(run.status).toBe("succeeded");
+    expect(state.triggers).toEqual([]);
+    expect(vi.mocked(Sentry.captureException)).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "trigger down" }),
+      expect.objectContaining({ extra: expect.objectContaining({ runId: RUN }) }),
+    );
   });
 });
