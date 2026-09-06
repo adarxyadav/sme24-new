@@ -7,7 +7,7 @@ import { z } from "zod";
  */
 
 /** The template names the registry knows. A new template adds its name here and its entry in `registry.ts`. */
-export const EMAIL_TEMPLATE_NAMES = ["welcome"] as const;
+export const EMAIL_TEMPLATE_NAMES = ["welcome", "benchmark_ready"] as const;
 export type EmailTemplateName = (typeof EMAIL_TEMPLATE_NAMES)[number];
 
 /** The short language codes the database stores (`profiles.locale`, `email_deliveries.locale`). */
@@ -23,6 +23,15 @@ export const welcomeDataSchema = templateDataBaseSchema.extend({
   organizationName: z.string().trim().min(1).max(200),
 });
 export type WelcomeData = z.infer<typeof welcomeDataSchema>;
+
+/** `benchmark_ready` (spec 0008, AC-7): the company's first snapshot; the money is already rounded, absent when no cost was computed. */
+export const benchmarkReadyDataSchema = templateDataBaseSchema.extend({
+  companyName: z.string().trim().min(1).max(200),
+  kpisCompared: z.number().int().min(0).max(8),
+  costChf: z.number().nonnegative().optional(),
+  savingMedianChf: z.number().nonnegative().optional(),
+});
+export type BenchmarkReadyData = z.infer<typeof benchmarkReadyDataSchema>;
 
 /** A known user (address and language resolved by the task) or a raw address with its language. */
 export const emailRecipientSchema = z.union([
@@ -74,3 +83,6 @@ export const OPS_TEST_EMAIL_EVENT = "ops.test_email";
 
 /** The source event of the welcome email and the sign up alert. */
 export const ORGANIZATION_CREATED_EVENT = "auth.organization_created";
+
+/** The source event of the benchmark ready email (spec 0008, AC-7). */
+export const BENCHMARK_SNAPSHOT_CREATED_EVENT = "benchmark.snapshot_created";

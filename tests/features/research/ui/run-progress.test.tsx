@@ -15,6 +15,8 @@ const realtime = vi.hoisted(() => ({
   handler: null as null | ((payload: { new: unknown }) => void),
   subscribe: null as null | ((status: string) => void),
   filter: null as unknown,
+  benchmarkFilter: null as unknown,
+  benchmarkHandler: null as null | (() => void),
   channelNames: [] as string[],
   setAuth: vi.fn(),
   removeChannel: vi.fn(),
@@ -41,12 +43,18 @@ vi.mock("@/lib/supabase/client", () => ({
   createBrowserSupabaseClient: () => {
     const channel = {
       on: (_event: string, filter: unknown, handler: (payload: { new: unknown }) => void) => {
-        realtime.filter = filter;
-        realtime.handler = handler;
+        // The research run channel and the benchmark snapshot channel (spec 0008, AC-12) share the fake.
+        if ((filter as { table: string }).table === "benchmark_snapshots") {
+          realtime.benchmarkFilter = filter;
+          realtime.benchmarkHandler = () => handler({ new: null });
+        } else {
+          realtime.filter = filter;
+          realtime.handler = handler;
+        }
         return channel;
       },
-      subscribe: (callback: (status: string) => void) => {
-        realtime.subscribe = callback;
+      subscribe: (callback?: (status: string) => void) => {
+        if (callback) realtime.subscribe = callback;
         return channel;
       },
     };
@@ -64,6 +72,10 @@ vi.mock("@/lib/supabase/client", () => ({
     };
   },
 }));
+
+const COMPANY_ID = "0c000000-0000-4000-8000-00000000000a";
+/** The research run channels alone; the benchmark channel is keyed by the company (spec 0008, AC-12). */
+const runChannels = () => realtime.channelNames.filter((name) => name.startsWith("research_run:"));
 
 const steps = en.research.steps;
 const label = (step: (typeof RUN_STEPS)[number]) => steps[step];
@@ -153,6 +165,8 @@ describe("RunProgress (AC-7)", () => {
           summary: { version: 1, step: "extracting", sourcesFound: 5, kpisExtracted: 0 },
         })}
         quota={quota}
+        companyId={COMPANY_ID}
+        benchmarkState="unavailable"
       />,
       { wrapper: EnglishIntl },
     );
@@ -167,9 +181,19 @@ describe("RunProgress (AC-7)", () => {
   });
 
   it("subscribes to the run's row by id and shows the live badge once the channel is subscribed", async () => {
-    render(<RunProgress run={run()} quota={quota} />, { wrapper: EnglishIntl });
+    render(
+      <RunProgress run={run()} quota={quota} companyId={COMPANY_ID} benchmarkState="unavailable" />,
+      { wrapper: EnglishIntl },
+    );
     await act(async () => {});
-    expect(realtime.channelNames).toEqual([`research_run:${RUN_ID}`]);
+    expect(runChannels()).toEqual([`research_run:${RUN_ID}`]);
+    expect(realtime.channelNames).toContain(`benchmark_snapshots:${COMPANY_ID}`);
+    expect(realtime.benchmarkFilter).toEqual({
+      event: "INSERT",
+      schema: "public",
+      table: "benchmark_snapshots",
+      filter: `company_id=eq.${COMPANY_ID}`,
+    });
     expect(realtime.filter).toEqual({
       event: "UPDATE",
       schema: "public",
@@ -183,7 +207,10 @@ describe("RunProgress (AC-7)", () => {
   });
 
   it("patches the badge and the counters from an UPDATE and refreshes once when the run turns terminal", async () => {
-    render(<RunProgress run={run()} quota={quota} />, { wrapper: EnglishIntl });
+    render(
+      <RunProgress run={run()} quota={quota} companyId={COMPANY_ID} benchmarkState="unavailable" />,
+      { wrapper: EnglishIntl },
+    );
     await act(async () => {});
     act(() =>
       realtime.handler?.({
@@ -211,15 +238,25 @@ describe("RunProgress (AC-7)", () => {
   });
 
   it("refreshes every five seconds while the run is open and stops once it is terminal", async () => {
-    const { rerender } = render(<RunProgress run={run()} quota={quota} />, {
-      wrapper: EnglishIntl,
-    });
+    const { rerender } = render(
+      <RunProgress run={run()} quota={quota} companyId={COMPANY_ID} benchmarkState="unavailable" />,
+      {
+        wrapper: EnglishIntl,
+      },
+    );
     await act(async () => {});
     act(() => vi.advanceTimersByTime(5_000));
     act(() => vi.advanceTimersByTime(5_000));
     expect(realtime.refresh).toHaveBeenCalledTimes(2);
 
-    rerender(<RunProgress run={run({ status: "empty" })} quota={quota} />);
+    rerender(
+      <RunProgress
+        run={run({ status: "empty" })}
+        quota={quota}
+        companyId={COMPANY_ID}
+        benchmarkState="unavailable"
+      />,
+    );
     act(() => vi.advanceTimersByTime(15_000));
     expect(realtime.refresh).toHaveBeenCalledTimes(2);
   });
@@ -233,6 +270,8 @@ describe("RunProgress (AC-7)", () => {
           finished_at: "2026-09-06T10:20:00.000Z",
         })}
         quota={quota}
+        companyId={COMPANY_ID}
+        benchmarkState="unavailable"
       />,
       { wrapper: EnglishIntl },
     );
@@ -243,19 +282,55 @@ describe("RunProgress (AC-7)", () => {
 
   it("re subscribes when the latest run changes after a rerun", async () => {
     const NEXT = "0d000000-0000-4000-8000-000000000002";
-    const { rerender } = render(<RunProgress run={run()} quota={quota} />, {
-      wrapper: EnglishIntl,
-    });
+    const { rerender } = render(
+      <RunProgress run={run()} quota={quota} companyId={COMPANY_ID} benchmarkState="unavailable" />,
+      {
+        wrapper: EnglishIntl,
+      },
+    );
     await act(async () => {});
     rerender(
-      <RunProgress run={run({ id: NEXT, status: "queued", summary: null })} quota={quota} />,
+      <RunProgress
+        run={run({ id: NEXT, status: "queued", summary: null })}
+        quota={quota}
+        companyId={COMPANY_ID}
+        benchmarkState="unavailable"
+      />,
     );
     await act(async () => {});
     expect(realtime.removeChannel).toHaveBeenCalledTimes(1);
-    expect(realtime.channelNames).toEqual([`research_run:${RUN_ID}`, `research_run:${NEXT}`]);
+    expect(runChannels()).toEqual([`research_run:${RUN_ID}`, `research_run:${NEXT}`]);
     expect(
       screen.getByText(en.research.status.queued, { selector: "[data-status]" }),
     ).toHaveAttribute("data-status", "queued");
     expect(states()).toEqual(["current", "pending", "pending", "pending", "pending"]);
+  });
+
+  it("refreshes when a benchmark snapshot lands and polls while the benchmark is calculating (spec 0008, AC-12)", async () => {
+    const { rerender } = render(
+      <RunProgress
+        run={run({ status: "succeeded", finished_at: "2026-09-06T10:03:00.000Z" })}
+        quota={quota}
+        companyId={COMPANY_ID}
+        benchmarkState="calculating"
+      />,
+      { wrapper: EnglishIntl },
+    );
+    await act(async () => {});
+    act(() => vi.advanceTimersByTime(5_000));
+    expect(realtime.refresh).toHaveBeenCalledTimes(1);
+    act(() => realtime.benchmarkHandler?.());
+    expect(realtime.refresh).toHaveBeenCalledTimes(2);
+
+    rerender(
+      <RunProgress
+        run={run({ status: "succeeded", finished_at: "2026-09-06T10:03:00.000Z" })}
+        quota={quota}
+        companyId={COMPANY_ID}
+        benchmarkState="ready"
+      />,
+    );
+    act(() => vi.advanceTimersByTime(15_000));
+    expect(realtime.refresh).toHaveBeenCalledTimes(2);
   });
 });

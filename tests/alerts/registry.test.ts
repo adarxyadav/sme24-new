@@ -145,3 +145,76 @@ describe("opsAlertPayloadSchema (AC-11)", () => {
     expect(signedUp.success && signedUp.data.fields).not.toHaveProperty("email");
   });
 });
+
+describe("the benchmark.failed kind (spec 0008, AC-8)", () => {
+  it("presents the organization, the company, the trigger kind, the reason and the time with an Open run button", () => {
+    const view = presentAlert(
+      "benchmark.failed",
+      {
+        organizationName: "Musterfirma AG",
+        companyName: "Muster AG",
+        triggerKind: "client_edit",
+        errorMessage: "JWT expired",
+      },
+      { now: AT },
+    );
+    expect(view).toEqual({
+      title: "Benchmark computation failed",
+      fields: [
+        ["Organization", "Musterfirma AG"],
+        ["Company", "Muster AG"],
+        ["Trigger", "client_edit"],
+        ["Reason", "JWT expired"],
+        ["Time", "05.09.2026, 12:00"],
+      ],
+      buttonLabel: "Open run",
+    });
+  });
+
+  it("accepts the three trigger kinds with a Trigger.dev link and rejects an unknown kind or an empty reason", () => {
+    const fields = {
+      organizationName: "Musterfirma AG",
+      companyName: "Muster AG",
+      errorMessage: "boom",
+    };
+    for (const triggerKind of ["research", "client_edit", "recompute"]) {
+      expect(
+        opsAlertPayloadSchema.safeParse({
+          kind: "benchmark.failed",
+          fields: { ...fields, triggerKind },
+          externalUrl: "https://cloud.trigger.dev/projects/v3/proj/runs/run_1",
+          idempotencyKey: "benchmark-failed/run_1",
+        }).success,
+      ).toBe(true);
+    }
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        kind: "benchmark.failed",
+        fields: { ...fields, triggerKind: "manual" },
+        idempotencyKey: "benchmark-failed/run_1",
+      }).success,
+    ).toBe(false);
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        kind: "benchmark.failed",
+        fields: { ...fields, triggerKind: "research", errorMessage: "" },
+        idempotencyKey: "benchmark-failed/run_1",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("caps the reason at 500 characters so a stack trace never reaches Slack", () => {
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        kind: "benchmark.failed",
+        fields: {
+          organizationName: "X",
+          companyName: "Y",
+          triggerKind: "research",
+          errorMessage: "x".repeat(501),
+        },
+        idempotencyKey: "k",
+      }).success,
+    ).toBe(false);
+  });
+});

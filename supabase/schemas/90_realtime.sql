@@ -3,3 +3,4 @@
 alter publication supabase_realtime add table public.scaffold_checks;
 alter publication supabase_realtime add table public.research_runs;
 alter publication supabase_realtime add table public.email_deliveries;
+alter publication supabase_realtime add table public.benchmark_snapshots;

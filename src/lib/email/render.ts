@@ -1,9 +1,10 @@
 import { render } from "@react-email/render";
-import { createElement } from "react";
+import { createElement, type ReactElement } from "react";
 import { localeFromCode } from "@/i18n/routing";
 import { createTranslatorFor } from "@/i18n/standalone";
 import { EMAIL_TEMPLATES, isEmailTemplateName } from "./registry";
 import type { EmailTemplateName } from "./schema";
+import type { TemplateProps } from "./templates/props";
 
 export type RenderedEmail = {
   readonly subject: string;
@@ -34,7 +35,10 @@ export async function renderEmail(input: RenderInput): Promise<RenderedEmail> {
   const t = await createTranslatorFor(localeFromCode(input.locale));
   const href = `${input.appUrl.replace(/\/$/, "")}/${input.locale}${entry.link}`;
   const subject = t(`email.${input.template}.subject`, messageValues(data));
-  const element = createElement(entry.Component, { t, locale: input.locale, data, href });
+  // The registry maps each name to its own data type; the entry's schema just parsed `data`, so
+  // the component receives what it expects even though the union hides that from TypeScript.
+  const Component = entry.Component as (props: TemplateProps<unknown>) => ReactElement;
+  const element = createElement(Component, { t, locale: input.locale, data, href });
   const [html, text] = await Promise.all([render(element), render(element, { plainText: true })]);
   return { subject, html, text };
 }

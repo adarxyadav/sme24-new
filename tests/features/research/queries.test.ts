@@ -163,6 +163,9 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
       years: [],
       catalogue,
       quota: { used: 0, limit: 5, remaining: 5, openRunId: null },
+      benchmark: null,
+      benchmarkState: "unavailable",
+      benchmarkAssumptions: [],
     });
     expect(calls.map((call) => call.table).sort()).toEqual([
       "companies",
@@ -286,5 +289,160 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
     await expect(getCompanyDashboard(client as never, ORG, NOW)).rejects.toThrow(
       "permission denied",
     );
+  });
+});
+
+describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
+  const snapshotRow = {
+    id: "0e000000-0000-4000-8000-000000000001",
+    organization_id: ORG,
+    company_id: COMPANY,
+    research_run_id: RUN_PASSED,
+    trigger_kind: "research",
+    model_version: "benchmark-model@1",
+    peer_provisional: true,
+    kpis_compared: 2,
+    confidence: "0.9",
+    cost_chf: "1961340",
+    cost_low_chf: "1060180",
+    cost_high_chf: "2650450",
+    saving_median_chf: "522340",
+    saving_top_chf: "955340",
+    inputs: {
+      fte: 420,
+      section: "C",
+      sizeBand: "250+",
+      industryCode: "23.61",
+      companyUpdatedAt: "2026-09-06T09:00:00.000Z",
+      kpis: [],
+    },
+    results: [],
+    gaps: [],
+    cost: null,
+    assumptions: [],
+    created_at: "2026-09-06T09:30:00.000Z",
+    updated_at: "2026-09-06T09:30:00.000Z",
+  };
+  const assumptionRow = {
+    key: "indirect_multiplier",
+    value: "3.7",
+    unit: "factor",
+    label: { de: "Faktor", en: "Factor" },
+    source_name: "test",
+    source_url: null,
+    note: null,
+    provisional: true,
+    effective_from: "2022-12-31",
+    created_at: "2026-09-06T00:00:00.000Z",
+    updated_at: "2026-09-06T00:00:00.000Z",
+  };
+
+  it("loads the company's newest snapshot with its numbers parsed, the assumption rows and the ready state", async () => {
+    const { client, calls } = fakeClient(
+      baseAnswers({
+        benchmark_snapshots: () => ({ data: [snapshotRow] }),
+        benchmark_assumptions: () => ({ data: [assumptionRow] }),
+      }),
+    );
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
+    expect(dashboard.benchmarkState).toBe("ready");
+    expect(dashboard.benchmark).toMatchObject({
+      id: snapshotRow.id,
+      kpisCompared: 2,
+      confidence: 0.9,
+      costChf: 1_961_340,
+      savingTopChf: 955_340,
+      blocks: { inputs: { fte: 420, section: "C" } },
+    });
+    expect(dashboard.benchmarkAssumptions).toEqual([assumptionRow]);
+    const snapshots = calls.find((call) => call.table === "benchmark_snapshots");
+    expect(snapshots?.steps).toEqual([
+      ["select", ["*"]],
+      ["eq", ["company_id", COMPANY]],
+      ["order", ["created_at", { ascending: false }]],
+      ["order", ["id", { ascending: false }]],
+      ["limit", [1]],
+      ["maybeSingle", []],
+    ]);
+  });
+
+  it("reports noData for a snapshot that compared nothing", async () => {
+    const { client } = fakeClient(
+      baseAnswers({
+        benchmark_snapshots: () => ({ data: [{ ...snapshotRow, kpis_compared: 0 }] }),
+        benchmark_assumptions: () => ({ data: [assumptionRow] }),
+      }),
+    );
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
+    expect(dashboard.benchmarkState).toBe("noData");
+    expect(dashboard.benchmark?.kpisCompared).toBe(0);
+  });
+
+  it("is calculating within the wait window after a succeeded run and skips the assumption rows without a snapshot", async () => {
+    const { client, calls } = fakeClient(
+      baseAnswers({
+        research_runs: (call) => {
+          if (isCount(call)) return { count: 1 };
+          if (call.steps.some(([method]) => method === "order")) {
+            return {
+              data: [
+                {
+                  id: RUN_PASSED,
+                  company_id: COMPANY,
+                  status: "succeeded",
+                  finished_at: new Date(NOW.getTime() - 30_000).toISOString(),
+                  summary: { version: 1, step: "done" },
+                },
+              ],
+            };
+          }
+          return { data: [] };
+        },
+      }),
+    );
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
+    expect(dashboard.benchmark).toBeNull();
+    expect(dashboard.benchmarkState).toBe("calculating");
+    expect(dashboard.benchmarkAssumptions).toEqual([]);
+    expect(calls.map((call) => call.table)).not.toContain("benchmark_assumptions");
+  });
+
+  it("is unavailable when the succeeded run is older than the wait window", async () => {
+    const { client } = fakeClient(
+      baseAnswers({
+        research_runs: (call) => {
+          if (isCount(call)) return { count: 1 };
+          if (call.steps.some(([method]) => method === "order")) {
+            return {
+              data: [
+                {
+                  id: RUN_PASSED,
+                  company_id: COMPANY,
+                  status: "succeeded",
+                  finished_at: new Date(NOW.getTime() - 10 * 60_000).toISOString(),
+                  summary: { version: 1, step: "done" },
+                },
+              ],
+            };
+          }
+          return { data: [] };
+        },
+      }),
+    );
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
+    expect(dashboard.benchmarkState).toBe("unavailable");
+  });
+
+  it("treats a snapshot of an unknown model version as absent instead of failing the dashboard", async () => {
+    const { client } = fakeClient(
+      baseAnswers({
+        benchmark_snapshots: () => ({
+          data: [{ ...snapshotRow, model_version: "benchmark-model@9" }],
+        }),
+      }),
+    );
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
+    expect(dashboard.benchmark).toBeNull();
+    expect(dashboard.benchmarkState).toBe("unavailable");
   });
 });

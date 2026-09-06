@@ -24,7 +24,9 @@
     "trigger:dev": "trigger dev --env-file .env.local",
     "trigger:deploy:staging": "trigger deploy --env staging",
     "trigger:deploy:prod": "trigger deploy --env prod",
-    "email:dev": "email dev --dir src/lib/email/previews --port 3200"
+    "email:dev": "email dev --dir src/lib/email/previews --port 3200",
+    "benchmarks:migration": "node scripts/benchmarks-migration.mts",
+    "benchmarks:recompute": "node scripts/benchmarks-recompute.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

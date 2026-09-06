@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
+import { BenchmarkSection } from "@/components/gallery/benchmark-section";
 import { BrandSection } from "@/components/gallery/brand-section";
 import { ButtonsSection } from "@/components/gallery/buttons-section";
 import { CampaignSection } from "@/components/gallery/campaign-section";
@@ -32,6 +33,7 @@ const SECTIONS = [
   ["feedback", FeedbackSection],
   ["states", StatesSection],
   ["research", ResearchSection],
+  ["benchmark", BenchmarkSection],
   ["charts", ChartsSection],
 ] as const;
 
@@ -42,9 +44,14 @@ const SECTIONS = [
 export default async function DesignGalleryPage() {
   const t = await getTranslations("gallery");
   const nav = await getTranslations("nav.admin");
-  // The client sections read `gallery` (the states example reads `areas`, the research one `research`), which leave the
+  // The client sections read `gallery` (the states example reads `areas`, the research one `research`, the benchmark one `benchmark`), which leave the
   // shared bundle (spec 0004, AC-6); this provider hands them to this page only.
-  const messages = clientMessages(await getMessages(), ["gallery", "areas", "research"]);
+  const messages = clientMessages(await getMessages(), [
+    "gallery",
+    "areas",
+    "research",
+    "benchmark",
+  ]);
 
   return (
     <PageStack className="gap-12 lg:gap-16">
