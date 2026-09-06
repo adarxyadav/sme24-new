@@ -81,7 +81,7 @@ spec [0010](../specs/0010-self-assessment-fallback/index.md) · code in `src/fea
 - [x] Verify it: `/check verify self assessment fallback`
 - [x] Test it: `/test self assessment fallback`
 - [x] Review it (fresh model): `/check review self assessment fallback`
-- [ ] Document it: `/document self assessment fallback`
+- [x] Document it: `/document self assessment fallback`
 
 ## Slice 8: Thicken the accounts
 
