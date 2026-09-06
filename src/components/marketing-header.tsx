@@ -16,10 +16,18 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Link, usePathname } from "@/i18n/navigation";
-import type { StaticPathname } from "@/i18n/pathnames";
+import type { Pathname, StaticPathname } from "@/i18n/pathnames";
 import { cn } from "@/lib/utils";
 
 export type MarketingLink = { readonly href: StaticPathname; readonly label: string };
+
+/**
+ * Routes whose first section forces the jet ground in both themes. Only the landing hero does
+ * (`src/app/[locale]/(marketing)/page.tsx`); the other three open on the page background, so the
+ * transparent bar already matches them and must not invert. A page that gains or loses a dark
+ * hero belongs in this list.
+ */
+const DARK_HERO_ROUTES: readonly Pathname[] = ["/"];
 
 /** True once the page has scrolled past the header, so the bar can take its hairline (browser). */
 function useScrolled() {
@@ -38,16 +46,20 @@ function useScrolled() {
 /**
  * Public site header (spec 0003; spec 0009, AC-7): wordmark, navigation links with
  * `aria-current="page"` on the active one, the language switch and sign in. The bar sticks to the
- * top over a frosted ground and takes its hairline only once the page scrolls, so it meets the
- * dark hero without a seam. The theme control lives in the footer on desktop, and in the sheet
- * below `md` where the links also collapse. Runs in the browser; the marketing layout passes the
- * links.
+ * top and is fully transparent until the page scrolls, so whatever the page opens with shows
+ * through it in both themes and there is no seam; past 8px it takes a hairline and a frosted
+ * ground (`bg-background/85` plus a backdrop blur). On a page that opens with the jet hero
+ * (`DARK_HERO_ROUTES`), the unscrolled bar also carries `dark`, so the lockup, the links and the
+ * controls invert and read on that ground in light mode too. The theme control lives in the
+ * footer on desktop, and in the sheet below `md` where the links also collapse. Runs in the
+ * browser; the marketing layout passes the links.
  */
 export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) {
   const t = useTranslations();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const scrolled = useScrolled();
+  const overDarkHero = DARK_HERO_ROUTES.includes(pathname);
   const current = (href: StaticPathname) => (pathname === href ? ("page" as const) : undefined);
 
   return (
@@ -56,7 +68,8 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
         "sticky top-0 z-40 border-b transition-colors",
         scrolled
           ? "border-border bg-background/85 supports-backdrop-filter:backdrop-blur-md"
-          : "border-transparent bg-background",
+          : "border-transparent bg-transparent",
+        !scrolled && overDarkHero && "dark text-foreground",
       )}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">

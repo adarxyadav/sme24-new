@@ -22,8 +22,8 @@ const LINK_CLASS =
  * The public site footer (spec 0009, AC-7): the signature, the one line site description and
  * the mail address on the left, the Product, Company and (once feature 14 fills it) Legal link
  * groups on the right, then a bottom bar with the copyright line and the theme control. The
- * language switch stays in the header only, so the page has one "Language" navigation landmark
- * (the e2e specs and axe's landmark rules count on that). Every route link is a typed `Link`.
+ * language switch stays in the header only, so the page has a single language control (a
+ * dropdown button and its menu, not a landmark). Every route link is a typed `Link`.
  * Server component; the copyright year is the build year, static pages rebuild on deploy.
  */
 export function MarketingFooter({ legal = [] }: MarketingFooterProps) {
