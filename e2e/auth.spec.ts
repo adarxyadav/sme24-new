@@ -93,7 +93,9 @@ test.describe("sign up with a password (AC-1, AC-11, AC-12, AC-13)", () => {
       expect(mail.html).toMatch(/Bestätigen Sie Ihre E-Mail[\s\S]*Confirm your email/);
       const link = confirmLink(mail);
       expect(link).toContain("type=signup");
-      expect(decodeURIComponent(link)).toContain("/de/app");
+      // The link carries the bare locale root as next, so every role lands on its own home.
+      expect(decodeURIComponent(link)).toMatch(/next=[^&]*\/de(&|$)/);
+      expect(decodeURIComponent(link)).not.toContain("/de/app");
 
       // The link is verified by its token hash, so any browser works: a fresh context here.
       const context = await browser.newContext();
@@ -540,7 +542,17 @@ test.describe("staff invitation (AC-10)", () => {
     try {
       const output = execFileSync(
         "node",
-        ["scripts/invite-user.mts", "--email", email, "--role", "expert", "--name", "Erika Expert"],
+        [
+          "scripts/invite-user.mts",
+          "--email",
+          email,
+          "--role",
+          "expert",
+          "--locale",
+          "de",
+          "--name",
+          "Erika Expert",
+        ],
         {
           env: process.env,
           encoding: "utf8",
