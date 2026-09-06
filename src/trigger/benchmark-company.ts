@@ -19,6 +19,7 @@ import { BENCHMARK_SNAPSHOT_CREATED_EVENT, type NewSendPayload } from "@/lib/ema
 import { taskEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import type { Database, Json, Tables } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import { raiseAlertFromTask } from "./ops-alert";
 import { triggerRunUrl } from "./research-company";
@@ -155,7 +156,7 @@ export const benchmarkCompanyTask = schemaTask({
       })
       .select("id, created_at")
       .single();
-    if (error) throw error;
+    if (error) throw queryError(error);
     const first = await isFirstSnapshot(supabase, ids, inserted.id);
     step("benchmark snapshot stored", {
       snapshotId: inserted.id,
@@ -181,7 +182,7 @@ export const benchmarkCompanyTask = schemaTask({
       organizationId: company?.organization_id ?? "",
     };
     reportBenchmarkError(error, ids, ctx.run.id);
-    const errorMessage = (error instanceof Error ? error.message : String(error)).slice(0, 500);
+    const errorMessage = errorMessageOf(error).slice(0, 500);
     log.error("benchmark failed after the last attempt", {
       ...ids,
       triggerKind: payload.triggerKind,
@@ -228,7 +229,7 @@ async function sendBenchmarkReady(
     .from("organization_members")
     .select("user_id")
     .eq("organization_id", ids.organizationId);
-  if (error) throw error;
+  if (error) throw queryError(error);
   const data: NewSendPayload["data"] = {
     companyName,
     kpisCompared: body.kpisCompared,
@@ -273,7 +274,7 @@ async function loadCompany(
   let query = supabase.from("companies").select("*").eq("id", companyId).is("archived_at", null);
   if (organizationId) query = query.eq("organization_id", organizationId);
   const { data, error } = await query.maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data;
 }
 
@@ -283,7 +284,7 @@ async function loadCatalogue(supabase: Service): Promise<readonly ModelCatalogue
     .select("key, direction, sort_order")
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data.flatMap((row) =>
     isKpiKey(row.key)
       ? [
@@ -304,7 +305,7 @@ async function loadKpis(supabase: Service, ids: CompanyIds): Promise<readonly Mo
     .select("id, kpi_key, value, period_year, source, confidence, research_run_id")
     .eq("company_id", ids.companyId)
     .eq("organization_id", ids.organizationId);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data.flatMap((row) => {
     if (
       row.id === null ||
@@ -338,7 +339,7 @@ async function loadPeers(
     .from("benchmarks")
     .select("*")
     .in("kpi_key", [...keys]);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data.flatMap((row) =>
     isKpiKey(row.kpi_key)
       ? [
@@ -361,7 +362,7 @@ async function loadPeers(
 
 async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumption[]> {
   const { data, error } = await supabase.from("benchmark_assumptions").select("*");
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data.map((row) => ({
     key: row.key as ModelAssumption["key"],
     value: Number(row.value),
@@ -391,7 +392,7 @@ async function isFirstSnapshot(
     .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data?.id === snapshotId;
 }
 
@@ -401,4 +402,18 @@ export function reportBenchmarkError(error: unknown, ids: CompanyIds, triggerRun
     tags: { company_id: ids.companyId, source: "benchmark-company" },
     extra: { ...ids, triggerRunId },
   });
+}
+
+/**
+ * The message of a failed run for the log and the alert (AC-8): an `Error`'s, the `message` of a
+ * plain object (what supabase-js hands back for a failed query, and what a serialized error
+ * becomes), else the string form. Pure.
+ */
+export function errorMessageOf(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const { message } = error;
+    if (typeof message === "string") return message;
+  }
+  return String(error ?? "");
 }

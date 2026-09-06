@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/nextjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { log } from "@/lib/logger";
 import type { Database, Tables } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 import { BENCHMARK_WAIT_MS, type BenchmarkState } from "./catalogue";
 import { parseSnapshotBlocks, type SnapshotBlocks } from "./snapshot";
 
@@ -72,7 +73,7 @@ export async function loadLatestSnapshot(
     .order("id", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   if (!data) return null;
   const parsed = parseSnapshotRow(data);
   if (parsed.snapshot) return parsed.snapshot;
@@ -100,7 +101,7 @@ export type AssumptionRow = Tables<"benchmark_assumptions">;
 /** The assumption rows, whose labels and notes the disclosure shows by key (AC-10). Throws on a database error. Server component. */
 export async function loadAssumptionRows(supabase: Client): Promise<readonly AssumptionRow[]> {
   const { data, error } = await supabase.from("benchmark_assumptions").select("*");
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data;
 }
 
