@@ -37,6 +37,8 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 22 | Client team invitations | Slice 8 | planned |
 | 23 | In app notification center | Slice 8 | planned |
 | 24 | Ops metrics dashboard | Slice 8 | planned |
+| 25 | Peer data curation & launch gate | Slice 4 | planned |
+| 26 | Production environment & go live | Slice 4 | planned |
 
 ## Epics
 
@@ -45,7 +47,7 @@ Build order is the `#` above. Each epic file holds its features grouped by phase
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
 - [Client funnel](client.md) · 6 to 10, 22, 23 · 4 of 7 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
 - [Commerce & ops](commerce.md) · 11, 12, 24 · 0 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
-- [Launch](launch.md) · 13 to 15 · 1 of 3 done · marketing site, legal and consent, analytics and monitoring. Release 1 ships after this.
+- [Launch](launch.md) · 13 to 15, 25, 26 · 1 of 5 done · marketing site, legal and consent, analytics and monitoring, the real peer data, the production environment. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 0 of 3 done · experts, the three structured assessments, the generated gap report.
 - [Programs & tracking](programs.md) · 19 to 21 · 0 of 3 done · matching, the improvement program, the embedded progress dashboard.
 
@@ -67,6 +69,7 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Dismissing a research value**: a client marks a research figure as unreliable without replacing it (a dismissal flag or table plus a benchmark rule); clearing only removes the client's own figure · from spec 0010 · needs a decision
 - **Lighter public shell**: move the toaster and the tooltip provider out of the root layout and replace the header's Radix sheet and menus on the public path with a CSS only disclosure (about 55 kB gzipped together), only if Lighthouse mobile misses LCP on a marketing page · from spec 0009 amendment
 - **zod locales out of the form pages**: `/contact` and the auth pages carry zod's forty message locales (about 45 kB gzipped) because zod's index re exports them; lower the contact budget to 300 kB when a zod release stops that · from spec 0009 amendment
+- **Local stack e2e lane in CI**: run the Mailpit backed Playwright specs (sign up, codes, resets, the welcome and enquiry emails) on every push; the `database` job already starts the stack, so it is one more job in `ci.yml` · from spec 0005
 
 ## Legend
 
