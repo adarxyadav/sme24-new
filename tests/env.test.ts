@@ -114,3 +114,59 @@ describe("the email rail variables (spec 0006, AC-5, AC-6)", () => {
     expect(serverEnv().OPS_ALERT_WEBHOOK_URL).toBe("https://hooks.slack.example/services/T/B/x");
   });
 });
+
+describe("the research provider variables (spec 0007, AC-12, AC-16)", () => {
+  it("falls to the fixture when no Parallel key is set and to Parallel when one is", () => {
+    stubAll({ ...valid, PARALLEL_API_KEY: "", RESEARCH_PROVIDER: "" });
+    expect(taskEnv().RESEARCH_PROVIDER).toBe("fixture");
+    expect(taskEnv().PARALLEL_API_KEY).toBeUndefined();
+    resetEnvCache();
+    stubAll({ ...valid, PARALLEL_API_KEY: "pk_test", RESEARCH_PROVIDER: "" });
+    expect(taskEnv().RESEARCH_PROVIDER).toBe("parallel");
+  });
+
+  it("lets an explicit fixture win over a key that is set", () => {
+    stubAll({ ...valid, PARALLEL_API_KEY: "pk_test", RESEARCH_PROVIDER: "fixture" });
+    expect(taskEnv().RESEARCH_PROVIDER).toBe("fixture");
+  });
+
+  it("rejects a provider it does not know, naming the variable", () => {
+    stubAll({ ...valid, RESEARCH_PROVIDER: "google" });
+    expect(() => taskEnv()).toThrowError(/RESEARCH_PROVIDER/);
+  });
+
+  it("stays on the task schema only: the server context ignores RESEARCH_PROVIDER", () => {
+    stubAll({ ...valid, RESEARCH_PROVIDER: "google" });
+    expect(() => serverEnv()).not.toThrow();
+    expect("RESEARCH_PROVIDER" in serverEnv()).toBe(false);
+  });
+
+  it("requires the Parallel key on a deployed task unless the fixture is asked for explicitly", async () => {
+    // `deployedTask` is read when the module loads, so each case needs a fresh import with
+    // NODE_ENV production and every variable a deployed task genuinely needs.
+    const deployed = {
+      ...valid,
+      NODE_ENV: "production",
+      AI_GATEWAY_API_KEY: "vck_test",
+      SENTRY_DSN: "https://k@o.ingest.de.sentry.io/1",
+      NEXT_PUBLIC_POSTHOG_KEY: "phc_test",
+      EMAIL_FROM: "SME24 <no-reply@sme24.example>",
+    };
+    stubAll({ ...deployed, PARALLEL_API_KEY: "", RESEARCH_PROVIDER: "" });
+    vi.resetModules();
+    const bare = await import("@/lib/env");
+    expect(() => bare.taskEnv()).toThrowError(/PARALLEL_API_KEY/);
+    expect(() => bare.taskEnv()).toThrowError(/unless RESEARCH_PROVIDER is fixture/);
+
+    stubAll({ ...deployed, PARALLEL_API_KEY: "", RESEARCH_PROVIDER: "fixture" });
+    vi.resetModules();
+    const fixture = await import("@/lib/env");
+    expect(fixture.taskEnv().RESEARCH_PROVIDER).toBe("fixture");
+
+    stubAll({ ...deployed, PARALLEL_API_KEY: "pk_live", RESEARCH_PROVIDER: "" });
+    vi.resetModules();
+    const keyed = await import("@/lib/env");
+    expect(keyed.taskEnv().RESEARCH_PROVIDER).toBe("parallel");
+    vi.resetModules();
+  });
+});

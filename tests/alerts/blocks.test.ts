@@ -89,3 +89,68 @@ describe("presentAlert and buildSlackMessage", () => {
     ).toBe(false);
   });
 });
+
+describe("the external link of an alert (spec 0007, AC-10)", () => {
+  const now = new Date("2026-09-06T10:00:00.000Z");
+  const view = presentAlert(
+    "research.run_failed",
+    { runId: "run_7", organizationName: "Muster AG", reason: "provider_timeout: no result" },
+    { now },
+  );
+  const runPage = "https://cloud.trigger.dev/projects/v3/proj_x/runs/run_7";
+
+  it("buttons to the external URL when no app link is given", () => {
+    const message = buildSlackMessage(view, {
+      externalUrl: runPage,
+      appUrl: "https://sme24.example",
+    });
+    expect(message.blocks[2]).toEqual({
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Open run", emoji: false },
+          url: runPage,
+        },
+      ],
+    });
+  });
+
+  it("lets the app link win when both are given", () => {
+    const message = buildSlackMessage(view, {
+      link: "/admin/research/run_7",
+      externalUrl: runPage,
+      appUrl: "https://sme24.example/",
+    });
+    const actions = message.blocks[2] as { elements: Array<{ url: string }> };
+    expect(actions.elements[0]?.url).toBe("https://sme24.example/en/admin/research/run_7");
+  });
+
+  it("adds no button when neither link is given", () => {
+    expect(buildSlackMessage(view, { appUrl: "https://sme24.example" }).blocks).toHaveLength(2);
+  });
+
+  it("accepts only an absolute https external link at the boundary", () => {
+    const payload = {
+      kind: "research.run_failed",
+      fields: { runId: "run_7", organizationName: "Muster AG", reason: "stale" },
+      idempotencyKey: "research-stale/run_7",
+    };
+    expect(opsAlertPayloadSchema.safeParse({ ...payload, externalUrl: runPage }).success).toBe(
+      true,
+    );
+    expect(
+      opsAlertPayloadSchema.safeParse({ ...payload, externalUrl: "http://cloud.trigger.dev/x" })
+        .success,
+    ).toBe(false);
+    expect(opsAlertPayloadSchema.safeParse({ ...payload, externalUrl: "/admin" }).success).toBe(
+      false,
+    );
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        ...payload,
+        externalUrl: `https://x.example/${"a".repeat(500)}`,
+      }).success,
+    ).toBe(false);
+  });
+});

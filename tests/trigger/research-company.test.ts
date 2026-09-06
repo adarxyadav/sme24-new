@@ -6,8 +6,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * keyed by the ids of the run row it loaded, a resumed attempt reuses the stored provider run and
  * never resets the status, a run closed by the sweep mid save stops without a terminal write, the
  * failure hook records the error code once and raises the alert with the Trigger.dev link, and
- * the fixture `fail` name throws the retryable class. The SDK, the env, the service client, the
- * fixture pauses and the alert are the boundaries; validation is skipped (no gateway key).
+ * the fixture `fail` name throws the retryable class. A passed validation fills the company facts
+ * only where the column is still null and lands in the summary; the budget and a provider run
+ * reported as failed abort with their codes; every step logs the run's ids (AC-15). The SDK, the
+ * env, the service client, the fixture pauses, the validation call and the alert are the
+ * boundaries; validation is skipped unless a test sets an outcome.
  */
 type Row = Record<string, unknown>;
 
@@ -24,6 +27,14 @@ const state = vi.hoisted(() => ({
   onKpiInsert: null as null | (() => void),
   createRuns: 0,
   nextId: 1,
+  /** What the fixture's poll answers when set (the provider reporting the run as failed). */
+  providerStatus: null as null | "running" | "done" | "failed",
+  /** The validation outcome the pass answers; null means skipped. */
+  validation: null as null | {
+    verdicts: Map<string, Record<string, unknown>>;
+    facts: Record<string, unknown>;
+    promptVersion: string;
+  },
 }));
 
 vi.mock("@trigger.dev/sdk", () => ({
@@ -54,11 +65,16 @@ vi.mock("@/lib/research/fixture", async (importOriginal) => {
           state.createRuns += 1;
           return provider.createRun(...args);
         },
+        getRun: async (providerRunId: string) =>
+          state.providerStatus ? { status: state.providerStatus } : provider.getRun(providerRunId),
       };
     },
   };
 });
 vi.mock("@/lib/supabase/service", () => ({ createServiceClient: () => fakeSupabase() }));
+vi.mock("@/lib/research/validate", () => ({
+  validateResearch: async () => state.validation,
+}));
 
 const ORG = "0a000000-0000-4000-8000-000000000000";
 const COMPANY = "0c000000-0000-4000-8000-00000000000a";
@@ -242,6 +258,8 @@ beforeEach(() => {
   state.onKpiInsert = null;
   state.createRuns = 0;
   state.nextId = 1;
+  state.providerStatus = null;
+  state.validation = null;
 });
 
 describe("research-company (AC-4, AC-6, AC-14)", () => {
@@ -423,5 +441,153 @@ describe("the failure hook (AC-10)", () => {
       status: "failed",
       error_code: "internal",
     });
+  });
+});
+
+describe("the abort paths (AC-4, AC-10)", () => {
+  it("fails at once with provider_timeout when the attempt starts past the 20 minute budget, without a provider run", async () => {
+    seed({
+      status: "running",
+      started_at: new Date(Date.now() - 21 * 60 * 1000).toISOString(),
+      summary: { version: 1, step: "searching" },
+    });
+    const task = await loadTask();
+    await expect(task.run({ runId: RUN }, { ctx })).rejects.toThrow(/^provider_timeout: /);
+    expect(state.createRuns).toBe(0);
+    expect(state.tables.research_runs?.[0]).toMatchObject({ status: "running" });
+  });
+
+  it("aborts with provider_rejected when the provider reports the run as failed", async () => {
+    seed();
+    state.providerStatus = "failed";
+    const task = await loadTask();
+    await expect(task.run({ runId: RUN }, { ctx })).rejects.toThrow(/^provider_rejected: /);
+    const run = state.tables.research_runs?.[0] as Row;
+    expect(run.status).toBe("running");
+    expect(run.provider_run_id).toMatch(/^fixture_/);
+    expect(state.tables.company_kpis).toHaveLength(0);
+  });
+
+  it("aborts when the run row does not exist", async () => {
+    seed();
+    const task = await loadTask();
+    await expect(
+      task.run({ runId: "0d000000-0000-4000-8000-0000000000ff" }, { ctx }),
+    ).rejects.toThrow(/^internal: research run .* not found/);
+  });
+});
+
+describe("a passed validation (AC-5, AC-6)", () => {
+  it("keeps the supported verdicts, records the rest as dropped, fills only the null company facts and marks the summary passed", async () => {
+    seed();
+    (state.tables.companies?.[0] as Row).canton = "BE";
+    state.validation = {
+      verdicts: new Map([
+        ["ltifr_latest", { supported: true, value: 2.4, periodYear: 2025, confidence: 0.85 }],
+        ["ltifr_previous", { supported: true, value: 2.7, periodYear: 2024, confidence: 0.7 }],
+        ["trifr_latest", { supported: false, value: 6.1, periodYear: 2025, confidence: 0.9 }],
+      ]),
+      facts: { legalName: "Example Fixture AG", uid: "CHE-123.456.789", canton: "ZH" },
+      promptVersion: "research-validation@1",
+    };
+    const task = await loadTask();
+    expect(await task.run({ runId: RUN }, { ctx })).toEqual({ status: "succeeded" });
+
+    const kpis = state.tables.company_kpis as Row[];
+    expect(kpis.map((row) => [row.kpi_key, row.period_year, row.value, row.confidence])).toEqual([
+      ["ltifr", 2025, 2.4, 0.85],
+      ["ltifr", 2024, 2.7, 0.7],
+    ]);
+    const finishedRun = state.tables.research_runs?.[0] as Row;
+    const summary = finishedRun.summary as Row;
+    expect(summary).toMatchObject({
+      validation: "passed",
+      promptVersion: "research-validation@1",
+      kpisExtracted: 2,
+      companyFacts: { legalName: "Example Fixture AG", uid: "CHE-123.456.789", canton: "ZH" },
+    });
+    expect((summary.coverage as Row).ltifr).toBe("found");
+    expect((summary.coverage as Row).trifr).toBe("not_found");
+    const dropped = summary.dropped as Array<{ key: string; reason: string }>;
+    expect(dropped).toHaveLength(22);
+    expect(dropped.every((entry) => entry.reason === "unsupported")).toBe(true);
+
+    // The facts fill only null columns: the canton the client already set stays.
+    expect(state.tables.companies?.[0]).toMatchObject({
+      legal_name: "Example Fixture AG",
+      uid: "CHE-123.456.789",
+      canton: "BE",
+    });
+    for (const call of writes("companies")) {
+      expect(call.filters).toEqual(
+        expect.arrayContaining([
+          ["id", "eq", COMPANY],
+          ["organization_id", "eq", ORG],
+        ]),
+      );
+      expect(call.filters.some(([, op]) => op === "is")).toBe(true);
+    }
+    expect(state.tables.companies?.[1]).toMatchObject({ id: OTHER_COMPANY, legal_name: null });
+  });
+});
+
+describe("the step logs (AC-15)", () => {
+  it("writes one structured line per step carrying the run's ids, the provider run id and the elapsed time", async () => {
+    seed();
+    const lines: Array<Record<string, unknown>> = [];
+    const spy = vi.spyOn(console, "log").mockImplementation((line: string) => {
+      try {
+        lines.push(JSON.parse(line));
+      } catch {
+        // not one of ours
+      }
+    });
+    const task = await loadTask();
+    await task.run({ runId: RUN }, { ctx });
+    spy.mockRestore();
+
+    const ours = lines.filter((line) => line.runId === RUN);
+    expect(ours.map((line) => line.msg)).toEqual([
+      "research attempt started",
+      "provider run created",
+      "provider result received",
+      "values resolved",
+      "research run finished",
+    ]);
+    for (const line of ours) {
+      expect(line).toMatchObject({ level: "info", organizationId: ORG, companyId: COMPANY });
+      expect(typeof line.elapsedMs).toBe("number");
+    }
+    const finished = ours.at(-1) as Row;
+    expect(finished.providerRunId).toMatch(/^fixture_/);
+    expect(finished).toMatchObject({ status: "succeeded", stored: 24 });
+    expect(typeof finished.totalMs).toBe("number");
+  });
+});
+
+describe("the helpers (AC-10)", () => {
+  it("builds the Trigger.dev run page from the project ref and the run id", async () => {
+    const { triggerRunUrl } = await import("@/trigger/research-company");
+    expect(triggerRunUrl("proj_abc", "run_123")).toBe(
+      "https://cloud.trigger.dev/projects/v3/proj_abc/runs/run_123",
+    );
+  });
+
+  it("reads the error code from the abort prefix, the error class, else internal", async () => {
+    const { errorCodeOf } = await import("@/trigger/research-company");
+    const { ProviderRejectedError, ProviderUnavailableError } = await import(
+      "@/lib/research/provider"
+    );
+    expect(errorCodeOf(new Error("provider_timeout: no result within 20 minutes"))).toBe(
+      "provider_timeout",
+    );
+    expect(errorCodeOf(new Error("provider_rejected: 401"))).toBe("provider_rejected");
+    expect(errorCodeOf(new Error("provider_unavailable: 503"))).toBe("provider_unavailable");
+    expect(errorCodeOf(new ProviderUnavailableError("network"))).toBe("provider_unavailable");
+    expect(errorCodeOf(new ProviderRejectedError("nope"))).toBe("provider_rejected");
+    expect(errorCodeOf(new Error("provider_timeouts are fun"))).toBe("internal");
+    expect(errorCodeOf(new Error("maxDuration exceeded"))).toBe("internal");
+    expect(errorCodeOf("a string")).toBe("internal");
+    expect(errorCodeOf(undefined)).toBe("internal");
   });
 });

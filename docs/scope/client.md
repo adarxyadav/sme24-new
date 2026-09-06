@@ -48,7 +48,7 @@ spec [0007](../specs/0007-company-research-pipeline/index.md) · code in `src/fe
   - [x] Failure rail and reruns: the `onFailure` hook with error codes, the `research.run_failed` alert with the Trigger.dev link, the stale sweep schedule, `rerunResearch` and the empty and failed states (AC-8, AC-10, AC-11)
   - [x] Hardening and docs: Vitest, pgTAP and the Playwright fixture thread with axe, the design gallery section, `docs/research.md` with the hosted checklist (AC-1, AC-12, AC-14, AC-16)
 - [ ] Verify it: `/check verify company lookup & research pipeline`
-- [ ] Test it: `/test company lookup & research pipeline`
+- [x] Test it: `/test company lookup & research pipeline`
 - [ ] Review it (fresh model): `/check review company lookup & research pipeline`
 - [ ] Document it: `/document company lookup & research pipeline`
 
