@@ -1029,6 +1029,49 @@
       "50-249": "50 bis 249 Mitarbeitende",
       "250+": "250 und mehr Mitarbeitende",
       "all": "alle Grössen"
+    },
+    "disclosure": {
+      "title": "So wird gerechnet",
+      "formulaTitle": "Die Formel in Worten",
+      "formula": "Unfälle pro Jahr = Unfallrate pro 1 000 Vollzeitstellen × Vollzeitstellen ÷ 1 000 (ohne Unfallrate: LTIFR × Vollzeitstellen × Stunden pro Vollzeitstelle ÷ 1 000 000). Kosten pro Fall = direkte Kosten pro Fall + Ausfalltage pro Unfall × Kosten pro Absenztag. Jahreskosten = Unfälle × Kosten pro Fall × Gesamtkostenfaktor; die Spanne nutzt den tiefen und den hohen Faktor. Die Einsparungen wiederholen die Formel am Median und im obersten Viertel der Vergleichsgruppe.",
+      "fteLine": "Die Mitarbeiterzahl gilt als Vollzeitäquivalente: jede mitarbeitende Person zählt als eine Vollzeitstelle.",
+      "assumptionsTitle": "Verwendete Annahmen",
+      "noCost": "Für diese Berechnung wurden keine Kosten ermittelt, daher wurde keine Annahme verwendet.",
+      "provisional": "provisorisch",
+      "effectiveFrom": "Stand {date}",
+      "inputsTitle": "Verwendete Eingaben",
+      "inputValue": "{value} ({year}, {source})",
+      "sourceResearch": "aus der Recherche",
+      "sourceClient": "von Ihnen erfasst",
+      "peerUsed": "Vergleich: {section} · {band} · {year}",
+      "noPeerUsed": "kein Vergleichswert",
+      "headcount": "Mitarbeiterzahl: {count}",
+      "noHeadcount": "Mitarbeiterzahl: unbekannt",
+      "industry": "Branche: {division} (Abschnitt {section}), Grössenklasse {band}",
+      "noIndustry": "Branche: unbekannt, Grössenklasse {band}",
+      "correctTitle": "Branche oder Mitarbeiterzahl korrigieren",
+      "correctDescription": "Ihre Angaben haben Vorrang vor der Recherche und starten eine neue Berechnung."
+    },
+    "facts": {
+      "industry": "Branche (NOGA-Abteilung)",
+      "industryPlaceholder": "Abteilung wählen",
+      "employees": "Mitarbeiterzahl",
+      "employeesHint": "Mitarbeitende, gezählt als Vollzeitstellen.",
+      "submit": "Speichern und neu berechnen",
+      "submitting": "Speichern …",
+      "saved": "Gespeichert. Wir berechnen Ihren Benchmark neu.",
+      "savedNotQueued": "Gespeichert. Die Neuberechnung konnte nicht gestartet werden und läuft mit der nächsten Recherche.",
+      "validation": {
+        "industryInvalid": "Wählen Sie eine Abteilung aus der Liste.",
+        "employeesInvalid": "Geben Sie eine ganze Zahl von 1 bis 1 000 000 ein.",
+        "nothingToSave": "Ändern Sie die Abteilung oder die Mitarbeiterzahl vor dem Speichern."
+      }
+    },
+    "errors": {
+      "validation": "Bitte prüfen Sie Ihre Eingaben.",
+      "forbidden": "Sie sind dafür nicht angemeldet.",
+      "not_found": "Dieses Unternehmen wurde nicht gefunden.",
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
     }
   }
 }

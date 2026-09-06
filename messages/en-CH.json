@@ -1029,6 +1029,49 @@
       "50-249": "50 to 249 employees",
       "250+": "250 and more employees",
       "all": "all sizes"
+    },
+    "disclosure": {
+      "title": "How this is calculated",
+      "formulaTitle": "The formula in words",
+      "formula": "Incidents per year = accident rate per 1 000 FTE × FTE ÷ 1 000 (with no accident rate: LTIFR × FTE × hours per FTE ÷ 1 000 000). Cost per case = direct cost per case + lost days per incident × cost per absence day. Annual cost = incidents × cost per case × the total cost multiplier; the range uses the low and the high multiplier. The savings repeat the formula at the peer median and at the top quarter.",
+      "fteLine": "Headcount is counted as full time equivalents: every employee counts as one full time job.",
+      "assumptionsTitle": "Assumptions used",
+      "noCost": "No cost was computed for this snapshot, so no assumption was used.",
+      "provisional": "provisional",
+      "effectiveFrom": "as of {date}",
+      "inputsTitle": "Inputs used",
+      "inputValue": "{value} ({year}, {source})",
+      "sourceResearch": "from the research",
+      "sourceClient": "entered by you",
+      "peerUsed": "peer: {section} · {band} · {year}",
+      "noPeerUsed": "no peer row",
+      "headcount": "Headcount: {count}",
+      "noHeadcount": "Headcount: not known",
+      "industry": "Industry: {division} (section {section}), size band {band}",
+      "noIndustry": "Industry: not known, size band {band}",
+      "correctTitle": "Correct industry or headcount",
+      "correctDescription": "Your values take precedence over the research and start a new computation."
+    },
+    "facts": {
+      "industry": "Industry (NOGA division)",
+      "industryPlaceholder": "Choose a division",
+      "employees": "Headcount",
+      "employeesHint": "Employees, counted as full time jobs.",
+      "submit": "Save and recalculate",
+      "submitting": "Saving …",
+      "saved": "Saved. We are recalculating your benchmark.",
+      "savedNotQueued": "Saved. The recalculation could not be started and runs with the next research.",
+      "validation": {
+        "industryInvalid": "Choose a division from the list.",
+        "employeesInvalid": "Enter a whole number from 1 to 1 000 000.",
+        "nothingToSave": "Change the division or the headcount before saving."
+      }
+    },
+    "errors": {
+      "validation": "Please check your entries.",
+      "forbidden": "You are not signed in for this.",
+      "not_found": "This company was not found.",
+      "unexpected": "Something went wrong. Please try again later."
     }
   }
 }

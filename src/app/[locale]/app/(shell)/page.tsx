@@ -38,7 +38,7 @@ export default async function AppPage() {
   const { data } = await supabase.auth.getClaims();
   const organizationId = organizationIdFromClaims(data?.claims);
   const locale = LOCALE_CODE[resolveLocale(await getLocale())];
-  const messages = clientMessages(await getMessages(), ["research"]);
+  const messages = clientMessages(await getMessages(), ["research", "benchmark"]);
 
   if (!organizationId) {
     const areas = await getTranslations("areas.app");
@@ -147,6 +147,12 @@ export default async function AppPage() {
             snapshot={dashboard.benchmark}
             state={dashboard.benchmarkState}
             catalogue={dashboard.catalogue}
+            assumptions={dashboard.benchmarkAssumptions}
+            company={{
+              id: company.id,
+              industryCode: company.industry_code,
+              employeesCount: company.employees_count,
+            }}
             locale={locale}
           />
         ) : null}

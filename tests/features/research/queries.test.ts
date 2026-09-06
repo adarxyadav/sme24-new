@@ -165,6 +165,7 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
       quota: { used: 0, limit: 5, remaining: 5, openRunId: null },
       benchmark: null,
       benchmarkState: "unavailable",
+      benchmarkAssumptions: [],
     });
     expect(calls.map((call) => call.table).sort()).toEqual([
       "companies",

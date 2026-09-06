@@ -7,7 +7,7 @@ import { QuartileBand } from "@/components/ui/quartile-band";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BenchmarkState } from "@/features/benchmark/catalogue";
 import { roundChf } from "@/features/benchmark/model";
-import type { ParsedSnapshot } from "@/features/benchmark/queries";
+import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
 import type { SnapshotGap, SnapshotPeer, SnapshotResult } from "@/features/benchmark/snapshot";
 import {
   isKpiKey,
@@ -19,11 +19,19 @@ import type { KpiDefinitionRow } from "@/features/research/queries";
 import { ConfidenceBadge } from "@/features/research/ui/badges";
 import { localizedText } from "@/features/research/ui/kpi-table";
 import type { LocaleCode } from "@/i18n/routing";
+import { CalculationContent } from "./calculation-content";
+import { CalculationDisclosure } from "./calculation-disclosure";
+import { FactsForm, type FactsFormProps } from "./facts-form";
+import { formatKpiValue } from "./format";
 
 export type BenchmarkSegmentProps = {
   readonly snapshot: ParsedSnapshot | null;
   readonly state: BenchmarkState;
   readonly catalogue: readonly KpiDefinitionRow[];
+  /** The assumption rows for the disclosure labels (AC-10). */
+  readonly assumptions: readonly AssumptionRow[];
+  /** The company facts the form edits (AC-11). */
+  readonly company: FactsFormProps["company"];
   readonly locale: LocaleCode;
 };
 
@@ -32,25 +40,6 @@ type Translator = Awaited<ReturnType<typeof getTranslations<"benchmark">>>;
 
 /** How many gaps show before the "show all" disclosure (AC-9). */
 const TOP_GAPS = 3;
-
-/** A KPI value in the catalogue's display format (AC-14): percentages from a fraction, absenteeism divided by 100 first. Pure. */
-export function formatKpiValue(
-  value: number,
-  kind: KpiFormat,
-  format: Formatter,
-  yesNo: { readonly yes: string; readonly no: string },
-): string {
-  switch (kind) {
-    case "integer":
-      return format.number(value, "integer");
-    case "percent1":
-      return format.number(value / 100, "percent");
-    case "yesNo":
-      return value >= 1 ? yesNo.yes : yesNo.no;
-    default:
-      return format.number(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-}
 
 /** The peer quartile of a KPI in display form: the certified share for ISO, else the KPI format. Pure. */
 function formatQuartile(
@@ -72,6 +61,8 @@ export async function BenchmarkSegment({
   snapshot,
   state,
   catalogue,
+  assumptions,
+  company,
   locale,
 }: BenchmarkSegmentProps) {
   const t = await getTranslations("benchmark");
@@ -99,10 +90,21 @@ export async function BenchmarkSegment({
         </Alert>
       ) : null}
       {state === "noData" ? (
-        <Alert variant="info">
-          <InfoIcon aria-hidden="true" />
-          <AlertTitle>{t("state.noData")}</AlertTitle>
-        </Alert>
+        <>
+          <Alert variant="info">
+            <InfoIcon aria-hidden="true" />
+            <AlertTitle>{t("state.noData")}</AlertTitle>
+          </Alert>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("disclosure.correctTitle")}</CardTitle>
+              <CardDescription>{t("disclosure.correctDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FactsForm company={company} />
+            </CardContent>
+          </Card>
+        </>
       ) : null}
       {state === "ready" && snapshot ? (
         <>
@@ -121,7 +123,23 @@ export async function BenchmarkSegment({
             locale={locale}
             t={t}
             format={format}
+            company={company}
           />
+          <CalculationDisclosure title={t("disclosure.title")}>
+            <CalculationContent
+              snapshot={snapshot}
+              catalogue={catalogue}
+              assumptions={assumptions}
+              locale={locale}
+            />
+            <section className="flex flex-col gap-2" data-correct-facts>
+              <h4 className="font-semibold text-sm">{t("disclosure.correctTitle")}</h4>
+              <p className="max-w-prose text-muted-foreground text-sm">
+                {t("disclosure.correctDescription")}
+              </p>
+              <FactsForm company={company} />
+            </section>
+          </CalculationDisclosure>
           <GapList
             snapshot={snapshot}
             catalogue={catalogue}
@@ -184,7 +202,14 @@ export function confidenceDriver(snapshot: ParsedSnapshot): KpiKey | null {
   return driver?.key ?? null;
 }
 
-function OpportunityCard({ snapshot, catalogue, locale, t, format }: BlockProps) {
+function OpportunityCard({
+  snapshot,
+  catalogue,
+  locale,
+  t,
+  format,
+  company,
+}: BlockProps & { readonly company: FactsFormProps["company"] }) {
   const chf = (value: number) => format.number(roundChf(value), "chfWhole");
   const cost = snapshot.blocks.cost;
   const driver = confidenceDriver(snapshot);
@@ -246,17 +271,20 @@ function OpportunityCard({ snapshot, catalogue, locale, t, format }: BlockProps)
             </div>
           </>
         ) : (
-          <Alert variant="warning">
-            <TriangleAlertIcon aria-hidden="true" />
-            <AlertTitle>
-              {!snapshot.blocks.inputs.fte
-                ? t("card.missingHeadcount")
-                : t("card.missingIncidentRate")}
-            </AlertTitle>
-            <AlertDescription>
-              <p data-computed-on>{t("card.computedOn", { date: computedOn })}</p>
-            </AlertDescription>
-          </Alert>
+          <>
+            <Alert variant="warning">
+              <TriangleAlertIcon aria-hidden="true" />
+              <AlertTitle>
+                {!snapshot.blocks.inputs.fte
+                  ? t("card.missingHeadcount")
+                  : t("card.missingIncidentRate")}
+              </AlertTitle>
+              <AlertDescription>
+                <p data-computed-on>{t("card.computedOn", { date: computedOn })}</p>
+              </AlertDescription>
+            </Alert>
+            <FactsForm company={company} />
+          </>
         )}
         <p className="text-muted-foreground text-sm" data-compared={snapshot.kpisCompared}>
           {t("card.compared", { compared: snapshot.kpisCompared, total: activeCount })}

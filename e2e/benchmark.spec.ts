@@ -109,6 +109,50 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       page.locator('[data-position-kpi="ltifr"]').getByText("No peer data yet"),
     ).toBeVisible();
     await expectNoAxeViolations(page);
+
+    // The disclosure (AC-10): closed by default, the formula, the five assumptions the cost used
+    // (the fixture has a lost days row and an accident rate, so no hours and no default days), the inputs.
+    const disclosure = page.locator("[data-calculation-disclosure]");
+    await expect(disclosure.locator("[data-calculation-content]")).toBeHidden();
+    await disclosure.getByRole("button", { name: "How this is calculated" }).click();
+    const content = disclosure.locator("[data-calculation-content]");
+    await expect(content).toBeVisible();
+    await expect(content.locator("[data-fte-line]")).toBeVisible();
+    await expect(content.locator("[data-assumption]")).toHaveCount(5);
+    await expect(content.locator('[data-assumption="direct_cost_per_case_chf"]')).toHaveAttribute(
+      "data-assumption-value",
+      "4811",
+    );
+    await expect(
+      content.locator('[data-assumption="indirect_multiplier"] [data-provisional]'),
+    ).toBeVisible();
+    await expect(content.locator('[data-assumption="hours_per_fte"]')).toHaveCount(0);
+    await expect(content.locator("[data-input-headcount]")).toHaveAttribute(
+      "data-input-headcount",
+      "420",
+    );
+    await expect(content.locator("[data-input-industry]")).toHaveAttribute(
+      "data-input-industry",
+      "23.61",
+    );
+    await expect(content.locator('[data-input-kpi="accident_rate_per_1000_fte"]')).toContainText(
+      "68.00 (2025, from the research) · peer: Manufacturing · all sizes · 2022",
+    );
+    await expect(content.locator('[data-input-kpi="ltifr"]')).toContainText("no peer row");
+    await expectNoAxeViolations(page);
+
+    // The facts form (AC-11, AC-12): a new headcount is saved, the benchmark is recomputed and the
+    // card shows the new cost once the snapshot lands.
+    const form = disclosure.locator("[data-facts-form]");
+    await expect(form.getByLabel("Industry (NOGA division)")).toContainText("23");
+    await form.getByLabel("Headcount").fill("500");
+    await form.getByRole("button", { name: "Save and recalculate" }).click();
+    await expect(form.locator("[data-facts-saved]")).toHaveAttribute("data-facts-saved", "true");
+    const NEW_ANNUAL = ((68 * 500) / 1000) * COST_PER_CASE * 3.7;
+    await expect
+      .poll(async () => Number(await card.getAttribute("data-cost")), RUN_TIMEOUT)
+      .toBeCloseTo(NEW_ANNUAL, 0);
+    await expect(card.locator("[data-cost-headline]")).toContainText(/2.335.000/);
     if (process.env.BENCHMARK_SCREENSHOT) {
       await page.screenshot({ path: process.env.BENCHMARK_SCREENSHOT, fullPage: true });
     }
@@ -120,18 +164,25 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       .select("id, employees_count, industry_code")
       .eq("name", "Benchmark Fixture AG")
       .maybeSingle();
-    expect(company?.employees_count).toBe(420);
     expect(company?.industry_code).toBe("23.61");
     const { data: snapshots } = await db
       .from("benchmark_snapshots")
-      .select("trigger_kind, research_run_id, kpis_compared, peer_provisional, saving_median_chf")
+      .select(
+        "trigger_kind, research_run_id, kpis_compared, peer_provisional, saving_median_chf, created_at",
+      )
       .eq("company_id", company?.id ?? "");
-    expect(snapshots).toHaveLength(1);
-    expect(snapshots?.[0]?.trigger_kind).toBe("research");
-    expect(snapshots?.[0]?.research_run_id).not.toBeNull();
-    expect(snapshots?.[0]?.kpis_compared).toBe(1);
-    expect(snapshots?.[0]?.peer_provisional).toBe(true);
-    expect(Number(snapshots?.[0]?.saving_median_chf)).toBeCloseTo(ANNUAL - AT_MEDIAN, 0);
+    expect(company?.employees_count).toBe(500);
+    expect(snapshots).toHaveLength(2);
+    const [first, second] = [...(snapshots ?? [])].sort((a, b) =>
+      a.created_at < b.created_at ? -1 : 1,
+    );
+    expect(first?.trigger_kind).toBe("research");
+    expect(first?.research_run_id).not.toBeNull();
+    expect(first?.kpis_compared).toBe(1);
+    expect(first?.peer_provisional).toBe(true);
+    expect(Number(first?.saving_median_chf)).toBeCloseTo(ANNUAL - AT_MEDIAN, 0);
+    expect(second?.trigger_kind).toBe("client_edit");
+    expect(second?.research_run_id).toBeNull();
   } finally {
     await deleteAccount(email);
   }

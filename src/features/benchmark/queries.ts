@@ -95,6 +95,15 @@ export async function loadLatestSnapshot(
   return null;
 }
 
+export type AssumptionRow = Tables<"benchmark_assumptions">;
+
+/** The assumption rows, whose labels and notes the disclosure shows by key (AC-10). Throws on a database error. Server component. */
+export async function loadAssumptionRows(supabase: Client): Promise<readonly AssumptionRow[]> {
+  const { data, error } = await supabase.from("benchmark_assumptions").select("*");
+  if (error) throw error;
+  return data;
+}
+
 export type BenchmarkStateInput = {
   readonly snapshot: ParsedSnapshot | null;
   readonly latestRun: { readonly status: string; readonly finished_at: string | null } | null;
