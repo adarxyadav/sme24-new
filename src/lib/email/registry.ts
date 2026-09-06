@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import type { z } from "zod";
-import { type EmailTemplateName, welcomeDataSchema } from "./schema";
+import { benchmarkReadyDataSchema, type EmailTemplateName, welcomeDataSchema } from "./schema";
+import { BenchmarkReadyEmail } from "./templates/benchmark-ready";
 import type { TemplateProps } from "./templates/props";
 import { WelcomeEmail } from "./templates/welcome";
 
@@ -27,6 +28,12 @@ export const EMAIL_TEMPLATES = {
     link: "/app",
     notify: true,
     Component: WelcomeEmail,
+  }),
+  benchmark_ready: defineTemplate({
+    schema: benchmarkReadyDataSchema,
+    link: "/app",
+    notify: true,
+    Component: BenchmarkReadyEmail,
   }),
 } as const satisfies Record<EmailTemplateName, unknown>;
 

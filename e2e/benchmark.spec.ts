@@ -1,7 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
-import { createConfirmedClient, dbAvailable, deleteAccount, serviceClient } from "./db";
-import { mailAvailable, uniqueEmail } from "./mail";
+import {
+  accountByEmail,
+  createConfirmedClient,
+  dbAvailable,
+  deleteAccount,
+  serviceClient,
+} from "./db";
+import { mailAvailable, mailIds, noMailFor, readMail, uniqueEmail } from "./mail";
 
 /**
  * The benchmark thread on the fixture research run (spec 0008, AC-16): a fresh client starts the
@@ -52,6 +58,7 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
   const email = uniqueEmail("benchmark");
   try {
     await signInFresh(page, email, "Benchmark Fixture AG");
+    const seenBefore = await mailIds(email);
     await page.getByRole("button", { name: "Start research" }).click();
     await expect(page.getByRole("heading", { level: 1, name: "Benchmark Fixture AG" })).toBeVisible(
       {
@@ -110,6 +117,58 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     ).toBeVisible();
     await expectNoAxeViolations(page);
 
+    // The benchmark ready email (AC-7): one delivery per member on the first snapshot, in the
+    // member's language (the fixture client is German). It lands in Mailpit when the worker runs
+    // on SMTP; a worker whose Trigger.dev environment carries a Resend key and an allowlist skips
+    // the test address instead, so the inbox is asserted only on the SMTP transport.
+    const db = serviceClient();
+    const account = await accountByEmail(email);
+    const { data: companyRow } = await db
+      .from("companies")
+      .select("id")
+      .eq("name", "Benchmark Fixture AG")
+      .maybeSingle();
+    const deliveryKey = `benchmark-ready/${companyRow?.id}/${account?.user.id}`;
+    const delivery = await expect
+      .poll(
+        async () => {
+          const { data } = await db
+            .from("email_deliveries")
+            .select("status, locale, source_event, template, transport")
+            .eq("idempotency_key", deliveryKey)
+            .maybeSingle();
+          return data && data.status !== "queued" && data.status !== "sending" ? data : null;
+        },
+        { timeout: 60_000, intervals: [1_000, 2_000] },
+      )
+      .not.toBeNull()
+      .then(async () => {
+        const { data } = await db
+          .from("email_deliveries")
+          .select("status, locale, source_event, template, transport")
+          .eq("idempotency_key", deliveryKey)
+          .single();
+        return data;
+      });
+    expect(delivery).toMatchObject({
+      locale: "de",
+      source_event: "benchmark.snapshot_created",
+      template: "benchmark_ready",
+    });
+    expect(["sent", "skipped"]).toContain(delivery?.status);
+    if (delivery?.transport === "smtp") {
+      const mail = await readMail(email, { seen: seenBefore, timeoutMs: 60_000 });
+      expect(mail.subject).toBe("Ihr Benchmark für Benchmark Fixture AG ist bereit");
+      expect(mail.html).toMatch(/1.961.000/);
+      expect(mail.html).toMatch(/522.000/);
+      expect(mail.links.some((link) => link.endsWith("/de/app"))).toBe(true);
+    } else {
+      console.log(
+        `benchmark email not asserted in Mailpit: transport ${delivery?.transport}, status ${delivery?.status}`,
+      );
+    }
+    const seenAfterFirst = await mailIds(email);
+
     // The disclosure (AC-10): closed by default, the formula, the five assumptions the cost used
     // (the fixture has a lost days row and an accident rate, so no hours and no default days), the inputs.
     const disclosure = page.locator("[data-calculation-disclosure]");
@@ -153,12 +212,19 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       .poll(async () => Number(await card.getAttribute("data-cost")), RUN_TIMEOUT)
       .toBeCloseTo(NEW_ANNUAL, 0);
     await expect(card.locator("[data-cost-headline]")).toContainText(/2.335.000/);
+    // The second snapshot is not the first: no second delivery and no second email (AC-5, AC-7).
+    expect(await noMailFor(email, seenAfterFirst)).toBe(true);
+    const { count: benchmarkDeliveries } = await db
+      .from("email_deliveries")
+      .select("id", { count: "exact", head: true })
+      .eq("recipient_email", email)
+      .eq("template", "benchmark_ready");
+    expect(benchmarkDeliveries).toBe(1);
     if (process.env.BENCHMARK_SCREENSHOT) {
       await page.screenshot({ path: process.env.BENCHMARK_SCREENSHOT, fullPage: true });
     }
 
-    // The stored row (AC-5): one snapshot, keyed to the run, one KPI compared, the saving unrounded.
-    const db = serviceClient();
+    // The stored rows (AC-5): two snapshots, the first keyed to the run, one KPI compared, the saving unrounded.
     const { data: company } = await db
       .from("companies")
       .select("id, employees_count, industry_code")
@@ -184,6 +250,10 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     expect(second?.trigger_kind).toBe("client_edit");
     expect(second?.research_run_id).toBeNull();
   } finally {
+    // The delivery row outlives the user by design (recipient set to null), so it goes by hand.
+    if (!process.env.BENCHMARK_KEEP_DELIVERIES) {
+      await serviceClient().from("email_deliveries").delete().eq("recipient_email", email);
+    }
     await deleteAccount(email);
   }
 });

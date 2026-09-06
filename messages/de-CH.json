@@ -626,6 +626,18 @@
       "intro": "Ihr Konto für {organizationName} ist eingerichtet. SME24 ermittelt aus öffentlichen Angaben ein benchmarktes EHS-Risikoprofil für Ihr Unternehmen und bringt Sie mit erfahrenen Expertinnen und Experten zusammen, zum Fixpreis.",
       "nextStep": "Der nächste Schritt: Melden Sie sich an und starten Sie die Unternehmenssuche. Wir recherchieren Ihre Kennzahlen im Hintergrund und melden uns, sobald das Profil steht.",
       "button": "Zum Kundenbereich"
+    },
+    "benchmark_ready": {
+      "subject": "Ihr Benchmark für {companyName} ist bereit",
+      "preview": "Ihre Sicherheitskennzahlen im Vergleich mit Ihrer Branche. Sehen Sie, wo Sie stehen und was es kostet.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Wir haben die Sicherheitskennzahlen von {companyName} mit ähnlichen Unternehmen verglichen: {kpisCompared, plural, =0 {noch keine Kennzahl konnte verglichen werden} =1 {1 Kennzahl verglichen} other {# Kennzahlen verglichen}}.",
+      "cost": "Arbeitsunfälle kosten Sie rund {cost} pro Jahr.",
+      "saving": "Der Median Ihrer Vergleichsgruppe würde rund {saving} pro Jahr einsparen.",
+      "noCost": "Die Jahreskosten konnten wir noch nicht schätzen. Erfassen Sie Ihre Mitarbeiterzahl im Kundenbereich, dann rechnen wir sofort neu.",
+      "nextStep": "Der Kundenbereich zeigt Ihre Position pro Kennzahl, die prioritären Lücken und wie jede Zahl berechnet wird.",
+      "button": "Benchmark ansehen"
     }
   },
   "emails": {

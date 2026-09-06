@@ -626,6 +626,18 @@
       "intro": "Your account for {organizationName} is set up. SME24 builds a benchmarked EHS risk profile of your company from public disclosures and matches you with experienced experts, at a fixed price.",
       "nextStep": "The next step: sign in and start the company lookup. We research your figures in the background and get in touch once the profile is ready.",
       "button": "Open the client area"
+    },
+    "benchmark_ready": {
+      "subject": "Your benchmark for {companyName} is ready",
+      "preview": "Your safety figures are compared with your peers. See where you stand and what it costs.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "We compared the safety figures of {companyName} with companies like yours: {kpisCompared, plural, =0 {no KPI could be compared yet} =1 {1 KPI compared} other {# KPIs compared}}.",
+      "cost": "Workplace incidents cost you about {cost} per year.",
+      "saving": "Reaching the peer median would save about {saving} per year.",
+      "noCost": "We could not estimate the annual cost yet. Add your headcount in the client area and we recalculate at once.",
+      "nextStep": "The client area shows your position per KPI, the priority gaps and how every number is calculated.",
+      "button": "See the benchmark"
     }
   },
   "emails": {

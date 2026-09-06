@@ -62,7 +62,7 @@ spec [0008](../specs/0008-peer-benchmark-chf-opportunity/index.md) · code in `s
 - [ ] Build it: `/develop peer benchmark & CHF opportunity`
   - [x] Thin thread: the three table migration with pgTAP, the provisional seed CSVs with the generator, the NOGA and size band catalogue, the pure model with its table tests, the `benchmark-company` task triggered from the research run, the snapshot query with the waiting states, the dashboard segment (opportunity card, top three gaps, positions with `QuartileBand`) and the Realtime channel (AC-1, AC-2, AC-3, AC-4, AC-5, AC-18, AC-6 in part, AC-9, AC-12, AC-15, AC-14 in part)
   - [x] Transparency and client inputs: the "How this is calculated" disclosure on a `Collapsible`, `updateCompanyFacts` with the grouped NOGA division picker and the headcount field, the missing input states, the percent rule (AC-10, AC-11, completes AC-6 and AC-9)
-  - [ ] Moments and the failure rail: the `benchmark_ready` email on the first snapshot per company and member, the `benchmark.failed` alert with the `onFailure` hook (AC-7, AC-8)
+  - [x] Moments and the failure rail: the `benchmark_ready` email on the first snapshot per company and member, the `benchmark.failed` alert with the `onFailure` hook (AC-7, AC-8)
   - [ ] Ops tooling, hardening and docs: the recompute script, the gallery sections, Vitest, pgTAP and the Playwright thread with axe, `docs/benchmark.md` with the source checklist and the launch gate (AC-13, AC-16, AC-17, completes AC-14)
 - [ ] Verify it: `/check verify peer benchmark & CHF opportunity`
 - [ ] Test it: `/test peer benchmark & CHF opportunity`

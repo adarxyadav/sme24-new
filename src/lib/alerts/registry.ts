@@ -64,6 +64,17 @@ export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
     ],
     buttonLabel: "Open run",
   }),
+  "benchmark.failed": (fields, context) => ({
+    title: "Benchmark computation failed",
+    fields: [
+      ["Organization", fields.organizationName],
+      ["Company", fields.companyName],
+      ["Trigger", fields.triggerKind],
+      ["Reason", fields.errorMessage],
+      ["Time", format.dateTime(context.now, "dateTime")],
+    ],
+    buttonLabel: "Open run",
+  }),
   "payment.received": (fields, context) => ({
     title: "Payment received",
     fields: [

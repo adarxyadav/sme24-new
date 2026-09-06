@@ -3,7 +3,7 @@ import { z } from "zod";
 /**
  * The alert rail's boundary schemas (spec 0006, AC-11): one typed `fields` shape per alert kind.
  * Live kinds have a caller today; reserved kinds are typed for the features that will fire them
- * (8, 11, 13). Pure data. A recipient's email address is never a field: Slack gets names and
+ * (11, 13); spec 0008 adds `benchmark.failed`. Pure data. A recipient's email address is never a field: Slack gets names and
  * company names only.
  */
 export const ALERT_KINDS = [
@@ -11,6 +11,7 @@ export const ALERT_KINDS = [
   "email.failed",
   "ops.test",
   "research.run_failed",
+  "benchmark.failed",
   "payment.received",
   "enquiry.received",
 ] as const;
@@ -34,6 +35,12 @@ const alertFields = {
     runId: z.string().min(1).max(100),
     organizationName: z.string().min(1).max(200),
     reason: z.string().min(1).max(500),
+  }),
+  "benchmark.failed": z.object({
+    organizationName: z.string().min(1).max(200),
+    companyName: z.string().min(1).max(200),
+    triggerKind: z.enum(["research", "client_edit", "recompute"]),
+    errorMessage: z.string().min(1).max(500),
   }),
   "payment.received": z.object({
     organizationName: z.string().min(1).max(200),
@@ -69,6 +76,7 @@ export const opsAlertPayloadSchema = z.discriminatedUnion("kind", [
   entry("email.failed"),
   entry("ops.test"),
   entry("research.run_failed"),
+  entry("benchmark.failed"),
   entry("payment.received"),
   entry("enquiry.received"),
 ]);

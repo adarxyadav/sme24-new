@@ -2,22 +2,27 @@ import "./instrumentation";
 
 import * as Sentry from "@sentry/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { queue, schemaTask } from "@trigger.dev/sdk";
+import { idempotencyKeys, queue, schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod";
-import { MODEL_VERSION, TRIGGER_KINDS } from "@/features/benchmark/catalogue";
+import { MODEL_VERSION, TRIGGER_KINDS, type TriggerKind } from "@/features/benchmark/catalogue";
 import {
   computeBenchmark,
   type ModelAssumption,
   type ModelCatalogueEntry,
   type ModelKpiRow,
   type ModelPeerRow,
+  roundChf,
 } from "@/features/benchmark/model";
-import { snapshotBlocksV1Schema } from "@/features/benchmark/snapshot";
+import { type SnapshotBody, snapshotBlocksV1Schema } from "@/features/benchmark/snapshot";
 import { isKpiKey } from "@/features/research/catalogue";
+import { BENCHMARK_SNAPSHOT_CREATED_EVENT, type NewSendPayload } from "@/lib/email/schema";
 import { taskEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import type { Database, Json, Tables } from "@/lib/supabase/database.types";
 import { createServiceClient } from "@/lib/supabase/service";
+import { raiseAlertFromTask } from "./ops-alert";
+import { triggerRunUrl } from "./research-company";
+import { sendEmailTask } from "./send-email";
 
 type Service = SupabaseClient<Database>;
 type CompanyRow = Tables<"companies">;
@@ -45,8 +50,10 @@ export type BenchmarkCompanyPayload = z.infer<typeof benchmarkCompanyPayloadSche
  * company right before computing, runs the pure model, validates the body with the version 1
  * schema and inserts one immutable `benchmark_snapshots` row. A snapshot is inserted even when
  * nothing compared or the cost is null, so the dashboard state is always decided by a row. Every
- * read and write filters by the loaded company's id and organization. Throws on a database error
- * so Trigger.dev retries. Runs in the Trigger.dev EU environment.
+ * read and write filters by the loaded company's id and organization. The company's first
+ * snapshot sends the benchmark ready email to every member (AC-7). Throws on a database error so
+ * Trigger.dev retries; `onFailure` raises the `benchmark.failed` alert once (AC-8). Runs in the
+ * Trigger.dev EU environment.
  */
 export const benchmarkCompanyTask = schemaTask({
   id: "benchmark-company",
@@ -155,9 +162,107 @@ export const benchmarkCompanyTask = schemaTask({
       createdAt: inserted.created_at,
       first,
     });
+    if (first) {
+      const sent = await sendBenchmarkReady(supabase, ids, company.name, body);
+      step("benchmark ready emails queued", { members: sent.members, queued: sent.queued });
+    }
     return { status: "stored" as const, snapshotId: inserted.id, first };
   },
+  onFailure: async ({ payload, error, ctx }) => {
+    const env = taskEnv();
+    const supabase = createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
+    const { data: company } = await supabase
+      .from("companies")
+      .select("id, organization_id, name")
+      .eq("id", payload.companyId)
+      .maybeSingle();
+    const ids: CompanyIds = {
+      companyId: payload.companyId,
+      organizationId: company?.organization_id ?? "",
+    };
+    reportBenchmarkError(error, ids, ctx.run.id);
+    const errorMessage = (error instanceof Error ? error.message : String(error)).slice(0, 500);
+    log.error("benchmark failed after the last attempt", {
+      ...ids,
+      triggerKind: payload.triggerKind,
+      triggerRunId: ctx.run.id,
+      reason: errorMessage,
+    });
+    const { data: organization } = company
+      ? await supabase
+          .from("organizations")
+          .select("name")
+          .eq("id", company.organization_id)
+          .maybeSingle()
+      : { data: null };
+    await raiseAlertFromTask({
+      kind: "benchmark.failed",
+      fields: {
+        organizationName: organization?.name ?? "Unknown organization",
+        companyName: company?.name ?? "Unknown company",
+        triggerKind: payload.triggerKind as TriggerKind,
+        errorMessage: errorMessage || "unknown error",
+      },
+      externalUrl: triggerRunUrl(ctx.project.ref, ctx.run.id),
+      idempotencyKey: `benchmark-failed/${ctx.run.id}`,
+    });
+  },
 });
+
+/** How long the global key blocks a second benchmark ready email for the same member and company. */
+const EMAIL_IDEMPOTENCY_TTL = "30d";
+
+/**
+ * Sends the benchmark ready email to every member of the company's organization (AC-7), one
+ * `send-email` trigger per member with the recipient resolved by user id and the key
+ * `benchmark-ready/<companyId>/<userId>`. Money goes in rounded. A failed trigger is logged and
+ * never fails the task.
+ */
+async function sendBenchmarkReady(
+  supabase: Service,
+  ids: CompanyIds,
+  companyName: string,
+  body: SnapshotBody,
+): Promise<{ readonly members: number; readonly queued: number }> {
+  const { data: members, error } = await supabase
+    .from("organization_members")
+    .select("user_id")
+    .eq("organization_id", ids.organizationId);
+  if (error) throw error;
+  const data: NewSendPayload["data"] = {
+    companyName,
+    kpisCompared: body.kpisCompared,
+    ...(body.costChf === null ? {} : { costChf: roundChf(body.costChf) }),
+    ...(body.savingMedianChf === null ? {} : { savingMedianChf: roundChf(body.savingMedianChf) }),
+  };
+  let queued = 0;
+  for (const member of members) {
+    const key = `benchmark-ready/${ids.companyId}/${member.user_id}`;
+    try {
+      const idempotencyKey = await idempotencyKeys.create(key, { scope: "global" });
+      await sendEmailTask.trigger(
+        {
+          kind: "new",
+          template: "benchmark_ready",
+          data,
+          recipient: { userId: member.user_id },
+          sourceEvent: BENCHMARK_SNAPSHOT_CREATED_EVENT,
+          organizationId: ids.organizationId,
+          idempotencyKey: key,
+        },
+        { idempotencyKey, idempotencyKeyTTL: EMAIL_IDEMPOTENCY_TTL },
+      );
+      queued += 1;
+    } catch (sendError) {
+      log.error("benchmark ready email trigger failed", {
+        ...ids,
+        userId: member.user_id,
+        reason: sendError instanceof Error ? sendError.message : String(sendError),
+      });
+    }
+  }
+  return { members: members.length, queued };
+}
 
 /** The company by id (and organization on the re read), skipping archived rows (AC-5). */
 async function loadCompany(
@@ -290,7 +395,7 @@ async function isFirstSnapshot(
   return data?.id === snapshotId;
 }
 
-/** Reports a task error to Sentry with the company ids (AC-8 wiring; the alert follows in slice 3). */
+/** Reports a task error to Sentry with the company ids (AC-8). */
 export function reportBenchmarkError(error: unknown, ids: CompanyIds, triggerRunId: string): void {
   Sentry.captureException(error, {
     tags: { company_id: ids.companyId, source: "benchmark-company" },
