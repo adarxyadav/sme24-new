@@ -14,7 +14,7 @@
 -- exists so a table that never got a policy at all cannot reach them unnoticed.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(33);
+select plan(34);
 
 -- Every table in public (regular and partitioned).
 create function pg_temp.public_tables()
@@ -130,19 +130,21 @@ select is_empty(
   'audit_log has no foreign key, so the trail outlives the user and the organization');
 
 -- Functions ------------------------------------------------------------------------------
--- Security definer stays inside private, plus the five public entry points that need it:
+-- Security definer stays inside private, plus the six public entry points that need it:
 -- create_organization (the only insert path for organizations), add_organization_member (the only
 -- member facing insert path for memberships, which has to read the target's profile to check they
 -- consented) and handle_new_user (the auth trigger from spec 0001 that writes profiles as
 -- supabase_auth_admin) and accept_terms (spec 0005: the only API write path for the consent column,
 -- which sits outside the authenticated update grant) and settle_order (spec 0011: the atomic
 -- settlement, which writes orders and invoices, and no app role may write either; execute is
--- revoked from anon and authenticated, so only the service role reaches it).
+-- revoked from anon and authenticated, so only the service role reaches it) and
+-- next_order_reference (spec 0011: the order reference sequence is not granted to the app roles,
+-- and a burnt reference costs nothing, unlike an invoice number, so clients may draw one).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name), ('settle_order'::name) $$,
-  'the only security definer functions in public are the five recorded entry points');
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name), ('next_order_reference'::name), ('settle_order'::name) $$,
+  'the only security definer functions in public are the six recorded entry points');
 -- settle_order writes money rows, so its execute grant is checked explicitly: the service role
 -- only. Supabase's default privileges grant execute to anon and authenticated on every new public
 -- function, and the declarative diff's REVOKE ... FROM PUBLIC does not remove those direct grants,
@@ -155,6 +157,14 @@ select is_empty(
      where n.nspname = 'public' and p.proname in ('settle_order', 'scor_reference')
        and a.privilege_type = 'EXECUTE' and r.rolname in ('anon', 'authenticated') $$,
   'no app role may execute settle_order or scor_reference');
+select is_empty(
+  $$ select r.rolname from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+     cross join lateral aclexplode(p.proacl) a
+     join pg_roles r on r.oid = a.grantee
+     where n.nspname = 'public' and p.proname = 'next_order_reference'
+       and a.privilege_type = 'EXECUTE' and r.rolname = 'anon' $$,
+  'an anonymous visitor cannot draw an order reference');
 select is_empty(
   $$ select n.nspname || '.' || p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname in ('private', 'public')

@@ -16,6 +16,24 @@
 create sequence if not exists public.order_reference_seq as bigint start 1;
 comment on sequence public.order_reference_seq is 'Supplies the counter in the SME24-<year>-<n> order reference. Not gapless by design: a burnt reference costs nothing, unlike an invoice number.';
 
+-- Draws the next order reference, SME24-<year>-<counter>. The year is the server clock in
+-- Europe/Zurich (spec 0011, Value sourcing), so a purchase just before midnight on 31 December
+-- carries the year the buyer saw. Definer, because the sequence is not granted to the app roles;
+-- a burnt reference costs nothing, unlike a burnt invoice number, so this may be called freely.
+create or replace function public.next_order_reference()
+returns text
+language sql
+security definer
+set search_path = ''
+as $$
+  select 'SME24-'
+    || extract(year from (now() at time zone 'Europe/Zurich'))::integer
+    || '-'
+    || lpad(nextval('public.order_reference_seq')::text, 4, '0');
+$$;
+
+comment on function public.next_order_reference() is 'The next SME24-<year>-<counter> order reference; the year is the Europe/Zurich clock. Not gapless by design.';
+
 create table public.orders (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations (id) on delete cascade,
@@ -155,3 +173,10 @@ revoke update, delete on public.orders from anon, authenticated;
 -- TRUNCATE walks around RLS and fires no row trigger; Supabase hands it to all three app roles at
 -- creation. On money rows it would erase the bookkeeping trail, so it is revoked from every role.
 revoke truncate on public.orders from anon, authenticated, service_role;
+
+-- The checkout action draws a reference before inserting the order, so signed in clients execute
+-- it; anonymous visitors never do. The declarative diff does not emit the anon revoke on a new
+-- public function and Supabase's default privileges grant execute to both app roles, so the
+-- migration revokes anon by hand (AGENTS.md).
+revoke execute on function public.next_order_reference() from anon, public;
+grant execute on function public.next_order_reference() to authenticated;

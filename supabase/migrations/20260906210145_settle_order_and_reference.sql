@@ -1,5 +1,17 @@
 SET local check_function_bodies = off;
 
+CREATE OR REPLACE FUNCTION public.next_order_reference()
+  RETURNS text
+  LANGUAGE sql
+  SECURITY DEFINER
+  SET search_path TO ''
+  AS $function$
+  select 'SME24-'
+    || extract(year from (now() at time zone 'Europe/Zurich'))::integer
+    || '-'
+    || lpad(nextval('public.order_reference_seq')::text, 4, '0');
+$function$;
+
 CREATE OR REPLACE FUNCTION public.scor_reference (
   body text
 )
@@ -139,9 +151,15 @@ begin
 end;
 $function$;
 
+COMMENT ON FUNCTION "public"."next_order_reference"() IS 'The next SME24-<year>-<counter> order reference; the year is the Europe/Zurich clock. Not gapless by design.';
+
 COMMENT ON FUNCTION "public"."scor_reference"(text) IS 'ISO 11649 SCOR creditor reference from an invoice number body. Mirrors scorReference in src/features/checkout/reference.ts; a Vitest test keeps the two equal.';
 
 COMMENT ON FUNCTION "public"."settle_order"(uuid, timestamp with time zone, uuid, text, text, text, text, text, integer) IS 'The atomic part of settling a payment: order to paid, its order_events row, and the invoice with its gapless number. Resumable: a second call returns the existing invoice. Service role and ops only.';
+
+REVOKE ALL ON FUNCTION "public"."next_order_reference"() FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION "public"."next_order_reference"() TO "authenticated", "postgres", "service_role";
 
 REVOKE ALL ON FUNCTION "public"."scor_reference"(text) FROM PUBLIC;
 
@@ -152,9 +170,13 @@ REVOKE ALL ON FUNCTION "public"."settle_order"(uuid, timestamp WITH time zone, u
 GRANT EXECUTE ON FUNCTION "public"."settle_order"(uuid, timestamp WITH time zone, uuid, text, text, text, text, text, integer) TO "postgres", "service_role";
 
 -- Re added by hand (AGENTS.md): the declarative diff emits only `REVOKE ALL ... FROM PUBLIC`,
--- which removes the PUBLIC pseudo role grant but not the direct grants Supabase's default
--- privileges hand to anon and authenticated on every new function in public. Without these two
--- lines a signed in client could call settle_order and mark their own order paid without paying.
+-- which drops the PUBLIC pseudo role grant but not the direct grants Supabase's default
+-- privileges hand to anon and authenticated on every new function in public.
+-- settle_order writes money rows: without this a signed in client could mark their own order paid
+-- without paying. next_order_reference stays available to authenticated (the checkout action
+-- draws a reference before inserting) but never to anonymous visitors.
 REVOKE EXECUTE ON FUNCTION "public"."settle_order"(uuid, timestamp WITH time zone, uuid, text, text, text, text, text, integer) FROM "anon", "authenticated";
 
 REVOKE EXECUTE ON FUNCTION "public"."scor_reference"(text) FROM "anon", "authenticated";
+
+REVOKE EXECUTE ON FUNCTION "public"."next_order_reference"() FROM "anon";

@@ -1321,6 +1321,7 @@ export type Database = {
       }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      next_order_reference: { Args: never; Returns: string }
       scor_reference: { Args: { body: string }; Returns: string }
       settle_order: {
         Args: {
