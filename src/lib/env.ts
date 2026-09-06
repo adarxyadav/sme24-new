@@ -68,24 +68,43 @@ const serverSchema = clientSchema.extend({
   OPS_ALERT_WEBHOOK_URL: optionalString,
 });
 
-const taskSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
-  SUPABASE_SECRET_KEY: nonEmpty,
-  NEXT_PUBLIC_APP_URL: z.url(),
-  AI_GATEWAY_API_KEY: requiredWhen(deployedTask),
-  SENTRY_DSN: requiredWhen(deployedTask),
-  NEXT_PUBLIC_POSTHOG_KEY: requiredWhen(deployedTask),
-  NEXT_PUBLIC_POSTHOG_HOST: z.url().default("https://eu.i.posthog.com"),
-  PARALLEL_API_KEY: optionalString,
-  // Spec 0006: the email rail. Resend when the key is set, else SMTP (Mailpit locally), else the
-  // task skips the send. EMAIL_FROM falls back to a local sender only when SMTP is the transport.
-  RESEND_API_KEY: optionalString,
-  EMAIL_FROM: requiredWhen(deployedTask),
-  EMAIL_REPLY_TO: optionalString,
-  EMAIL_SMTP_URL: optionalString,
-  EMAIL_ALLOWED_RECIPIENTS: allowlist,
-  OPS_ALERT_WEBHOOK_URL: optionalString,
-});
+const taskSchema = z
+  .object({
+    NEXT_PUBLIC_SUPABASE_URL: z.url(),
+    SUPABASE_SECRET_KEY: nonEmpty,
+    NEXT_PUBLIC_APP_URL: z.url(),
+    AI_GATEWAY_API_KEY: requiredWhen(deployedTask),
+    SENTRY_DSN: requiredWhen(deployedTask),
+    NEXT_PUBLIC_POSTHOG_KEY: requiredWhen(deployedTask),
+    NEXT_PUBLIC_POSTHOG_HOST: z.url().default("https://eu.i.posthog.com"),
+    // Spec 0007 (AC-12, AC-16): the research provider. `parallel` needs the key; `fixture` runs
+    // the canned result; unset falls to `fixture` when the key is empty, else `parallel`.
+    PARALLEL_API_KEY: optionalString,
+    RESEARCH_PROVIDER: optionalString.pipe(z.enum(["parallel", "fixture"]).optional()),
+    // Spec 0006: the email rail. Resend when the key is set, else SMTP (Mailpit locally), else the
+    // task skips the send. EMAIL_FROM falls back to a local sender only when SMTP is the transport.
+    RESEND_API_KEY: optionalString,
+    EMAIL_FROM: requiredWhen(deployedTask),
+    EMAIL_REPLY_TO: optionalString,
+    EMAIL_SMTP_URL: optionalString,
+    EMAIL_ALLOWED_RECIPIENTS: allowlist,
+    OPS_ALERT_WEBHOOK_URL: optionalString,
+  })
+  .superRefine((env, context) => {
+    // A deployed task must not silently run the fixture: it needs the Parallel key unless the
+    // fixture was asked for explicitly (`requiredWhen` cannot express the "unless").
+    if (deployedTask && !env.PARALLEL_API_KEY && env.RESEARCH_PROVIDER !== "fixture") {
+      context.addIssue({
+        code: "custom",
+        path: ["PARALLEL_API_KEY"],
+        message: "required when deployed unless RESEARCH_PROVIDER is fixture",
+      });
+    }
+  })
+  .transform((env) => ({
+    ...env,
+    RESEARCH_PROVIDER: env.RESEARCH_PROVIDER ?? (env.PARALLEL_API_KEY ? "parallel" : "fixture"),
+  }));
 
 export type ClientEnv = z.infer<typeof clientSchema>;
 export type ServerEnv = z.infer<typeof serverSchema>;

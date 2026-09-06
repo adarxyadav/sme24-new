@@ -53,8 +53,13 @@ const entry = <K extends AlertKind>(kind: K) =>
   z.object({
     kind: z.literal(kind),
     fields: alertFields[kind],
-    /** A bare app path (`/admin/emails/<id>`); the builder prefixes the app URL and `/de`. */
+    /** A bare app path (`/admin/emails/<id>`); the builder prefixes the app URL and the locale. */
     link: z.string().regex(/^\//).max(500).optional(),
+    /** An absolute https link outside the app (spec 0007: the Trigger.dev run page); `link` wins when both are set. */
+    externalUrl: z
+      .url({ protocol: /^https$/ })
+      .max(500)
+      .optional(),
     idempotencyKey: z.string().min(1).max(200),
   });
 

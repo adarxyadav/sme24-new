@@ -25,7 +25,7 @@ describe("presentAlert and buildSlackMessage", () => {
       ["Time", "05.09.2026, 17:21"],
     ]);
 
-    const message = buildSlackMessage(view, "/admin", "https://sme24.example/");
+    const message = buildSlackMessage(view, { link: "/admin", appUrl: "https://sme24.example/" });
     expect(message.text).toBe("New client signed up: Musterfirma AG");
     expect(JSON.stringify(message)).not.toContain("@");
     expect(message.blocks[0]).toEqual({
@@ -50,7 +50,7 @@ describe("presentAlert and buildSlackMessage", () => {
       { organizationName: "A & B <GmbH>", amountChf: 4900, reference: "INV-1" },
       { now },
     );
-    const message = buildSlackMessage(view, undefined, "https://sme24.example");
+    const message = buildSlackMessage(view, { appUrl: "https://sme24.example" });
     const section = message.blocks[1] as { fields: Array<{ text: string }> };
     expect(section.fields[0]?.text).toBe("*Organization*\nA &amp; B &lt;GmbH&gt;");
     expect(section.fields[1]?.text).toContain("CHF");
