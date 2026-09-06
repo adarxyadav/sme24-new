@@ -148,7 +148,7 @@ Tracer Bullet: the first slice runs one hand entered value end to end from the f
 - [ ] Feature 22 (client team invitations): relax `company_kpis` update and delete policies for client rows from `created_by = auth.uid()` to organization scope, update `company_kpis.test.sql`, and note it in the feature 22 scope row before that build starts.
 - [ ] If a client asks to dismiss a research value without replacing it ("we have no reliable figure"), that is a new decision (a dismissal flag or table, and a benchmark rule), not a variant of clearing.
 - [ ] Feature 15 (analytics): capture `kpi.client_saved` and `kpi.client_cleared` with the KPI key and the year once the event taxonomy exists.
-- [ ] `/sync` records `src/features/self-assessment/` and the `selfAssessment` namespace in `AGENTS.md` after the merge.
+- [x] `/sync` records `src/features/self-assessment/` and the `selfAssessment` namespace in `AGENTS.md` after the merge.
 
 ## Rationale
 
