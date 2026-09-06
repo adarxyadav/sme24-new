@@ -7,6 +7,14 @@ export type Cursor = { readonly createdAt: string; readonly id: string };
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * An ISO-8601 timestamp in the shape `created_at` is read back in: a date, `T`, a time with
+ * optional fractional seconds and `Z` or a `±HH:MM` offset. Both halves of the cursor are
+ * interpolated into the PostgREST `or=` filter, so the timestamp is pinned as strictly as the id
+ * and no comma, parenthesis or stray dot can reach the filter grammar.
+ */
+const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+
 /** Encodes the keyset cursor `created_at|id` as base64url. Pure, server only. */
 export function encodeCursor(cursor: Cursor): string {
   return Buffer.from(`${cursor.createdAt}|${cursor.id}`, "utf8").toString("base64url");
@@ -20,7 +28,8 @@ export function decodeCursor(value: string | undefined): Cursor | null {
   if (separator <= 0) return null;
   const createdAt = decoded.slice(0, separator);
   const id = decoded.slice(separator + 1);
-  if (!UUID_PATTERN.test(id) || Number.isNaN(Date.parse(createdAt))) return null;
+  if (!UUID_PATTERN.test(id) || !TIMESTAMP_PATTERN.test(createdAt)) return null;
+  if (Number.isNaN(Date.parse(createdAt))) return null;
   return { createdAt, id };
 }
 

@@ -28,6 +28,46 @@ describe("isUuid", () => {
   });
 });
 
+describe("decodeCursor", () => {
+  const encode = (createdAt: string, id: string) =>
+    Buffer.from(`${createdAt}|${id}`, "utf8").toString("base64url");
+
+  it("accepts a timestamp as `created_at` is read back, with an offset or with Z", () => {
+    expect(decodeCursor(encode(AT, ID))).toEqual({ createdAt: AT, id: ID });
+    expect(decodeCursor(encode("2026-09-06T08:30:00Z", ID))).toEqual({
+      createdAt: "2026-09-06T08:30:00Z",
+      id: ID,
+    });
+  });
+
+  it("rejects a lenient date string the old `Date.parse` check let through", () => {
+    // Both values parse as dates, so `Date.parse` alone accepted them; the first carries a comma,
+    // the separator of the PostgREST `or=` filter, straight into the interpolated string.
+    for (const createdAt of ["Sep 6, 2026", "2026-09-06"]) {
+      expect(Number.isNaN(Date.parse(createdAt))).toBe(false);
+      expect(decodeCursor(encode(createdAt, ID))).toBeNull();
+    }
+  });
+
+  it("rejects a timestamp with a trailing filter clause or a stray parenthesis", () => {
+    for (const createdAt of [
+      `${AT},id.gt.0`,
+      `${AT})`,
+      `${AT} (UTC)`,
+      "2026-09-06T08:30:00.000+00:00,and(id.lt.x)",
+    ]) {
+      expect(decodeCursor(encode(createdAt, ID))).toBeNull();
+    }
+  });
+
+  it("rejects a well shaped but impossible timestamp, and a tampered id", () => {
+    expect(decodeCursor(encode("2026-13-45T08:30:00.000+00:00", ID))).toBeNull();
+    expect(decodeCursor(encode(AT, "1; drop table enquiries"))).toBeNull();
+    expect(decodeCursor(undefined)).toBeNull();
+    expect(decodeCursor(encode("", ID))).toBeNull();
+  });
+});
+
 describe("afterCursorFilter", () => {
   it("continues a list ordered by created_at desc, id desc after the cursor row", () => {
     expect(afterCursorFilter({ createdAt: AT, id: ID })).toBe(

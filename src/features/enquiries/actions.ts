@@ -47,6 +47,8 @@ export async function updateEnquiry(
   const { id, status, opsNote } = parsed.data;
 
   if (leavesNew(status)) {
+    // A zero row match here is expected and harmless: the row either already left `new` (another
+    // ops user is the handler) or the id does not exist. The update below settles both cases.
     const { error } = await actor.supabase
       .from("enquiries")
       .update({

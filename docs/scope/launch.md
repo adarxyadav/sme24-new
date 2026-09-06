@@ -17,7 +17,7 @@ spec [0009](../specs/0009-marketing-site-retainer-enquiry/index.md)
   - [x] The owner's package ladder (second spec amendment 2026-09-06): `PACKAGES` reordered by price with the four prices, `PackageCard` rebuilt with the best for, delivery, pills, output and outcome lines and "On demand", the new catalog keys in both languages, the phone and profiles optional in `site.ts` with the contact page and the `Organization` JSON-LD omitting them, the tests, `docs/marketing.md` and the verify record (the amended AC-6, AC-8 and AC-3)
 - [ ] Verify it: `/check verify marketing site & retainer enquiry`
 - [x] Test it: `/test marketing site & retainer enquiry`
-- [ ] Review it (fresh model): `/check review marketing site & retainer enquiry`
+- [x] Review it (fresh model): `/check review marketing site & retainer enquiry`
 - [ ] Document it: `/document marketing site & retainer enquiry`
 
 ### 14. Legal, privacy & cookie consent · needs a decision
