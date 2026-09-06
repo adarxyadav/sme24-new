@@ -64,10 +64,10 @@ spec [0008](../specs/0008-peer-benchmark-chf-opportunity/index.md) · code in `s
   - [x] Transparency and client inputs: the "How this is calculated" disclosure on a `Collapsible`, `updateCompanyFacts` with the grouped NOGA division picker and the headcount field, the missing input states, the percent rule (AC-10, AC-11, completes AC-6 and AC-9)
   - [x] Moments and the failure rail: the `benchmark_ready` email on the first snapshot per company and member, the `benchmark.failed` alert with the `onFailure` hook (AC-7, AC-8)
   - [x] Ops tooling, hardening and docs: the recompute script, the gallery sections, Vitest, pgTAP and the Playwright thread with axe, `docs/benchmark.md` with the source checklist and the launch gate (AC-13, AC-16, AC-17, completes AC-14)
-- [ ] Verify it: `/check verify peer benchmark & CHF opportunity`
-- [ ] Test it: `/test peer benchmark & CHF opportunity`
-- [ ] Review it (fresh model): `/check review peer benchmark & CHF opportunity`
-- [ ] Document it: `/document peer benchmark & CHF opportunity`
+- [x] Verify it: `/check verify peer benchmark & CHF opportunity`
+- [x] Test it: `/test peer benchmark & CHF opportunity`
+- [x] Review it (fresh model): `/check review peer benchmark & CHF opportunity`
+- [x] Document it: `/document peer benchmark & CHF opportunity`
 
 ### 10. Self assessment fallback · Beta
 When the pipeline finds little or nothing, or the client wants to correct it, the client fills in the same KPIs by hand and the benchmark recalculates. Extends the KPI schema and dashboard from features 8 and 9.
