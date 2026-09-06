@@ -201,7 +201,17 @@ function remoteSource(base: string, bypassSecret: string | undefined): Source {
         );
         return undefined;
       }
-      return await response.text();
+      const html = await response.text();
+      if (moduleScriptSources(html).length === 0) {
+        // Show what came back so a parser gap on a deployment is visible in the CI log.
+        const tags = html.match(/<script\b[^>]*>/gi) ?? [];
+        console.error(
+          `${pageUrlPath(page)}: ${html.length} bytes, title ${JSON.stringify(
+            /<title>([^<]*)<\/title>/i.exec(html)?.[1] ?? "",
+          )}, ${tags.length} script tags: ${tags.slice(0, 4).join(" ")}`,
+        );
+      }
+      return html;
     },
     script: async (src) => {
       const response = await fetch(new URL(src, base), {
