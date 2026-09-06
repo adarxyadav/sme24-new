@@ -14,6 +14,7 @@ export const ALERT_KINDS = [
   "benchmark.failed",
   "payment.received",
   "enquiry.received",
+  "invoice.render_failed",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -51,6 +52,17 @@ const alertFields = {
     organizationName: z.string().min(1).max(200),
     topic: z.string().min(1).max(200),
   }),
+  /**
+   * Spec 0011 (AC-10): the invoice PDF exhausted its retries. The order stays paid and the client
+   * keeps their purchase; ops retry the render from the admin. The invoice number is the handle
+   * ops work with, so it is the field, not the internal id alone.
+   */
+  "invoice.render_failed": z.object({
+    invoiceNumber: z.string().min(1).max(50),
+    reference: z.string().min(1).max(100),
+    organizationName: z.string().min(1).max(200),
+    errorMessage: z.string().min(1).max(500),
+  }),
 } as const satisfies Record<AlertKind, z.ZodType>;
 
 /** The typed fields of one kind. */
@@ -79,5 +91,6 @@ export const opsAlertPayloadSchema = z.discriminatedUnion("kind", [
   entry("benchmark.failed"),
   entry("payment.received"),
   entry("enquiry.received"),
+  entry("invoice.render_failed"),
 ]);
 export type OpsAlertPayload = z.infer<typeof opsAlertPayloadSchema>;

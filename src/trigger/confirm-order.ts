@@ -12,6 +12,7 @@ import type { Database, Tables } from "@/lib/supabase/database.types";
 import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import { raiseAlertFromTask } from "./ops-alert";
+import { renderInvoiceTask } from "./render-invoice";
 import { sendEmailTask } from "./send-email";
 
 /**
@@ -102,7 +103,15 @@ export const confirmOrderTask = schemaTask({
       throw new Error(`settle order failed: ${settled.error}`);
     }
 
-    // Step 2 and 3 are keyed on the order, so a retry after a crash sends one email and raises
+    // Step 2: the PDF. Keyed on the invoice, so a retry renders once. The email follows it rather
+    // than running beside it, so a confirmation always points at an invoice that exists (AC-4);
+    // a render that exhausts its retries still lets the email go out, without the attachment.
+    await renderInvoiceTask.trigger(
+      { invoiceId: settled.data.invoiceId },
+      { idempotencyKey: `invoice-render/${settled.data.invoiceId}` },
+    );
+
+    // Steps 3 and 4 are keyed on the order, so a retry after a crash sends one email and raises
     // one alert however many times this task runs.
     await sendConfirmation(supabase, order, settled.data.invoiceNumber);
     await raiseAlertFromTask({

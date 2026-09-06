@@ -1696,5 +1696,19 @@
     "invoiceFailed": "Die Rechnung konnte nicht erstellt werden. Wir kümmern uns darum und melden uns.",
     "historyTitle": "Verlauf",
     "more": "Weitere anzeigen"
+  },
+  "invoice": {
+    "title": "Rechnung",
+    "number": "Rechnungsnummer",
+    "date": "Rechnungsdatum",
+    "due": "Zahlbar bis",
+    "orderReference": "Bestellreferenz",
+    "billTo": "Rechnung an",
+    "uid": "UID",
+    "description": "Beschreibung",
+    "net": "Netto",
+    "vat": "MWST {rate}",
+    "gross": "Gesamtbetrag",
+    "paymentNote": "Bitte verwenden Sie den QR-Zahlteil unten für die Zahlung."
   }
 }

@@ -1696,5 +1696,19 @@
     "invoiceFailed": "We could not create the invoice. We are on it and will be in touch.",
     "historyTitle": "History",
     "more": "Show more"
+  },
+  "invoice": {
+    "title": "Invoice",
+    "number": "Invoice number",
+    "date": "Invoice date",
+    "due": "Payable by",
+    "orderReference": "Order reference",
+    "billTo": "Bill to",
+    "uid": "UID",
+    "description": "Description",
+    "net": "Net",
+    "vat": "VAT {rate}",
+    "gross": "Total",
+    "paymentNote": "Please use the QR payment slip below to pay."
   }
 }

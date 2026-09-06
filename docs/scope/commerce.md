@@ -12,7 +12,7 @@ Spec: [0011](../specs/0011-package-checkout-swiss-vat/index.md). Cards go throug
 - [x] Design it (spec): `/architect package checkout with Swiss VAT`
 - [ ] Build it: `/develop package checkout with Swiss VAT`
   - [x] Tables, money arithmetic and the catalogue promotion: five tables with their policies, integer Rappen amounts, the `packages` seed and its equality test (AC-2, AC-3, AC-12, AC-13, AC-14, AC-15)
-  - [ ] One card purchase end to end: the checkout action, the Stripe webhook, the shared resumable `settleOrder` core, the orders UI and the confirmation email (AC-1, AC-5, AC-6, AC-7, AC-9, AC-10, AC-11, AC-18, AC-19)
+  - [x] One card purchase end to end: the checkout action, the Stripe webhook, the shared resumable `settleOrder` core, the orders UI and the confirmation email (AC-1, AC-5, AC-6, AC-7, AC-9, AC-10, AC-11, AC-18, AC-19)
   - [ ] The invoice document: seller configuration with its placeholder guard, the SCOR reference, the private Storage bucket, and the QR-bill PDF render (AC-4, AC-17)
   - [ ] Bank transfer and ops control: the invoice first path, ops mark paid and cancel, the pricing page buttons, and the sweep (AC-8, AC-16)
 - [ ] Verify it: `/check verify package checkout with Swiss VAT`
