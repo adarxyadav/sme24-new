@@ -181,6 +181,7 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
       ["eq", ["organization_id", ORG]],
       ["is", ["archived_at", null]],
       ["order", ["created_at", { ascending: true }]],
+      ["order", ["id", { ascending: true }]],
       ["limit", [1]],
       ["maybeSingle", []],
     ]);

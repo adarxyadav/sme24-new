@@ -65,8 +65,9 @@ function localeOf(input: unknown): Locale {
 /**
  * Starts the first research (AC-3): answers `company_exists` with the id when the organization
  * already has a non archived company, else inserts the company (`name`, `website`, `country`
- * `CH`, `created_by`) and its queued run, triggers the task and stores the run id. Server action,
- * client member.
+ * `CH`, `created_by`) and its queued run, triggers the task and stores the run id. Two concurrent
+ * submits can both pass the check, so the insert is reconciled against the earliest company
+ * afterwards and the loser is archived before it can start a run. Server action, client member.
  */
 export async function requestResearch(
   _previous: ResearchActionResult<RequestResearchData> | null,
@@ -83,7 +84,9 @@ export async function requestResearch(
     .select("id")
     .eq("organization_id", organizationId)
     .is("archived_at", null)
+    // The same order `getCompanyDashboard` uses, id breaking a tie.
     .order("created_at", { ascending: true })
+    .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
   if (existingError) return unexpected("request-research", existingError, organizationId);
@@ -101,6 +104,9 @@ export async function requestResearch(
     .select("id")
     .single();
   if (companyError) return unexpected("request-research", companyError, organizationId);
+
+  const settled = await settleConcurrentCompany(actor, company.id);
+  if (settled) return settled;
 
   const run = await startRun(actor, company.id);
   if (!run.ok) return run;
@@ -138,6 +144,49 @@ export async function rerunResearch(
   if (updated.length === 0) return { ok: false, error: "not_found" };
 
   return startRun(actor, parsed.data.companyId);
+}
+
+/**
+ * Guards the double submit the `company_exists` check alone cannot catch (AC-3): a second insert
+ * that raced the check would sit behind the earliest company, which is the only one
+ * `getCompanyDashboard` ever shows, while still spending a run against the daily quota. Re-reads
+ * the earliest non archived company; when it is not the row just inserted, archives that row and
+ * answers `company_exists` with the winner instead of starting a run.
+ */
+async function settleConcurrentCompany(
+  { supabase, organizationId }: Actor,
+  companyId: string,
+): Promise<ResearchActionResult<RequestResearchData> | null> {
+  const { data: earliest, error } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) return unexpected("request-research", error, organizationId);
+  if (!earliest || earliest.id === companyId) return null;
+
+  const { error: archiveError } = await supabase
+    .from("companies")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", companyId)
+    .eq("organization_id", organizationId);
+  if (archiveError) {
+    log.warn("concurrent company not archived", {
+      organizationId,
+      companyId,
+      reason: archiveError.message,
+    });
+  }
+  log.info("concurrent company insert settled", {
+    organizationId,
+    companyId,
+    keptCompanyId: earliest.id,
+  });
+  return { ok: false, error: "company_exists", companyId: earliest.id };
 }
 
 /**

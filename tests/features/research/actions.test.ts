@@ -22,6 +22,8 @@ const boundary = vi.hoisted(() => ({
   createKey: vi.fn(async (key: string, options: unknown) => ({ key, options })),
   captureException: vi.fn(),
   nextId: 1,
+  /** Fires after a select executes, so a test can land a concurrent row mid action. */
+  onSelect: null as ((table: string) => void) | null,
 }));
 
 vi.mock("@/lib/supabase/action", () => ({
@@ -57,8 +59,11 @@ function builder(table: string) {
     boundary.calls.push({ table, op, filters: [...filters], payload });
     const injected = boundary.errors[`${table}.${op}`];
     if (injected) return { data: null, error: injected };
-    if (op === "select")
-      return { data: rows().filter((row) => matches(row, filters)), error: null };
+    if (op === "select") {
+      const data = rows().filter((row) => matches(row, filters));
+      boundary.onSelect?.(table);
+      return { data, error: null };
+    }
     if (op === "insert") {
       const inserted = { id: `${table}-${boundary.nextId++}`, ...(payload as Row) };
       rows().push(inserted);
@@ -139,6 +144,7 @@ beforeEach(() => {
   boundary.calls = [];
   boundary.errors = {};
   boundary.nextId = 1;
+  boundary.onSelect = null;
   boundary.trigger.mockResolvedValue({ id: "run_trigger_1" });
   vi.useFakeTimers({ now: AT, toFake: ["Date"] });
   vi.spyOn(console, "log").mockImplementation(() => {});
@@ -231,6 +237,26 @@ describe("requestResearch (AC-3)", () => {
     expect(calls("companies", "insert")).toEqual([]);
     expect(calls("research_runs", "insert")).toEqual([]);
     expect(boundary.trigger).not.toHaveBeenCalled();
+  });
+
+  it("archives its own company and answers company_exists when another submit won the race", async () => {
+    // The check passes (no company yet), then a concurrent submit lands one before this insert:
+    // `onSelect` runs after the first companies select, so the racer sorts ahead of ours.
+    const raced = { id: COMPANY, organization_id: ORG, name: "Muster AG", archived_at: null };
+    boundary.onSelect = (table) => {
+      if (table !== "companies") return;
+      boundary.onSelect = null;
+      const rows = boundary.tables.companies ?? [];
+      rows.unshift(raced);
+      boundary.tables.companies = rows;
+    };
+    const result = await requestResearch(null, lookup);
+
+    expect(result).toEqual({ ok: false, error: "company_exists", companyId: COMPANY });
+    expect(calls("research_runs", "insert")).toEqual([]);
+    expect(boundary.trigger).not.toHaveBeenCalled();
+    const ours = boundary.tables.companies?.find((row) => row.id === "companies-1");
+    expect(ours?.archived_at).toBe(AT.toISOString());
   });
 
   it("stores no website when none was typed", async () => {

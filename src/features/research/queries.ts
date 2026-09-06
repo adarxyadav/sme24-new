@@ -85,7 +85,9 @@ async function loadCompany(supabase: Client, organizationId: string): Promise<Co
     .select("*")
     .eq("organization_id", organizationId)
     .is("archived_at", null)
+    // The same order the actions use to settle a concurrent insert, id breaking a tie.
     .order("created_at", { ascending: true })
+    .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
   if (error) throw error;
