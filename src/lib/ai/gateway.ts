@@ -15,7 +15,11 @@ export type StructuredOutputInput<Schema extends z.ZodType> = {
   readonly schema: Schema;
   readonly system: string;
   readonly prompt: string;
-  /** The SDK retries transient errors this many times before the call throws (default 2). */
+  /**
+   * The SDK retries transient errors this many times before the call throws (default 2). Spec
+   * 0007 AC-5 ("when the call still fails after the SDK's retries") starts at this throw: the
+   * research task then continues with the provider's values and marks the run `skipped`.
+   */
   readonly maxRetries?: number;
 };
 

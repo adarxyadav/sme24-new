@@ -45,7 +45,12 @@ export function parseYear(raw: string): number | null {
   return last ?? null;
 }
 
-/** The citations of one field as stored sources; a citation without an excerpt is kept with an empty one. Pure. */
+/**
+ * The citations of one field as stored sources; a citation without an excerpt is kept with an
+ * empty one. Only the first excerpt is stored on purpose: it is the one the source popover shows
+ * and the one the validator is given, so keeping the rest would put text on the row that nothing
+ * reads and nothing checked. Pure.
+ */
 export function sourcesOf(
   basis: readonly ProviderBasis[],
   field: string,

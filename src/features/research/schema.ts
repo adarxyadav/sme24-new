@@ -28,8 +28,10 @@ export function normalizeWebsite(raw: string): string | null {
 
 const nameField = z.string().trim().min(2, "nameShort").max(200, "nameLong");
 
-// The browser resolver already transforms the values before the server action parses them again
-// (AC-3), so both fields accept their own output: null for an empty website or legal name.
+// When the form submits, the browser resolver has already transformed the values before the
+// server action parses them again (AC-3), so both fields accept their own output as input: null
+// for an empty website or legal name. A caller without that resolver passes the raw strings and
+// gets the same normalisation, so the schema is the single rule either way.
 const websiteField = z
   .string()
   .trim()
