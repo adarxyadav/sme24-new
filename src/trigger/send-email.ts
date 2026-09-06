@@ -22,6 +22,7 @@ import {
 } from "@/lib/email/transport";
 import { taskEnv } from "@/lib/env";
 import type { Database, Tables } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import { raiseAlertFromTask } from "./ops-alert";
 
@@ -173,7 +174,7 @@ async function ensureNotification(supabase: Service, row: DeliveryRow): Promise<
     .select("id")
     .eq("delivery_id", row.id)
     .maybeSingle();
-  if (lookupError) throw lookupError;
+  if (lookupError) throw queryError(lookupError);
   if (existing) return true;
 
   const { error } = await supabase.from("notifications").insert({
@@ -184,7 +185,7 @@ async function ensureNotification(supabase: Service, row: DeliveryRow): Promise<
     link: entry.link,
     delivery_id: row.id,
   });
-  if (error) throw error;
+  if (error) throw queryError(error);
   return true;
 }
 
@@ -195,7 +196,7 @@ async function loadRetry(supabase: Service, deliveryId: string): Promise<Prepare
     .select("*")
     .eq("id", deliveryId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   if (!row) throw new Error(`delivery ${deliveryId} not found`);
   if (row.status !== "failed" && row.status !== "sending") {
     logger.warn("retry refused: the delivery is not failed", { deliveryId, status: row.status });
@@ -279,7 +280,7 @@ async function processDelivery(
       })
       .eq("id", row.id)
       .not("status", "in", WEBHOOK_STATUSES);
-    if (error) throw error;
+    if (error) throw queryError(error);
     logger.info("email sent", { deliveryId: row.id, transport, attempts });
     return { deliveryId: row.id, status: "sent" };
   }
@@ -331,8 +332,8 @@ async function lookupUser(
       localeForUser(supabase, userId),
       supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
     ]);
-  if (userError && userError.status !== 404) throw userError;
-  if (profileError) throw profileError;
+  if (userError && userError.status !== 404) throw queryError(userError);
+  if (profileError) throw queryError(profileError);
   const fullName = profile?.full_name ?? "";
   const firstName = fullName.trim().split(/\s+/)[0] ?? "";
   return {
@@ -348,7 +349,7 @@ async function findByKey(supabase: Service, key: string): Promise<DeliveryRow | 
     .select("*")
     .eq("idempotency_key", key)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data;
 }
 
@@ -373,7 +374,7 @@ async function update(
   patch: Database["public"]["Tables"]["email_deliveries"]["Update"],
 ): Promise<void> {
   const { error } = await supabase.from("email_deliveries").update(patch).eq("id", id);
-  if (error) throw error;
+  if (error) throw queryError(error);
 }
 
 async function skip(

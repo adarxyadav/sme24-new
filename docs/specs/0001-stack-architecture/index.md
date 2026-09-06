@@ -1,7 +1,7 @@
 # 0001. Stack and architecture for SME24
 
 **Date**: 2026-09-02
-**Status**: In Progress
+**Status**: Accepted (scope feature 1 done 2026-09-05; status closed with the 2026-09-06 amendment)
 
 ## Summary
 
@@ -18,7 +18,7 @@ This is a decision spec, so there is no build plan here; the scaffold sub task o
 **Acceptance criteria**:
 - **AC-1**: The scaffold boots locally with the documented sequence (`pnpm install`, `supabase start`, `pnpm dev`, `pnpm dlx trigger.dev@latest dev`) and renders a localized page at `/de` and `/en`, with `/` redirecting to `/en` (amended 2026-09-05, German until then).
 - **AC-2**: Typecheck, Biome lint and format check, and the Vitest suite run clean locally and in the GitHub Actions workflow on every pull request into `main` and into `production`.
-- **AC-3**: Merging to `main` deploys the app to the staging alias, applies migrations to the staging Supabase project and deploys tasks to the Trigger.dev staging environment; on that alias a task can be triggered and writes a row the page shows. Pull request previews use the same staging database and tasks (a one time manual staging deploy of tasks precedes the first pull request).
+- **AC-3**: Merging to `main` deploys the app to the staging alias, applies migrations to the staging Supabase project and deploys tasks to the Trigger.dev environment that serves staging (the project's Production environment until the plan upgrade, see the 2026-09-06 amendment); on that alias a task can be triggered and writes a row the page shows. Pull request previews use the same staging database and tasks (a one time manual deploy of tasks precedes the first pull request).
 - **AC-4**: The first migration comes from the declarative schema, enables RLS on every table it creates, and the checked in generated TypeScript types match the schema in CI.
 - **AC-5**: Supabase Auth sessions, a `role` claim in the access token, and a role check in the request proxy exist end to end: with the seeded users, each of `/app`, `/expert` and `/admin` rejects a user without the matching role.
 - **AC-6**: Sentry receives a test error from the server and from a task, and PostHog receives a server side test event, both in their EU regions.
@@ -29,7 +29,7 @@ This is a decision spec, so there is no build plan here; the scaffold sub task o
 
 **Chosen option**: Option 1: Next.js on Vercel, Supabase, Trigger.dev, AI SDK with AI Gateway (the stack you named, now pinned with regions, boundaries and the finer picks).
 
-One single repo, single Next.js 16 App Router app in TypeScript, deployed on Vercel (functions in Frankfurt), with Supabase in Zurich for Postgres, auth, storage and realtime, Trigger.dev v4 cloud in the EU region for background work, the Vercel AI SDK v6 through the AI Gateway on Claude Sonnet 5, Parallel Task API for company research, Stripe for payments, Resend for email, Sentry (EU) and PostHog (EU) for observability and analytics, next-intl for German and English.
+One single repo, single Next.js 16 App Router app in TypeScript, deployed on Vercel (functions in Frankfurt), with Supabase in Zurich for Postgres, auth, storage and realtime, Trigger.dev v4 cloud in the EU region for background work, the Vercel AI SDK v7 (v6 at decision time; v7 shipped with feature 8) through the AI Gateway on Claude Sonnet 5, Parallel Task API for company research, Stripe for payments, Resend for email, Sentry (EU) and PostHog (EU) for observability and analytics, next-intl for German and English.
 
 **Implementation skills**: `supabase` (`supabase/agent-skills`, `.claude/skills/supabase/`) · `supabase-postgres-best-practices` (`supabase/agent-skills`, `.claude/skills/supabase-postgres-best-practices/`) · `vercel-react-best-practices` (`vercel-labs/agent-skills`, `.claude/skills/vercel-react-best-practices/`) · `vercel-composition-patterns` (`vercel-labs/agent-skills`, `.claude/skills/vercel-composition-patterns/`) · `deploy-to-vercel` (`vercel-labs/agent-skills`, `.claude/skills/deploy-to-vercel/`) · `tailwind-4-docs` (`Lombiq/Tailwind-Agent-Skills`, `.claude/skills/tailwind-4-docs/`) · `playwright-skill` (`testdino-hq/playwright-skill`, `.claude/skills/playwright-skill/`)
 
@@ -49,7 +49,7 @@ Every row is a decision. Where a later feature spec owns the detail, the row say
 | Schema and migrations | Supabase CLI declarative schema: SQL files under `supabase/schemas/`, diffed into `supabase/migrations/`; `supabase/config.toml` and `supabase/seed.sql` checked in | Tables, policies, functions and triggers live together in SQL and run identically locally, on staging and in prod. |
 | Auth | Supabase Auth with cookie sessions; the user's `role` (client, expert, ops) lives in `app_metadata` and is added to the access token by a custom access token hook (a Postgres function), so the proxy reads it from the session claims with no database call | Already in the stack; `auth.uid()` and the role claim flow straight into RLS. Sign in methods and the organization model are feature 6's spec. |
 | Background jobs | Trigger.dev v4 cloud, EU region (Frankfurt), tasks in `src/trigger/` | Retries, logs, run ids and long durations for the research pipeline, AI generation, report rendering and email sends. |
-| AI | Vercel AI SDK v6 through the Vercel AI Gateway with an explicit `AI_GATEWAY_API_KEY` in every environment (tasks have no Vercel identity), model `anthropic/claude-sonnet-5`, structured outputs with Zod schemas | One module for all model calls; the gateway handles retries and usage; structured outputs keep extraction typed. |
+| AI | Vercel AI SDK v7 (amended 2026-09-06, was v6) through the Vercel AI Gateway with an explicit `AI_GATEWAY_API_KEY` in every environment (tasks have no Vercel identity), model `anthropic/claude-sonnet-5`, structured outputs with Zod schemas | One module for all model calls; the gateway handles retries and usage; structured outputs keep extraction typed. |
 | Company research | Parallel Task API, called from a Trigger.dev task | Web research with sources, run durably inside a task so it can take minutes and be retried. Pipeline shape is feature 8's spec. |
 | Payments | Stripe (Node SDK). Pattern: a webhook route handler verifies the signature, records the event id in an events table so redeliveries are ignored, enqueues a task, returns 200 | Swiss VAT, receipts and hosted checkout. The handler, its events table, checkout mode, VAT handling and order states land in feature 11, not the scaffold. |
 | Email | Resend with React Email templates, EU sending region | Templates are React components localized with the app's strings; send calls run inside Trigger.dev tasks. Templates and triggers are feature 7's spec. |
@@ -70,7 +70,7 @@ Every row is a decision. Where a later feature spec owns the detail, the row say
 | Lint and format | Biome (one config for lint and format) with its accessibility rule group enabled | Runs in milliseconds; its accessibility rules cover less than the ESLint plugin, so axe in Playwright is the second net (see Consequences). |
 | Tests | Vitest with React Testing Library for unit and component tests, Playwright for end to end, axe-core assertions through Playwright for WCAG 2.2 AA | Fast unit loop, real browser for the tracer bullet slices and `/check verify`. |
 | Git and CI | GitHub with GitHub Actions (jobs listed under Architecture); Vercel and Trigger.dev deploy from GitHub | Both platforms integrate with GitHub natively; free for a small private repo. |
-| Environments | Local Supabase (CLI, Docker) for dev; one staging Supabase project and Trigger.dev environment for `main` and pull request previews; a prod project and environment for the `production` branch | Three fixed environments, cheap and predictable; no per branch database costs. |
+| Environments | Local Supabase (CLI, Docker) for dev; one staging Supabase project and Trigger.dev environment for `main` and pull request previews; a prod project and environment for the `production` branch. Interim (amended 2026-09-06): the Trigger.dev free plan has no Staging environment, so `main` deploys tasks into the project's Production environment until the plan is upgraded before the `production` branch exists | Three fixed environments, cheap and predictable; no per branch database costs. |
 | Secrets and config | Vercel environment variables per scope (Development, Preview, Production; pulled locally with `vercel env pull`), Trigger.dev environment variables per environment, one `src/lib/env.ts` module with three Zod schemas (browser, server, task) parsed lazily on first access | Missing or malformed config fails at the first access in the context that needs it, with a clear message, and never crashes a context that does not. |
 
 ## Architecture
@@ -129,15 +129,15 @@ Never a module level Supabase client: each request or task creates its own throu
 | Branch or place | Vercel | Supabase | Trigger.dev |
 |---|---|---|---|
 | Local | `next dev` | local stack via `supabase start` | `trigger.dev dev` |
-| Pull request | preview deployment (Preview scope env vars) | staging project | staging environment (tasks are `main`'s code) |
-| `main` | preview deployment; the `staging.<domain>` domain is assigned to the `main` branch in Vercel's domain settings | staging project, migrations applied by CI on push | staging environment, deployed by CI on push |
+| Pull request | preview deployment (Preview scope env vars) | staging project | staging environment (tasks are `main`'s code); the Production environment until the plan upgrade (amendment 2026-09-06) |
+| `main` | preview deployment; the `staging.<domain>` domain is assigned to the `main` branch in Vercel's domain settings | staging project, migrations applied by CI on push | staging environment, deployed by CI on push; the Production environment until the plan upgrade (amendment 2026-09-06) |
 | `production` | production deployment; Vercel's production branch setting is changed from the default to `production` | prod project, migrations applied by CI on push | prod environment, deployed by CI on push |
 
 GitHub Actions jobs:
 - `check` on `pull_request` into `main` and `production`, and on `push` to both: typecheck, Biome (`biome ci`), Vitest.
 - `types` in the same workflow: `supabase start`, `supabase gen types typescript --local`, diff against the checked in file, fail on difference.
 - `migrate` on `push` to `main` (secret `STAGING_SUPABASE_DB_URL`) and to `production` (secret `PROD_SUPABASE_DB_URL`): `supabase db push --db-url ...`, ordered before the deploy hook. The backward compatible migration rule (add, then switch, then remove in a later change) keeps either ordering safe.
-- `tasks` on the same pushes: `pnpm dlx trigger.dev@latest deploy --env staging` or `--env prod`, authenticated with the repo secret `TRIGGER_ACCESS_TOKEN` (a personal access token, not the runtime secret key).
+- `tasks` on the same pushes: `pnpm trigger:deploy:staging` or `trigger:deploy:prod` (the pinned `trigger.dev` CLI, never `pnpm dlx trigger.dev@latest`, which pulls a newer CLI than the pinned SDK and aborts in CI), authenticated with the repo secret `TRIGGER_ACCESS_TOKEN` (a personal access token, not the runtime secret key). Until the plan upgrade both branches would target `prod`, so `deploy.yml` runs `trigger:deploy:prod` for `main` (amendment 2026-09-06).
 - `e2e` on the `deployment_status` event: reads the deployment URL from the event into `PLAYWRIGHT_BASE_URL` and runs Playwright with axe against it.
 
 Branch protection on `main` and `production` requires a pull request and the `check` job (feature 2). Promotion to production is a pull request from `main` into `production`.
@@ -148,7 +148,7 @@ Branch protection on `main` and `production` requires a pull request and the `ch
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (required, browser and server clients)
 - `SUPABASE_SECRET_KEY` (required in Trigger.dev and server only code, never `NEXT_PUBLIC_`)
 - `STAGING_SUPABASE_DB_URL`, `PROD_SUPABASE_DB_URL` (GitHub repo secrets for the migrate job)
-- `TRIGGER_SECRET_KEY` (required, the runtime key per environment: the staging key in Vercel's Preview scope, the prod key in Production), `TRIGGER_PROJECT_REF` (required), `TRIGGER_ACCESS_TOKEN` (GitHub repo secret for deploys)
+- `TRIGGER_SECRET_KEY` (required, the runtime key per environment: the staging key in Vercel's Preview scope, the prod key in Production; until the plan upgrade the Preview scope holds the Production environment's `tr_prod_` key, amendment 2026-09-06), `TRIGGER_PROJECT_REF` (required), `TRIGGER_ACCESS_TOKEN` (GitHub repo secret for deploys)
 - `AI_GATEWAY_API_KEY` (required in Vercel and Trigger.dev; no OIDC fallback)
 - `PARALLEL_API_KEY` (optional until feature 8)
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (optional until feature 11)
@@ -188,6 +188,7 @@ Branch protection on `main` and `production` requires a pull request and the `ch
 - [ ] Feature 3 (data model): every table gets an organization id and RLS from the first migration, extends the scaffold's `profiles` table and access token hook (adding the organization id claim), and ships the audit log table and policy tests.
 - [ ] Feature 14 (legal): sign or accept the data processing agreements for Vercel, Supabase, Trigger.dev, Anthropic (via Vercel AI Gateway), Parallel, Stripe, Resend, Sentry and PostHog, and list them in the privacy policy with regions.
 - [ ] Decide the production domain and the `staging.` alias before feature 13 (marketing site) so absolute URLs, Stripe redirects and email links are stable.
+- [ ] Before the `production` branch exists: upgrade the Trigger.dev plan so the Staging environment unlocks, deploy `main` there once, move its `tr_stg_` key into Vercel's Preview scope, switch `deploy.yml` back to `trigger:deploy:staging` for `main`, and copy the task variables from the Production environment to Staging (amendment 2026-09-06). Only then does the Production environment become production.
 - [ ] Verify before the scaffold the items the landscape check could not confirm today: PostHog EU and Sentry EU region status, Biome's current major and its rule groups, and the Vercel Frankfurt region name.
 - [ ] Consider proxying PostHog through a Next.js rewrite so ad blockers do not drop consented client events (feature 15).
 - [ ] If pilot contracts demand that AI processing stays in the EU, investigate whether the AI Gateway can pin an EU region on Bedrock or Vertex for Claude; if not, the AI module swaps to a direct Bedrock or Vertex provider, which is a change inside `src/lib/ai/` only.
@@ -201,3 +202,16 @@ Reasoning, options considered, the landscape check evidence, the cross check rec
 Owner decision: English (`en-CH`, URL prefix `/en`) is the default language instead of German. `/` redirects to `/en`, `x-default` points at the English URL, an unknown or missing language falls back to English everywhere (`DEFAULT_LOCALE`, `localeFromCode`, `resolveLocale`, the auth confirm and callback routes, the scaffold task), `profiles.locale` and `organizations.locale` default to `'en'`, `handle_new_user` and `create_organization` fall back to `'en'`, `pnpm user:invite` defaults to `--locale en`, and the ops alert links open `/en/admin`. German stays a full first class language; nothing about the catalogs, the Swiss formats or the switcher changes. AC-1 and the localization row above are read with this amendment.
 
 - **Follow-up for `/architect`**: fold this into the localization row of `## Proposed stack`; spec 0004 carries the matching amendment.
+
+## Amendment 2026-09-06: Trigger.dev environments on the free plan
+
+**What changed.** The Trigger.dev project runs on the free plan, which offers only the Development and Production environments; Staging and Preview sit behind a plan upgrade. Every `deploy.yml` run on `main` since 2026-09-05 failed with "staging environment not found", so no task was ever deployed for staging and research runs, welcome emails and ops alerts stayed queued there.
+
+**Decision.** Two phases, chosen by the owner on 2026-09-06:
+
+1. **Now, until a `production` branch exists:** `main` deploys its tasks into the project's Production environment, which is the staging worker. `deploy.yml` runs `pnpm trigger:deploy:prod` for `main`, the Production environment holds the staging task variables (the staging Supabase URL and secret key, the app URL, the AI Gateway key, the Parallel key or `RESEARCH_PROVIDER=fixture`, Sentry, PostHog, Resend and the Slack webhook), and Vercel's Preview scope holds that environment's `tr_prod_` key as `TRIGGER_SECRET_KEY`. Nothing production shaped runs anywhere, so the name mismatch costs nothing yet.
+2. **Before the `production` branch goes live:** upgrade the Trigger.dev plan so the Staging environment unlocks, then restore the original design (`main` and previews on Staging, `production` on Production) with the steps in `## Follow-up`. The runner up, a second free Trigger.dev project for production with `TRIGGER_PROJECT_REF` varying per branch, was declined: two dashboards, two access tokens and a project whose "Production" is really staging are a standing source of confusion for a team of one or two, and the upgrade is a small fixed cost.
+
+**Guard.** The task deploy job must fail loudly, never skip, when the target environment does not exist, and the ops smoke test after a merge to `main` includes one triggered task that writes a row (AC-3). The per environment checklists in `docs/email.md` and `docs/research.md` name the Production environment as the interim staging target.
+
+**Read with this amendment:** AC-3, the Environments row of `## Proposed stack`, the branch table and the `tasks` CI line under `## Architecture`, and the `TRIGGER_SECRET_KEY` line under Configuration required. The AI row was also corrected to the AI SDK v7 that feature 8 shipped (spec 0007), and the status closed to Accepted because scope feature 1 is done.

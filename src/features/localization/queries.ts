@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { type Locale, localeFromCode } from "@/i18n/routing";
 import type { Database } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 
 /**
  * The next-intl locale of a user from the stored short code (AC-7). A missing row gives the default
@@ -17,7 +18,7 @@ export async function localeForUser(
     .select("locale")
     .eq("id", userId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   return localeFromCode(data?.locale);
 }
 
@@ -35,6 +36,6 @@ export async function localeForOrganization(
     .select("locale")
     .eq("id", organizationId)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   return localeFromCode(data?.locale);
 }

@@ -7,6 +7,7 @@ import { buildSlackMessage } from "@/lib/alerts/blocks";
 import { type AlertContext, presentAlert } from "@/lib/alerts/registry";
 import { type OpsAlertPayload, opsAlertPayloadSchema } from "@/lib/alerts/schema";
 import { taskEnv } from "@/lib/env";
+import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /**
@@ -67,7 +68,7 @@ async function resolveContext(
     localeForUser(supabase, payload.fields.userId),
     supabase.from("profiles").select("full_name").eq("id", payload.fields.userId).maybeSingle(),
   ]);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return { now, person: { fullName: profile?.full_name ?? "", language: LOCALE_CODE[locale] } };
 }
 

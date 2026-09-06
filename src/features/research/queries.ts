@@ -8,6 +8,7 @@ import {
   type ParsedSnapshot,
 } from "@/features/benchmark/queries";
 import type { Database, Tables } from "@/lib/supabase/database.types";
+import { queryError } from "@/lib/supabase/query-error";
 import { RUN_LIMIT_PER_DAY, YEARS_PER_RUN } from "./catalogue";
 import { parseSummary, type ResearchSummary } from "./summary";
 
@@ -134,7 +135,7 @@ async function loadCompany(supabase: Client, organizationId: string): Promise<Co
     .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data;
 }
 
@@ -144,7 +145,7 @@ async function loadCatalogue(supabase: Client): Promise<readonly KpiDefinitionRo
     .select("*")
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data;
 }
 
@@ -156,7 +157,7 @@ async function loadLatestRun(supabase: Client, companyId: string): Promise<Lates
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data ? { ...data, parsedSummary: parseSummary(data.summary) } : null;
 }
 
@@ -168,7 +169,7 @@ async function loadCurrentKpis(
     .from("company_kpi_current")
     .select("*")
     .eq("company_id", companyId);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return data;
 }
 
@@ -185,7 +186,7 @@ async function loadValidation(
     .from("research_runs")
     .select("id, summary")
     .in("id", runIds);
-  if (error) throw error;
+  if (error) throw queryError(error);
   return new Map(
     data.map((run) => [
       run.id,
@@ -218,8 +219,8 @@ async function loadQuota(supabase: Client, organizationId: string, now: Date): P
       .limit(1)
       .maybeSingle(),
   ]);
-  if (error) throw error;
-  if (openError) throw openError;
+  if (error) throw queryError(error);
+  if (openError) throw queryError(openError);
   const used = count ?? 0;
   return {
     used,

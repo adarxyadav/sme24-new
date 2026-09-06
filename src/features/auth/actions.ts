@@ -99,7 +99,7 @@ export async function signUp(
     email,
     password,
     options: {
-      emailRedirectTo: confirmRedirectUrl(locale, "/app"),
+      emailRedirectTo: confirmRedirectUrl(locale),
       data: signUpMetadata(parsed.data, locale),
     },
   });
@@ -131,10 +131,10 @@ export async function requestCode(
       values.purpose === "sign-up"
         ? {
             shouldCreateUser: true,
-            emailRedirectTo: confirmRedirectUrl(locale, "/app"),
+            emailRedirectTo: confirmRedirectUrl(locale),
             data: signUpMetadata(values, locale),
           }
-        : { shouldCreateUser: false, emailRedirectTo: confirmRedirectUrl(locale, "/app") },
+        : { shouldCreateUser: false, emailRedirectTo: confirmRedirectUrl(locale) },
   });
   if (error) {
     const result = failure(error, "request-code");
@@ -202,9 +202,12 @@ export async function signInWithProvider(
   const parsed = parseWith(signInWithProviderSchema, input, locale);
   if (!parsed.success) return { ok: false, error: "invalidInput" };
 
-  const next = nextWithinLocale(parsed.data.next, locale) ?? localizedPath(locale, "/app");
+  // The locale travels on its own parameter; `next` only when the user asked for one, so
+  // `finalizeSignIn` falls through to the role home for staff (AC-5).
+  const next = nextWithinLocale(parsed.data.next, locale);
   const callback = new URL("/api/auth/callback", clientEnv().NEXT_PUBLIC_APP_URL);
-  callback.searchParams.set("next", next);
+  callback.searchParams.set("locale", LOCALE_CODE[locale]);
+  if (next) callback.searchParams.set("next", next);
 
   const supabase = await createActionClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -236,7 +239,7 @@ export async function resendConfirmation(
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
-    options: { emailRedirectTo: confirmRedirectUrl(locale, "/app") },
+    options: { emailRedirectTo: confirmRedirectUrl(locale) },
   });
   if (error) {
     const result = failure(error, "resend-confirmation");

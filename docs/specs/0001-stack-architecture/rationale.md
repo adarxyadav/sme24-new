@@ -127,3 +127,17 @@ An independent read only critique on a different model (Opus) found the design s
 - Claude Sonnet 5 on the Vercel AI Gateway: https://vercel.com/ai-gateway/models/claude-sonnet-5
 - Resend sending regions: https://resend.com/docs/dashboard/domains/regions
 - next-intl routing setup: https://next-intl.dev/docs/routing/setup
+
+## Amendment 2026-09-06: Trigger.dev environments on the free plan
+
+**Context.** The Trigger.dev project `proj_fqmmullopmjdfqkqdrca` runs on the free plan, which ships only the Development and Production environments; Staging and Preview are behind an upgrade. The 2026-09-02 design assumed a Staging environment for `main` and pull request previews, so `deploy.yml` targeted `--env staging` and every run on `main` from 2026-09-05 failed with "staging environment not found". The Production environment already carried the task variables, set by hand as if it were staging.
+
+**Options considered.**
+
+1. *Upgrade the plan now.* Restores the design immediately. Con: a monthly cost for an environment nothing production shaped needs yet.
+2. *Deploy `main` into the Production environment now, upgrade before the `production` branch exists (chosen).* Zero cost today, one line in `deploy.yml`, the variables are already there. Con: the environment's name lies for a while, and the switch back is a manual checklist that must happen before the first production merge.
+3. *A second free Trigger.dev project for production.* Stays free forever. Con: two dashboards, two access tokens, `TRIGGER_PROJECT_REF` varying per branch in CI, and a project whose "Production" is staging; standing confusion for a team of one or two.
+
+**Rationale.** Option 2 costs nothing until production is real and keeps the original three environment design as the end state; the upgrade is a small fixed cost against the operational clarity of one project (basis: boring and predictable operations for a tiny team, the same force that chose Option 1 in 2026-09-02). Option 3 would bake a naming lie into the CI and the runbooks permanently.
+
+**Also folded in.** The AI row now says AI SDK v7 (spec 0007 shipped it), the `tasks` CI line names the pinned CLI scripts (the `pnpm dlx trigger.dev@latest` form pulled a newer CLI than the pinned SDK and aborted in CI, fixed in PR #13), and the status closed to Accepted because scope feature 1 was marked done on 2026-09-05.
