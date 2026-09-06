@@ -62,6 +62,7 @@ export async function validateResearch({
         periodYear: value.periodYear,
         confidence: value.confidence,
         reason: value.reason,
+        sourceIndexes: value.sourceIndexes,
       });
     }
     return { verdicts, facts: acceptedFacts(output.companyFacts), promptVersion: PROMPT_VERSION };

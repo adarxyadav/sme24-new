@@ -9,8 +9,9 @@ import { basisPrior } from "./provider";
  * (`unparseable`), when it sits outside the catalogue range (`out_of_range`), when its year is
  * outside 2000 to the current year (`bad_year`), or when the same KPI and year appear twice
  * (`conflict`: the source host equal to the company website host wins, else the higher
- * confidence, else the first in provider order; the loser's sources join the winner's). Every drop
- * is recorded with its reason. Pure.
+ * confidence, else the first in provider order; the loser's sources join the winner's). A kept
+ * value stores only the citations the validator's `sourceIndexes` pointed at. Every drop is
+ * recorded with its reason. Pure.
  */
 
 /** What the validator says about one candidate (slice 3); absent when validation was skipped. */
@@ -21,6 +22,8 @@ export type Verdict = {
   readonly periodYear: number | null;
   readonly confidence: number;
   readonly reason?: string;
+  /** Indexes into the candidate's sources that support the value; empty means "all of them". */
+  readonly sourceIndexes?: readonly number[];
 };
 
 export type KeptValue = {
@@ -68,7 +71,7 @@ export function resolveValues({ candidates, verdicts, companyHost, currentYear }
       periodYear: year as number,
       value: value as number,
       confidence,
-      sources: candidate.sources,
+      sources: supportingSources(candidate.sources, verdict?.sourceIndexes),
       order,
     });
   }
@@ -96,6 +99,21 @@ export function resolveValues({ candidates, verdicts, companyHost, currentYear }
     .sort((a, b) => a.order - b.order)
     .map(({ order: _order, ...value }) => value);
   return { kept, dropped };
+}
+
+/**
+ * The citations the validator pointed at, in the candidate's own order (AC-5). Falls back to every
+ * citation when the validator named none (an empty list, or a skipped validation pass); out of
+ * range indexes are ignored. Pure.
+ */
+function supportingSources(
+  sources: readonly KpiSource[],
+  sourceIndexes: readonly number[] | undefined,
+): readonly KpiSource[] {
+  if (sourceIndexes === undefined || sourceIndexes.length === 0) return sources;
+  const wanted = new Set(sourceIndexes);
+  const supporting = sources.filter((_source, index) => wanted.has(index));
+  return supporting.length > 0 ? supporting : sources;
 }
 
 /** Why a candidate is dropped, or null when it is kept (AC-5). Pure. */

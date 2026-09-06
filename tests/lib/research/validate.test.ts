@@ -106,6 +106,7 @@ describe("validateResearch (AC-5)", () => {
       periodYear: 2025,
       confidence: 0.85,
       reason: undefined,
+      sourceIndexes: [0],
     });
     expect(outcome?.verdicts.get("trifr_latest")).toMatchObject({
       supported: false,

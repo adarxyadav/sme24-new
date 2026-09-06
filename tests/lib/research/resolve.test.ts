@@ -141,6 +141,38 @@ describe("the resolve rules (AC-5)", () => {
     expect(byConfidence.kept[0]).toMatchObject({ value: 3.1, confidence: 0.9 });
   });
 
+  it("stores only the citations the validator's sourceIndexes point at", () => {
+    const three = [0, 1, 2].map((index) => ({
+      url: `https://source.example/${index}`,
+      title: `Source ${index}`,
+      excerpt: `LTIFR 2.4 (${index})`,
+      retrievedAt: RETRIEVED,
+    }));
+    const candidates = [
+      candidate({ field: "ltifr_latest", sources: three }),
+      candidate({ field: "trifr_latest", key: "trifr", value: 6.1, sources: three }),
+      candidate({ field: "fatalities_latest", key: "fatalities", value: 0, sources: three }),
+    ];
+    const verdicts = new Map<string, Verdict>([
+      [
+        "ltifr_latest",
+        { supported: true, value: 2.4, periodYear: 2025, confidence: 0.9, sourceIndexes: [1] },
+      ],
+      [
+        "trifr_latest",
+        { supported: true, value: 6.1, periodYear: 2025, confidence: 0.8, sourceIndexes: [] },
+      ],
+      [
+        "fatalities_latest",
+        { supported: true, value: 0, periodYear: 2025, confidence: 0.9, sourceIndexes: [7] },
+      ],
+    ]);
+    const { kept } = resolveValues({ candidates, verdicts, companyHost: null, currentYear });
+    expect(kept[0]?.sources.map((source) => source.url)).toEqual(["https://source.example/1"]);
+    expect(kept[1]?.sources).toHaveLength(3);
+    expect(kept[2]?.sources).toHaveLength(3);
+  });
+
   it("falls back to the parsed values with capped confidence when validation was skipped", () => {
     const candidates = [
       candidate({ field: "ltifr_latest", basisConfidence: "high" }),
