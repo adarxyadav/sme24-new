@@ -36,7 +36,7 @@ spec [0006](../specs/0006-transactional-email-ops-alerts/index.md)
 - [x] Review it (fresh model): `/check review transactional email & ops alerts`
 - [x] Document it: `/document transactional email & ops alerts`
 
-### 8. Company lookup & research pipeline · in-progress
+### 8. Company lookup & research pipeline · done
 The core thread. A client enters a company name, a background pipeline researches public disclosures, extracts safety KPIs with sources, and stores them. The dashboard shows the run's progress and the extracted KPIs when it finishes. Real database, real jobs, real AI, narrow scope: KPIs only, no benchmark yet.
 **Done when:** entering a company name starts a background run visible in the dashboard; within a few minutes the run stores KPIs with source references and the dashboard renders them; a failed or empty run shows a clear state the client can act on.
 spec [0007](../specs/0007-company-research-pipeline/index.md) · code in `src/features/research/`, `src/lib/research/`, `src/lib/ai/`, `src/trigger/research-company.ts`, `src/trigger/sweep-research-runs.ts`
