@@ -9,7 +9,7 @@ export function PackagesGrid({ variant = "full" }: Pick<PackageCardProps, "varia
   return (
     <ul className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-4">
       {sortedPackages().map((entry) => (
-        <li key={entry.key} className="flex">
+        <li key={entry.key} className="flex min-w-0">
           <PackageCard entry={entry} variant={variant} />
         </li>
       ))}

@@ -23,7 +23,7 @@ export function MarketingSection() {
         <ul className="grid w-full gap-px border bg-border sm:grid-cols-2">
           {[compliance, retainer].map((entry) =>
             entry ? (
-              <li key={entry.key} className="flex">
+              <li key={entry.key} className="flex min-w-0">
                 <PackageCard entry={entry} />
               </li>
             ) : null,

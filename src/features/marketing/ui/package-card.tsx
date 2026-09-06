@@ -30,13 +30,13 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
     <article
       data-slot="package-card"
       data-package={entry.key}
-      className={cn("flex h-full flex-col gap-6 bg-background px-6 py-8", className)}
+      className={cn("flex h-full min-w-0 flex-col gap-6 bg-background px-6 py-8", className)}
     >
       <div className="flex flex-col gap-3">
         <Statement
           as="h3"
           text={t(`${entry.key}.name`)}
-          className="font-bold text-xl tracking-headline"
+          className="hyphens-auto break-words font-bold text-xl tracking-headline"
         />
         <p className="max-w-prose text-muted-foreground text-sm">{t(`${entry.key}.promise`)}</p>
       </div>
@@ -64,17 +64,22 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
       ) : null}
       <div className="mt-auto pt-2">
         {variant === "overview" ? (
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="h-auto w-full whitespace-normal py-2">
             <Link href="/pricing">{pricing("overviewLink")}</Link>
           </Button>
         ) : retainer ? (
-          <Button asChild variant="outline" size="lg">
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="h-auto w-full whitespace-normal py-2"
+          >
             <Link href={{ pathname: "/contact", query: { topic: "retainer" } }}>
               {pricing("retainerCta")}
             </Link>
           </Button>
         ) : (
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2">
             <Link href="/sign-up">{pricing("cta")}</Link>
           </Button>
         )}
