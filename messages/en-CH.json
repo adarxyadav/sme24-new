@@ -1000,6 +1000,19 @@
         "retainer": "retainer request",
         "general": "question"
       }
+    },
+    "order_confirmed": {
+      "subject": "Your order {reference} is confirmed",
+      "preview": "Payment received. Your invoice showing the VAT is ready.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "Thank you. We have received your payment for {packageName}.",
+      "amounts": "Net {net}, plus {vatRate} VAT of {vat}, total {gross}.",
+      "references": "Invoice number {invoiceNumber}, order reference {reference}.",
+      "invoiceAttached": "Your invoice is attached as a PDF and is always available in your account.",
+      "invoiceFollows": "We will send your invoice shortly.",
+      "nextStep": "We will be in touch to agree the date for the on site assessment.",
+      "button": "View order"
     }
   },
   "emails": {

@@ -7,7 +7,12 @@ import { z } from "zod";
  */
 
 /** The template names the registry knows. A new template adds its name here and its entry in `registry.ts`. */
-export const EMAIL_TEMPLATE_NAMES = ["welcome", "benchmark_ready", "enquiry_received"] as const;
+export const EMAIL_TEMPLATE_NAMES = [
+  "welcome",
+  "benchmark_ready",
+  "enquiry_received",
+  "order_confirmed",
+] as const;
 export type EmailTemplateName = (typeof EMAIL_TEMPLATE_NAMES)[number];
 
 /** The short language codes the database stores (`profiles.locale`, `email_deliveries.locale`). */
@@ -42,6 +47,24 @@ export const enquiryReceivedDataSchema = templateDataBaseSchema.extend({
   topic: z.enum(["retainer", "general"]),
 });
 export type EnquiryReceivedData = z.infer<typeof enquiryReceivedDataSchema>;
+
+/**
+ * `order_confirmed` (spec 0011, AC-9): the receipt for a settled purchase, card or bank transfer.
+ * Every amount arrives already converted to CHF from the order's stored Rappen, because a
+ * template never does money arithmetic. `invoiceAttached` is false when the render exhausted its
+ * retries, and the body then says the invoice follows shortly instead of pointing at it.
+ */
+export const orderConfirmedDataSchema = templateDataBaseSchema.extend({
+  packageName: z.string().trim().min(1).max(200),
+  reference: z.string().trim().min(1).max(100),
+  invoiceNumber: z.string().trim().min(1).max(50),
+  netChf: z.number().nonnegative(),
+  vatChf: z.number().nonnegative(),
+  grossChf: z.number().nonnegative(),
+  vatRatePercent: z.number().nonnegative().max(100),
+  invoiceAttached: z.boolean(),
+});
+export type OrderConfirmedData = z.infer<typeof orderConfirmedDataSchema>;
 
 /** A known user (address and language resolved by the task) or a raw address with its language. */
 export const emailRecipientSchema = z.union([

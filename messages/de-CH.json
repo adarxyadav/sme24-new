@@ -1000,6 +1000,19 @@
         "retainer": "Retainer-Anfrage",
         "general": "Frage"
       }
+    },
+    "order_confirmed": {
+      "subject": "Ihre Bestellung {reference} ist bestätigt",
+      "preview": "Zahlung eingegangen. Ihre Rechnung mit ausgewiesener MWST liegt bereit.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Vielen Dank. Ihre Zahlung für {packageName} ist bei uns eingegangen.",
+      "amounts": "Netto {net}, zuzüglich {vatRate} MWST von {vat}, Gesamtbetrag {gross}.",
+      "references": "Rechnungsnummer {invoiceNumber}, Bestellreferenz {reference}.",
+      "invoiceAttached": "Die Rechnung finden Sie als PDF im Anhang und jederzeit im Kundenbereich.",
+      "invoiceFollows": "Ihre Rechnung stellen wir Ihnen in Kürze zu.",
+      "nextStep": "Wir melden uns bei Ihnen, um den Termin für die Begehung vor Ort zu vereinbaren.",
+      "button": "Bestellung ansehen"
     }
   },
   "emails": {
