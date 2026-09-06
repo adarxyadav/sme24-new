@@ -1,23 +1,36 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, expect, it, vi } from "vitest";
-import { PACKAGES } from "@/features/marketing/packages";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MarketingHeader } from "@/components/marketing-header";
+import { PACKAGES, sortedPackages } from "@/features/marketing/packages";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
+import { EnquiryConfirmation } from "@/features/marketing/ui/enquiry-confirmation";
+import { Faq } from "@/features/marketing/ui/faq";
+import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { MarketingFooter } from "@/features/marketing/ui/marketing-footer";
 import { PackageCard } from "@/features/marketing/ui/package-card";
+import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
 import { StepsSection } from "@/features/marketing/ui/steps-section";
 import { formats } from "@/i18n/formats";
 import de from "../../../messages/de-CH.json";
 import en from "../../../messages/en-CH.json";
 
-// The App Router is not mounted in jsdom; next-intl's Link only needs these hooks to exist.
+// The App Router is not mounted in jsdom; next-intl's Link and usePathname only need these hooks
+// to exist. The pathname is settable so the header test can mark the current page.
+const boundary = vi.hoisted(() => ({ pathname: "/" }));
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/",
+  usePathname: () => boundary.pathname,
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
   useParams: () => ({}),
   redirect: vi.fn(),
   permanentRedirect: vi.fn(),
 }));
+
+beforeEach(() => {
+  boundary.pathname = "/";
+});
 
 function renderIn(locale: "de-CH" | "en-CH", ui: React.ReactNode) {
   return render(
@@ -157,5 +170,138 @@ describe("MarketingFooter (spec 0009, AC-7)", () => {
     );
     expect(screen.getByRole("navigation", { name: en.marketing.footer.legal })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/en/privacy");
+  });
+});
+
+describe("MarketingHeader (spec 0009, AC-7)", () => {
+  const links = [
+    { href: "/pricing", label: "Preise" },
+    { href: "/about", label: "Über uns" },
+    { href: "/contact", label: "Kontakt" },
+  ] as const;
+
+  it("marks the current page on the localized slug and links the others without the mark", () => {
+    boundary.pathname = "/de/preise";
+    renderIn("de-CH", <MarketingHeader links={links} />);
+    const nav = screen.getByRole("navigation", { name: de.shell.mainNavigation });
+    const pricing = screen.getByRole("link", { name: "Preise" });
+    expect(nav).toContainElement(pricing);
+    expect(pricing).toHaveAttribute("href", "/de/preise");
+    expect(pricing).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Über uns" })).toHaveAttribute("href", "/de/ueber-uns");
+    expect(screen.getByRole("link", { name: "Über uns" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Kontakt" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: de.common.signIn })).toHaveAttribute(
+      "href",
+      "/de/sign-in",
+    );
+  });
+
+  it("marks nothing on the landing page", () => {
+    boundary.pathname = "/de";
+    renderIn("de-CH", <MarketingHeader links={links} />);
+    for (const link of links) {
+      expect(screen.getByRole("link", { name: link.label })).not.toHaveAttribute("aria-current");
+    }
+  });
+
+  it("opens the small screen menu from a labelled button and repeats the links with the current mark", async () => {
+    const user = userEvent.setup();
+    boundary.pathname = "/de/kontakt";
+    renderIn("de-CH", <MarketingHeader links={links} />);
+    await user.click(screen.getByRole("button", { name: de.shell.openMenu }));
+    const dialog = await screen.findByRole("dialog", { name: de.common.appName });
+    expect(dialog).toHaveTextContent(de.shell.menuDescription);
+    // The open sheet is modal: Radix hides the page behind it, so only the sheet's links remain.
+    const sheet = within(dialog);
+    expect(sheet.getByRole("navigation", { name: de.shell.mainNavigation })).toBeInTheDocument();
+    expect(sheet.getByRole("link", { name: "Kontakt" })).toHaveAttribute("aria-current", "page");
+    expect(sheet.getByRole("link", { name: "Preise" })).not.toHaveAttribute("aria-current");
+    expect(sheet.getByRole("link", { name: de.common.signIn })).toHaveAttribute(
+      "href",
+      "/de/sign-in",
+    );
+  });
+});
+
+describe("Faq (spec 0009, AC-6)", () => {
+  const items = [
+    { id: "vat", question: "Is VAT included?", answer: "No, the invoice adds it." },
+    { id: "date", question: "How is the date set?", answer: "The expert proposes dates." },
+  ];
+
+  it("opens the first question by default and shows only one answer at a time", async () => {
+    const user = userEvent.setup();
+    renderIn("en-CH", <Faq items={items} />);
+    const first = screen.getByRole("button", { name: "Is VAT included?" });
+    const second = screen.getByRole("button", { name: "How is the date set?" });
+    expect(first).toHaveAttribute("aria-expanded", "true");
+    expect(second).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("No, the invoice adds it.")).toBeVisible();
+
+    await user.click(second);
+    expect(second).toHaveAttribute("aria-expanded", "true");
+    expect(first).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("The expert proposes dates.")).toBeVisible();
+  });
+
+  it("renders nothing to open for an empty list", () => {
+    renderIn("en-CH", <Faq items={[]} />);
+    expect(screen.queryByRole("button")).toBeNull();
+  });
+});
+
+describe("EnquiryConfirmation (spec 0009, AC-8)", () => {
+  it("is announced as a status, names the reply time and links back to the landing page", () => {
+    renderIn("de-CH", <EnquiryConfirmation />);
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent(de.marketing.contact.success.title);
+    expect(status).toHaveTextContent(de.marketing.contact.success.body);
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
+      de.marketing.contact.success.title,
+    );
+    expect(screen.getByRole("link", { name: de.marketing.contact.success.back })).toHaveAttribute(
+      "href",
+      "/de",
+    );
+  });
+});
+
+describe("PackagesGrid (spec 0009, AC-5, AC-6)", () => {
+  it("renders one card per package in catalog order", () => {
+    renderIn("en-CH", <PackagesGrid variant="overview" />);
+    const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
+    expect(headings).toEqual(
+      sortedPackages().map(
+        (entry) => en.marketing.packages[entry.key as keyof typeof en.marketing.packages].name,
+      ),
+    );
+    expect(headings).toHaveLength(4);
+    expect(screen.getAllByRole("link", { name: en.marketing.pricing.overviewLink })).toHaveLength(
+      4,
+    );
+  });
+});
+
+describe("JsonLd (spec 0009, AC-3)", () => {
+  it("writes the object into a JSON-LD script with every angle bracket escaped", () => {
+    const { container } = renderIn(
+      "en-CH",
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "SME24 </script><script>alert(1)",
+        }}
+      />,
+    );
+    const script = container.querySelector('script[type="application/ld+json"]');
+    expect(script).not.toBeNull();
+    expect(script?.innerHTML).not.toContain("<");
+    expect(script?.innerHTML).toContain("\\u003c/script>");
+    expect(JSON.parse(script?.innerHTML ?? "")).toMatchObject({
+      "@type": "Organization",
+      name: "SME24 </script><script>alert(1)",
+    });
   });
 });
