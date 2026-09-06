@@ -25,6 +25,8 @@ const state = vi.hoisted(() => ({
   }>,
   alerts: [] as Array<Record<string, unknown>>,
   onKpiInsert: null as null | (() => void),
+  /** Fires after a `company_kpis` select, so a test can land a concurrent row mid save. */
+  onKpiSelect: null as null | (() => void),
   createRuns: 0,
   nextId: 1,
   /** What the fixture's poll answers when set (the provider reporting the run as failed). */
@@ -111,6 +113,7 @@ function builder(table: string) {
     state.calls.push({ table, op, filters: [...filters], patch: patch ?? inserted });
     if (op === "select") {
       const found = rows().filter((row) => matches(row, filters));
+      if (table === "company_kpis") state.onKpiSelect?.();
       return count
         ? { data: null, error: null, count: found.length }
         : { data: found, error: null };
@@ -256,6 +259,7 @@ beforeEach(() => {
   state.calls = [];
   state.alerts = [];
   state.onKpiInsert = null;
+  state.onKpiSelect = null;
   state.createRuns = 0;
   state.nextId = 1;
   state.providerStatus = null;
@@ -355,6 +359,42 @@ describe("research-company (AC-4, AC-6, AC-14)", () => {
     const again = await task.run({ runId: RUN }, { ctx });
     expect(again).toEqual({ status: "succeeded" });
     expect(state.tables.company_kpis).toHaveLength(24);
+  });
+
+  it("retries only the rows another attempt did not store while the bulk insert was in flight", async () => {
+    seed({
+      status: "running",
+      provider_run_id: "fixture_TXVzdGVyIEFH",
+      started_at: new Date().toISOString(),
+    });
+    // The up front read sees nothing, then a concurrent attempt stores one slot, so the bulk
+    // insert conflicts; the fallback must re-read and skip that slot rather than retry all 24.
+    const year = new Date().getUTCFullYear() - 1;
+    state.onKpiSelect = () => {
+      state.onKpiSelect = null;
+      (state.tables.company_kpis as Row[]).push({
+        id: "raced",
+        research_run_id: RUN,
+        company_id: COMPANY,
+        organization_id: ORG,
+        kpi_key: "ltifr",
+        period_year: year,
+      });
+    };
+    const task = await loadTask();
+    await expect(task.run({ runId: RUN }, { ctx })).resolves.toEqual({ status: "succeeded" });
+    expect(state.tables.company_kpis).toHaveLength(24);
+
+    const inserts = state.calls.filter(
+      (call) => call.table === "company_kpis" && call.op === "insert",
+    );
+    // The bulk insert, the re-read, then 23 single rows: the raced slot is never retried.
+    expect(inserts).toHaveLength(1 + 23);
+    const retried = inserts.slice(1).map((call) => (call.patch as Row[])[0]);
+    expect(retried).toHaveLength(23);
+    expect(retried.some((row) => row?.kpi_key === "ltifr" && row?.period_year === year)).toBe(
+      false,
+    );
   });
 
   it("ends empty when the fixture finds nothing and does nothing on a finished run", async () => {

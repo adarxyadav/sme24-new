@@ -425,7 +425,8 @@ async function patchSummary(
 /**
  * Inserts one `company_kpis` row per kept value (AC-6). PostgREST cannot name the partial unique
  * index for `on conflict do nothing`, so the rows already stored by an earlier attempt are
- * skipped up front and a unique violation on the remainder falls back to one insert per row.
+ * skipped up front. A unique violation on the remainder means another attempt stored some of them
+ * in between, so the stored set is re-read and only what is still missing is retried row by row.
  */
 async function insertKpis(
   supabase: Service,
@@ -433,13 +434,7 @@ async function insertKpis(
   kept: readonly KeptValue[],
 ): Promise<void> {
   if (kept.length === 0) return;
-  const { data: existing, error: existingError } = await supabase
-    .from("company_kpis")
-    .select("kpi_key, period_year")
-    .eq("research_run_id", ids.runId)
-    .eq("company_id", ids.companyId);
-  if (existingError) throw existingError;
-  const stored = new Set((existing ?? []).map((row) => `${row.kpi_key}:${row.period_year}`));
+  const stored = await storedKpiSlots(supabase, ids);
   const rows = kept
     .filter((value) => !stored.has(`${value.key}:${value.periodYear}`))
     .map((value) => ({
@@ -459,10 +454,24 @@ async function insertKpis(
   const { error } = await supabase.from("company_kpis").insert(rows);
   if (!error) return;
   if (error.code !== UNIQUE_VIOLATION) throw error;
+
+  const nowStored = await storedKpiSlots(supabase, ids);
   for (const row of rows) {
+    if (nowStored.has(`${row.kpi_key}:${row.period_year}`)) continue;
     const { error: rowError } = await supabase.from("company_kpis").insert(row);
     if (rowError && rowError.code !== UNIQUE_VIOLATION) throw rowError;
   }
+}
+
+/** The `kpi:year` slots of the run already stored in `company_kpis` (AC-6, AC-14 ids). */
+async function storedKpiSlots(supabase: Service, ids: RunIds): Promise<ReadonlySet<string>> {
+  const { data, error } = await supabase
+    .from("company_kpis")
+    .select("kpi_key, period_year")
+    .eq("research_run_id", ids.runId)
+    .eq("company_id", ids.companyId);
+  if (error) throw error;
+  return new Set((data ?? []).map((row) => `${row.kpi_key}:${row.period_year}`));
 }
 
 /** The number of `company_kpis` rows of the run after the insert: the `succeeded` versus `empty` rule (AC-6). */
