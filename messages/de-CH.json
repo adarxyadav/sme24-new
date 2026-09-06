@@ -309,6 +309,10 @@
       "research": {
         "title": "Recherche",
         "description": "Die Fortschrittsliste eines Hintergrundlaufs und die Verlässlichkeitsabzeichen der Kennzahlen (Spezifikation 0007)."
+      },
+      "benchmark": {
+        "title": "Benchmark",
+        "description": "Das Quartilband, die Potenzialkarte und die Aufklappfläche des Branchenvergleichs (Spec 0008)."
       }
     },
     "tokens": {
@@ -610,6 +614,15 @@
       "progressFailed": "Fortschrittsliste, fehlgeschlagen",
       "confidence": "Verlässlichkeit",
       "notVerified": "Nicht geprüft"
+    },
+    "benchmark": {
+      "bandTop": "Band, Wert im obersten Viertel",
+      "bandBelow": "Band, Wert unter dem Median",
+      "bandOutside": "Band, Wert jenseits p75",
+      "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
+      "card": "Potenzialkarte",
+      "collapsible": "Aufklappbare Erklärung",
+      "confidenceMedium": "Mittel"
     }
   },
   "email": {

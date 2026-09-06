@@ -309,6 +309,10 @@
       "research": {
         "title": "Research",
         "description": "The progress list of a background run and the confidence badges of the KPI table (spec 0007)."
+      },
+      "benchmark": {
+        "title": "Benchmark",
+        "description": "The quartile band, the opportunity card and the disclosure of the peer benchmark (spec 0008)."
       }
     },
     "tokens": {
@@ -610,6 +614,15 @@
       "progressFailed": "Progress list, failed",
       "confidence": "Confidence",
       "notVerified": "Not verified"
+    },
+    "benchmark": {
+      "bandTop": "Band, value in the top quarter",
+      "bandBelow": "Band, value below the median",
+      "bandOutside": "Band, value beyond p75",
+      "bandLabel": "Example: your value {value} against the peer quartiles.",
+      "card": "Opportunity card",
+      "collapsible": "Collapsible disclosure",
+      "confidenceMedium": "Medium"
     }
   },
   "email": {

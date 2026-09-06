@@ -150,7 +150,10 @@ select lives_ok($$ update public.benchmark_snapshots set kpis_compared = 2 where
 
 -- Every insert leaves an audit row with the service actor (AC-15).
 select pg_temp.as_postgres();
-select is((select count(*) from public.audit_log where table_name = 'benchmark_snapshots' and action = 'insert' and actor_role = 'service'), 2::bigint,
+-- Scoped to the two fixture rows: the audit log outlives the companies of earlier local runs.
+select is((select count(*) from public.audit_log
+           where table_name = 'benchmark_snapshots' and action = 'insert' and actor_role = 'service'
+             and row_id::text in ('0e000000-0000-4000-8000-000000000001', '0e000000-0000-4000-8000-000000000002')), 2::bigint,
   'one audit row per snapshot insert with the service actor');
 
 select * from finish();
