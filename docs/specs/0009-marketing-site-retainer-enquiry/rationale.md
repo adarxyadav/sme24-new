@@ -104,3 +104,61 @@ Run on 2026-09-06 on Opus (read only) after the question round; verdict "sound d
 ## How the questions were answered
 
 The spec was drafted first from the scope row, `AGENTS.md`, specs 0002 to 0008 and the code, with a recommended pick and a runner up for every decision above. The owner then answered the same questions one by one in the picker on 2026-09-06 (30 questions in seven rounds) and took every recommended pick, with one change: the engineer drafts the package descriptions, the FAQ and the about story in the campaign voice, and the owner supplies only the three prices and the contact facts, before `/check verify`. The spec's first Follow-up item records that split.
+
+## Amendment 2026-09-06: first load JavaScript budget
+
+### Context
+
+`/check verify` met every criterion but one. AC-16 asked for 120 kB of first load JavaScript per marketing route, read from the build's route table. Two things were wrong with that clause. Next 16 prints no sizes in its route table, so the number could not be read where the spec said. And the number itself had no baseline: it was written before a build existed, and a Next 16 App Router page cannot get under it. React DOM and the App Router runtime together weigh about 125 kB gzipped before a single component of ours is added.
+
+The measurement that matters is the set of module `<script>` files the prerendered HTML references, gzipped. That is what a browser downloads before it can hydrate. Two things do not belong in it: the `nomodule` polyfill (38.5 kB gzipped, referenced by every page, never downloaded by a browser that runs modules; the earlier "415 kB" figure in `docs/marketing.md` counted it) and chunks loaded later through `import()` (`posthog-js` after consent today).
+
+Measured on 2026-09-06 in the `sme24-marketing` worktree, production build, module scripts only, gzipped with Node's `zlib` at the default level:
+
+| Page | Before (kB) | After the two cuts (kB) | Budget (kB) |
+|---|---|---|---|
+| `/` | 380.5 | 221.5 | 250 |
+| `/pricing` | 377.1 | 218.1 | 250 |
+| `/about` | 379.4 | 220.5 | 250 |
+| `/contact` | 402.4 | 326.2 | 350 |
+
+"After" is an experiment build with three edits, reverted afterwards: `@sentry/nextjs` loaded through `import()` after `load`, a `src/lib/env.public.ts` without zod for the three browser importers of `clientEnv`, and the two zod locales imported from their own files. The German pages weigh the same as the English ones within a kilobyte.
+
+What the bytes are, from the Turbopack bundle analyzer (`next experimental-analyze --output`) and the two builds:
+
+| Part | Gzipped | Where it comes from | Fate |
+|---|---|---|---|
+| React DOM plus the App Router runtime (segment cache, router reducers, the client of React Server Components) | about 125 kB | Next 16 itself | Stays; the floor |
+| Browser Sentry SDK in the critical path (`@sentry/core`, `@sentry/browser`, `browser-utils`, the Next integration, tracing) | about 76 kB (the `/contact` delta, where nothing else changed) | `Sentry.init` in `instrumentation-client.ts`, a static import | Moves to an `import()` chunk of 168 kB that loads after the page |
+| zod chunk | 82.6 kB | `clientEnv()` in `src/lib/env.ts`, imported by `instrumentation-client.ts`, the analytics provider and the browser Supabase client; on `/contact` also the form's `zodResolver` | Leaves `/`, `/pricing`, `/about`; stays on `/contact` |
+| of which zod's forty locales | about 45 kB | `zod/v4/core`, `classic` and `mini` all `export * as locales`; Turbopack keeps a namespace re export whole, so every zod import carries every locale, including Thai and Russian strings | Stays wherever zod stays; a zod packaging matter |
+| of which zod's JSON Schema converters | about 7 kB | the same index | Same |
+| Radix (the header's sheet and dropdown menus, the tooltip provider, the select and radio group on `/contact`) with `floating-ui` and `remove-scroll` | about 58 kB (about 66 kB on `/contact`) | `MarketingHeader`, the root layout's `TooltipProvider` and `Toaster`, the form | Stays; a later cut |
+| `next-intl` runtime with the ICU message parser | about 12 kB | every client component that translates | Stays |
+| `react-hook-form` and the resolver | about 10 kB, `/contact` only | the form | Stays |
+| `sonner`, `next-themes`, `lucide`, `tailwind-merge`, app code | about 25 kB | the root layout and our components | Stays |
+| `nomodule` polyfill | 38.5 kB | Next, for browsers without modules | Not counted |
+
+Two facts from the tool documentation shaped the options. The Sentry Next.js SDK's tree shaking options (`removeTracing`, `removeDebugLogging`) are webpack only; the SDK's guide says they do not apply to Turbopack builds, and Next 16 builds with Turbopack. And zod's namespace re export of its locales is in every entry point of the package, so no import path avoids it.
+
+### Options considered
+
+**Option A: keep 120 kB and cut until it is met.** Every cut in the table above, taken together, leaves about 125 kB of framework plus at least the header. The only ways under 120 kB are a public site with no client component at all (no header sheet, no language menu, no theme toggle, no form) or a public site outside the Next app (Option 3 of the original spec, rejected for the two languages, the design system and the sign up hand off). Pro: the number in the spec would stand. Con: it cannot be met inside the chosen architecture; chasing it would strip the header and the form of behaviour for a target with no user facing meaning.
+
+**Option B: amend the budget to the measured build and cut nothing.** Set 400 kB and move on. Pro: no work, no risk, Lighthouse on the preview still gates the outcome. Con: a landing page would carry 76 kB of error reporting and 83 kB of a validation library in the critical path for nothing; the two are the cheapest bytes on the page to remove, and a budget that merely blesses today's build is not a budget.
+
+**Option C: amend the budget to what the two cheap cuts leave, with headroom, and take those cuts now.** 250 kB for the three content pages, 350 kB for `/contact`; Sentry deferred to after `load` on public pages, zod out of the browser env. Pro: about 160 kB off the content pages and 76 kB off `/contact` for two small modules and one script; the budget is enforceable by a script in CI; nothing user facing changes. Con: an error before `load` on a public page is not reported; `/contact` keeps zod's locales; two follow ups stay open.
+
+**Option D: amend and take every cut, including the header and the root layout.** About 180 kB on the content pages. Pro: the smallest pages. Con: the toaster, the tooltip provider and the header are shared with the signed in areas, so the cut is a shell change with a design system review, for a gain nothing has yet asked for (no Lighthouse number exists).
+
+### Rationale
+
+Option C. The forces: the site exists to load fast on a phone and hand a company name to sign up (the owner's user story), the spec chose one app for the public site and the product (Option 1), Lighthouse mobile on the preview is the outcome gate the criterion already carries, and `/check verify` needs a number it can check where the spec says. A budget is a leading indicator for that gate, so it should sit a little above the honest floor of the chosen architecture, not at a number the architecture cannot reach and not at whatever the last build happened to weigh. The two cuts are the ones with no product cost: Sentry after `load` on pages that have no session and almost no client behaviour, and a browser env that reads six inlined constants without a validation library (they were validated on the server at build time anyway, so the browser parse never found anything). The header and the root layout stay as they are until a Lighthouse number says otherwise; that trigger and the order of the next cuts are in the Follow-up.
+
+Why 250 and 350 and not lower: the content pages measured 218 to 222 kB, the contact page 326 kB; 250 and 350 give about 10 percent of headroom for copy, a section or a dependency bump without a spec amendment, and no more. Why the same number for both languages: the German pages differ by under a kilobyte.
+
+Why the deferred Sentry starts at once in the signed in areas: a hydration error in the client dashboard is exactly what the SDK is for, and those pages are behind a sign in with no LCP target; the public pages accept the blind window for a faster first paint.
+
+Why a script and not the route table: Next 16 prints no sizes; the script measures what a browser downloads, runs locally after a build and in `e2e.yml` against the deployment, and checks the two structural clauses (no Sentry in the module scripts, no zod on the content pages) with two string markers, so the criterion is provable by one command.
+
+Why not `zod/mini` for the browser env: mini's entry re exports the same locales namespace, so the bytes would stay; the honest fix is no zod in that module at all.

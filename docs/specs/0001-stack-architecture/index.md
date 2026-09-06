@@ -71,7 +71,7 @@ Every row is a decision. Where a later feature spec owns the detail, the row say
 | Tests | Vitest with React Testing Library for unit and component tests, Playwright for end to end, axe-core assertions through Playwright for WCAG 2.2 AA | Fast unit loop, real browser for the tracer bullet slices and `/check verify`. |
 | Git and CI | GitHub with GitHub Actions (jobs listed under Architecture); Vercel and Trigger.dev deploy from GitHub | Both platforms integrate with GitHub natively; free for a small private repo. |
 | Environments | Local Supabase (CLI, Docker) for dev; one staging Supabase project and Trigger.dev environment for `main` and pull request previews; a prod project and environment for the `production` branch. Interim (amended 2026-09-06): the Trigger.dev free plan has no Staging environment, so `main` deploys tasks into the project's Production environment until the plan is upgraded before the `production` branch exists | Three fixed environments, cheap and predictable; no per branch database costs. |
-| Secrets and config | Vercel environment variables per scope (Development, Preview, Production; pulled locally with `vercel env pull`), Trigger.dev environment variables per environment, one `src/lib/env.ts` module with three Zod schemas (browser, server, task) parsed lazily on first access | Missing or malformed config fails at the first access in the context that needs it, with a clear message, and never crashes a context that does not. |
+| Secrets and config | Vercel environment variables per scope (Development, Preview, Production; pulled locally with `vercel env pull`), Trigger.dev environment variables per environment, one `src/lib/env.ts` module with three Zod schemas (browser, server, task) parsed lazily on first access (amended 2026-09-06 by spec 0009: the browser reads its `NEXT_PUBLIC_` values through `src/lib/env.public.ts` without Zod; the browser schema is parsed on the server only, as part of the server schema, and a Biome override keeps `@/lib/env` out of browser code) | Missing or malformed config fails at the first access in the context that needs it, with a clear message, and never crashes a context that does not. |
 
 ## Architecture
 
@@ -103,6 +103,7 @@ src/lib/ai/                            AI SDK model + helpers, prompts versioned
 src/lib/email/                         Resend client, React Email templates
 src/lib/analytics/                     PostHog server capture, consent aware client init
 src/lib/env.ts                         clientEnv, serverEnv, taskEnv (Zod, lazy)
+src/lib/env.public.ts                  publicEnv (the inlined NEXT_PUBLIC_ values for the browser, no Zod; spec 0009 amendment 2026-09-06)
 src/i18n/ + messages/<locale>.json     next-intl config and strings
 src/trigger/                           Trigger.dev tasks (research, generation, email sends)
 tests/ (vitest), e2e/ (playwright)
