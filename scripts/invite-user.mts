@@ -3,17 +3,18 @@
  *
  *   pnpm user:invite --email erika@example.com --role expert [--locale en] [--name "Erika Expert"]
  *
- * Creates the user unconfirmed with `app_metadata.role`, fixes the same role on the profile (the
- * admin API writes app_metadata after the insert, so the profiles trigger has already defaulted
- * to client), then sends Supabase's invite email whose link opens the set password page in the
- * invitee's language. The access token hook reads the role from the profile. Reads NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and NEXT_PUBLIC_APP_URL
- * from the environment or `.env.local` (`vercel env pull .env.local` for staging and prod). The
- * secret key never leaves this script; the app itself never uses it for sign in. Plain Node.
+ * The steps themselves live in `src/lib/auth/invite.ts`, shared with the ops action on
+ * `/admin/experts/new` (spec 0012, AC-2), so this script and the admin page create the same two
+ * rows in the same order and a fix to either lands in both. For `--role expert` that includes the
+ * `expert_profiles` row, which is what puts the invitee on the ops list.
+ *
+ * Reads NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and NEXT_PUBLIC_APP_URL from the environment
+ * or `.env.local` (`vercel env pull .env.local` for staging and prod). The secret key never leaves
+ * this script; the app itself never uses it for sign in. Plain Node.
  */
 import { parseArgs } from "node:util";
-import { createClient } from "@supabase/supabase-js";
 import { config as loadEnv } from "dotenv";
-import { buildConfirmRedirectUrl } from "../src/lib/auth/confirm-url.ts";
+import { createInviteClient, inviteStaffUser } from "../src/lib/auth/invite.ts";
 
 loadEnv({ path: ".env.local", quiet: true });
 
@@ -49,44 +50,30 @@ if (!role || !ROLES.includes(role)) fail(`--role must be one of: ${ROLES.join(",
 const locale = values.locale as LocaleCode;
 if (!LOCALES.includes(locale)) fail(`--locale must be one of: ${LOCALES.join(", ")}`);
 
-const supabase = createClient(
+const appUrl = requireEnv("NEXT_PUBLIC_APP_URL");
+const supabase = createInviteClient(
   requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
   requireEnv("SUPABASE_SECRET_KEY"),
-  {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-  },
-);
-const redirectTo = buildConfirmRedirectUrl(
-  requireEnv("NEXT_PUBLIC_APP_URL"),
-  locale,
-  "/reset-password",
 );
 
-const { data: created, error: createError } = await supabase.auth.admin.createUser({
+const result = await inviteStaffUser(supabase, {
   email,
-  email_confirm: false,
-  app_metadata: { role },
-  user_metadata: { locale, ...(values.name ? { full_name: values.name } : {}) },
+  role,
+  locale,
+  fullName: values.name,
+  appUrl,
 });
-if (createError) fail(`could not create ${email}: ${createError.message}`);
 
-const { data: profile, error: roleError } = await supabase
-  .from("profiles")
-  .update({ role })
-  .eq("id", created.user.id)
-  .select("role")
-  .single();
-if (roleError || profile.role !== role) {
-  await supabase.auth.admin.deleteUser(created.user.id);
-  fail(
-    `could not set the role on the profile (${roleError?.message ?? "no row"}); the user was removed again`,
-  );
+if (!result.ok) {
+  if (result.error === "already_invited") {
+    fail(`${email} has already been invited as an expert; resend from /admin/experts instead`);
+  }
+  if (result.error === "email_taken") {
+    fail(`${email} already has an account`);
+  }
+  fail(`could not invite ${email}: ${result.message}`);
 }
 
-const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(email, { redirectTo });
-if (inviteError)
-  fail(`user ${created.user.id} created, but the invite email failed: ${inviteError.message}`);
-
 console.log(
-  `invited ${email} as ${role} (${locale}); user ${created.user.id}; the link opens ${redirectTo}`,
+  `invited ${email} as ${role} (${locale}); user ${result.userId}; the link opens ${appUrl.replace(/\/$/, "")}/${locale}/reset-password`,
 );

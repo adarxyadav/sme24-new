@@ -179,6 +179,37 @@ for (const user of SEED_USERS) {
   credentials.push({ email: user.email, role: user.role, password });
 }
 
+// The expert gets an `active` profile row (spec 0012, AC-1), the hosted counterpart of the one
+// supabase/seed.sql writes: without it the expert layout sends expert@example.com to onboarding
+// on every sign in, and the four test accounts have to stay usable without an invite.
+for (const user of SEED_USERS) {
+  if (user.role !== "expert") continue;
+
+  const now = new Date().toISOString();
+  const { error: expertError } = await supabase.from("expert_profiles").upsert(
+    {
+      expert_id: user.id,
+      email: user.email,
+      status: "active",
+      headline: "Sicherheitsingenieur mit Schwerpunkt Maschinenbau",
+      bio: "Über 15 Jahre Erfahrung in der Arbeitssicherheit produzierender Betriebe in der Deutschschweiz. Begleitet ISO 45001 Zertifizierungen und EKAS 6508 Umsetzungen.",
+      competencies: ["compliance", "management_system"],
+      industries: ["C", "F"],
+      standards: ["iso_45001", "ekas_6508", "suva_asa"],
+      languages: ["de", "en"],
+      regions: ["ZH", "AG", "ZG"],
+      availability: "available",
+      years_experience: 15,
+      phone: "+41 44 000 00 00",
+      invited_at: now,
+      onboarded_at: now,
+    },
+    { onConflict: "expert_id" },
+  );
+  if (expertError)
+    fail(`could not create the expert profile for ${user.email}: ${expertError.message}`);
+}
+
 // Organizations and memberships after every profile exists, because both reference profiles.
 // The service role bypasses RLS, and private.sync_profile_organization treats a null auth.uid()
 // as the seed path, so each owner's profile.organization_id is set by the membership trigger.
