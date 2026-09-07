@@ -34,3 +34,34 @@ The available runtime was Node 25.1.0, rather than the project's Node 22 target.
 - [ ] **Cancel wording:** render/open the pending-order cancel dialog with each real catalog; assert its accessible description requests cancellation, includes the reference, and contains no payment-received wording. Retain the reason field and disabled confirmation while the reason is blank.
 
 Reuse local Supabase credentials from `supabase status`; shell overrides must replace the staging URL/keys and `VERCEL_ENV` from `.env.local`. Keep Stripe keys in test mode. The existing settlement concurrency, resumability and invoice-number tests remain the baseline; these fixes do not require changing that implementation.
+
+## Stripe return page 404 (AC-1, AC-5), fixed 2026-09-08
+
+**Fixed.** The Stripe return page 404d after a successful card payment.
+
+`startCheckout` in `src/features/checkout/actions.ts:233-234` builds `success_url` and
+`cancel_url` from the next-intl `Locale`, which is the full code (`en-CH`, `de-CH`), while the
+URL segment is the short code (`en`, `de`). Line 150 already converts with `LOCALE_CODE[locale]`
+for the database; these two lines do not.
+
+The buyer therefore returns from Stripe to `/en/en-CH/app/orders/<id>`, which answers 404 with
+"This page could not be found." The correct `/en/app/orders/<id>` answers normally. The payment
+itself is unaffected, because the webhook settles the order, but every card buyer sees a broken
+page at the moment they have just paid.
+
+Fix applied: both lines now interpolate `LOCALE_CODE[locale]`, as line 150 does. The bank
+transfer path builds its URL through the typed `router.push`, which adds the prefix itself, so it
+was already correct.
+
+Why the types missed it: the URL is a template literal, which accepts any string, so a `Locale`
+interpolates as happily as a `LocaleCode`. Swept the rest of the codebase for the same assumption.
+Every other absolute link is safe: `src/lib/email/render.ts` takes a locale already typed
+`"de" | "en"`, `src/lib/alerts/blocks.ts` and `src/lib/auth/confirm-url.ts` convert through
+`LOCALE_CODE` before interpolating. No siblings to fix.
+
+Regression test: `tests/features/checkout/actions.test.tsx` asserts the URLs handed to Stripe
+carry the short prefix in both locales. It fails on the old code (`/de-CH/app/orders/…`) and
+passes on the fix. `pnpm exec vitest run tests/features/checkout tests/messages.test.ts` gives 14
+files and 126 tests passing; `pnpm typecheck` and a Biome check on the touched files are clean.
+The full `pnpm test` run leaves only the two known `send-email.local` failures, which fail
+identically with the fix stashed.

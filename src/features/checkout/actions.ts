@@ -230,8 +230,8 @@ export async function startCheckout(
         mode: "payment",
         // The return page is the order's own detail page, so the return is a normal read of a row
         // the client already owns and the session_id Stripe appends is ignored entirely.
-        success_url: `${appUrl}/${locale}/app/orders/${order.id}`,
-        cancel_url: `${appUrl}/${locale}/app/orders/${order.id}`,
+        success_url: `${appUrl}/${LOCALE_CODE[locale]}/app/orders/${order.id}`,
+        cancel_url: `${appUrl}/${LOCALE_CODE[locale]}/app/orders/${order.id}`,
         client_reference_id: order.id,
         locale: order.locale === "de" ? "de" : "en",
         line_items: [
