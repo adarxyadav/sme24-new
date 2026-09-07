@@ -2,9 +2,11 @@
 -- assigned experts read their organization's rows, no app role holds a write grant (a member
 -- insert fails on the grant, not only on a policy), ops read and write through the service
 -- client, and every insert leaves an audit row with the service actor (AC-1, AC-15).
+-- The nullable `derived` block (spec 0012) rides on the same grants and policies: the service
+-- role writes it, a member reads it and cannot write it, and omitting it stays legal.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(23);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -138,9 +140,20 @@ select is((select count(*) from public.benchmark_snapshots where organization_id
 select pg_temp.as_anon();
 select is((select count(*) from public.benchmark_snapshots), 0::bigint, 'anon reads nothing');
 
+-- The nullable derived block (spec 0012, AC-13): the column exists, the service role writes it,
+-- and a row that omits it stays legal (every insert above named an explicit column list without it).
+select pg_temp.as_service_role();
+select has_column('public', 'benchmark_snapshots', 'derived', 'the snapshot carries a derived block column');
+select col_is_null('public', 'benchmark_snapshots', 'derived', 'the derived block is nullable, so a version 1 row needs no value');
+select lives_ok(
+  $$ insert into public.benchmark_snapshots (id, organization_id, company_id, trigger_kind, model_version, peer_provisional, kpis_compared, inputs, results, gaps, assumptions, derived)
+     values ('0e000000-0000-4000-8000-000000000006', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'research', 'benchmark-model@2', true, 1, '{}', '[]', '[]', '[]',
+             '{"fte":120,"hoursPerFte":1800,"lostTime":{"count":0.9072,"fromKey":"ltifr","fromValue":4.2,"fromSource":"research","fromYear":2024},"recordable":null}') $$,
+  'the service role writes a version 2 row with a derived block');
+
 -- Ops read everything; their writes go through the service client (the grant is revoked for every app role).
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
-select is((select count(*) from public.benchmark_snapshots), 2::bigint, 'ops read both snapshots');
+select is((select count(*) from public.benchmark_snapshots), 3::bigint, 'ops read every snapshot');
 select throws_ok(pg_temp.snapshot_sql('0e000000-0000-4000-8000-000000000005', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a'),
   '42501', null, 'ops cannot insert directly as the authenticated role; the task and the service client write');
 

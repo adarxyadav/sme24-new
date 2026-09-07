@@ -29,6 +29,11 @@ const INCIDENTS = (68 * 420) / 1000;
 const COST_PER_CASE = 4811 + 12.5 * 1100;
 const ANNUAL = INCIDENTS * COST_PER_CASE * 3.7;
 const AT_MEDIAN = ((49.9 * 420) / 1000) * COST_PER_CASE * 3.7;
+// The derived counts (spec 0012) take the per million hours arm, on the 1 804 hours assumption:
+// LTIFR 2.4 drives the lost time count and TRIFR 6.1 the recordable one.
+const HOURS_PER_FTE = 1804;
+const LOST_TIME = (2.4 * 420 * HOURS_PER_FTE) / 1_000_000;
+const RECORDABLE = (6.1 * 420 * HOURS_PER_FTE) / 1_000_000;
 
 test.skip(localOnly, "needs the local stack: Mailpit and the Supabase secret key");
 test.skip(
@@ -91,6 +96,31 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(card.locator("[data-compared]")).toHaveAttribute("data-compared", "1");
     await expect(card.getByText("1 of 8 KPIs compared")).toBeVisible();
     await expect(page.locator("[data-provisional-note]")).toBeVisible();
+
+    // The derived counts (spec 0012, AC-1, AC-3, AC-4, AC-6): the fixture company carries both
+    // LTIFR and TRIFR, so the lost time count comes from LTIFR (the fallback to the Suva accident
+    // rate is never reached) and the recordable count comes from TRIFR. Both name their source.
+    const derived = card.locator("[data-derived-block]");
+    await expect(derived).toBeVisible();
+    const lostTime = derived.locator('[data-derived-count="lost-time"]');
+    // 1.818 injuries a year, shown to one decimal (AC-8).
+    await expect(lostTime.locator("[data-derived-value]")).toHaveText(LOST_TIME.toFixed(1));
+    await expect(lostTime.getByText("Calculated", { exact: true })).toBeVisible();
+    await expect(lostTime.locator("[data-derived-from]")).toHaveAttribute(
+      "data-derived-from",
+      "ltifr",
+    );
+    await expect(lostTime).toContainText("Calculated from the researched LTIFR for");
+    const recordable = derived.locator('[data-derived-count="recordable"]');
+    // 4.622 injuries a year, shown to one decimal (AC-8).
+    await expect(recordable.locator("[data-derived-value]")).toHaveText(RECORDABLE.toFixed(1));
+    await expect(recordable.locator("[data-derived-from]")).toHaveAttribute(
+      "data-derived-from",
+      "trifr",
+    );
+    await expect(recordable).toContainText("Calculated from the researched TRIFR for");
+    // A calculated number never borrows a confidence score (AC-5).
+    await expect(derived.locator("[data-confidence]")).toHaveCount(0);
 
     // The priority gaps (AC-9 b): the accident rate is the only KPI with a peer row in the seed.
     const gaps = page.locator("[data-gaps]");
@@ -169,15 +199,16 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     }
     const seenAfterFirst = await mailIds(email);
 
-    // The disclosure (AC-10): closed by default, the formula, the five assumptions the cost used
-    // (the fixture has a lost days row and an accident rate, so no hours and no default days), the inputs.
+    // The disclosure (AC-10): closed by default, the formula, the six assumptions the snapshot used
+    // (the fixture has a lost days row and an accident rate, so no default days; the hours are named
+    // because the derived counts used them, spec 0012 AC-11), the inputs.
     const disclosure = page.locator("[data-calculation-disclosure]");
     await expect(disclosure.locator("[data-calculation-content]")).toBeHidden();
     await disclosure.getByRole("button", { name: "How this is calculated" }).click();
     const content = disclosure.locator("[data-calculation-content]");
     await expect(content).toBeVisible();
     await expect(content.locator("[data-fte-line]")).toBeVisible();
-    await expect(content.locator("[data-assumption]")).toHaveCount(5);
+    await expect(content.locator("[data-assumption]")).toHaveCount(6);
     await expect(content.locator('[data-assumption="direct_cost_per_case_chf"]')).toHaveAttribute(
       "data-assumption-value",
       "4811",
@@ -185,7 +216,10 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(
       content.locator('[data-assumption="indirect_multiplier"] [data-provisional]'),
     ).toBeVisible();
-    await expect(content.locator('[data-assumption="hours_per_fte"]')).toHaveCount(0);
+    await expect(content.locator('[data-assumption="hours_per_fte"]')).toHaveAttribute(
+      "data-assumption-value",
+      String(HOURS_PER_FTE),
+    );
     await expect(content.locator("[data-input-headcount]")).toHaveAttribute(
       "data-input-headcount",
       "420",

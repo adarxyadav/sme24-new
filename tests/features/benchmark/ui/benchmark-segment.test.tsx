@@ -10,6 +10,8 @@ import {
   assumptionRow,
   catalogue,
   company,
+  derivedBlock,
+  derivedCount,
   en,
   enFormat,
   gap,
@@ -214,6 +216,120 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(screen.queryByTestId("calculation-content")).not.toBeInTheDocument();
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(card.compareDocumentPosition(trigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
+
+describe("the derived injury counts (spec 0012)", () => {
+  const withDerived = (derived = derivedBlock()) => ({
+    snapshot: parsedSnapshot({}, { derived }),
+  });
+
+  it("shows both counts above the CHF figure, each with a Calculated badge (AC-1, AC-2)", async () => {
+    const { container } = await renderSegment(withDerived());
+    const block = container.querySelector("[data-derived-block]") as HTMLElement;
+    expect(block).toBeInTheDocument();
+    // Lost time first, so the number that drives the CHF figure sits nearest to it.
+    const values = [...container.querySelectorAll("[data-derived-count]")].map((node) =>
+      node.getAttribute("data-derived-count"),
+    );
+    expect(values).toEqual(["lost-time", "recordable"]);
+    const headline = container.querySelector("[data-cost-headline]") as HTMLElement;
+    expect(block.compareDocumentPosition(headline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(block).getAllByText(b.derived.calculated)).toHaveLength(2);
+  });
+
+  it("shows one decimal, so a fraction of an injury never reads as none (AC-8)", async () => {
+    const { container } = await renderSegment(
+      withDerived(derivedBlock({ lostTime: derivedCount({ count: 0.42 }) })),
+    );
+    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    expect(within(lostTime).getByText("0.4")).toBeInTheDocument();
+  });
+
+  it("names the figure and year, following the source of the row (AC-4)", async () => {
+    const { container } = await renderSegment(
+      withDerived(
+        derivedBlock({ lostTime: derivedCount({ fromSource: "client", fromYear: 2024 }) }),
+      ),
+    );
+    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    // The KPI name comes from the catalogue in the reader's language, not a hardcoded label.
+    // The fixture names are "ltifr (en)" / "trifr (en)", so the gloss is dropped here too.
+    expect(lostTime).toHaveTextContent("Calculated from your ltifr for 2024");
+    const recordable = container.querySelector('[data-derived-count="recordable"]') as HTMLElement;
+    expect(recordable).toHaveTextContent("Calculated from the researched trifr for 2025");
+  });
+
+  it("drops the catalogue name's parenthetical gloss inside the sentence (AC-4)", async () => {
+    const withGloss = catalogue.map((entry) =>
+      entry.key === "ltifr"
+        ? {
+            ...entry,
+            name: {
+              de: "LTIFR (Unfälle mit Ausfallzeit)",
+              en: "LTIFR (lost time injury frequency rate)",
+            },
+          }
+        : entry,
+    );
+    const { container } = await renderSegment({ ...withDerived(), catalogue: withGloss });
+    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    expect(lostTime).toHaveTextContent("Calculated from the researched LTIFR for 2025");
+    expect(lostTime).not.toHaveTextContent("lost time injury frequency rate");
+  });
+
+  it("uses the short Suva phrase rather than the catalogue name (AC-4)", async () => {
+    const { container } = await renderSegment(
+      withDerived(
+        derivedBlock({
+          lostTime: derivedCount({
+            count: 28.56,
+            fromKey: "accident_rate_per_1000_fte",
+            fromValue: 68,
+            fromYear: 2024,
+          }),
+        }),
+      ),
+    );
+    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    expect(lostTime).toHaveTextContent(
+      "Calculated from the researched Suva accident rate for 2024",
+    );
+  });
+
+  it("carries no confidence score anywhere on the block (AC-5)", async () => {
+    const { container } = await renderSegment(withDerived());
+    const block = container.querySelector("[data-derived-block]") as HTMLElement;
+    expect(block.querySelector("[data-confidence]")).not.toBeInTheDocument();
+  });
+
+  it("drops only the missing count and keeps the other showing (AC-6)", async () => {
+    const { container } = await renderSegment(withDerived(derivedBlock({ recordable: null })));
+    expect(container.querySelector('[data-derived-count="lost-time"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-derived-count="recordable"]')).not.toBeInTheDocument();
+  });
+
+  it("renders no block at all on a stored version 1 snapshot (AC-7, AC-12)", async () => {
+    const { container } = await renderSegment();
+    expect(container.querySelector("[data-derived-block]")).not.toBeInTheDocument();
+    // Everything the card showed before this block existed is still there.
+    expect(container.querySelector("[data-cost-headline]")).toBeInTheDocument();
+    expect(container.querySelector("[data-saving-median]")).toBeInTheDocument();
+  });
+
+  it("states the exposure from the block rather than recomputing it", async () => {
+    const { container } = await renderSegment(withDerived());
+    const exposure = container.querySelector("[data-derived-exposure]") as HTMLElement;
+    expect(exposure).toHaveTextContent("420");
+    expect(exposure).toHaveTextContent(/1.800/);
+  });
+
+  it("passes axe with the block on the card (AC-14)", async () => {
+    const { container } = await renderSegment(withDerived());
+    const results = await axe.run(container, {
+      runOnly: ["cat.forms", "cat.aria", "cat.name-role-value", "cat.color"],
+    });
+    expect(results.violations.map((violation) => violation.id)).toEqual([]);
   });
 });
 

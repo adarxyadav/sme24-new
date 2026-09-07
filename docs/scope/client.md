@@ -83,6 +83,21 @@ spec [0010](../specs/0010-self-assessment-fallback/index.md) · code in `src/fea
 - [x] Review it (fresh model): `/check review self assessment fallback`
 - [x] Document it: `/document self assessment fallback`
 
+### 27. Derived injury counts · in-progress
+The bridge between a rate and the CHF figure. The dashboard works out roughly how many recordable and lost time injuries a year the company's own rates and headcount imply, and shows them above the opportunity figure with a "Calculated" badge so they never read as researched or client entered. No new KPI: the counts live in a new block of the benchmark snapshot, not in `company_kpis`.
+**Done when:** a company with rates and a headcount sees both counts in the opportunity card, each marked calculated and naming the figure and year it came from; a company missing an input sees only what can be worked out; and a snapshot written before the change still renders.
+spec [0012](../specs/0012-derived-injury-counts/index.md) · code in `src/features/benchmark/` (`model.ts`, `snapshot.ts`, `ui/benchmark-segment.tsx`) and `src/trigger/benchmark-company.ts`
+- [x] Design it (spec): `/architect derived injury counts`
+- [x] Build it: `/develop derived injury counts`
+  - [x] Version safety and the column: the literal keyed `SNAPSHOT_SCHEMAS` restructure landed on its own, the nullable `derived jsonb` migration with the pgTAP check, the v2 block schemas and the `MODEL_VERSION` bump, the four pinned test literals moved deliberately (AC-12, AC-13)
+  - [x] The derivation: `exposureCount` lifted out of `costAt` dispatching on rate shape, the derived block in `computeBenchmark` with the Suva fallback and the missing input guards, `hours_per_fte` registered as used, the block carried through the `benchmark-company` parse and insert (AC-1, AC-2, AC-4, AC-6, AC-7, AC-9, AC-10, AC-11, AC-15, AC-16)
+  - [x] The card and its strings: the block in the opportunity card above the CHF figure, lost time then recordable at one decimal, the outline `Calculated` badge with its gallery section, the provenance lines including the Suva variant, both catalogs (AC-1, AC-2, AC-3, AC-5, AC-8)
+  - [x] Harden and document: Vitest over the model and the version map, the Playwright assertion with axe, `docs/benchmark.md` and the post deploy recompute note (AC-13, AC-14)
+- [x] Verify it: `/check verify derived injury counts`
+- [x] Test it: `/test derived injury counts`
+- [x] Review it (fresh model): `/check review derived injury counts`
+- [ ] Document it: `/document derived injury counts`
+
 ## Slice 8: Thicken the accounts
 
 ### 22. Client team invitations

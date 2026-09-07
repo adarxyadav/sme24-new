@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MODEL_VERSION } from "@/features/benchmark/catalogue";
 import {
   computeBenchmark,
+  exposureCount,
   gapOf,
   type ModelAssumption,
   type ModelCatalogueEntry,
@@ -9,6 +10,7 @@ import {
   type ModelKpiRow,
   type ModelPeerRow,
   positionOf,
+  rateShapeOf,
   roundChf,
   selectPeer,
 } from "@/features/benchmark/model";
@@ -371,10 +373,13 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   it("flags provisional peers or assumptions and lists only the assumptions used", () => {
     const body = compute();
     expect(body.peerProvisional).toBe(true);
+    // hours_per_fte rides in on the derived block: the cost line took the Suva path and would not
+    // have recorded it, but both derived counts used it, so the disclosure must name it (spec 0012, AC-11).
     expect(body.assumptions.map((assumption) => assumption.key).sort()).toEqual(
       [
         "cost_per_absence_day_chf",
         "direct_cost_per_case_chf",
+        "hours_per_fte",
         "indirect_multiplier",
         "indirect_multiplier_high",
         "indirect_multiplier_low",
@@ -404,6 +409,159 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   });
 });
 
+describe("the derived injury counts (spec 0012)", () => {
+  // fte 420, hours_per_fte 1804 -> exposure 757 680 hours, so a rate of 1.0 is 0.75768 injuries.
+  const exposureHours = (420 * 1804) / 1_000_000;
+
+  it("derives both counts from the rates, headcount and hours assumption (AC-1, AC-2, AC-10)", () => {
+    const derived = compute().derived;
+    expect(derived).not.toBeNull();
+    expect(derived?.fte).toBe(420);
+    expect(derived?.hoursPerFte).toBe(1804);
+    expect(derived?.lostTime?.count).toBeCloseTo(2.4 * exposureHours, 10);
+    expect(derived?.recordable?.count).toBeCloseTo(6.1 * exposureHours, 10);
+  });
+
+  it("copies the provenance of the row each count came from (AC-4, AC-5)", () => {
+    const derived = compute().derived;
+    expect(derived?.lostTime).toMatchObject({
+      fromKey: "ltifr",
+      fromValue: 2.4,
+      fromSource: "research",
+      fromYear: 2025,
+    });
+    expect(derived?.recordable?.fromKey).toBe("trifr");
+    // A derived count never carries a confidence: the type has no such key.
+    expect(derived?.lostTime).not.toHaveProperty("confidence");
+  });
+
+  it("equals the cost line's incidents when both name the same rate (AC-9)", () => {
+    // Drop the Suva rate so the cost line and the derived block both pick LTIFR.
+    const body = compute({
+      kpis: kpis.filter((row) => row.kpiKey !== "accident_rate_per_1000_fte"),
+    });
+    expect(body.cost?.incidentKpi).toBe("ltifr");
+    expect(body.derived?.lostTime?.fromKey).toBe("ltifr");
+    expect(body.derived?.lostTime?.count).toBe(body.cost?.incidents);
+  });
+
+  it("falls back to the Suva accident rate when there is no LTIFR (AC-11)", () => {
+    const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "ltifr") });
+    expect(body.derived?.lostTime?.fromKey).toBe("accident_rate_per_1000_fte");
+    // The per 1000 FTE arm, not the per million hours one.
+    expect(body.derived?.lostTime?.count).toBeCloseTo((68 * 420) / 1000, 10);
+    // The hours assumption still reaches the disclosure, because the recordable count used it.
+    expect(body.assumptions.map((assumption) => assumption.key)).toContain("hours_per_fte");
+  });
+
+  // The spec makes the derived block's lost time precedence deliberately independent of the cost
+  // line's: LTIFR first here, whatever the cost line picked. With both rates present the two
+  // diverge, which is the case that would break if someone "simplified" the block to reuse
+  // `cost.incidentKpi`. The AC-9 equality above holds only when the keys agree, so pin the
+  // disagreement too.
+  it("prefers LTIFR even when the cost line took the Suva rate (AC-9)", () => {
+    const body = compute();
+    // The default fixture carries both rates, and the two lines choose differently.
+    expect(body.cost?.incidentKpi).toBe("accident_rate_per_1000_fte");
+    expect(body.derived?.lostTime?.fromKey).toBe("ltifr");
+    expect(body.derived?.lostTime?.count).not.toBeCloseTo(body.cost?.incidents ?? 0, 6);
+    // Each still used its own rate through the one shared helper.
+    expect(body.derived?.lostTime?.count).toBeCloseTo(2.4 * exposureHours, 10);
+    expect(body.cost?.incidents).toBeCloseTo((68 * 420) / 1000, 10);
+  });
+
+  it("drops only the count whose rate is missing (AC-6)", () => {
+    const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "trifr") });
+    expect(body.derived?.lostTime).not.toBeNull();
+    expect(body.derived?.recordable).toBeNull();
+  });
+
+  it("produces no block without a positive headcount (AC-7)", () => {
+    expect(compute({ company: { ...company, employeesCount: null } }).derived).toBeNull();
+    expect(compute({ company: { ...company, employeesCount: 0 } }).derived).toBeNull();
+  });
+
+  it("produces no block, and no NaN, without the hours assumption (AC-16)", () => {
+    const body = compute({
+      assumptions: assumptions.filter((assumption) => assumption.key !== "hours_per_fte"),
+    });
+    expect(body.derived).toBeNull();
+  });
+
+  it("produces no block when no usable rate exists at all (AC-7)", () => {
+    const rates = ["ltifr", "trifr", "accident_rate_per_1000_fte"];
+    const body = compute({ kpis: kpis.filter((row) => !rates.includes(row.kpiKey)) });
+    expect(body.derived).toBeNull();
+  });
+
+  it("keeps a small company's fraction of an injury rather than rounding it away (AC-8)", () => {
+    // 5 people, LTIFR 45: 5 x 1804 = 9020 hours, so 45 x 0.00902 = 0.4059 injuries a year.
+    const body = compute({
+      company: { ...company, employeesCount: 5 },
+      kpis: [kpi("ltifr", 45)],
+    });
+    expect(body.derived?.lostTime?.count).toBeCloseTo(0.4059, 4);
+    expect(body.derived?.lostTime?.count).toBeGreaterThan(0);
+  });
+
+  it("never adds a derived count to the KPI blocks (AC-13)", () => {
+    const body = compute();
+    const keys = [
+      ...body.inputs.kpis.map((input) => input.key),
+      ...body.results.map((result) => result.key),
+      ...body.gaps.map((gap) => gap.key),
+    ];
+    expect(keys).not.toContain("recordable_injuries");
+    expect(keys).not.toContain("lost_time_injuries");
+  });
+
+  // /check verify walked this through the "Your figures" form by hand. The fixture research
+  // provider always writes `source 'research'`, so the form path cannot be driven end to end
+  // locally; what the form feeds in is a client sourced row, and this pins what the model does
+  // with one (spec 0012, AC-4).
+  it("follows the input row's source, so a client entered rate reads as the client's (AC-4)", () => {
+    const body = compute({
+      kpis: kpis.map((row) =>
+        row.kpiKey === "ltifr"
+          ? { ...row, source: "client" as const, confidence: null, periodYear: 2024 }
+          : row,
+      ),
+    });
+    expect(body.derived?.lostTime).toMatchObject({
+      fromKey: "ltifr",
+      fromSource: "client",
+      fromYear: 2024,
+    });
+    // The researched TRIFR beside it keeps its own source, so the two lines can disagree.
+    expect(body.derived?.recordable?.fromSource).toBe("research");
+    // A client row carries no confidence, and the derived count borrows none either (AC-5).
+    expect(body.derived?.lostTime).not.toHaveProperty("confidence");
+  });
+
+  // The other step /check verify only ran by hand: change the headcount, watch both counts move.
+  it("scales both counts and the stated exposure with the headcount (AC-10)", () => {
+    const at420 = compute().derived;
+    const at840 = compute({ company: { ...company, employeesCount: 840 } }).derived;
+    expect(at840?.fte).toBe(840);
+    // Exposure is linear in FTE, so doubling the headcount doubles both counts exactly.
+    expect(at840?.lostTime?.count).toBeCloseTo((at420?.lostTime?.count ?? 0) * 2, 10);
+    expect(at840?.recordable?.count).toBeCloseTo((at420?.recordable?.count ?? 0) * 2, 10);
+    // The rates themselves are unchanged: only the exposure moved.
+    expect(at840?.lostTime?.fromValue).toBe(at420?.lostTime?.fromValue);
+    expect(at840?.hoursPerFte).toBe(at420?.hoursPerFte);
+  });
+});
+
+describe("exposureCount (spec 0012, AC-9)", () => {
+  it("dispatches on the rate shape, with an arm for TRIFR", () => {
+    expect(exposureCount("per_1000_fte", 68, 420, 1804)).toBeCloseTo(28.56, 10);
+    expect(exposureCount("per_million_hours", 2.4, 420, 1804)).toBeCloseTo(1.818432, 10);
+    expect(rateShapeOf("accident_rate_per_1000_fte")).toBe("per_1000_fte");
+    expect(rateShapeOf("ltifr")).toBe("per_million_hours");
+    expect(rateShapeOf("trifr")).toBe("per_million_hours");
+  });
+});
+
 describe("the snapshot version map (spec 0008, AC-9)", () => {
   const valid = compute();
 
@@ -416,5 +574,46 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
     const broken = parseSnapshotBlocks({ model_version: MODEL_VERSION, ...valid, gaps: "nope" });
     expect(broken.blocks).toBeNull();
     expect(broken.error).toContain("gaps");
+  });
+
+  it("keeps parsing a stored version 1 row under its literal key (spec 0012, AC-12)", () => {
+    const v1 = parseSnapshotBlocks({ model_version: "benchmark-model@1", ...valid });
+    expect(v1.error).toBeNull();
+    expect(v1.blocks).not.toBeNull();
+  });
+
+  // The load bearing invariant of spec 0012: both versions stay in the map under literal keys,
+  // and version 1 is never widened to carry a derived key. Getting this wrong fails quietly,
+  // every stored snapshot becomes unreadable and the dashboard drops to its waiting state, so
+  // pin the shape rather than trusting a future edit to notice (AC-12).
+  it("keeps both versions in the map and leaves version 1 unwidened (spec 0012, AC-12)", () => {
+    expect(Object.keys(SNAPSHOT_SCHEMAS).sort()).toEqual([
+      "benchmark-model@1",
+      "benchmark-model@2",
+    ]);
+    // The live write time version is one of them, and it is the newer one.
+    expect(MODEL_VERSION).toBe("benchmark-model@2");
+
+    // A version 1 row that somehow carries a derived block drops it: the schema has no such key,
+    // so the reader sees an absent block rather than an unvalidated one.
+    const v1 = parseSnapshotBlocks({
+      model_version: "benchmark-model@1",
+      ...valid,
+      derived: { fte: 420, hoursPerFte: 1804, lostTime: null, recordable: null },
+    });
+    expect(v1.error).toBeNull();
+    expect(v1.blocks?.derived).toBeUndefined();
+
+    // A version 2 row keeps its block, and an invalid one is rejected rather than stored.
+    const v2 = parseSnapshotBlocks({ model_version: "benchmark-model@2", ...valid });
+    expect(v2.error).toBeNull();
+    expect(v2.blocks?.derived).toEqual(valid.derived);
+    const broken = parseSnapshotBlocks({
+      model_version: "benchmark-model@2",
+      ...valid,
+      derived: { fte: "many", hoursPerFte: 1804, lostTime: null, recordable: null },
+    });
+    expect(broken.blocks).toBeNull();
+    expect(broken.error).toContain("derived");
   });
 });

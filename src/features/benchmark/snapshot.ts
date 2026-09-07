@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { KPI_KEYS } from "@/features/research/catalogue";
-import { ASSUMPTION_KEYS, MODEL_VERSION, SIZE_BANDS } from "./catalogue";
+import { ASSUMPTION_KEYS, SIZE_BANDS } from "./catalogue";
 
 /**
  * The snapshot block schemas (spec 0008, AC-4, AC-9): what `benchmark_snapshots.inputs`,
@@ -97,6 +97,34 @@ export const assumptionUsedSchema = z.object({
 });
 export type AssumptionUsed = z.infer<typeof assumptionUsedSchema>;
 
+/**
+ * One derived injury count (spec 0012): the count itself plus the rate row it came from, so the
+ * card can name the figure and its year. Deliberately carries no confidence: a derived value
+ * inherits its input's reliability and must not look independently assessed (AC-5).
+ */
+export const derivedCountSchema = z.object({
+  count: z.number(),
+  fromKey: z.enum(["ltifr", "trifr", "accident_rate_per_1000_fte"]),
+  fromValue: z.number(),
+  fromSource: z.enum(["research", "client"]),
+  fromYear: z.number().int(),
+});
+export type DerivedCount = z.infer<typeof derivedCountSchema>;
+export type DerivedFromKey = DerivedCount["fromKey"];
+
+/**
+ * The display only derived block (spec 0012): the exposure the counts were worked out from, and
+ * each count independently nullable. The whole block is null without a positive FTE or without
+ * the `hours_per_fte` assumption (AC-7, AC-16).
+ */
+export const derivedSchema = z.object({
+  fte: z.number(),
+  hoursPerFte: z.number(),
+  lostTime: derivedCountSchema.nullable(),
+  recordable: derivedCountSchema.nullable(),
+});
+export type SnapshotDerived = z.infer<typeof derivedSchema>;
+
 /** The five jsonb blocks of a version 1 row. */
 export const snapshotBlocksV1Schema = z.object({
   inputs: inputsSchema,
@@ -105,7 +133,18 @@ export const snapshotBlocksV1Schema = z.object({
   cost: costSchema.nullable(),
   assumptions: z.array(assumptionUsedSchema),
 });
-export type SnapshotBlocks = z.infer<typeof snapshotBlocksV1Schema>;
+/** The version 1 blocks plus the derived block (spec 0012). */
+export const snapshotBlocksV2Schema = snapshotBlocksV1Schema.extend({
+  derived: derivedSchema.nullable(),
+});
+
+/**
+ * What a reader gets from any version. `derived` is optional because a stored version 1 row has
+ * no such key and is never widened to carry one (AC-12); a version 2 row always sets it.
+ */
+export type SnapshotBlocks = z.infer<typeof snapshotBlocksV1Schema> & {
+  readonly derived?: SnapshotDerived | null;
+};
 
 /** The scalar columns the task writes beside the blocks. */
 export type SnapshotScalars = {
@@ -122,9 +161,13 @@ export type SnapshotScalars = {
 /** What `computeBenchmark` returns and the task stores. */
 export type SnapshotBody = SnapshotBlocks & SnapshotScalars;
 
-/** The block schema per model version; a version missing here is unreadable by design. */
+/**
+ * The block schema per model version, under literal keys so a bump to `MODEL_VERSION` adds an
+ * entry instead of renaming the only one. A version missing here is unreadable by design.
+ */
 export const SNAPSHOT_SCHEMAS: Readonly<Record<string, z.ZodType<SnapshotBlocks>>> = {
-  [MODEL_VERSION]: snapshotBlocksV1Schema,
+  "benchmark-model@1": snapshotBlocksV1Schema,
+  "benchmark-model@2": snapshotBlocksV2Schema,
 };
 
 export type SnapshotRowLike = {
@@ -134,6 +177,7 @@ export type SnapshotRowLike = {
   readonly gaps: unknown;
   readonly cost: unknown;
   readonly assumptions: unknown;
+  readonly derived?: unknown;
 };
 
 /**
@@ -153,6 +197,7 @@ export function parseSnapshotBlocks(
     gaps: row.gaps,
     cost: row.cost,
     assumptions: row.assumptions,
+    derived: row.derived ?? null,
   });
   if (!parsed.success) {
     const issue = parsed.error.issues[0];

@@ -1506,6 +1506,17 @@
       "missingIncidentRate": "Für die Kostenschätzung brauchen wir eine Unfallrate oder eine LTIFR.",
       "compared": "{compared} von {total} Kennzahlen verglichen"
     },
+    "derived": {
+      "title": "Was das an Unfällen bedeutet",
+      "lostTime": "Unfälle mit Ausfallzeit pro Jahr",
+      "recordable": "Meldepflichtige Unfälle pro Jahr",
+      "calculated": "Berechnet",
+      "fromClient": "Berechnet aus Ihrer {kpi} für {year}",
+      "fromResearch": "Berechnet aus der recherchierten {kpi} für {year}",
+      "fromClientSuva": "Berechnet aus Ihrer Suva Unfallrate für {year}",
+      "fromResearchSuva": "Berechnet aus der recherchierten Suva Unfallrate für {year}",
+      "exposure": "Basierend auf {fte} Mitarbeitenden und je {hours} Stunden pro Jahr"
+    },
     "gaps": {
       "title": "Prioritäre Lücken",
       "description": "Was zuerst zu tun ist: sortiert nach der Einsparung am Median der Vergleichsgruppe, dann nach dem Abstand zum Median.",

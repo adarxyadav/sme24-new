@@ -13,7 +13,7 @@ import {
   type ModelPeerRow,
   roundChf,
 } from "@/features/benchmark/model";
-import { type SnapshotBody, snapshotBlocksV1Schema } from "@/features/benchmark/snapshot";
+import { SNAPSHOT_SCHEMAS, type SnapshotBody } from "@/features/benchmark/snapshot";
 import { isKpiKey } from "@/features/research/catalogue";
 import { BENCHMARK_SNAPSHOT_CREATED_EVENT, type NewSendPayload } from "@/lib/email/schema";
 import { taskEnv } from "@/lib/env";
@@ -106,12 +106,17 @@ export const benchmarkCompanyTask = schemaTask({
       peers,
       assumptions,
     });
-    const blocks = snapshotBlocksV1Schema.parse({
+    // Parse against the schema for the version this task writes, looked up rather than named, so a
+    // later MODEL_VERSION bump cannot silently strip a block zod does not know about (AC-15).
+    const writeSchema = SNAPSHOT_SCHEMAS[MODEL_VERSION];
+    if (!writeSchema) throw new Error(`no snapshot schema for ${MODEL_VERSION}`);
+    const blocks = writeSchema.parse({
       inputs: body.inputs,
       results: body.results,
       gaps: body.gaps,
       cost: body.cost,
       assumptions: body.assumptions,
+      derived: body.derived,
     });
     for (const result of blocks.results) {
       step("benchmark peer selected", {
@@ -158,6 +163,7 @@ export const benchmarkCompanyTask = schemaTask({
         gaps: blocks.gaps as unknown as Json,
         cost: blocks.cost as unknown as Json,
         assumptions: blocks.assumptions as unknown as Json,
+        derived: (blocks.derived ?? null) as unknown as Json,
       })
       .select("id, created_at")
       .single();

@@ -301,6 +301,7 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     company_id: COMPANY,
     research_run_id: RUN_PASSED,
     trigger_kind: "research",
+    // Deliberately a stored version 1 row: the dashboard read must still parse one (spec 0012, AC-12).
     model_version: "benchmark-model@1",
     peer_provisional: true,
     kpis_compared: 2,

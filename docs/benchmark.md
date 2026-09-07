@@ -38,8 +38,9 @@ The `benchmark-company` task (`src/trigger/benchmark-company.ts`) runs after a r
 - `gaps`: the ranked list with `reason` (`fatality`, `cost`, `distance`) and the solo move saving.
 - `cost`: the block of rule 5, or null.
 - `assumptions`: every assumption the cost used, value, unit, source and provisional flag copied.
+- `derived`: the two display only injury counts, or null. Added by spec 0012, so it exists only on a `benchmark-model@2` row.
 
-`model_version` names the rule set and the block schema (`MODEL_VERSION` in `src/features/benchmark/catalogue.ts`, `benchmark-model@1`). The reader (`src/features/benchmark/queries.ts`) picks the schema through `SNAPSHOT_SCHEMAS` in `snapshot.ts`; a row with an unknown version or blocks that fail their schema is treated as absent and reported to Sentry. A formula change bumps the constant, adds a schema to the map and never rewrites or blanks old rows.
+`model_version` names the rule set and the block schema (`MODEL_VERSION` in `src/features/benchmark/catalogue.ts`, `benchmark-model@2`). The reader (`src/features/benchmark/queries.ts`) picks the schema through `SNAPSHOT_SCHEMAS` in `snapshot.ts`, which is keyed by **literal** version strings, not by the live constant, so a bump adds an entry instead of renaming the only one. Both `benchmark-model@1` and `@2` are in the map and both stay valid; a `@1` row has no `derived` key and the reader treats it as absent. A row with an unknown version or blocks that fail their schema is treated as absent and reported to Sentry. A formula change bumps the constant, adds a schema to the map and never rewrites or blanks old rows.
 
 The dashboard state is derived, never stored: a snapshot with nothing compared is `noData` (with the facts form), any other snapshot is `ready`; with no snapshot, a run that succeeded, a company edit or a client figure save (`clientKpiUpdatedAt`, the newest client row) younger than two minutes (`BENCHMARK_WAIT_MS`) is `calculating`, anything older is `unavailable`.
 
@@ -53,6 +54,25 @@ Feature 10 (spec 0010) lets a client type the same eight KPIs by hand in the "Yo
 - **The write path works around the partial index.** The client unique index is partial (`where source = 'client'`), which PostgREST cannot upsert onto, so `saveClientKpis` reads the existing client rows for the sent keys, updates each by id (zero rows means another member created it: `forbidden`, and nothing is inserted) and inserts the rest in one statement; a `23505` on that insert is a second tab racing and answers `conflict`. Only fields the client changed reach the action, so an untouched research value is never copied into a client row.
 - **Two idempotency keys.** A save triggers `benchmark-company` with `triggerKind 'client_edit'` under `benchmark/kpis/<companyId>/<newest updated_at the writes returned>`, a clear under `benchmark/kpis-clear/<deleted row id>`, both with a one hour TTL. Saves inside one write moment collapse; a save followed by a clear are two snapshots a minute apart, which is expected.
 - **Policies are per creator.** Members update and delete only client rows they created (`created_by = auth.uid()`); with one member per organization this is invisible. Feature 22 (client team invitations) relaxes both policies to organization scope and updates `supabase/tests/company_kpis.test.sql`, where one assertion pins today's behaviour.
+
+## Derived injury counts
+
+The card shows roughly how many injuries a year the company's own rates and headcount imply, so the CHF figure reads as a consequence rather than an assertion (spec 0012). Two numbers, both display only:
+
+- **Lost time injuries a year**, from LTIFR when there is one, else the Suva accident rate.
+- **Recordable injuries a year**, from TRIFR.
+
+They are deliberately **not KPIs**. `kpi_definitions` gains no rows, `company_kpis` gains no rows and its `source` constraint still reads `('research', 'client')`. A count is a function of company size while a rate is not, so no peer distribution can compare one; giving them the KPI path would put two permanently empty peer columns in the table and two unrankable entries in the priority gaps. They are an explanation of the cost model, stored where the cost model lives.
+
+What to know when changing them:
+
+- **One exposure formula.** `exposureCount(shape, rate, fte, hoursPerFte)` in `model.ts` is the only place a rate becomes a count; `costAt` calls it for the cost line's `incidents` and the derived block calls it for both counts, so the two cannot disagree. It dispatches on the rate's shape, `per_1000_fte` (`rate * fte / 1000`) for the Suva rate or `per_million_hours` (`rate * fte * hoursPerFte / 1e6`) for LTIFR and TRIFR, not on the cost model's own two arm KPI union, which has no arm for TRIFR.
+- **The whole block is null** without a positive `inputs.fte`, without the `hours_per_fte` assumption row, or when no usable rate exists. There is no partial block and no `NaN`. The two counts inside it are independently nullable.
+- **The cost line and the derived block can name different rates.** The cost model prefers the Suva rate; the derived block prefers LTIFR, because that is the reader's lost time figure. They agree on the number only when both name the same key, which is what the Vitest assertion pins.
+- **`hours_per_fte` is registered as used** whenever either count is produced, including on the Suva cost path where the cost line alone would not have recorded it, so the calculation disclosure always names an assumption the reader can see applied.
+- **No confidence, ever.** A derived value inherits its input's reliability, so showing a score would imply the derivation was independently assessed. The type has no `confidence` key. The provenance line names the input figure and its reporting year instead, following the source of that row ("Calculated from your LTIFR for 2024" or "the researched LTIFR"), which points the reader at the number they should actually judge. The Suva rate uses a dedicated short phrase because its catalogue name does not read inside a sentence, and every other name is shortened to the part before its parenthetical gloss.
+- **The badge is `variant="outline"`** with a calculator icon, so it reads as neither the filled confidence badge nor the `secondary` "Your figure" badge. It has a section on `/admin/design` so axe scans it.
+- Values render at one decimal (the `oneDecimal` named format), so a company whose rates imply 0.4 injuries a year sees 0.4 and not 0.
 
 ## The seed: format and generator
 
@@ -95,6 +115,8 @@ pnpm benchmarks:recompute
 ```
 
 It reads `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` (the project's name for the service role key) and `TRIGGER_SECRET_KEY` from `.env.local`, swapped to the target environment as `docs/auth.md` describes for `pnpm user:invite`, lists every distinct company in `benchmark_snapshots`, triggers `benchmark-company` per company with `triggerKind` `recompute` under the key `benchmark/recompute/<companyId>/<yyyy-mm-dd>` (24 hour TTL, so a second run on the same day is a no op), and prints the count. It never writes the database and exits 1 when a variable is missing.
+
+**Owed after the spec 0012 deploy.** The derived injury counts appear only on a `benchmark-model@2` row, and every stored row is `@1` until it is recomputed. Nothing breaks in between: a `@1` row parses under its own schema and its card renders exactly as before, just without the counts. So after the migration and the deploy land, run `pnpm benchmarks:recompute` against the environment, and watch it rather than firing and forgetting: it recomputes **everything**, not only the derived block, so a company whose peer rows or assumptions changed since its last snapshot will see other numbers move at the same time. Confirm the seed data has not changed first, or be ready to explain a shifted CHF figure. Snapshots are insert only, so the `@1` rows stay in place as history. Companies whose research finishes or whose figures change after the deploy get a `@2` row on their own, with no ops action.
 
 ## The rails around the task
 
