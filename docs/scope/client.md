@@ -86,7 +86,7 @@ spec [0010](../specs/0010-self-assessment-fallback/index.md) · code in `src/fea
 ### 27. Derived injury counts · in-progress
 The bridge between a rate and the CHF figure. The dashboard works out roughly how many recordable and lost time injuries a year the company's own rates and headcount imply, and shows them above the opportunity figure with a "Calculated" badge so they never read as researched or client entered. No new KPI: the counts live in a new block of the benchmark snapshot, not in `company_kpis`.
 **Done when:** a company with rates and a headcount sees both counts in the opportunity card, each marked calculated and naming the figure and year it came from; a company missing an input sees only what can be worked out; and a snapshot written before the change still renders.
-spec [0012](../specs/0012-derived-injury-counts.md) · code in `src/features/benchmark/` (`model.ts`, `snapshot.ts`, `ui/benchmark-segment.tsx`) and `src/trigger/benchmark-company.ts`
+spec [0012](../specs/0012-derived-injury-counts/index.md) · code in `src/features/benchmark/` (`model.ts`, `snapshot.ts`, `ui/benchmark-segment.tsx`) and `src/trigger/benchmark-company.ts`
 - [x] Design it (spec): `/architect derived injury counts`
 - [x] Build it: `/develop derived injury counts`
   - [x] Version safety and the column: the literal keyed `SNAPSHOT_SCHEMAS` restructure landed on its own, the nullable `derived jsonb` migration with the pgTAP check, the v2 block schemas and the `MODEL_VERSION` bump, the four pinned test literals moved deliberately (AC-12, AC-13)
