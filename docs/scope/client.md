@@ -95,7 +95,7 @@ spec [0012](../specs/0012-derived-injury-counts/index.md) · code in `src/featur
   - [x] Harden and document: Vitest over the model and the version map, the Playwright assertion with axe, `docs/benchmark.md` and the post deploy recompute note (AC-13, AC-14)
 - [x] Verify it: `/check verify derived injury counts`
 - [x] Test it: `/test derived injury counts`
-- [ ] Review it (fresh model): `/check review derived injury counts`
+- [x] Review it (fresh model): `/check review derived injury counts`
 - [ ] Document it: `/document derived injury counts`
 
 ## Slice 8: Thicken the accounts
