@@ -897,6 +897,10 @@
       "marketing": {
         "title": "Marketing",
         "description": "Die Grundelemente der öffentlichen Website: die Paketkarte mit Fixpreis und auf Anfrage, das FAQ-Akkordeon und das Anfrageformular leer und mit allen Fehlern."
+      },
+      "experts": {
+        "title": "Experten",
+        "description": "Die Auswahl und das Bild, die die Expertenseiten verwenden (Spec 0012)."
       }
     },
     "tokens": {
@@ -1228,7 +1232,15 @@
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
       "heroBenchmark": "Hero-Objekt der Startseite: der Beispiel-Benchmark",
       "registerDirectory": "Expertenverzeichnis"
-    }
+    },
+    "expertAvatar": "Expertenbild",
+    "avatarInitials": "Mit Initialen",
+    "avatarTwoWords": "Mehrere Wörter",
+    "avatarUnnamed": "Noch ohne Namen",
+    "combobox": "Suchbare Auswahl",
+    "comboboxPlaceholder": "Organisation wählen",
+    "comboboxSearch": "Organisationen suchen",
+    "comboboxEmpty": "Keine Organisation gefunden."
   },
   "email": {
     "layout": {

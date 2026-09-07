@@ -897,6 +897,10 @@
       "marketing": {
         "title": "Marketing",
         "description": "The public site's primitives: the package card with a fixed price and on request, the FAQ accordion, and the enquiry form empty and with every error shown."
+      },
+      "experts": {
+        "title": "Experts",
+        "description": "The picker and the avatar the expert pages use (spec 0012)."
       }
     },
     "tokens": {
@@ -1228,7 +1232,15 @@
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
       "heroBenchmark": "Landing hero object: the example benchmark",
       "registerDirectory": "Expert directory"
-    }
+    },
+    "expertAvatar": "Expert avatar",
+    "avatarInitials": "With initials",
+    "avatarTwoWords": "Several words",
+    "avatarUnnamed": "No name yet",
+    "combobox": "Searchable select",
+    "comboboxPlaceholder": "Choose an organization",
+    "comboboxSearch": "Search organizations",
+    "comboboxEmpty": "No organization found."
   },
   "email": {
     "layout": {
