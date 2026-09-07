@@ -26,6 +26,7 @@ export type MarketingRoute =
   | "/"
   | "/how-it-works"
   | "/expert-network"
+  | "/expert-network/directory"
   | "/pricing"
   | "/about"
   | "/contact";
@@ -43,6 +44,7 @@ export const BUDGETS_KB: Readonly<Record<MarketingRoute, number>> = {
   "/": 250,
   "/how-it-works": 250,
   "/expert-network": 250,
+  "/expert-network/directory": 250,
   "/pricing": 250,
   "/about": 250,
   "/contact": 350,
@@ -53,6 +55,7 @@ export const ZOD_FREE_ROUTES: readonly MarketingRoute[] = [
   "/",
   "/how-it-works",
   "/expert-network",
+  "/expert-network/directory",
   "/pricing",
   "/about",
 ];
@@ -67,12 +70,14 @@ export const PAGES: readonly BudgetPage[] = [
   { locale: "de-CH", route: "/" },
   { locale: "de-CH", route: "/how-it-works" },
   { locale: "de-CH", route: "/expert-network" },
+  { locale: "de-CH", route: "/expert-network/directory" },
   { locale: "de-CH", route: "/pricing" },
   { locale: "de-CH", route: "/about" },
   { locale: "de-CH", route: "/contact" },
   { locale: "en-CH", route: "/" },
   { locale: "en-CH", route: "/how-it-works" },
   { locale: "en-CH", route: "/expert-network" },
+  { locale: "en-CH", route: "/expert-network/directory" },
   { locale: "en-CH", route: "/pricing" },
   { locale: "en-CH", route: "/about" },
   { locale: "en-CH", route: "/contact" },

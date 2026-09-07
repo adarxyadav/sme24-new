@@ -226,10 +226,92 @@
         "eyebrow": "Abdeckung",
         "title": "Wohin wir kommen.",
         "lead": "Das Netzwerk deckt die ganze Deutsch- und Westschweiz ab; Besuche übernimmt jeweils der nächstgelegene Experte, das hält die Anfahrt kurz.",
-        "note": "Tessin auf Anfrage."
+        "note": "Tessin auf Anfrage.",
+        "directory": "Das ganze SGAS-Register ansehen"
       },
       "closing": {
         "title": "Sehen Sie, wo Sie stehen. Kostenlos.",
+        "cta": "Firma kostenlos vergleichen"
+      }
+    },
+    "directory": {
+      "meta": {
+        "title": "Expertenverzeichnis",
+        "description": "Das öffentliche SGAS-Register der Arbeitssicherheits-Spezialisten in der Schweiz: wie viele es gibt, wo sie sitzen und wer Kapazität hat."
+      },
+      "og": {
+        "statement": "Das ganze Register. Offen."
+      },
+      "eyebrow": "Verzeichnis",
+      "title": "Das ganze Register. Offen.",
+      "lead": "Alle bei der SGAS eingetragenen Spezialistinnen und Spezialisten für Arbeitssicherheit, aus dem öffentlichen Register. Damit Sie sehen, wie tief der Pool ist, aus dem wir zuteilen.",
+      "figures": {
+        "total": {
+          "label": "Eingetragen",
+          "note": "Sicherheitsingenieure, Sicherheitsfachleute, Arbeitshygieniker und Arbeitsärzte."
+        },
+        "available": {
+          "label": "Mit Kapazität",
+          "note": "Haben im Register angegeben, dass sie Mandate annehmen."
+        },
+        "cantons": {
+          "label": "Kantone",
+          "note": "Von Genf bis St. Gallen, mit Postleitzahl im Register."
+        },
+        "trained": {
+          "label": "Fortbildung 2025",
+          "note": "Haben die Fortbildungspflicht für das Jahr vollständig erfüllt."
+        }
+      },
+      "coverage": {
+        "eyebrow": "Abdeckung",
+        "title": "Wo sie sitzen.",
+        "lead": "Eingetragene pro Kanton, aus der Postleitzahl im Register. Wer keine hinterlegt hat, fehlt in dieser Tabelle, steht aber unten im Verzeichnis."
+      },
+      "register": {
+        "eyebrow": "Register",
+        "title": "Suchen Sie selbst.",
+        "lead": "Name und Ort, Kanton, angegebene Kapazität und der Fortbildungsstand 2025. Kontaktdaten zeigen wir nicht: die Zuteilung machen wir, und die Adressen im Register sind nicht unsere, sie zu verbreiten."
+      },
+      "search": {
+        "label": "Suche",
+        "placeholder": "Name oder Ort"
+      },
+      "canton": {
+        "label": "Kanton",
+        "all": "Alle Kantone"
+      },
+      "capacity": {
+        "label": "Kapazität",
+        "all": "Alle",
+        "v": "Verfügbar",
+        "t": "Teilweise",
+        "n": "Nicht verfügbar",
+        "u": "Keine Angabe"
+      },
+      "status": {
+        "A": "Abgeschlossen",
+        "T": "Teilweise",
+        "N": "Nicht abgeschlossen",
+        "E": "Nicht erfasst",
+        "U": "Nicht geprüft"
+      },
+      "columns": {
+        "name": "Name",
+        "place": "Ort",
+        "canton": "Kanton",
+        "capacity": "Kapazität",
+        "training": "Fortbildung 2025"
+      },
+      "count": "{shown, plural, =0 {Keine Einträge} one {# von {total, number} Einträgen} other {# von {total, number} Einträgen}}",
+      "more": "Weitere {count, number} anzeigen",
+      "empty": "Keine Einträge mit diesen Filtern.",
+      "notGiven": "Keine Angabe",
+      "clear": "Filter zurücksetzen",
+      "source": "Quelle: <link>SGAS-Register</link>, ausgelesen am {date}. Die Einträge stammen von den Spezialisten selbst; SME24 prüft sie bei der Aufnahme ins eigene Netzwerk erneut.",
+      "closing": {
+        "title": "Wir suchen den passenden für Sie.",
+        "lead": "Sie wählen nicht aus dem Verzeichnis. Wir teilen den Experten zu, dessen Branche, Normen und Anfahrt zu Ihrer Firma passen.",
         "cta": "Firma kostenlos vergleichen"
       }
     },
@@ -259,16 +341,19 @@
       "pointsLabel": "Warum SME24",
       "points": {
         "price": {
-          "title": "Fixpreis.",
-          "body": "Kein Verhandeln, keine Überraschungen auf der Rechnung."
+          "label": "Preis",
+          "figure": "CHF {low, number, integer} bis {high, number, integer}.",
+          "note": "Drei Pakete, je ein Fixpreis. Exkl. MWST."
         },
-        "negotiation": {
-          "title": "Kein Projekt-Setup.",
-          "body": "Vier Schritte. Keine Kickoff-Folien."
+        "setup": {
+          "label": "Setup",
+          "figure": "Vier Schritte.",
+          "note": "Kein Kickoff, keine Folien, kein Projektteam."
         },
-        "kickoff": {
-          "title": "Start in derselben Woche.",
-          "body": "Benchmark sehen, Expertin wählen, loslegen."
+        "start": {
+          "label": "Start",
+          "figure": "Dieselbe Woche.",
+          "note": "Expertin wählen, Termin buchen."
         }
       },
       "how": {
@@ -1141,7 +1226,8 @@
       "sectionTitle": "Erfahrene Experten. Keine Folien.",
       "sectionEyebrow": "So funktioniert es",
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
-      "heroBenchmark": "Hero-Objekt der Startseite: der Beispiel-Benchmark"
+      "heroBenchmark": "Hero-Objekt der Startseite: der Beispiel-Benchmark",
+      "registerDirectory": "Expertenverzeichnis"
     }
   },
   "email": {
@@ -1599,14 +1685,6 @@
         "U": "Exterritoriale Organisationen und Körperschaften"
       },
       "divisions": {
-        "01": "Landwirtschaft und Jagd",
-        "02": "Forstwirtschaft und Holzeinschlag",
-        "03": "Fischerei und Aquakultur",
-        "05": "Kohlenbergbau",
-        "06": "Gewinnung von Erdöl und Erdgas",
-        "07": "Erzbergbau",
-        "08": "Gewinnung von Steinen und Erden, sonstiger Bergbau",
-        "09": "Dienstleistungen für den Bergbau",
         "10": "Herstellung von Nahrungs- und Futtermitteln",
         "11": "Getränkeherstellung",
         "12": "Tabakverarbeitung",
@@ -1686,7 +1764,15 @@
         "96": "Sonstige persönliche Dienstleistungen",
         "97": "Private Haushalte mit Hauspersonal",
         "98": "Herstellung von Waren und Dienstleistungen durch private Haushalte für den Eigenbedarf",
-        "99": "Exterritoriale Organisationen und Körperschaften"
+        "99": "Exterritoriale Organisationen und Körperschaften",
+        "01": "Landwirtschaft und Jagd",
+        "02": "Forstwirtschaft und Holzeinschlag",
+        "03": "Fischerei und Aquakultur",
+        "05": "Kohlenbergbau",
+        "06": "Gewinnung von Erdöl und Erdgas",
+        "07": "Erzbergbau",
+        "08": "Gewinnung von Steinen und Erden, sonstiger Bergbau",
+        "09": "Dienstleistungen für den Bergbau"
       }
     },
     "sizeBands": {

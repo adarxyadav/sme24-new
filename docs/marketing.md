@@ -4,13 +4,14 @@ _How the public site is built, how to change what it says, how an enquiry travel
 
 ## The pages
 
-Six prerendered pages in German and English under `src/app/[locale]/(marketing)/`:
+Seven prerendered pages in German and English under `src/app/[locale]/(marketing)/`:
 
 | Page | English | German | What it holds |
 |---|---|---|---|
 | Landing | `/en` | `/de` | The centred hero on the page ground with the company lookup field into sign up and the example benchmark under it (`HeroBenchmark`, figures in `src/features/marketing/hero-example.ts`), three proof points, how it works, the packages overview, the campaign wall, a closing call to action |
 | How it works | `/en/how-it-works` | `/de/so-funktionierts` | The four steps the landing page summarises, the division of labour between the client and us, how long each stage takes |
 | Expert network | `/en/expert-network` | `/de/expertennetzwerk` | What "senior" has to mean, how an expert is vetted into the network, how one is matched to a company, where the network reaches |
+| Expert directory | `/en/expert-network/directory` | `/de/expertennetzwerk/verzeichnis` | The public SGAS register of occupational safety specialists: the counts, the coverage per canton and the searchable register itself |
 | Pricing | `/en/pricing` | `/de/preise` | The four packages of the owner's ladder in price order (three snapshots and the implementation partner on demand), what every package includes, a short FAQ |
 | About | `/en/about` | `/de/ueber-uns` | The story in three paragraphs, a campaign grid, how we work |
 | Contact | `/en/contact` | `/de/kontakt` | The contact facts and the enquiry form |
@@ -61,5 +62,7 @@ The header (`src/components/marketing-header.tsx`) sticks to the top and is full
 ## Known limits
 
 - The first load JavaScript budget (spec 0009, AC-16, amended 2026-09-06) is 250 kB gzipped for every content page (`/`, `/how-it-works`, `/expert-network`, `/pricing`, `/about`) and 350 kB for `/contact`, the same in both languages, measured as the module `<script>` files the prerendered HTML references (the `nomodule` polyfill and chunks loaded later through `import()` do not count). `BUDGETS_KB` in `scripts/bundle-budget.mts` is the single source; `pnpm build && pnpm budget` checks the local build and `e2e.yml` runs `pnpm budget --url` against every deployment. The build of 2026-09-06 measured about 220 kB for the content pages and about 326 kB for the contact page. What stays in the number: React DOM and the App Router runtime (about 125 kB), the Radix primitives of the header, the next-intl runtime, and on `/contact` zod with its forty message locales (about 45 kB, a zod packaging matter) plus the form. The browser Sentry SDK loads through `import()` after the `load` event on public pages (at once in the signed in areas), so an error before `load` on a public page is not reported. The next cuts, in order, are recorded in the Follow-up of the spec.
+- The expert directory carries the whole register in the page: 1,929 entries reach the browser as a 29.4 kB gzipped module chunk plus a 1.7 kB component, which is 31.1 kB of its 250 kB budget and leaves about 14 kB of headroom. The rows are imported by `RegisterDirectory` rather than passed as props on purpose: a prop is serialized into the hydration payload as well as the markup, which shipped every row twice and cost 52 kB of HTML instead of 22 kB. The next extract that grows the register materially needs either a per canton route with `generateStaticParams` or the rows behind an `import()` on first interaction; both keep the page static.
+- The register is a hand run import, not a live feed: `pnpm register:build <extract.json>` rewrites `src/features/marketing/register.json` and the file is committed. It publishes name, town, canton, country, capacity and the three continuing-education years, and deliberately drops the register's address, phone, email and website columns; a test fails if any of them reappear.
 - The social cards are generated on first request rather than at build time (see above); on Vercel the route is cached after the first hit and the font file is traced into the function.
 - Copy changes need a deploy; a headless CMS is the recorded follow up if that becomes a daily need.

@@ -141,6 +141,11 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
             />
             <p className="max-w-prose text-base leading-relaxed">{t("coverage.lead")}</p>
             <p className="text-muted-foreground text-sm">{t("coverage.note")}</p>
+            <p className="text-sm">
+              <Link href="/expert-network/directory" className="underline underline-offset-4">
+                {t("coverage.directory")}
+              </Link>
+            </p>
           </div>
         </div>
       </section>

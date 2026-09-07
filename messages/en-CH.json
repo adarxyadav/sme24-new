@@ -226,10 +226,92 @@
         "eyebrow": "Coverage",
         "title": "Where we go.",
         "lead": "The network covers all of German and French speaking Switzerland, with visits arranged from the nearest expert to reduce travel.",
-        "note": "Ticino by arrangement."
+        "note": "Ticino by arrangement.",
+        "directory": "Browse the whole SGAS register"
       },
       "closing": {
         "title": "See where you stand. For free.",
+        "cta": "Benchmark your company for free"
+      }
+    },
+    "directory": {
+      "meta": {
+        "title": "Expert directory",
+        "description": "The public SGAS register of occupational safety specialists in Switzerland: how many there are, where they sit and who has capacity."
+      },
+      "og": {
+        "statement": "The whole register. Open."
+      },
+      "eyebrow": "Directory",
+      "title": "The whole register. Open.",
+      "lead": "Every occupational safety specialist on the public SGAS register. So you can see how deep the pool is that we assign from.",
+      "figures": {
+        "total": {
+          "label": "Registered",
+          "note": "Safety engineers, safety specialists, occupational hygienists and physicians."
+        },
+        "available": {
+          "label": "With capacity",
+          "note": "Have stated in the register that they take on mandates."
+        },
+        "cantons": {
+          "label": "Cantons",
+          "note": "Geneva to St. Gallen, wherever the register has a postcode."
+        },
+        "trained": {
+          "label": "Trained 2025",
+          "note": "Completed the year's continuing education requirement in full."
+        }
+      },
+      "coverage": {
+        "eyebrow": "Coverage",
+        "title": "Where they sit.",
+        "lead": "Registrations per canton, from the postcode in the register. Anyone who left it blank is missing from this table but still listed below."
+      },
+      "register": {
+        "eyebrow": "Register",
+        "title": "Search it yourself.",
+        "lead": "Name and town, canton, stated capacity and the 2025 training status. We show no contact details: the matching is ours to do, and the addresses in the register are not ours to republish."
+      },
+      "search": {
+        "label": "Search",
+        "placeholder": "Name or town"
+      },
+      "canton": {
+        "label": "Canton",
+        "all": "All cantons"
+      },
+      "capacity": {
+        "label": "Capacity",
+        "all": "All",
+        "v": "Available",
+        "t": "Partly",
+        "n": "Not available",
+        "u": "Not stated"
+      },
+      "status": {
+        "A": "Complete",
+        "T": "Partial",
+        "N": "Not complete",
+        "E": "Not recorded",
+        "U": "Not verified"
+      },
+      "columns": {
+        "name": "Name",
+        "place": "Town",
+        "canton": "Canton",
+        "capacity": "Capacity",
+        "training": "Training 2025"
+      },
+      "count": "{shown, plural, =0 {No entries} one {# of {total, number} entries} other {# of {total, number} entries}}",
+      "more": "Show {count, number} more",
+      "empty": "No entries match these filters.",
+      "notGiven": "Not given",
+      "clear": "Clear filters",
+      "source": "Source: the <link>SGAS register</link>, read on {date}. Entries are self-declared; SME24 vets them again before anyone joins our own network.",
+      "closing": {
+        "title": "We find the right one for you.",
+        "lead": "You do not pick from the directory. We assign the expert whose sector, standards and travel fit your company.",
         "cta": "Benchmark your company for free"
       }
     },
@@ -259,16 +341,19 @@
       "pointsLabel": "Why SME24",
       "points": {
         "price": {
-          "title": "Fixed price.",
-          "body": "No negotiation, no surprises on the invoice."
+          "label": "Price",
+          "figure": "CHF {low, number, integer} to {high, number, integer}.",
+          "note": "Three packages, one fixed price each. Excl. VAT."
         },
-        "negotiation": {
-          "title": "No project setup.",
-          "body": "Four steps. No kickoff slides."
+        "setup": {
+          "label": "Setup",
+          "figure": "Four steps.",
+          "note": "No kickoff, no slides, no project team."
         },
-        "kickoff": {
-          "title": "Kick off the same week.",
-          "body": "See your benchmark, pick your expert, start."
+        "start": {
+          "label": "Start",
+          "figure": "The same week.",
+          "note": "Pick the expert, book the visit."
         }
       },
       "how": {
@@ -1141,7 +1226,8 @@
       "sectionTitle": "Senior experts. No slides.",
       "sectionEyebrow": "How it works",
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
-      "heroBenchmark": "Landing hero object: the example benchmark"
+      "heroBenchmark": "Landing hero object: the example benchmark",
+      "registerDirectory": "Expert directory"
     }
   },
   "email": {
@@ -1599,14 +1685,6 @@
         "U": "Activities of extraterritorial organisations and bodies"
       },
       "divisions": {
-        "01": "Crop and animal production, hunting",
-        "02": "Forestry and logging",
-        "03": "Fishing and aquaculture",
-        "05": "Mining of coal and lignite",
-        "06": "Extraction of crude petroleum and natural gas",
-        "07": "Mining of metal ores",
-        "08": "Other mining and quarrying",
-        "09": "Mining support service activities",
         "10": "Manufacture of food products",
         "11": "Manufacture of beverages",
         "12": "Manufacture of tobacco products",
@@ -1686,7 +1764,15 @@
         "96": "Other personal service activities",
         "97": "Households as employers of domestic personnel",
         "98": "Goods and services produced by households for own use",
-        "99": "Extraterritorial organisations and bodies"
+        "99": "Extraterritorial organisations and bodies",
+        "01": "Crop and animal production, hunting",
+        "02": "Forestry and logging",
+        "03": "Fishing and aquaculture",
+        "05": "Mining of coal and lignite",
+        "06": "Extraction of crude petroleum and natural gas",
+        "07": "Mining of metal ores",
+        "08": "Other mining and quarrying",
+        "09": "Mining support service activities"
       }
     },
     "sizeBands": {

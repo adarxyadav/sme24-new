@@ -7,6 +7,7 @@ import { EnquiryForm } from "@/features/marketing/ui/enquiry-form";
 import { Faq } from "@/features/marketing/ui/faq";
 import { HeroBenchmark } from "@/features/marketing/ui/hero-benchmark";
 import { PackageCard } from "@/features/marketing/ui/package-card";
+import { RegisterDirectory } from "@/features/marketing/ui/register-directory";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 
 /**
@@ -55,6 +56,9 @@ export function MarketingSection() {
             ) : null,
           )}
         </ul>
+      </Example>
+      <Example label={t("registerDirectory")}>
+        <RegisterDirectory />
       </Example>
       <Example label={t("faq")}>
         <div className="w-full max-w-2xl">
