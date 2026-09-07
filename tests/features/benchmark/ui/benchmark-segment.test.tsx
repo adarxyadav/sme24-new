@@ -1,4 +1,6 @@
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import axe from "axe-core";
 import { createFormatter, createTranslator } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 import { roundChf } from "@/features/benchmark/model";
@@ -169,6 +171,40 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(within(card).getByText(b.card.missingIncidentRate)).toBeInTheDocument();
     expect(card.querySelector("[data-facts-form]")).toBeInTheDocument();
+  });
+
+  /**
+   * The `ready` state with a null cost renders the facts form twice: the opportunity card shows
+   * one beside the missing input warning, and the opened disclosure shows another. Both must keep
+   * their own ids, or the labels and the `aria-describedby` hints resolve to the wrong form. The
+   * e2e spec only walks the cost present path, so axe never sees this page there.
+   */
+  it("keeps the two facts forms free of duplicate ids and axe violations when the cost is null", async () => {
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot({ costChf: null }, { cost: null }),
+    });
+    await userEvent.click(screen.getByRole("button", { name: b.disclosure.title }));
+    const forms = container.querySelectorAll("[data-facts-form]");
+    expect(forms).toHaveLength(2);
+
+    const ids = [...container.querySelectorAll("[id]")].map((node) => node.id);
+    expect(ids.length).toBe(new Set(ids).size);
+
+    // Each form's label and hint point at a control inside that same form, not the other one.
+    for (const form of forms) {
+      for (const label of form.querySelectorAll("label[for]")) {
+        const target = container.querySelector(`#${CSS.escape(label.getAttribute("for") ?? "")}`);
+        expect(form.contains(target)).toBe(true);
+      }
+      const employees = form.querySelector("input[type='number']") as HTMLElement;
+      const describedBy = employees.getAttribute("aria-describedby") ?? "";
+      expect(form.contains(container.querySelector(`#${CSS.escape(describedBy)}`))).toBe(true);
+    }
+
+    const results = await axe.run(container, {
+      runOnly: ["cat.forms", "cat.aria", "cat.name-role-value", "cat.color"],
+    });
+    expect(results.violations.map((violation) => violation.id)).toEqual([]);
   });
 
   it("puts the calculation disclosure under the card, closed, with the correct facts form inside", async () => {
