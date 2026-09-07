@@ -90,6 +90,12 @@ insert into public.organization_members (organization_id, user_id, role) values
   ('0a000000-0000-4000-8000-000000000000', 'a0000000-0000-4000-8000-000000000001', 'owner'),
   ('0a000000-0000-4000-8000-000000000000', 'a0000000-0000-4000-8000-000000000002', 'member'),
   ('0b000000-0000-4000-8000-000000000000', 'b0000000-0000-4000-8000-000000000001', 'owner');
+-- Every expert here needs an `active` expert_profiles row: the check_expert_assignable trigger
+-- (spec 0012) refuses an assignment on an expert who is not active. The trigger's own cases live
+-- in expert_assignable.test.sql; here the rows are only fixture setup.
+insert into public.expert_profiles (expert_id, email, status, onboarded_at) values
+  ('e0000000-0000-4000-8000-000000000001', 'expert@test.local', 'active', now());
+
 insert into public.expert_assignments (organization_id, expert_id, assigned_by) values
   ('0a000000-0000-4000-8000-000000000000', 'e0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001');
 insert into public.companies (id, organization_id, name, created_by) values

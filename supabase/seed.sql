@@ -83,3 +83,30 @@ values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '11111111-1111-4111-8111-111111111111', 'owner'),
   ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '44444444-4444-4444-8444-444444444444', 'owner')
 on conflict (organization_id, user_id) do nothing;
+
+-- The seeded expert already has a profile row, `active` and onboarded (spec 0012, AC-1). Without
+-- it the expert layout would send expert@example.com to onboarding on every sign in, and the four
+-- test accounts have to stay usable without going through an invite. The lists are filled so the
+-- ops list, the profile form and the client card all have something to show locally.
+insert into public.expert_profiles (
+  expert_id, email, status, headline, bio, competencies, industries, standards, languages,
+  regions, availability, years_experience, phone, invited_at, onboarded_at
+)
+values (
+  '22222222-2222-4222-8222-222222222222',
+  'expert@example.com',
+  'active',
+  'Sicherheitsingenieur mit Schwerpunkt Maschinenbau',
+  'Über 15 Jahre Erfahrung in der Arbeitssicherheit produzierender Betriebe in der Deutschschweiz. Begleitet ISO 45001 Zertifizierungen und EKAS 6508 Umsetzungen.',
+  array['compliance', 'management_system'],
+  array['C', 'F'],
+  array['iso_45001', 'ekas_6508', 'suva_asa'],
+  array['de', 'en'],
+  array['ZH', 'AG', 'ZG'],
+  'available',
+  15,
+  '+41 44 000 00 00',
+  now(),
+  now()
+)
+on conflict (expert_id) do nothing;

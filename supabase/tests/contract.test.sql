@@ -79,13 +79,19 @@ select is_empty(
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
        and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events') $$,
   'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events and order_events are not audited');
--- private.audit_row() stores subject ->> 'id' as row_id (not null), so an audited table needs one.
+-- private.audit_row() writes row_id (not null) from the `id` column, falling back to a single
+-- column primary key when the table has no `id` (spec 0012: expert_profiles and expert_ops_notes
+-- are keyed on expert_id). So an audited table needs one or the other, and a composite key with
+-- no `id` column would write a null row_id: that is what this catches.
 select is_empty(
   $$ select t from pg_temp.audited_tables() t
      where not exists (
        select 1 from pg_attribute a
-       where a.attrelid = ('public.' || quote_ident(t))::regclass and a.attname = 'id' and not a.attisdropped) $$,
-  'every audited table has an id column for audit_log.row_id');
+       where a.attrelid = ('public.' || quote_ident(t))::regclass and a.attname = 'id' and not a.attisdropped)
+       and not exists (
+         select 1 from pg_index i
+         where i.indrelid = ('public.' || quote_ident(t))::regclass and i.indisprimary and i.indnatts = 1) $$,
+  'every audited table has an id column or a single column primary key for audit_log.row_id');
 
 -- organization_id on kind T tables -------------------------------------------------------
 -- Kind T is every table with an organization_id column other than profiles (kind U, nullable
@@ -141,12 +147,17 @@ select is_empty(
 -- next_order_reference (spec 0011: the order reference sequence is not granted to the app roles,
 -- and a burnt reference costs nothing, unlike an invoice number, so clients may draw one) and
 -- issue_invoice (spec 0011: the bank transfer path's invoice, drawn in the same small transaction;
--- service role only, like settle_order).
+-- service role only, like settle_order) and the three of spec 0012: set_expert_status (the whole
+-- expert status state machine, whose columns sit outside the authenticated update grant),
+-- set_expert_photo (same, for the storage path, and it pins the path to the caller's own folder)
+-- and assigned_organization_contacts (the client contacts an assigned expert may see, definer
+-- because the email lives in auth.users, which no app role may read; it raises not_assigned for
+-- any other caller).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('settle_order'::name) $$,
-  'the only security definer functions in public are the seven recorded entry points');
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
+  'the only security definer functions in public are the ten recorded entry points');
 -- settle_order writes money rows, so its execute grant is checked explicitly: the service role
 -- only. Supabase's default privileges grant execute to anon and authenticated on every new public
 -- function, and the declarative diff's REVOKE ... FROM PUBLIC does not remove those direct grants,
@@ -185,11 +196,19 @@ select ok(not has_function_privilege('anon', 'public.create_organization(text)',
 
 -- Views, realtime, updated_at --------------------------------------------------------------
 select has_view('public', 'company_kpi_current', 'company_kpi_current exists');
-select is_empty(
+-- Every view runs with security_invoker on, so the caller's policies apply, with one recorded
+-- exception: assigned_expert_summaries (spec 0012) is deliberately a definer view, because a
+-- client may see the summary of an expert whose expert_profiles row their own policies hide.
+-- The where clause in the view body is the access boundary instead, and it is proved row by row
+-- in assigned_expert_summaries.test.sql. The exception is named here rather than allowed by a
+-- pattern, so a second definer view has to argue its own case.
+select results_eq(
   $$ select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
      where n.nspname = 'public' and c.relkind = 'v'
-       and (c.reloptions is null or not c.reloptions @> array['security_invoker=true']) $$,
-  'every view in public runs with security_invoker on, so the caller''s policies apply');
+       and (c.reloptions is null or not c.reloptions @> array['security_invoker=true'])
+     order by 1 $$,
+  $$ values ('assigned_expert_summaries'::name) $$,
+  'assigned_expert_summaries is the only definer view in public; every other view runs as the caller');
 -- Realtime membership is an explicit decision per table (spec 0001), so this list is by hand.
 -- A new table is not silently in or out: it has to be added here or to realtime_optional below.
 select results_eq(
@@ -201,11 +220,14 @@ select results_eq(
 -- the order detail page polls a pending card order for up to 60 seconds while the webhook lands
 -- (AC-5) rather than subscribing, because the wait is short, bounded and happens on one page, and
 -- because orders and invoices carry billing data that has no business on a realtime channel.
+-- The two expert tables of spec 0012 are out for the same kind of reason: a profile edit and an
+-- ops assignment are both slow, deliberate acts whose reader is already reloading the page, and
+-- expert_ops_notes carries record check notes that must never reach a channel a client could join.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
   values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('enquiries'), ('expert_assignments'),
-         ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'), ('organization_members'), ('organizations'),
-         ('packages'), ('profiles'), ('stripe_events')
+         ('expert_ops_notes'), ('expert_profiles'), ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'),
+         ('organization_members'), ('organizations'), ('packages'), ('profiles'), ('stripe_events')
 $$;
 select is_empty(
   $$ select t from pg_temp.public_tables() t
