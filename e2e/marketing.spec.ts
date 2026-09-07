@@ -257,9 +257,10 @@ test("the expert directory filters the register in the browser without a request
   // JavaScript runs.
   await expect(table.locator("tbody tr")).toHaveCount(50);
 
-  // The controls only answer once the component has hydrated; the count paragraph is rendered
-  // after mount, so its appearance is the signal that the page is live. Without this wait a
-  // `selectOption` lands on the server rendered markup and React discards it on hydration.
+  // The controls only answer once the component has hydrated; the count paragraph is in the markup
+  // from the start but stays empty until mount, so its text is the signal that the page is live.
+  // Without this wait a `selectOption` lands on the server rendered markup and React discards it
+  // on hydration.
   await expect(page.getByText(/entries$/)).toBeVisible();
 
   // Filtering is pure client work: no navigation, no fetch, and the row count follows the filter.

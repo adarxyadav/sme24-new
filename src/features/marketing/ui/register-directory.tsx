@@ -139,8 +139,13 @@ export function RegisterDirectory() {
         ) : null}
       </div>
 
+      {/*
+        The paragraph itself is always in the DOM so the live region exists before the first
+        filter changes it; only its text waits for the mount, which is what the grouping guard
+        above needs. A region that appears rather than changes is announced unreliably.
+      */}
       <p aria-live="polite" className="min-h-5 text-muted-foreground text-sm">
-        {mounted ? t("count", { shown: visible.length, total: matches.length }) : null}
+        {mounted ? t("count", { shown: visible.length, total: matches.length }) : "\u00a0"}
       </p>
 
       {matches.length === 0 ? (
@@ -148,7 +153,7 @@ export function RegisterDirectory() {
       ) : (
         <>
           <div className="overflow-x-auto border">
-            <Table density="compact">
+            <Table aria-labelledby="register-heading" density="compact">
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("columns.name")}</TableHead>
