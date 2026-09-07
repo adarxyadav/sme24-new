@@ -47,8 +47,8 @@ test("the header links carry the German slugs and mark the current page (AC-7)",
 }) => {
   await page.goto("/de/preise");
   const nav = page.getByRole("navigation", { name: "Hauptnavigation" }).first();
-  await expect(nav.getByRole("link", { name: "Preise" })).toHaveAttribute("href", "/de/preise");
-  await expect(nav.getByRole("link", { name: "Preise" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Pakete" })).toHaveAttribute("href", "/de/preise");
+  await expect(nav.getByRole("link", { name: "Pakete" })).toHaveAttribute("aria-current", "page");
   await expect(nav.getByRole("link", { name: "Über uns" })).toHaveAttribute(
     "href",
     "/de/ueber-uns",
