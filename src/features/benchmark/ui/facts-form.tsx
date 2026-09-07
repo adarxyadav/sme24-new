@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { OctagonXIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { startTransition, useActionState, useEffect } from "react";
+import { startTransition, useActionState, useEffect, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -39,20 +39,31 @@ export type FactsFormProps = {
     readonly industryCode: string | null;
     readonly employeesCount: number | null;
   };
+  /** Overrides the generated id prefix; only a test or a stable anchor needs to pass one. */
+  readonly idPrefix?: string;
 };
 
 /**
  * The company facts form (spec 0008, AC-11): the NOGA division grouped by section and the
  * headcount. Only a changed field is sent, so an untouched `23.61` is never flattened to `23`;
- * a success refreshes the page, which shows `calculating` until the new snapshot lands. Browser.
+ * a success refreshes the page, which shows `calculating` until the new snapshot lands. Every id
+ * is derived from a `useId` prefix, so the two instances the `ready` state renders when the cost
+ * is null (the disclosure and the opportunity card) never collide. Browser.
  */
-export function FactsForm({ company }: FactsFormProps) {
+export function FactsForm({ company, idPrefix }: FactsFormProps) {
   const t = useTranslations("benchmark.facts");
   const v = useTranslations("benchmark.facts.validation");
   const errorsT = useTranslations("benchmark.errors");
   const noga = useTranslations("benchmark.noga");
   const locale = useLocale();
   const router = useRouter();
+  const generatedId = useId();
+  const prefix = idPrefix ?? generatedId;
+  const industryId = `${prefix}-industry`;
+  const industryErrorId = `${prefix}-industry-error`;
+  const employeesId = `${prefix}-employees`;
+  const employeesHintId = `${prefix}-employees-hint`;
+  const employeesErrorId = `${prefix}-employees-error`;
   const initialDivision = divisionOf(company.industryCode);
   const initialEmployees = company.employeesCount === null ? "" : String(company.employeesCount);
   const form = useForm<CompanyFactsInput, unknown, CompanyFactsValues>({
@@ -114,12 +125,12 @@ export function FactsForm({ company }: FactsFormProps) {
           name="industryCode"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid ? true : undefined}>
-              <FieldLabel htmlFor="facts-industry">{t("industry")}</FieldLabel>
+              <FieldLabel htmlFor={industryId}>{t("industry")}</FieldLabel>
               <Select value={field.value ?? ""} onValueChange={field.onChange}>
                 <SelectTrigger
-                  id="facts-industry"
+                  id={industryId}
                   aria-invalid={fieldState.invalid ? true : undefined}
-                  aria-describedby={fieldState.invalid ? "facts-industry-error" : undefined}
+                  aria-describedby={fieldState.invalid ? industryErrorId : undefined}
                   className="w-full"
                 >
                   <SelectValue placeholder={t("industryPlaceholder")} />
@@ -141,29 +152,27 @@ export function FactsForm({ company }: FactsFormProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <FieldError id="facts-industry-error">
+              <FieldError id={industryErrorId}>
                 {issueMessage(fieldState.error?.message, v)}
               </FieldError>
             </Field>
           )}
         />
         <Field data-invalid={errors.employeesCount ? true : undefined}>
-          <FieldLabel htmlFor="facts-employees">{t("employees")}</FieldLabel>
+          <FieldLabel htmlFor={employeesId}>{t("employees")}</FieldLabel>
           <Input
-            id="facts-employees"
+            id={employeesId}
             type="number"
             inputMode="numeric"
             min={1}
             max={1_000_000}
             step={1}
             aria-invalid={errors.employeesCount ? true : undefined}
-            aria-describedby={
-              errors.employeesCount ? "facts-employees-error" : "facts-employees-hint"
-            }
+            aria-describedby={errors.employeesCount ? employeesErrorId : employeesHintId}
             {...form.register("employeesCount")}
           />
-          <FieldDescription id="facts-employees-hint">{t("employeesHint")}</FieldDescription>
-          <FieldError id="facts-employees-error">
+          <FieldDescription id={employeesHintId}>{t("employeesHint")}</FieldDescription>
+          <FieldError id={employeesErrorId}>
             {issueMessage(errors.employeesCount?.message, v)}
           </FieldError>
         </Field>

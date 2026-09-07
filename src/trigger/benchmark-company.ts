@@ -52,9 +52,12 @@ export type BenchmarkCompanyPayload = z.infer<typeof benchmarkCompanyPayloadSche
  * schema and inserts one immutable `benchmark_snapshots` row. A snapshot is inserted even when
  * nothing compared or the cost is null, so the dashboard state is always decided by a row. Every
  * read and write filters by the loaded company's id and organization. The company's first
- * snapshot sends the benchmark ready email to every member (AC-7). Throws on a database error so
- * Trigger.dev retries; `onFailure` raises the `benchmark.failed` alert once (AC-8). Runs in the
- * Trigger.dev EU environment.
+ * snapshot sends the benchmark ready email to every member (AC-7): the decision is taken from
+ * the state *before* this insert, and a retry sends again so the email an attempt that died
+ * after its insert owed is never lost. The global key `benchmark-ready/<companyId>/<userId>`
+ * makes that repeat a no op, so the email is sent once and never lost. Throws on a database
+ * error so Trigger.dev retries; `onFailure` raises the `benchmark.failed` alert once (AC-8).
+ * Runs in the Trigger.dev EU environment.
  */
 export const benchmarkCompanyTask = schemaTask({
   id: "benchmark-company",
@@ -131,6 +134,8 @@ export const benchmarkCompanyTask = schemaTask({
       peerProvisional: body.peerProvisional,
     });
 
+    // Read before the insert: after it, a retry's own crashed row would look like a predecessor.
+    const hadSnapshot = await hasSnapshot(supabase, ids);
     const { data: inserted, error } = await supabase
       .from("benchmark_snapshots")
       .insert({
@@ -157,13 +162,16 @@ export const benchmarkCompanyTask = schemaTask({
       .select("id, created_at")
       .single();
     if (error) throw queryError(error);
-    const first = await isFirstSnapshot(supabase, ids, inserted.id);
+    const first = !hadSnapshot;
+    // A retry re sends what the crashed attempt owed; the global key makes a repeat a no op.
+    const send = first || ctx.attempt.number > 1;
     step("benchmark snapshot stored", {
       snapshotId: inserted.id,
       createdAt: inserted.created_at,
       first,
+      send,
     });
-    if (first) {
+    if (send) {
       const sent = await sendBenchmarkReady(supabase, ids, company.name, body);
       step("benchmark ready emails queued", { members: sent.members, queued: sent.queued });
     }
@@ -375,25 +383,20 @@ async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumpt
 }
 
 /**
- * True when the inserted row is the company's oldest snapshot (AC-5): a retry that inserts a
- * second row is not first, so the benchmark ready email is sent once and never lost.
+ * True when the company already has a snapshot (AC-5). Read *before* the insert, so the answer is
+ * the state this attempt found: an attempt that dies after its insert leaves a row behind, and
+ * the retry then pairs a `false` here with its attempt number to still send the owed email.
  */
-async function isFirstSnapshot(
-  supabase: Service,
-  ids: CompanyIds,
-  snapshotId: string,
-): Promise<boolean> {
+async function hasSnapshot(supabase: Service, ids: CompanyIds): Promise<boolean> {
   const { data, error } = await supabase
     .from("benchmark_snapshots")
     .select("id")
     .eq("company_id", ids.companyId)
     .eq("organization_id", ids.organizationId)
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true })
     .limit(1)
     .maybeSingle();
   if (error) throw queryError(error);
-  return data?.id === snapshotId;
+  return data !== null;
 }
 
 /** Reports a task error to Sentry with the company ids (AC-8). */

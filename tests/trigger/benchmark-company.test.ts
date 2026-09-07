@@ -457,6 +457,38 @@ describe("the benchmark ready email (AC-7)", () => {
     expect(state.tables.benchmark_snapshots).toHaveLength(2);
   });
 
+  /**
+   * The regression the review named: an attempt that dies after its insert leaves a snapshot
+   * behind, so a decision taken *after* the retry's own insert would see two rows, call the run
+   * "not first" and lose the email for good. The retry sends what the crashed attempt owed; the
+   * global key `benchmark-ready/<companyId>/<userId>` makes the repeat a no op.
+   */
+  it("sends the email the crashed attempt owed when a retry inserts a second row", async () => {
+    seedComputation();
+    const task = await loadTask();
+    const trigger = await emailTrigger();
+
+    // Attempt 1 stores the snapshot, then dies before the send.
+    state.failing.organization_members = RAW_POSTGREST_ERROR;
+    await expect(task.run(payload, { ctx })).rejects.toThrow("JWT expired");
+    expect(state.tables.benchmark_snapshots).toHaveLength(1);
+    expect(trigger).not.toHaveBeenCalled();
+
+    // Attempt 2 finds the dead attempt's row, inserts its own and still sends.
+    state.failing = {};
+    const outcome = await task.run(payload, { ctx: { ...ctx, attempt: { number: 2 } } });
+    expect(state.tables.benchmark_snapshots).toHaveLength(2);
+    expect(outcome).toMatchObject({ status: "stored" });
+    expect(trigger).toHaveBeenCalledTimes(2);
+    for (const [index, userId] of [MEMBER_A, MEMBER_B].entries()) {
+      const [, options] = trigger.mock.calls[index] as unknown as [Row, Row];
+      expect(options).toEqual({
+        idempotencyKey: `benchmark-ready/${COMPANY}/${userId}`,
+        idempotencyKeyTTL: "30d",
+      });
+    }
+  });
+
   it("keeps the snapshot and finishes when an email trigger fails", async () => {
     seedComputation();
     const trigger = await emailTrigger();
