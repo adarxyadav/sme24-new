@@ -10,7 +10,7 @@ select plan(13);
 do $$
 begin
   if exists (select 1 from public.organizations
-             where id not in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'))
+             where id not in ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', '99999999-9999-4999-8999-999999999999'))
      or exists (select 1 from public.companies)
      or exists (select 1 from public.company_kpis)
      or exists (select 1 from public.research_runs)

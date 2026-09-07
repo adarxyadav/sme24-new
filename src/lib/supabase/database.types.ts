@@ -259,6 +259,7 @@ export type Database = {
           employees_count: number | null
           id: string
           industry_code: string | null
+          is_peer: boolean
           legal_name: string | null
           name: string
           organization_id: string
@@ -275,6 +276,7 @@ export type Database = {
           employees_count?: number | null
           id?: string
           industry_code?: string | null
+          is_peer?: boolean
           legal_name?: string | null
           name: string
           organization_id: string
@@ -291,6 +293,7 @@ export type Database = {
           employees_count?: number | null
           id?: string
           industry_code?: string | null
+          is_peer?: boolean
           legal_name?: string | null
           name?: string
           organization_id?: string
@@ -1087,6 +1090,85 @@ export type Database = {
         }
         Relationships: []
       }
+      peer_companies: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          company_id: string
+          created_at: string
+          display_label: string | null
+          failed_refreshes: number
+          id: string
+          industry_section: string
+          last_run_id: string | null
+          proposal: Json | null
+          proposed_by: string
+          rejection_reason: string | null
+          researched_at: string | null
+          size_band: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id: string
+          created_at?: string
+          display_label?: string | null
+          failed_refreshes?: number
+          id?: string
+          industry_section: string
+          last_run_id?: string | null
+          proposal?: Json | null
+          proposed_by: string
+          rejection_reason?: string | null
+          researched_at?: string | null
+          size_band: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          company_id?: string
+          created_at?: string
+          display_label?: string | null
+          failed_refreshes?: number
+          id?: string
+          industry_section?: string
+          last_run_id?: string | null
+          proposal?: Json | null
+          proposed_by?: string
+          rejection_reason?: string | null
+          researched_at?: string | null
+          size_band?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peer_companies_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_companies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "peer_companies_last_run_id_fkey"
+            columns: ["last_run_id"]
+            isOneToOne: false
+            referencedRelation: "research_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -1319,6 +1401,7 @@ export type Database = {
         Args: { organization_id: string; role?: string; user_id: string }
         Returns: string
       }
+      approve_peer_company: { Args: { peer_id: string }; Returns: string }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       issue_invoice: {

@@ -14,7 +14,7 @@
 -- exists so a table that never got a policy at all cannot reach them unnoticed.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(34);
+select plan(35);
 
 -- Every table in public (regular and partitioned).
 create function pg_temp.public_tables()
@@ -141,12 +141,13 @@ select is_empty(
 -- next_order_reference (spec 0011: the order reference sequence is not granted to the app roles,
 -- and a burnt reference costs nothing, unlike an invoice number, so clients may draw one) and
 -- issue_invoice (spec 0011: the bank transfer path's invoice, drawn in the same small transaction;
--- service role only, like settle_order).
+-- service role only, like settle_order) and approve_peer_company (spec 0012: the ten peer cap and
+-- the next free label under an advisory lock; ops only, checked inside).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('settle_order'::name) $$,
-  'the only security definer functions in public are the seven recorded entry points');
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('approve_peer_company'::name), ('create_organization'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('settle_order'::name) $$,
+  'the only security definer functions in public are the eight recorded entry points');
 -- settle_order writes money rows, so its execute grant is checked explicitly: the service role
 -- only. Supabase's default privileges grant execute to anon and authenticated on every new public
 -- function, and the declarative diff's REVOKE ... FROM PUBLIC does not remove those direct grants,
@@ -182,6 +183,8 @@ select is_empty(
   'anon cannot execute any private function');
 select ok(not has_function_privilege('anon', 'public.create_organization(text)', 'EXECUTE'),
   'anon cannot execute create_organization');
+select ok(not has_function_privilege('anon', 'public.approve_peer_company(uuid)', 'EXECUTE'),
+  'anon cannot execute approve_peer_company');
 
 -- Views, realtime, updated_at --------------------------------------------------------------
 select has_view('public', 'company_kpi_current', 'company_kpi_current exists');
@@ -201,11 +204,12 @@ select results_eq(
 -- the order detail page polls a pending card order for up to 60 seconds while the webhook lands
 -- (AC-5) rather than subscribing, because the wait is short, bounded and happens on one page, and
 -- because orders and invoices carry billing data that has no business on a realtime channel.
+-- peer_companies (spec 0012) is out: ops refresh the admin list themselves after an action.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
   values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('enquiries'), ('expert_assignments'),
          ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'), ('organization_members'), ('organizations'),
-         ('packages'), ('profiles'), ('stripe_events')
+         ('packages'), ('peer_companies'), ('profiles'), ('stripe_events')
 $$;
 select is_empty(
   $$ select t from pg_temp.public_tables() t
@@ -264,12 +268,16 @@ select is_empty(
   'every kind T table carries at least one policy');
 -- Every tenancy predicate resolves the tenant one of three ways: the organization_id column, the
 -- assigned expert helper, or the ops bypass. A policy naming none of them is not a tenant policy.
+-- The recorded exception is the widened peer read on company_kpis (spec 0012, AC-7): it resolves
+-- the row through peer_companies, whose company_id is unique and always a house company, so it
+-- can never match a client row; supabase/tests/peer_companies.test.sql proves that under a token.
 select is_empty(
   $$ select tbl || '.' || polname from pg_temp.tenant_policies()
      where coalesce(qual, withcheck) is not null
        and coalesce(qual, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid'
-       and coalesce(withcheck, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid' $$,
-  'every policy on a kind T table names organization_id, a tenancy helper or auth.uid()');
+       and coalesce(withcheck, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid'
+       and polname <> 'company_kpis: signed in users read approved peers' $$,
+  'every policy on a kind T table names organization_id, a tenancy helper or auth.uid() (the peer read on company_kpis is the recorded exception)');
 -- `using (true)` on a tenant table reads every tenant's rows. kpi_definitions is the recorded
 -- exception (kind G, global reference data) and is not in the tenant sweep.
 select is_empty(
