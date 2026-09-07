@@ -39,13 +39,14 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 24 | Ops metrics dashboard | Slice 8 | planned |
 | 25 | Peer data curation & launch gate | Slice 4 | planned |
 | 26 | Production environment & go live | Slice 4 | planned |
+| 27 | Derived injury counts | Slice 2 | in-progress |
 
 ## Epics
 
 Build order is the `#` above. Each epic file holds its features grouped by phase.
 
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
-- [Client funnel](client.md) · 6 to 10, 22, 23 · 4 of 7 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
+- [Client funnel](client.md) · 6 to 10, 22, 23, 27 · 4 of 8 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
 - [Commerce & ops](commerce.md) · 11, 12, 24 · 0 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
 - [Launch](launch.md) · 13 to 15, 25, 26 · 1 of 5 done · marketing site, legal and consent, analytics and monitoring, the real peer data, the production environment. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 0 of 3 done · experts, the three structured assessments, the generated gap report.
@@ -70,6 +71,8 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Lighter public shell**: move the toaster and the tooltip provider out of the root layout and replace the header's Radix sheet and menus on the public path with a CSS only disclosure (about 55 kB gzipped together), only if Lighthouse mobile misses LCP on a marketing page · from spec 0009 amendment
 - **zod locales out of the form pages**: `/contact` and the auth pages carry zod's forty message locales (about 45 kB gzipped) because zod's index re exports them; lower the contact budget to 300 kB when a zod release stops that · from spec 0009 amendment
 - **Local stack e2e lane in CI**: run the Mailpit backed Playwright specs (sign up, codes, resets, the welcome and enquiry emails) on every push; the `database` job already starts the stack, so it is one more job in `ci.yml` · from spec 0005
+- **Guard the cost line against a missing assumption row**: `costAt` reads `values.hours_per_fte` unguarded, so an absent `hours_per_fte` row yields `NaN` in the CHF figure instead of a null cost; the derived block guards it, the cost line does not · from spec 0012
+- **Retire an old snapshot version**: `SNAPSHOT_SCHEMAS` grows an entry per formula change with no rule for removing one; the answer is probably "once no live row carries it", which needs a query · from spec 0012
 
 ## Legend
 

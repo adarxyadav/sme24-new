@@ -41,6 +41,7 @@ function row(overrides: Partial<SnapshotRow> = {}): SnapshotRow {
     gaps: [],
     cost: null,
     assumptions: [],
+    derived: null,
     created_at: "2026-09-06T10:04:00.000Z",
     updated_at: "2026-09-06T10:04:00.000Z",
     ...overrides,

@@ -103,6 +103,7 @@ export type Database = {
           cost_high_chf: number | null
           cost_low_chf: number | null
           created_at: string
+          derived: Json | null
           gaps: Json
           id: string
           inputs: Json
@@ -126,6 +127,7 @@ export type Database = {
           cost_high_chf?: number | null
           cost_low_chf?: number | null
           created_at?: string
+          derived?: Json | null
           gaps: Json
           id?: string
           inputs: Json
@@ -149,6 +151,7 @@ export type Database = {
           cost_high_chf?: number | null
           cost_low_chf?: number | null
           created_at?: string
+          derived?: Json | null
           gaps?: Json
           id?: string
           inputs?: Json
