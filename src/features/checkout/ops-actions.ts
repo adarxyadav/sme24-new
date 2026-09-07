@@ -3,10 +3,13 @@
 import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
+import { rappenToChf } from "@/features/checkout/money";
 import { seller as configuredSeller, invoiceDueDays } from "@/features/checkout/seller";
 import { settleOrder } from "@/features/checkout/settle";
 import { resolveLocale } from "@/i18n/routing";
+import { sendOpsAlert } from "@/lib/alerts/send";
 import { roleFromClaims } from "@/lib/auth/roles";
+import { sendEmail } from "@/lib/email/send";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
@@ -17,8 +20,9 @@ import { cancelOrderSchema, orderIdSchema, retryInvoiceRenderSchema } from "./sc
 /**
  * The ops actions of the checkout (spec 0011, AC-9, AC-10, AC-13). `markOrderPaid` settles a bank
  * transfer through the **same** `settleOrder` core the webhook uses, differing only in its two
- * inputs (the moment, and the actor), so the card path and the transfer path can never drift
- * apart. `cancelOrder` closes a stale pending order without ever deleting its invoice.
+ * inputs (the moment, and the actor), and then does the same follow up work the `confirm-order`
+ * task does, so the card path and the transfer path can never drift apart. `cancelOrder` closes a
+ * stale pending order without ever deleting its invoice.
  * `retryInvoiceRender` re runs a render that exhausted its retries.
  *
  * Every one authorises the caller as ops here, not only in the proxy, and returns the typed result
@@ -52,8 +56,11 @@ async function requireOps() {
 
 /**
  * Ops confirm a bank transfer arrived (AC-9). Runs the same `settleOrder` core as a card payment
- * with `now()` and the acting ops user, so the order becomes paid, the invoice is issued if it was
- * not already, and the confirmation and the alert follow. Server action, ops only.
+ * with `now()` and the acting ops user, so the order becomes paid and the invoice is issued if it
+ * was not already; `followUpOnSettlement` then queues the render, the buyer's confirmation email
+ * and the `payment.received` alert under the keys the webhook task uses, so the two paths deliver
+ * the same thing. The follow up never fails the action: the payment is already recorded, so ops
+ * are told the order is paid even when Trigger.dev is unreachable. Server action, ops only.
  */
 export async function markOrderPaid(
   _previous: OpsActionResult | null,
@@ -81,6 +88,18 @@ export async function markOrderPaid(
     return { ok: false, error: "unexpected" };
   }
 
+  // The follow up work the webhook task does after its own settle (AC-9). It runs here rather
+  // than inside `settleOrder` because that core stays a small database transaction, and it uses
+  // the request side `sendEmail` and `sendOpsAlert` rather than the task helpers, which are for
+  // task code. The keys are the strings the task uses, so an ops retry, or a card payment landing
+  // on the same order, still sends one email and raises one alert.
+  await followUpOnSettlement(
+    actor.service,
+    parsed.data.orderId,
+    settled.data.invoiceId,
+    settled.data.invoiceNumber,
+  );
+
   log.info("ops marked an order paid", {
     orderId: parsed.data.orderId,
     invoiceNumber: settled.data.invoiceNumber,
@@ -88,6 +107,88 @@ export async function markOrderPaid(
   });
   revalidatePath("/admin/orders");
   return { ok: true, data: undefined };
+}
+
+/**
+ * The work that follows a settlement on the ops path: the invoice PDF, the buyer's confirmation
+ * and the `payment.received` ops alert, mirroring the steps of the `confirm-order` task under the
+ * same idempotency keys. Never throws and never fails the action: the money has already been
+ * recorded, so a Trigger.dev outage must not tell ops the confirmation did not happen. Server
+ * action only.
+ */
+async function followUpOnSettlement(
+  service: ReturnType<typeof createServiceClient>,
+  orderId: string,
+  invoiceId: string,
+  invoiceNumber: string,
+): Promise<void> {
+  const { data: order, error } = await service
+    .from("orders")
+    .select(
+      "id, organization_id, created_by, reference, package_name_snapshot, net_rappen, vat_rappen, gross_rappen, vat_rate",
+    )
+    .eq("id", orderId)
+    .maybeSingle();
+  if (error || !order) {
+    Sentry.captureException(error ?? new Error(`no order row after settling ${orderId}`));
+    log.error("ops settle follow up: the order could not be read", { orderId });
+    return;
+  }
+
+  // Keyed on the invoice, as on the webhook path: a bank transfer invoice rendered at creation is
+  // not drawn again, and a first render here happens once however often ops retry.
+  try {
+    const { renderInvoiceTask } = await import("@/trigger/render-invoice");
+    await renderInvoiceTask.trigger(
+      { invoiceId },
+      { idempotencyKey: `invoice-render/${invoiceId}` },
+    );
+  } catch (renderError) {
+    // A missed render leaves the order paid and the invoice numbered; ops retry it from the list.
+    log.warn("ops settle follow up: the invoice render was not queued", {
+      invoiceId,
+      reason: String(renderError),
+    });
+  }
+
+  if (order.created_by) {
+    await sendEmail({
+      template: "order_confirmed",
+      recipient: { userId: order.created_by },
+      sourceEvent: "order.confirmed",
+      organizationId: order.organization_id,
+      idempotencyKey: `order-confirmed/${order.id}`,
+      data: {
+        packageName: order.package_name_snapshot,
+        reference: order.reference,
+        invoiceNumber,
+        netChf: rappenToChf(Number(order.net_rappen)),
+        vatChf: rappenToChf(Number(order.vat_rappen)),
+        grossChf: rappenToChf(Number(order.gross_rappen)),
+        vatRatePercent: Number(order.vat_rate) * 100,
+        // Slice 2 attaches the rendered PDF; until then the email points at the order.
+        invoiceAttached: false,
+      },
+    });
+  } else {
+    log.warn("ops settle follow up: the order has no buyer to email", { orderId: order.id });
+  }
+
+  const { data: organization } = await service
+    .from("organizations")
+    .select("name")
+    .eq("id", order.organization_id)
+    .maybeSingle();
+
+  await sendOpsAlert({
+    kind: "payment.received",
+    idempotencyKey: `payment-received/${order.id}`,
+    fields: {
+      organizationName: organization?.name ?? "Unknown organization",
+      amountChf: rappenToChf(Number(order.gross_rappen)),
+      reference: order.reference,
+    },
+  });
 }
 
 /**

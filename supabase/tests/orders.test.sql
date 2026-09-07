@@ -205,13 +205,18 @@ select lives_ok(
        'pending', 'paid', 'service') $$,
   'the service role records the paid event');
 
+-- The number is drawn from the sequence, exactly as public.settle_order draws it, never written
+-- as a literal: a hand picked '2026-0001' would take the string the sequence has not issued yet,
+-- and the settle_order tests further down would then collide on invoices_number_key.
 select lives_ok(
   $$ insert into public.invoices (id, organization_id, order_id, number, due_date, seller_name,
        seller_address, seller_uid, seller_iban, qr_reference)
-     values ('0f000000-0000-4000-8000-000000000001', '0a000000-0000-4000-8000-000000000000',
-       '0e000000-0000-4000-8000-000000000001', '2026-0001', current_date + 30, 'SME24 AG',
+     select '0f000000-0000-4000-8000-000000000001', '0a000000-0000-4000-8000-000000000000',
+       '0e000000-0000-4000-8000-000000000001', n, current_date + 30, 'SME24 AG',
        'Bahnhofstrasse 1, 8001 Zurich', 'CHE-101.654.423 MWST', 'CH9300762011623852957',
-       'RF1820260001') $$,
+       public.scor_reference(replace(n, '-', ''))
+     from (select extract(year from now() at time zone 'Europe/Zurich')::integer
+       || '-' || lpad(nextval('public.invoice_number_seq')::text, 4, '0') as n) drawn $$,
   'the service role issues the invoice');
 
 -- One invoice per order (invariant 4).
