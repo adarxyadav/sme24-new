@@ -498,6 +498,42 @@ describe("the derived injury counts (spec 0012)", () => {
     expect(keys).not.toContain("recordable_injuries");
     expect(keys).not.toContain("lost_time_injuries");
   });
+
+  // /check verify walked this through the "Your figures" form by hand. The fixture research
+  // provider always writes `source 'research'`, so the form path cannot be driven end to end
+  // locally; what the form feeds in is a client sourced row, and this pins what the model does
+  // with one (spec 0012, AC-4).
+  it("follows the input row's source, so a client entered rate reads as the client's (AC-4)", () => {
+    const body = compute({
+      kpis: kpis.map((row) =>
+        row.kpiKey === "ltifr"
+          ? { ...row, source: "client" as const, confidence: null, periodYear: 2024 }
+          : row,
+      ),
+    });
+    expect(body.derived?.lostTime).toMatchObject({
+      fromKey: "ltifr",
+      fromSource: "client",
+      fromYear: 2024,
+    });
+    // The researched TRIFR beside it keeps its own source, so the two lines can disagree.
+    expect(body.derived?.recordable?.fromSource).toBe("research");
+    // A client row carries no confidence, and the derived count borrows none either (AC-5).
+    expect(body.derived?.lostTime).not.toHaveProperty("confidence");
+  });
+
+  // The other step /check verify only ran by hand: change the headcount, watch both counts move.
+  it("scales both counts and the stated exposure with the headcount (AC-10)", () => {
+    const at420 = compute().derived;
+    const at840 = compute({ company: { ...company, employeesCount: 840 } }).derived;
+    expect(at840?.fte).toBe(840);
+    // Exposure is linear in FTE, so doubling the headcount doubles both counts exactly.
+    expect(at840?.lostTime?.count).toBeCloseTo((at420?.lostTime?.count ?? 0) * 2, 10);
+    expect(at840?.recordable?.count).toBeCloseTo((at420?.recordable?.count ?? 0) * 2, 10);
+    // The rates themselves are unchanged: only the exposure moved.
+    expect(at840?.lostTime?.fromValue).toBe(at420?.lostTime?.fromValue);
+    expect(at840?.hoursPerFte).toBe(at420?.hoursPerFte);
+  });
 });
 
 describe("exposureCount (spec 0012, AC-9)", () => {
@@ -528,5 +564,40 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
     const v1 = parseSnapshotBlocks({ model_version: "benchmark-model@1", ...valid });
     expect(v1.error).toBeNull();
     expect(v1.blocks).not.toBeNull();
+  });
+
+  // The load bearing invariant of spec 0012: both versions stay in the map under literal keys,
+  // and version 1 is never widened to carry a derived key. Getting this wrong fails quietly,
+  // every stored snapshot becomes unreadable and the dashboard drops to its waiting state, so
+  // pin the shape rather than trusting a future edit to notice (AC-12).
+  it("keeps both versions in the map and leaves version 1 unwidened (spec 0012, AC-12)", () => {
+    expect(Object.keys(SNAPSHOT_SCHEMAS).sort()).toEqual([
+      "benchmark-model@1",
+      "benchmark-model@2",
+    ]);
+    // The live write time version is one of them, and it is the newer one.
+    expect(MODEL_VERSION).toBe("benchmark-model@2");
+
+    // A version 1 row that somehow carries a derived block drops it: the schema has no such key,
+    // so the reader sees an absent block rather than an unvalidated one.
+    const v1 = parseSnapshotBlocks({
+      model_version: "benchmark-model@1",
+      ...valid,
+      derived: { fte: 420, hoursPerFte: 1804, lostTime: null, recordable: null },
+    });
+    expect(v1.error).toBeNull();
+    expect(v1.blocks?.derived).toBeUndefined();
+
+    // A version 2 row keeps its block, and an invalid one is rejected rather than stored.
+    const v2 = parseSnapshotBlocks({ model_version: "benchmark-model@2", ...valid });
+    expect(v2.error).toBeNull();
+    expect(v2.blocks?.derived).toEqual(valid.derived);
+    const broken = parseSnapshotBlocks({
+      model_version: "benchmark-model@2",
+      ...valid,
+      derived: { fte: "many", hoursPerFte: 1804, lostTime: null, recordable: null },
+    });
+    expect(broken.blocks).toBeNull();
+    expect(broken.error).toContain("derived");
   });
 });

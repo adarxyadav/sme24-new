@@ -29,7 +29,7 @@ the block only appears on a `benchmark-model@2` row, so recompute after any chan
 
 ## Commands
 
-- [x] `pnpm test` → 1256 tests pass, including the derived model suite, the `exposureCount` dispatch, the version map and the segment tests with axe → AC-6, AC-7, AC-8, AC-9, AC-12, AC-14, AC-16
+- [x] `pnpm test` → 1259 tests pass, including the derived model suite, the `exposureCount` dispatch, the version map and the segment tests with axe → AC-6, AC-7, AC-8, AC-9, AC-12, AC-14, AC-16
 - [x] `pnpm test:db` → 466 pgTAP tests pass, including `has_column` and `col_is_null` on `benchmark_snapshots.derived` and a service role write of a version 2 row → AC-13
 - [x] `psql $DB -c "select count(*) from kpi_definitions"` before and after a recompute → unchanged, and `select distinct source from company_kpis` still returns only `research` and `client` → AC-13
 - [x] `psql $DB -c "\d public.benchmark_snapshots"` → exactly one new column, `derived jsonb`, nullable, no default → AC-13
@@ -41,6 +41,9 @@ the block only appears on a `benchmark-model@2` row, so recompute after any chan
 _Verified 2026-09-08. The client source step and the headcount scaling step were exercised against the
 pure `computeBenchmark`, not the form, because the fixture research provider always writes `source
 'research'`; the values and the provenance they produce are the same ones the form path feeds in.
+`/test` on 2026-09-08 locked both into the suite as model tests, so neither depends on a hand run
+again, and added a third pinning the two version `SNAPSHOT_SCHEMAS` map and the unwidened version 1
+schema, the load bearing invariant whose failure is silent.
 `pnpm test:db` was blocked on the first attempt, because three worktrees share one local Supabase
 stack and it carried another worktree's migrations, so `benchmark_snapshots.derived` was absent and
 every file aborted. Re-run 2026-09-08 on an uncontended stack after `pnpm db:reset`: 466 tests across
