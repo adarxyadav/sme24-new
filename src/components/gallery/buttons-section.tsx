@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 const VARIANTS = ["default", "secondary", "outline", "ghost", "destructive", "link"] as const;
-const SIZES = ["xs", "sm", "default", "lg"] as const;
+const SIZES = ["xs", "sm", "default", "lg", "xl"] as const;
 const BADGE_VARIANTS = [
   "default",
   "secondary",

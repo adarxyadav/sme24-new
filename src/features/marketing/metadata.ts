@@ -9,6 +9,7 @@ export const MARKETING_PAGES = {
   landing: "/",
   howItWorks: "/how-it-works",
   expertNetwork: "/expert-network",
+  directory: "/expert-network/directory",
   pricing: "/pricing",
   about: "/about",
   contact: "/contact",

@@ -10,6 +10,10 @@ export const PATHNAMES = {
   "/pricing": { "de-CH": "/preise", "en-CH": "/pricing" },
   "/how-it-works": { "de-CH": "/so-funktionierts", "en-CH": "/how-it-works" },
   "/expert-network": { "de-CH": "/expertennetzwerk", "en-CH": "/expert-network" },
+  "/expert-network/directory": {
+    "de-CH": "/expertennetzwerk/verzeichnis",
+    "en-CH": "/expert-network/directory",
+  },
   "/about": { "de-CH": "/ueber-uns", "en-CH": "/about" },
   "/contact": { "de-CH": "/kontakt", "en-CH": "/contact" },
   "/sign-in": "/sign-in",
@@ -52,6 +56,7 @@ export const MARKETING_ROUTES: readonly StaticPathname[] = [
   "/",
   "/how-it-works",
   "/expert-network",
+  "/expert-network/directory",
   "/pricing",
   "/about",
   "/contact",

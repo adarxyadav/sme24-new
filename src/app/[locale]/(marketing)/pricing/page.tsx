@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
 import { pricingJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
@@ -9,6 +8,7 @@ import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { Faq } from "@/features/marketing/ui/faq";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
+import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
@@ -52,33 +52,24 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         )}
       />
 
-      <section className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:px-6 md:py-24">
-          <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
-          <Statement
-            as="h1"
-            text={t("title")}
-            className="max-w-4xl text-display-sm md:text-display"
-          />
-          <p className="max-w-prose text-lg text-muted-foreground">{t("lead")}</p>
-        </div>
-      </section>
-
+      {/* Anchor opener and the packages in one band, so the prices sit under their own heading. */}
       <section aria-label={t("packagesLabel")} className="border-b">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-24 sm:px-6 md:gap-16 md:py-40">
+          <SectionHeader
+            tier="anchor"
+            as="h1"
+            eyebrow={t("eyebrow")}
+            title={t("title")}
+            lead={t("lead")}
+          />
           <PackagesGrid variant="full" />
         </div>
       </section>
 
       <section aria-labelledby="included-heading" className="border-b">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <Statement
-            as="h2"
-            id="included-heading"
-            text={t("included.title")}
-            className="text-display-sm md:text-display"
-          />
-          <ul className="grid gap-6 sm:grid-cols-2">
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
+          <SectionHeader tier="minor" id="included-heading" title={t("included.title")} />
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {INCLUDED.map((item) => (
               <li key={item} className="flex flex-col gap-2 border-t pt-4">
                 <p className="text-sm">{t(`included.items.${item}`)}</p>
@@ -89,12 +80,12 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
       </section>
 
       <section aria-labelledby="faq-heading" className="border-b">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <Statement
-            as="h2"
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <SectionHeader
+            tier="minor"
             id="faq-heading"
-            text={t("faq.title")}
-            className="text-display-sm md:text-display"
+            title={t("faq.title")}
+            className="border-0 pt-0"
           />
           <Faq
             items={FAQ.map((item) => ({

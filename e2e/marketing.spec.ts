@@ -14,8 +14,8 @@ import { mailAvailable, mailIds, readMail, uniqueEmail } from "./mail";
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 const PAGES = {
-  en: ["", "/pricing", "/about", "/contact"],
-  de: ["", "/preise", "/ueber-uns", "/kontakt"],
+  en: ["", "/pricing", "/about", "/contact", "/expert-network/directory"],
+  de: ["", "/preise", "/ueber-uns", "/kontakt", "/expertennetzwerk/verzeichnis"],
 } as const;
 
 async function forceTheme(page: Page, theme: "light" | "dark") {
@@ -246,4 +246,54 @@ test.describe("the address rate limit", () => {
       .eq("ip_hash", hash);
     expect(count).toBe(5);
   });
+});
+
+test("the expert directory filters the register in the browser without a request (directory)", async ({
+  page,
+}) => {
+  await page.goto("/en/expert-network/directory");
+  const table = page.getByRole("table");
+  // The prerendered HTML already carries the first fifty rows, so they are readable before any
+  // JavaScript runs.
+  await expect(table.locator("tbody tr")).toHaveCount(50);
+
+  // The controls only answer once the component has hydrated; the count paragraph is in the markup
+  // from the start but stays empty until mount, so its text is the signal that the page is live.
+  // Without this wait a `selectOption` lands on the server rendered markup and React discards it
+  // on hydration.
+  await expect(page.getByText(/entries$/)).toBeVisible();
+
+  // Filtering is pure client work: no navigation, no fetch, and the row count follows the filter.
+  // Only requests that would mean the filter went to the server count. A real deployment also
+  // prefetches the header links (`?_rsc=`) and flushes Sentry envelopes to its own ingest host
+  // once the page has loaded; both are background traffic that has nothing to do with the filter,
+  // and neither happens on the local dev server, so a blanket request count passes locally and
+  // fails against a deployment.
+  const fetched: string[] = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    const own = url.origin === new URL(page.url()).origin;
+    const kind = request.resourceType();
+    if (own && !url.searchParams.has("_rsc") && ["document", "fetch", "xhr"].includes(kind)) {
+      fetched.push(request.url());
+    }
+  });
+  await page.getByLabel("Canton").selectOption("UR");
+  // `useDeferredValue` re-renders the rows in a later pass, so the count is awaited rather than
+  // read straight after the select. Uri is the smallest canton in the register.
+  await expect(table.locator("tbody tr")).toHaveCount(3);
+  expect(fetched).toHaveLength(0);
+
+  // No contact detail reaches the page: the register's address, phone and email columns are dropped.
+  await expect(table.getByRole("link")).toHaveCount(0);
+  expect(await table.textContent()).not.toMatch(/@|\+41/);
+});
+
+test("the expert network page links into the directory in both languages (directory)", async ({
+  page,
+}) => {
+  await page.goto("/de/expertennetzwerk");
+  await page.getByRole("link", { name: "Das ganze SGAS-Register ansehen" }).click();
+  await expect(page).toHaveURL(/\/de\/expertennetzwerk\/verzeichnis$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });

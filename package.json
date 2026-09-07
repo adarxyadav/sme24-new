@@ -28,7 +28,8 @@
     "trigger:deploy:prod": "trigger deploy --env prod",
     "email:dev": "email dev --dir src/lib/email/previews --port 3200",
     "benchmarks:migration": "node scripts/benchmarks-migration.mts",
-    "benchmarks:recompute": "node scripts/benchmarks-recompute.mts"
+    "benchmarks:recompute": "node scripts/benchmarks-recompute.mts",
+    "register:build": "node --experimental-strip-types scripts/build-register.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

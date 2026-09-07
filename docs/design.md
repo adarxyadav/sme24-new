@@ -27,7 +27,7 @@ The mark, the lockup and the campaign language live in `src/components/brand/` a
 | Lockup | `Logo` (`variant`, `size="sm" \| "md" \| "lg"`, `descriptor`) | Mark plus the wordmark "SME24" in Geist 800 with display tracking; `descriptor` adds "EHS CONSULTING" tracked at `tracking-lockup`. Primary lockup is bare, alternate is the badge. Used in the marketing header and sign in (`size="md"`); the sidebar shows the bare mark beside the name. |
 | Statement | `Statement` (`text`, `as`) | Campaign copy: each sentence on its own line, closed by the square stop (`SquareStop`, a solid square on the baseline with an `sr-only` period). Pair with `text-display-*` or a headline size. "Senior experts. No slides. Just results." |
 | Signature | `Signature` | The badge beside "SME24. Einfach. Anders." / "SME24. Just. Different." (`brand.signature`). Closes marketing pages and campaign blocks. |
-| Inverse block | `className="dark bg-background text-foreground"` on a section | The jet black ground in both themes (the brand's 30% jet). The `.dark` token block applies to the subtree, so every component inside keeps working. The landing hero is one. |
+| Inverse block | `className="dark bg-background text-foreground"` on a section | The jet black ground in both themes (the brand's 30% jet). The `.dark` token block applies to the subtree, so every component inside keeps working. The closing call to action of every marketing page is one; the landing hero sits on the page ground. |
 | Campaign piece | `CampaignPiece` (`statement`, `subline`, `as`, `signature`) | The campaign format from the decks: one object on pure white, the statement in display size closed by the square stop, an italic parenthetical subline ("(Auch vegan)."), the signature bottom left. Pieces are artifacts and stay white with jet ink in both themes. Without children it is the type only piece ("No slides. Results.") at the larger display size. |
 | Campaign frame | `CampaignFrame` (`caption`, `aspect`, `empty`, `placeholder`) | One object slot, optionally with a caption statement above it ("Graue Haare."; a caption without a period, like "AI", stays bare). `empty` draws the hairlined blank frame of the AI contrast; `placeholder` is for development only and never ships. The deck's own objects live in `public/campaign/` (web sized, 1200 to 1600px) and the gallery composes every format from them. Put a `CampaignImage` inside: `next/image` filling the frame, `object-contain`, `grayscale` for people and places (imagery rule), objects keep their color. |
 | Campaign grid | `CampaignGrid` (`columns` 2, 3, 4) | Frames side by side: a pair, the contrast, or four panels (two columns wrap to two rows). |
@@ -84,6 +84,61 @@ Semantic tokens only, named like shadcn so the installed components keep working
 - Radius `0.125rem` (`--radius`): block forms like the mark, corners barely softened so hairlines render cleanly. The preset derives `rounded-sm` to `rounded-4xl` from it, so even badges are rectangles.
 - Elevation: none on cards. Overlays (dialog, sheet, popover, menu) use the preset's shadow.
 
+## Marketing section vocabulary
+
+_Decided 2026-09-07, before the section by section refinement of the public site. It applies to `src/app/[locale]/(marketing)/` and the sections in `src/features/marketing/ui/`; the signed in areas keep the page anatomy below. The reason it exists: the first build gave all 23 bands one rhythm (`py-16 md:py-24`) and all 20 headings one size (`text-display-sm md:text-display`), so every section claimed equal weight and the pages read as a metronome. Tier is the one decision per section; rhythm, heading size and opener shape all follow from it. Ground is the second, independent axis._
+
+### Tiers
+
+Every marketing section is an anchor, a major or a minor. A page opens with an anchor, carries two or three majors and puts supporting content in minors.
+
+| Tier | Padding | Heading | Use |
+|---|---|---|---|
+| Anchor | `py-24 md:py-40` | `h1` `text-display-sm md:text-display-lg` | The page opener and the closing call to action. One or two per page, never more. |
+| Major | `py-16 md:py-28` | `h2` `text-display-sm md:text-display` | The two or three sections that carry the page's argument. |
+| Minor | `py-12 md:py-20` | `h2` `text-2xl md:text-display-sm tracking-headline` | Supporting bands: a list of inclusions, timings, coverage, an FAQ. |
+
+A minor's heading never scales past `text-display-sm`, which is what keeps a long page from reading flat. Cells inside a band keep `px-6 py-8`; the tier sets the band's own padding only. The container stays `mx-auto max-w-6xl px-4 sm:px-6` at every tier.
+
+### Grounds
+
+Ground is chosen independently of the tier, and jet stays rare so it keeps meaning.
+
+| Ground | Markup | Rule |
+|---|---|---|
+| White | (default) | Every section that is not one of the two below. |
+| Ruled | `RuledField` | The one section per page that turns the argument (the steps on the landing page, the vetting ladder on the expert network). At most one per page, never adjacent to another non white ground. |
+| Jet | `className="dark bg-background text-foreground"` | The page opener when it is a hero, and the closing call to action. Structural bookends, never mid page. A jet opener also carries `hero` on its `RuledField` and its route joins `DARK_HERO_ROUTES` so the header holds its inversion. |
+
+### Openers
+
+The opener follows from the tier, so there is nothing extra to decide per section.
+
+| Tier | Opener |
+|---|---|
+| Anchor | Stacked and left aligned: eyebrow, `Statement`, lead paragraph, `gap-6`. |
+| Major | Split: eyebrow and `Statement` in the left column, the lead in the right (`lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]`). The lead is optional; without one the heading spans. |
+| Minor | Inline, no eyebrow: a hairline above the band, heading and lead on one row (`md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]`), wrapping to two rows below `md`. |
+
+`SectionHeader` in `src/features/marketing/ui/` renders all three from a `tier` prop; a page composes it rather than hand rolling the markup. A section that is deliberately different (the campaign wall, the packages grid) may still open with its own markup, but it picks one of the three shapes.
+
+### Hero object
+
+The landing hero shows the product instead of describing it: `HeroBenchmark` (`src/features/marketing/ui/hero-benchmark.tsx`) draws the example benchmark of Muster AG (`hero-example.ts`) the way the dashboard draws a real one, from the same `benchmark.*` strings and formatters, on a `bg-card` slab with hairlines and no elevation, directly under the statement. The hero itself sits on the page ground (white in light, jet in dark) behind the ruled field, so the header never inverts on it; the headline is a `Statement` in `layout="flow"`, three short sentences running on to two lines at the desktop measure. The hero's own controls take the `xl` button size and an `h-11` input (`CompanyLookupField size="hero"`); nothing else on the site uses that size. The slab shows what exists (cost, gaps, positions, the recommended package); the ranked shortlist joins when expert matching ships.
+
+### Tier map
+
+The tier of every section that exists today. A new section joins this table.
+
+| Page | Sections in order |
+|---|---|
+| Landing | anchor hero on the page ground, centred, with the hero object under it · minor proof points · **major ruled steps** · major packages · minor campaign wall · anchor jet closing |
+| How it works | anchor opener · **major ruled steps** · major split of labour · minor timing · anchor jet closing |
+| Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
+| Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |
+| About | anchor opener · major story · **major ruled campaign grid** · minor how we work · anchor jet closing |
+| Contact | anchor opener · major facts and form · anchor jet closing |
+
 ## Motion
 
 Overlays and toasts use `tw-animate-css` fades and slides, 150 to 200ms. A global `prefers-reduced-motion: reduce` rule clamps every animation and transition to 1ms (not zero, so Radix exit animations still complete and overlays unmount). Do not add motion that carries meaning on its own.
@@ -102,7 +157,7 @@ Overlays and toasts use `tw-animate-css` fades and slides, 150 to 200ms. A globa
 | Shared | `PageHeader`, `PageStack`, `EmptyState`, `ErrorState`, `SkipLink`, `ThemeToggle`, `ThemeSubmenu`, `LocaleSwitcher`, `MarketingHeader` | `src/components/`, named exports, one line JSDoc. `ThemeToggle` is a segmented pill of icon radios (`rounded-full border bg-background p-0.5`, 28px segments, `bg-accent` plus `shadow-xs` on the active one); `LocaleSwitcher` is a dropdown with a matching pill shaped trigger (`h-[34px] rounded-full border`, the height of the theme pill) showing the current language. Where both appear, place them side by side with `gap-2`; the marketing header carries the language switch alone (the theme control sits in the footer). |
 | Brand | `BrandMark`, `Logo`, `Statement`, `SquareStop`, `Signature` | `src/components/brand/`, see `## Brand`. |
 | Shell | `AreaShell` (server), `AppSidebar` (client), `LocaleMenuItems`, `AreaError`, `PageSkeleton`, `nav.ts` | `src/components/shell/`. Add a navigation entry by appending to `AREA_NAV` in `nav.ts` and its `nav.<area>.<key>` messages. |
-| Marketing | `MarketingFooter`, `CompanyLookupField`, `StepsSection`, `PackageCard`, `PackagesGrid`, `Faq`, `ClosingCta`, `EnquiryForm`, `EnquiryConfirmation`, `JsonLd` | `src/features/marketing/ui/` (spec 0009). Sections sit in `max-w-6xl`, hairline grids (`gap-px border bg-border`) for steps, packages and points, the inverse block for the hero and the closing call to action. The gallery's Marketing section shows the package card, the FAQ and the enquiry form empty and in its error state. |
+| Marketing | `MarketingFooter`, `CompanyLookupField`, `StepsSection`, `PackageCard`, `PackagesGrid`, `Faq`, `ClosingCta`, `EnquiryForm`, `EnquiryConfirmation`, `JsonLd` | `src/features/marketing/ui/` (spec 0009). Sections sit in `max-w-6xl`, hairline grids (`gap-px border bg-border`) for steps and packages, a ruled ledger (`border-t`, `divide-x`) for the proof points, the inverse block for the hero and the closing call to action. The gallery's Marketing section shows the package card, the FAQ and the enquiry form empty and in its error state. |
 
 Icons: lucide, `size-4` inline (components size them), decorative icons `aria-hidden="true"`, icon only buttons carry `aria-label`. Icons inside a `Button` use `data-icon="inline-start"` or `inline-end`.
 

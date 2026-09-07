@@ -123,6 +123,10 @@ describe("typed route map (spec 0004, AC-13)", () => {
       "de-CH": "/expertennetzwerk",
       "en-CH": "/expert-network",
     });
+    expect(PATHNAMES["/expert-network/directory"]).toEqual({
+      "de-CH": "/expertennetzwerk/verzeichnis",
+      "en-CH": "/expert-network/directory",
+    });
     expect(PATHNAMES["/pricing"]).toEqual({ "de-CH": "/preise", "en-CH": "/pricing" });
     expect(PATHNAMES["/about"]).toEqual({ "de-CH": "/ueber-uns", "en-CH": "/about" });
     expect(PATHNAMES["/contact"]).toEqual({ "de-CH": "/kontakt", "en-CH": "/contact" });
@@ -130,6 +134,7 @@ describe("typed route map (spec 0004, AC-13)", () => {
       "/",
       "/how-it-works",
       "/expert-network",
+      "/expert-network/directory",
       "/pricing",
       "/about",
       "/contact",

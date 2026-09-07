@@ -10,16 +10,19 @@ import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
+import { fixedPricePackages } from "@/features/marketing/packages";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
+import { HeroBenchmark } from "@/features/marketing/ui/hero-benchmark";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
+import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { StepsSection } from "@/features/marketing/ui/steps-section";
 import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
 
-const POINTS = ["price", "negotiation", "kickoff"] as const;
+const POINTS = ["price", "setup", "start"] as const;
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
 
 /** The campaign deck's objects (web sized under `public/campaign/`), in wall order. */
@@ -54,6 +57,10 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
     getTranslations("marketing.landing"),
     getTranslations("marketing.landing.meta"),
   ]);
+  const prices = fixedPricePackages().flatMap((entry) =>
+    entry.priceChf === null ? [] : [entry.priceChf],
+  );
+  const priceRange = { low: Math.min(...prices), high: Math.max(...prices) };
   const lookup = {
     locale: resolved,
     label: t("lookup.label"),
@@ -74,42 +81,70 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
 
       {/*
         The hero runs up behind the sticky header (`-mt-16`, the bar's `h-16`, given back as
-        `pt-16` inside) so the jet ground reaches the top of the viewport. The unscrolled bar is
-        transparent and inverts over it, which is what makes the two meet without a seam in light
-        mode as well as dark; `DARK_HERO_ROUTES` in the header names this page for that. The
-        ruled ground sits behind the whole block, so the hairlines start at the very top of the
-        viewport rather than under the bar.
+        padding inside) so the ruled ground reaches the top of the viewport; the unscrolled bar
+        is transparent, so the two meet without a seam. The hero sits on the page ground in both
+        themes, white in light and jet in dark, so the bar never has to invert here.
       */}
-      <RuledField hero className="dark -mt-16 bg-background text-foreground">
-        <section className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 pt-40 pb-24 sm:px-6 md:pt-52 md:pb-36">
+      <RuledField hero align="center" className="-mt-16">
+        <section className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pt-36 pb-16 text-center sm:px-6 md:pt-44 md:pb-20">
           <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
           <Statement
             as="h1"
+            layout="flow"
             text={t("title")}
-            className="max-w-4xl text-display-sm md:text-display lg:text-display-lg"
+            className="max-w-6xl text-display-sm sm:text-display"
           />
-          <p className="max-w-prose text-lg text-muted-foreground">{t("lead")}</p>
-          <CompanyLookupField {...lookup} inverse />
-          <Link
-            href="/sign-in"
-            className="text-muted-foreground text-sm underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {t("signIn")}
-          </Link>
+          <p className="max-w-xl text-lg text-muted-foreground">{t("lead")}</p>
+          <CompanyLookupField
+            {...lookup}
+            size="hero"
+            className="mt-4 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
+          />
+          <p className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-muted-foreground text-sm">
+            <span>{t("free")}</span>
+            <Link href="/sign-in" className="underline underline-offset-4 hover:text-foreground">
+              {t("signIn")}
+            </Link>
+          </p>
         </section>
       </RuledField>
 
+      {/* The hero object (docs/design.md, hero object): the example benchmark under the statement. */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <HeroBenchmark />
+      </div>
+
+      {/*
+        The proof points (docs/design.md, tier map: minor): a ledger, not three cards. Each entry
+        is a caps label, one figure as the statement and a note that adds a fact rather than
+        restating the figure. The price range is read from the package data so it can never
+        drift from the pricing page.
+      */}
       <section aria-label={t("pointsLabel")} className="border-b">
-        <ul className="mx-auto grid max-w-6xl gap-px sm:grid-cols-3 sm:divide-x">
-          {POINTS.map((point) => (
-            <li key={point} className="flex flex-col gap-3 px-4 py-10 sm:px-6">
-              <Statement as="h2" text={t(`points.${point}.title`)} className="text-display-sm" />
-              <p className="max-w-prose text-muted-foreground text-sm">
-                {t(`points.${point}.body`)}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20">
+          <dl className="grid divide-y border-t sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {POINTS.map((point) => (
+              // The cell is a subgrid of three rows, so a figure that wraps pushes every note down together.
+              <div
+                key={point}
+                className="grid grid-rows-[auto_auto_auto] gap-3 py-6 sm:row-span-3 sm:grid-rows-subgrid sm:px-6 sm:py-8 sm:first:pl-0 sm:last:pr-0"
+              >
+                <dt className="eyebrow self-end text-muted-foreground">
+                  {t(`points.${point}.label`)}
+                </dt>
+                <dd>
+                  <Statement
+                    text={t(`points.${point}.figure`, priceRange)}
+                    className="font-extrabold text-2xl tracking-headline tabular-nums md:text-display-sm"
+                  />
+                </dd>
+                <dd className="max-w-prose text-muted-foreground text-sm">
+                  {t(`points.${point}.note`)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </section>
 
       <StepsSection
@@ -123,17 +158,14 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       />
 
       <section aria-labelledby="packages-heading" className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-24">
-          <div className="flex flex-col gap-3">
-            <p className="eyebrow text-muted-foreground">{t("packages.eyebrow")}</p>
-            <Statement
-              as="h2"
-              id="packages-heading"
-              text={t("packages.title")}
-              className="text-display-sm md:text-display"
-            />
-            <p className="max-w-prose text-lg text-muted-foreground">{t("packages.lead")}</p>
-          </div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
+          <SectionHeader
+            tier="major"
+            id="packages-heading"
+            eyebrow={t("packages.eyebrow")}
+            title={t("packages.title")}
+            lead={t("packages.lead")}
+          />
           <PackagesGrid variant="overview" />
         </div>
       </section>

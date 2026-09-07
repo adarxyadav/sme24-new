@@ -10,6 +10,8 @@ export type RuledFieldProps = {
    * page; the header falls back to the first section of `main` when nothing carries it.
    */
   readonly hero?: boolean;
+  /** Where the content sits, so the rules are held back from the type: the left column or the middle. */
+  readonly align?: "start" | "center";
 };
 
 /**
@@ -20,7 +22,12 @@ export type RuledFieldProps = {
  * under it. Purely decorative, so the layer is `aria-hidden` and the content keeps its own
  * stacking context above it. Server component.
  */
-export function RuledField({ children, className, hero = false }: RuledFieldProps) {
+export function RuledField({
+  children,
+  className,
+  hero = false,
+  align = "start",
+}: RuledFieldProps) {
   return (
     <div
       data-hero={hero || undefined}
@@ -40,7 +47,9 @@ export function RuledField({ children, className, hero = false }: RuledFieldProp
           // rule crossing type reads as a printing fault rather than as texture. `mask-image` is
           // composited, not painted, so the hairlines keep their exact colour where they do show.
           "[mask-composite:intersect]",
-          "[mask-image:linear-gradient(to_bottom,transparent,black_22%,black_78%,transparent),radial-gradient(150%_115%_at_26%_50%,transparent_0%,transparent_30%,black_92%)]",
+          align === "start"
+            ? "[mask-image:linear-gradient(to_bottom,transparent,black_22%,black_78%,transparent),radial-gradient(150%_115%_at_26%_50%,transparent_0%,transparent_30%,black_92%)]"
+            : "[mask-image:linear-gradient(to_bottom,transparent,black_18%,black_62%,transparent_86%),radial-gradient(90%_70%_at_50%_42%,transparent_0%,transparent_32%,black_88%)]",
         )}
       />
       {children}
