@@ -4,7 +4,7 @@ Part of the [SME24 scope](index.md). The paid half of the loop, and the ops team
 
 ## Slice 3: Book and pay
 
-### 11. Package checkout with Swiss VAT · in-progress
+### 11. Package checkout with Swiss VAT · done
 From the opportunity dashboard the client picks one of the three fixed price packages (Compliance, Safety Management System, Safety Culture assessments), pays online with Swiss VAT (MWST) applied, and gets an order plus receipt. The order state model, VAT handling, and how payment confirmation reaches the database reliably are the decisions.
 **Done when:** a client can buy each of the three packages in CHF with MWST shown on the invoice and receipt; a confirmed payment creates an order the client sees in the dashboard even if they close the browser; a failed or abandoned payment leaves no half order.
 Carried over from earlier specs: the four packages and prices already live in `src/features/marketing/packages.ts` and the pricing page's three fixed price buttons wait for checkout (spec 0009); promote that catalog into the `packages` table with a test that keeps the two equal.
@@ -17,8 +17,8 @@ Spec: [0011](../specs/0011-package-checkout-swiss-vat/index.md). Cards go throug
   - [x] Bank transfer and ops control: the invoice first path, ops mark paid and cancel, the pricing page buttons, and the sweep (AC-8, AC-16)
 - [x] Verify it: `/check verify package checkout with Swiss VAT` · every row proven 8 Sep 2026; AC-10's exhausted-retries `onFailure` hook by unit test (re-verified 8 Sep after the first tick rested on `catchError`, which runs on every attempt), the full worker path owed on staging
 - [x] Test it: `/test package checkout with Swiss VAT`
-- [ ] Review it (fresh model): `/check review package checkout with Swiss VAT`
-- [ ] Document it: `/document package checkout with Swiss VAT`
+- [x] Review it (fresh model): `/check review package checkout with Swiss VAT` · `docs/reviews/2026-09-08-feat-fix-checkout-session-persistence.md`, Changes requested; the major and both minors closed on the fix branch
+- [x] Document it: `/document package checkout with Swiss VAT` · PR #27
 
 ### 12. Ops admin: orders, companies & scheduling · needs a decision
 Your team's first screen. Ops sees companies, research runs, orders and payments, records the agreed on site date and the assigned assessor on an order, and the client dashboard reflects that status. The admin shell built here hosts every later ops feature.

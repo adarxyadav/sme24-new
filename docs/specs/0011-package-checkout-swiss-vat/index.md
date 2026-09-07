@@ -1,7 +1,7 @@
 # 0011. Package checkout with Swiss VAT
 
 **Date**: 2026-09-07
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
