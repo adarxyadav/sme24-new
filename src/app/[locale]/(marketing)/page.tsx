@@ -75,24 +75,22 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
 
       {/*
         The hero runs up behind the sticky header (`-mt-16`, the bar's `h-16`, given back as
-        `pt-16` inside) so the jet ground reaches the top of the viewport. The unscrolled bar is
-        transparent and inverts over it, which is what makes the two meet without a seam in light
-        mode as well as dark; `DARK_HERO_ROUTES` in the header names this page for that. The
-        ruled ground sits behind the whole block, so the hairlines start at the very top of the
-        viewport rather than under the bar.
+        padding inside) so the ruled ground reaches the top of the viewport; the unscrolled bar
+        is transparent, so the two meet without a seam. The hero sits on the page ground in both
+        themes, white in light and jet in dark, so the bar never has to invert here.
       */}
-      <RuledField hero align="center" className="dark -mt-16 bg-background text-foreground">
-        <section className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pt-36 pb-56 text-center sm:px-6 md:pt-44 md:pb-64">
+      <RuledField hero align="center" className="-mt-16">
+        <section className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pt-36 pb-16 text-center sm:px-6 md:pt-44 md:pb-20">
           <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
           <Statement
             as="h1"
+            layout="flow"
             text={t("title")}
-            className="max-w-4xl text-display-sm md:text-display lg:text-display-lg"
+            className="max-w-6xl text-display-sm sm:text-display"
           />
           <p className="max-w-xl text-lg text-muted-foreground">{t("lead")}</p>
           <CompanyLookupField
             {...lookup}
-            inverse
             size="hero"
             className="mt-4 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
           />
@@ -105,12 +103,8 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         </section>
       </RuledField>
 
-      {/*
-        The hero object (docs/design.md, hero object): the example benchmark pulls up over the
-        bottom edge of the jet block, so the page's one break of its own grid is the product
-        itself. The hero's extra bottom padding above is what the slab overlaps.
-      */}
-      <div className="relative z-10 mx-auto -mt-48 max-w-6xl px-4 sm:px-6 md:-mt-56">
+      {/* The hero object (docs/design.md, hero object): the example benchmark under the statement. */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <HeroBenchmark />
       </div>
 

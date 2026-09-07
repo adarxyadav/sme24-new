@@ -22,12 +22,12 @@ import { cn } from "@/lib/utils";
 export type MarketingLink = { readonly href: StaticPathname; readonly label: string };
 
 /**
- * Routes whose first section forces the jet ground in both themes. Only the landing hero does
- * (`src/app/[locale]/(marketing)/page.tsx`); the other three open on the page background, so the
- * transparent bar already matches them and must not invert. A page that gains or loses a dark
- * hero belongs in this list.
+ * Routes whose first section forces the jet ground in both themes. None does since the landing
+ * hero moved onto the page ground (2026-09-07): every page opens on the page background, so the
+ * transparent bar already matches it and must not invert. A page that gains a dark hero joins
+ * this list, and the bar then holds `dark` for as long as that hero is behind it.
  */
-const DARK_HERO_ROUTES: readonly Pathname[] = ["/"];
+const DARK_HERO_ROUTES: readonly Pathname[] = [];
 
 /**
  * The bar's own height (`h-16` = 4rem), which is also how far a page that pulls its first section

@@ -243,17 +243,16 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     expect(header.className).toContain("bg-transparent");
   });
 
-  it("keeps the landing bar inverted while the hero is behind it, and drops it once past", () => {
+  it("never inverts the bar: every page, the landing included, opens on the page ground", () => {
+    // The landing hero sits on the page ground since 2026-09-07 (white in light, jet in dark),
+    // so the bar must not carry `dark` over it: inverting would hide the lockup in light mode.
     boundary.pathname = "/de";
     const { container, unmount } = renderIn("de-CH", <MarketingHeader links={links} />);
     const header = container.querySelector("header") as HTMLElement;
-    // The landing hero forces the jet ground in both themes, so the bar over it must invert.
-    expect(header.className).toContain("dark");
+    expect(header.className).not.toContain("dark");
 
-    // The inversion is held by the hero's own bottom edge, not a scroll offset: while the jet
-    // ground is still behind the bar it has to stay inverted, or the lockup goes black on black.
-    // The component finds the hero by its `data-hero` marker, and jsdom gives every element a
-    // zero rect, so a stand in with a stubbed geometry stands in for the real hero.
+    // The frosted swap still follows the hero's own bottom edge (`data-hero`), not a scroll
+    // offset; jsdom gives every element a zero rect, so a stand in carries stubbed geometry.
     const main = document.createElement("main");
     const hero = document.createElement("section");
     hero.setAttribute("data-hero", "true");
@@ -261,18 +260,19 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     document.body.append(main);
     const heroBottom = vi.spyOn(hero, "getBoundingClientRect");
 
+    // Scrolled with the hero still behind the bar: frosted on the page ground, not inverted.
     heroBottom.mockReturnValue({ bottom: 900 } as DOMRect);
     scrollTo(200);
-    expect(header.className).toContain("dark");
+    expect(header.className).not.toContain("dark");
+    expect(header.className).not.toContain("bg-transparent");
 
-    // Once the hero's bottom edge has passed under the bar, it takes the page theme's ground.
     heroBottom.mockReturnValue({ bottom: -10 } as DOMRect);
     scrollTo(1200);
     expect(header.className).not.toContain("dark");
+    expect(header.className).not.toContain("bg-transparent");
     main.remove();
     unmount();
 
-    // The other three pages open on the page background: inverting would hide the lockup.
     scrollTo(0);
     boundary.pathname = "/de/kontakt";
     const plain = renderIn("de-CH", <MarketingHeader links={links} />);
