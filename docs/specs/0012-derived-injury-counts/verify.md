@@ -30,7 +30,7 @@ the block only appears on a `benchmark-model@2` row, so recompute after any chan
 ## Commands
 
 - [x] `pnpm test` → 1256 tests pass, including the derived model suite, the `exposureCount` dispatch, the version map and the segment tests with axe → AC-6, AC-7, AC-8, AC-9, AC-12, AC-14, AC-16
-- [ ] `pnpm test:db` → 466 pgTAP tests pass, including `has_column` and `col_is_null` on `benchmark_snapshots.derived` and a service role write of a version 2 row → AC-13
+- [x] `pnpm test:db` → 466 pgTAP tests pass, including `has_column` and `col_is_null` on `benchmark_snapshots.derived` and a service role write of a version 2 row → AC-13
 - [x] `psql $DB -c "select count(*) from kpi_definitions"` before and after a recompute → unchanged, and `select distinct source from company_kpis` still returns only `research` and `client` → AC-13
 - [x] `psql $DB -c "\d public.benchmark_snapshots"` → exactly one new column, `derived jsonb`, nullable, no default → AC-13
 - [x] `psql $DB -c "select derived from benchmark_snapshots order by created_at desc limit 1"` after a run on a company with rates and a headcount → a block holding `fte`, `hoursPerFte`, `lostTime` and `recordable`; not null, and no `NaN` anywhere → AC-15
@@ -41,10 +41,11 @@ the block only appears on a `benchmark-model@2` row, so recompute after any chan
 _Verified 2026-09-08. The client source step and the headcount scaling step were exercised against the
 pure `computeBenchmark`, not the form, because the fixture research provider always writes `source
 'research'`; the values and the provenance they produce are the same ones the form path feeds in.
-`pnpm test:db` could not run: the shared local stack carries another worktree's
-`check_expert_assignable`, whose fixture is missing here, so every pgTAP file aborts before its first
-assertion. The two AC-13 column assertions and the version 2 service role write were run directly
-instead and passed. See the report for both._
+`pnpm test:db` was blocked on the first attempt, because three worktrees share one local Supabase
+stack and it carried another worktree's migrations, so `benchmark_snapshots.derived` was absent and
+every file aborted. Re-run 2026-09-08 on an uncontended stack after `pnpm db:reset`: 466 tests across
+20 files pass, `Result: PASS`, including the three AC-13 assertions on the `derived` column and the
+service role write of a `benchmark-model@2` row._
 
 ## Post deploy
 
