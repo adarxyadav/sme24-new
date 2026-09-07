@@ -1,7 +1,7 @@
 # 0012. Derived injury counts as a display only snapshot block, not new KPI rows
 
 **Date**: 2026-09-08
-**Status**: In Progress
+**Status**: Accepted
 
 The decision history (context, the options weighed, the reasoning and the sources) is in [rationale.md](rationale.md).
 
