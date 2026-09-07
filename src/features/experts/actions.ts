@@ -128,7 +128,7 @@ export async function resendInvite(
   if (error) return reportFailure("expert resend lookup failed", error.message, "unexpected");
   // Only an expert who has never signed in can be resent to: confirming moves the status on, and
   // Supabase would answer email_exists for a confirmed user.
-  if (!expert || expert.status !== "invited") return { ok: false, error: "not_invited" };
+  if (expert?.status !== "invited") return { ok: false, error: "not_invited" };
 
   const inviteeLocale = (expert.profiles as { locale: string } | null)?.locale;
   const sent = await resendStaffInvite(actor.service, {
