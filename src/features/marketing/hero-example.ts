@@ -119,25 +119,3 @@ export const HERO_EXAMPLE = {
   readonly peersCertified: number;
   readonly nextStep: PackageKey;
 };
-
-/** Where the marker and the three quartile ticks sit on the track, in percent of its width. */
-export type TrackLayout = {
-  readonly p25: number;
-  readonly median: number;
-  readonly p75: number;
-  readonly marker: number;
-};
-
-/**
- * Lays a value out on a quartile track: p25, the median and p75 sit at a quarter, the middle and
- * three quarters of the width, and the value is placed on the same linear scale, held inside the
- * track (4% to 96%) so an outlier still shows at the edge. A peer group whose quartiles coincide
- * (every peer at zero) has no scale, so a value at or under the median sits on the p25 tick,
- * where the top quarter starts, and anything above it goes to the far edge. Pure.
- */
-export function trackLayout(value: number, { p25, median, p75 }: HeroQuartiles): TrackLayout {
-  const span = p75 - p25;
-  const raw = span > 0 ? 50 + ((value - median) / span) * 50 : value <= median ? 25 : 96;
-  const marker = Math.min(96, Math.max(4, raw));
-  return { p25: 25, median: 50, p75: 75, marker };
-}

@@ -1,3 +1,4 @@
+import { ArrowRightIcon } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
@@ -17,10 +18,11 @@ type PackageMessageKey = Parameters<ReturnType<typeof useTranslations<"marketing
 
 /**
  * One package (spec 0009, AC-5, AC-6 as amended on 2026-09-06): the name, the one line promise,
- * the best for line, the price without decimals through the `chfWhole` format with the VAT note
- * (or "On demand" for the implementation partner), the call to action (sign up for a fixed
- * price, the contact form for the partner), then below a hairline the delivery line, the included
- * points as pills and the output and outcome rows. Every string comes from
+ * the delivery line, the price without decimals through the `chfWhole` format with the VAT note
+ * (or "On demand" for the implementation partner), the call to action, then on the full variant
+ * the included points as a list and the output and outcome rows. The card is a subgrid of the
+ * grid's rows, so the name, the price, the button and the detail block sit on the same baseline
+ * in every card whatever the length of the copy. Every string comes from
  * `marketing.packages.<key>.*` and `marketing.pricing.*`, the price and the order from
  * `PACKAGES`. Server component.
  */
@@ -36,88 +38,118 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
     <article
       data-slot="package-card"
       data-package={entry.key}
-      className={cn("flex h-full min-w-0 flex-col bg-background", className)}
+      className={cn(
+        "grid min-w-0 bg-background px-6 py-8",
+        // The card takes the grid's rows, so every card's price, button and details align.
+        full ? "row-span-4 grid-rows-subgrid gap-y-8" : "row-span-3 grid-rows-subgrid gap-y-8",
+        className,
+      )}
     >
-      <div className="flex flex-1 flex-col gap-5 px-6 py-8">
-        <div className="flex flex-col gap-2">
-          <Statement
-            as="h3"
-            text={t(`${entry.key}.name`)}
-            className="hyphens-auto break-words font-bold text-xl tracking-headline"
-          />
-          <p className="max-w-prose text-muted-foreground text-sm">{t(`${entry.key}.promise`)}</p>
-        </div>
+      <div className="flex min-w-0 flex-col gap-2 self-start">
+        <Statement
+          as="h3"
+          text={t(`${entry.key}.name`)}
+          layout="flow"
+          className="hyphens-auto break-words font-bold text-lg tracking-headline"
+        />
+        <p className="text-muted-foreground text-sm">{t(`${entry.key}.promise`)}</p>
         {full ? (
           <p className="text-sm">
             <span className="text-muted-foreground">{pricing("bestForLabel")} </span>
             <span className="font-medium">{t(`${entry.key}.bestFor`)}</span>
           </p>
         ) : null}
-        <p className="flex flex-col gap-1">
-          {entry.priceChf === null ? (
-            <span className="font-bold text-2xl tracking-headline">{pricing("onDemand")}</span>
-          ) : (
-            <>
-              <span className="font-bold text-2xl tabular-nums tracking-headline" data-numeric>
-                {format.number(entry.priceChf, "chfWhole")}
-              </span>
-              <span className="text-muted-foreground text-xs">{pricing("vatNote")}</span>
-            </>
-          )}
-        </p>
-        <div className="mt-auto pt-2">
-          {variant === "overview" ? (
-            <Button asChild variant="outline" className="h-auto w-full whitespace-normal py-2">
-              <Link href="/pricing">{pricing("overviewLink")}</Link>
-            </Button>
-          ) : onDemand ? (
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="h-auto w-full whitespace-normal py-2"
-            >
-              <Link href={{ pathname: "/contact", query: { topic: "retainer" } }}>
-                {pricing("retainerCta")}
-              </Link>
-            </Button>
-          ) : (
-            <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2">
-              {/*
-                Spec 0011 (AC-16): the chosen package rides along, so a signed out visitor lands
-                back on the checkout for the package they picked once they have signed up. A
-                signed in client is sent straight to the checkout by the sign up page.
-              */}
-              <Link
-                href={{
-                  pathname: "/sign-up",
-                  query: { next: checkoutPath(locale, entry.key) },
-                }}
-              >
-                {pricing("cta")}
-              </Link>
-            </Button>
-          )}
-        </div>
       </div>
+
+      {/* Three tracks of its own, so the delivery line, the amount and the VAT note each sit on
+          one baseline across the row even where a card has no VAT note. */}
+      <div className="grid grid-rows-[auto_auto_auto] gap-1 self-end">
+        {/* Empty on the overview variant, but the row keeps its height (an invisible full stop),
+            so the amounts stay on one baseline across the whole row. */}
+        <p
+          aria-hidden={full ? undefined : true}
+          className={cn(
+            "text-muted-foreground text-xs uppercase tracking-[0.08em]",
+            !full && "invisible",
+          )}
+        >
+          {full ? t(`${entry.key}.delivery`) : "."}
+        </p>
+        {onDemand ? (
+          <p className="font-bold text-3xl tracking-headline">{pricing("onDemand")}</p>
+        ) : (
+          <p className="font-bold text-3xl tabular-nums tracking-headline" data-numeric>
+            {format.number(entry.priceChf ?? 0, "chfWhole")}
+          </p>
+        )}
+        {/* The partner has no VAT note; the row still holds, so its amount keeps the baseline. */}
+        <p
+          aria-hidden={onDemand ? true : undefined}
+          className={cn("text-muted-foreground text-xs", onDemand && "invisible")}
+        >
+          {onDemand ? "." : pricing("vatNote")}
+        </p>
+      </div>
+
+      <div className="self-end">
+        {variant === "overview" ? (
+          <Button asChild variant="ghost" className="-mx-3 h-auto justify-start gap-2 px-3 py-2">
+            <Link href="/pricing">
+              {pricing("overviewLink")}
+              <ArrowRightIcon aria-hidden="true" />
+            </Link>
+          </Button>
+        ) : onDemand ? (
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="h-auto w-full whitespace-normal py-2"
+          >
+            <Link href={{ pathname: "/contact", query: { topic: "retainer" } }}>
+              {pricing("retainerCta")}
+            </Link>
+          </Button>
+        ) : (
+          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2">
+            {/*
+              Spec 0011 (AC-16): the chosen package rides along, so a signed out visitor lands
+              back on the checkout for the package they picked once they have signed up. A
+              signed in client is sent straight to the checkout by the sign up page.
+            */}
+            <Link
+              href={{
+                pathname: "/sign-up",
+                query: { next: checkoutPath(locale, entry.key) },
+              }}
+            >
+              {pricing("cta")}
+            </Link>
+          </Button>
+        )}
+      </div>
+
       {full ? (
-        <div className="flex flex-col gap-5 border-t px-6 py-6">
-          <p className="text-muted-foreground text-sm">{t(`${entry.key}.delivery`)}</p>
-          <ul className="flex flex-wrap gap-2 text-sm">
+        <div className="flex flex-col gap-5 border-t pt-6 text-sm">
+          <ul className="flex flex-wrap gap-2">
             {entry.included.map((point) => (
               <li key={point} className="rounded-4xl bg-muted px-3 py-1">
                 {t(includedKey(entry.key, point))}
               </li>
             ))}
           </ul>
-          <dl className="flex flex-col gap-3 text-sm">
+          <dl className="flex flex-col gap-3">
             <div className="flex flex-col gap-0.5">
-              <dt className="text-muted-foreground">{pricing("outputLabel")}</dt>
-              <dd className="font-medium">{t(`${entry.key}.output`)}</dd>
+              <dt className="text-muted-foreground text-xs uppercase tracking-[0.08em]">
+                {pricing("outputLabel")}
+              </dt>
+              <dd>{t(`${entry.key}.output`)}</dd>
             </div>
             <div className="flex flex-col gap-0.5">
-              <dt className="text-muted-foreground">{pricing("outcomeLabel")}</dt>
-              <dd className="font-medium">{t(`${entry.key}.outcome`)}</dd>
+              <dt className="text-muted-foreground text-xs uppercase tracking-[0.08em]">
+                {pricing("outcomeLabel")}
+              </dt>
+              <dd>{t(`${entry.key}.outcome`)}</dd>
             </div>
           </dl>
         </div>

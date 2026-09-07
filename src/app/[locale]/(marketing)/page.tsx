@@ -10,17 +10,19 @@ import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
+import { fixedPricePackages } from "@/features/marketing/packages";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
 import { HeroBenchmark } from "@/features/marketing/ui/hero-benchmark";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
+import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { StepsSection } from "@/features/marketing/ui/steps-section";
 import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
 
-const POINTS = ["price", "negotiation", "kickoff"] as const;
+const POINTS = ["price", "setup", "start"] as const;
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
 
 /** The campaign deck's objects (web sized under `public/campaign/`), in wall order. */
@@ -55,6 +57,10 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
     getTranslations("marketing.landing"),
     getTranslations("marketing.landing.meta"),
   ]);
+  const prices = fixedPricePackages().flatMap((entry) =>
+    entry.priceChf === null ? [] : [entry.priceChf],
+  );
+  const priceRange = { low: Math.min(...prices), high: Math.max(...prices) };
   const lookup = {
     locale: resolved,
     label: t("lookup.label"),
@@ -108,17 +114,37 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         <HeroBenchmark />
       </div>
 
-      <section aria-label={t("pointsLabel")} className="mt-16 border-y md:mt-24">
-        <ul className="mx-auto grid max-w-6xl gap-px sm:grid-cols-3 sm:divide-x">
-          {POINTS.map((point) => (
-            <li key={point} className="flex flex-col gap-3 px-4 py-10 sm:px-6">
-              <Statement as="h2" text={t(`points.${point}.title`)} className="text-display-sm" />
-              <p className="max-w-prose text-muted-foreground text-sm">
-                {t(`points.${point}.body`)}
-              </p>
-            </li>
-          ))}
-        </ul>
+      {/*
+        The proof points (docs/design.md, tier map: minor): a ledger, not three cards. Each entry
+        is a caps label, one figure as the statement and a note that adds a fact rather than
+        restating the figure. The price range is read from the package data so it can never
+        drift from the pricing page.
+      */}
+      <section aria-label={t("pointsLabel")} className="border-b">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20">
+          <dl className="grid divide-y border-t sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {POINTS.map((point) => (
+              // The cell is a subgrid of three rows, so a figure that wraps pushes every note down together.
+              <div
+                key={point}
+                className="grid grid-rows-[auto_auto_auto] gap-3 py-6 sm:row-span-3 sm:grid-rows-subgrid sm:px-6 sm:py-8 sm:first:pl-0 sm:last:pr-0"
+              >
+                <dt className="eyebrow self-end text-muted-foreground">
+                  {t(`points.${point}.label`)}
+                </dt>
+                <dd>
+                  <Statement
+                    text={t(`points.${point}.figure`, priceRange)}
+                    className="font-extrabold text-2xl tracking-headline tabular-nums md:text-display-sm"
+                  />
+                </dd>
+                <dd className="max-w-prose text-muted-foreground text-sm">
+                  {t(`points.${point}.note`)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </section>
 
       <StepsSection
@@ -132,17 +158,14 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       />
 
       <section aria-labelledby="packages-heading" className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-24">
-          <div className="flex flex-col gap-3">
-            <p className="eyebrow text-muted-foreground">{t("packages.eyebrow")}</p>
-            <Statement
-              as="h2"
-              id="packages-heading"
-              text={t("packages.title")}
-              className="text-display-sm md:text-display"
-            />
-            <p className="max-w-prose text-lg text-muted-foreground">{t("packages.lead")}</p>
-          </div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
+          <SectionHeader
+            tier="major"
+            id="packages-heading"
+            eyebrow={t("packages.eyebrow")}
+            title={t("packages.title")}
+            lead={t("packages.lead")}
+          />
           <PackagesGrid variant="overview" />
         </div>
       </section>
