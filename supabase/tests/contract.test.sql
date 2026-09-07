@@ -14,7 +14,7 @@
 -- exists so a table that never got a policy at all cannot reach them unnoticed.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(34);
 
 -- Every table in public (regular and partitioned).
 create function pg_temp.public_tables()
@@ -35,10 +35,14 @@ select is_empty(
 
 -- Audit trigger ---------------------------------------------------------------------------
 -- Every table except the recorded exceptions carries <table>_audit calling private.audit_row().
+-- Spec 0011 adds three: packages and stripe_events are keyed on `key` and `event_id` rather than
+-- `id`, which private.audit_row() requires for audit_log.row_id (the same reason kpi_definitions
+-- and benchmark_assumptions are exceptions), and order_events is itself the append only history
+-- of public.orders, so auditing it would only duplicate rows the audit log already holds.
 create function pg_temp.audited_tables()
 returns setof name language sql stable as $$
   select t from pg_temp.public_tables() t
-  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions')
+  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.audited_tables()), '>=', 7::bigint,
@@ -73,8 +77,8 @@ select is_empty(
      join pg_proc p on p.oid = g.tgfoid
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
-       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions') $$,
-  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks and benchmark_assumptions are not audited');
+       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events') $$,
+  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events and order_events are not audited');
 -- private.audit_row() stores subject ->> 'id' as row_id (not null), so an audited table needs one.
 select is_empty(
   $$ select t from pg_temp.audited_tables() t
@@ -126,17 +130,43 @@ select is_empty(
   'audit_log has no foreign key, so the trail outlives the user and the organization');
 
 -- Functions ------------------------------------------------------------------------------
--- Security definer stays inside private, plus the four public entry points that need it:
+-- Security definer stays inside private, plus the seven public entry points that need it:
 -- create_organization (the only insert path for organizations), add_organization_member (the only
 -- member facing insert path for memberships, which has to read the target's profile to check they
 -- consented) and handle_new_user (the auth trigger from spec 0001 that writes profiles as
 -- supabase_auth_admin) and accept_terms (spec 0005: the only API write path for the consent column,
--- which sits outside the authenticated update grant).
+-- which sits outside the authenticated update grant) and settle_order (spec 0011: the atomic
+-- settlement, which writes orders and invoices, and no app role may write either; execute is
+-- revoked from anon and authenticated, so only the service role reaches it) and
+-- next_order_reference (spec 0011: the order reference sequence is not granted to the app roles,
+-- and a burnt reference costs nothing, unlike an invoice number, so clients may draw one) and
+-- issue_invoice (spec 0011: the bank transfer path's invoice, drawn in the same small transaction;
+-- service role only, like settle_order).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name) $$,
-  'the only security definer functions in public are the four recorded entry points');
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('settle_order'::name) $$,
+  'the only security definer functions in public are the seven recorded entry points');
+-- settle_order writes money rows, so its execute grant is checked explicitly: the service role
+-- only. Supabase's default privileges grant execute to anon and authenticated on every new public
+-- function, and the declarative diff's REVOKE ... FROM PUBLIC does not remove those direct grants,
+-- so the migration revokes them by hand (AGENTS.md). This assertion is what catches a regression.
+select is_empty(
+  $$ select r.rolname from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+     cross join lateral aclexplode(p.proacl) a
+     join pg_roles r on r.oid = a.grantee
+     where n.nspname = 'public' and p.proname in ('settle_order', 'scor_reference', 'issue_invoice')
+       and a.privilege_type = 'EXECUTE' and r.rolname in ('anon', 'authenticated') $$,
+  'no app role may execute settle_order, scor_reference or issue_invoice');
+select is_empty(
+  $$ select r.rolname from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+     cross join lateral aclexplode(p.proacl) a
+     join pg_roles r on r.oid = a.grantee
+     where n.nspname = 'public' and p.proname = 'next_order_reference'
+       and a.privilege_type = 'EXECUTE' and r.rolname = 'anon' $$,
+  'an anonymous visitor cannot draw an order reference');
 select is_empty(
   $$ select n.nspname || '.' || p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname in ('private', 'public')
@@ -167,11 +197,15 @@ select results_eq(
   $$ values ('benchmark_snapshots'::name), ('email_deliveries'::name), ('research_runs'::name), ('scaffold_checks'::name) $$,
   'benchmark_snapshots, email_deliveries, research_runs and scaffold_checks are the tables in supabase_realtime');
 -- Tables deliberately outside the publication. A table that is on neither list fails, so the
--- decision is forced rather than defaulted.
+-- decision is forced rather than defaulted. The five checkout tables of spec 0011 are all out:
+-- the order detail page polls a pending card order for up to 60 seconds while the webhook lands
+-- (AC-5) rather than subscribing, because the wait is short, bounded and happens on one page, and
+-- because orders and invoices carry billing data that has no business on a realtime channel.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
   values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('enquiries'), ('expert_assignments'),
-         ('kpi_definitions'), ('notifications'), ('organization_members'), ('organizations'), ('profiles')
+         ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'), ('organization_members'), ('organizations'),
+         ('packages'), ('profiles'), ('stripe_events')
 $$;
 select is_empty(
   $$ select t from pg_temp.public_tables() t

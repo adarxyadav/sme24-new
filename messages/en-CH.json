@@ -46,7 +46,8 @@
   "nav": {
     "label": "Navigation",
     "app": {
-      "overview": "Overview"
+      "overview": "Overview",
+      "orders": "Orders"
     },
     "expert": {
       "overview": "Overview"
@@ -55,7 +56,8 @@
       "overview": "Overview",
       "design": "Design gallery",
       "emails": "Emails",
-      "enquiries": "Enquiries"
+      "enquiries": "Enquiries",
+      "orders": "Orders"
     }
   },
   "theme": {
@@ -1153,6 +1155,19 @@
         "retainer": "retainer request",
         "general": "question"
       }
+    },
+    "order_confirmed": {
+      "subject": "Your order {reference} is confirmed",
+      "preview": "Payment received. Your invoice showing the VAT is ready.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "Thank you. We have received your payment for {packageName}.",
+      "amounts": "Net {net}, plus {vatRate} VAT of {vat}, total {gross}.",
+      "references": "Invoice number {invoiceNumber}, order reference {reference}.",
+      "invoiceAttached": "Your invoice is attached as a PDF and is always available in your account.",
+      "invoiceFollows": "We will send your invoice shortly.",
+      "nextStep": "We will be in touch to agree the date for the on site assessment.",
+      "button": "View order"
     }
   },
   "emails": {
@@ -1723,5 +1738,164 @@
       "conflict": "Someone saved these figures at the same time. Reload the page and try again.",
       "unexpected": "Something went wrong. Please try again later."
     }
+  },
+  "checkout": {
+    "title": "Checkout",
+    "description": "Choose your package and complete the purchase.",
+    "packageLegend": "Package",
+    "billingLegend": "Billing address",
+    "paymentLegend": "Payment method",
+    "companyLabel": "Company",
+    "companyHint": "Which company the assessment is for.",
+    "summaryTitle": "Summary",
+    "net": "Net amount",
+    "vat": "VAT {rate}",
+    "gross": "Total",
+    "vatNote": "All prices in CHF. The VAT is shown on the invoice.",
+    "methodCard": "Card",
+    "methodCardHint": "You will be taken to Stripe's secure payment page.",
+    "methodInvoice": "Invoice",
+    "methodInvoiceHint": "You receive an invoice with a QR payment slip, payable within 30 days.",
+    "submitCard": "Continue to payment",
+    "submitInvoice": "Request an invoice",
+    "submitting": "One moment…",
+    "noCompanyTitle": "Add your company first",
+    "noCompanyBody": "Before you can buy a package we need your company. It takes a minute.",
+    "noCompanyAction": "Add your company",
+    "fields": {
+      "billingName": "Company name",
+      "billingStreet": "Street and number",
+      "billingPostcode": "Postcode",
+      "billingTown": "Town",
+      "billingCountry": "Country",
+      "billingUid": "UID (optional)",
+      "billingUidPlaceholder": "CHE-123.456.789",
+      "billingUidHint": "Your Swiss UID, for example CHE-123.456.789. Your bookkeeper needs it to reclaim the VAT."
+    },
+    "validation": {
+      "billingNameRequired": "Please give the company name.",
+      "billingNameLong": "That company name is too long.",
+      "billingStreetRequired": "Please give the street and number.",
+      "billingStreetLong": "That address is too long.",
+      "billingPostcodeRequired": "Please give the postcode.",
+      "billingPostcodeLong": "That postcode is too long.",
+      "billingTownRequired": "Please give the town.",
+      "billingTownLong": "That town name is too long.",
+      "billingCountryInvalid": "Please give a two letter country code.",
+      "billingUidInvalid": "That UID is not valid. Please check the number.",
+      "reasonRequired": "Please give a reason.",
+      "reasonLong": "That reason is too long."
+    },
+    "errors": {
+      "validation": "Please check what you entered.",
+      "forbidden": "You do not have permission to do that.",
+      "package_not_found": "That package does not exist.",
+      "package_inactive": "That package cannot be bought at the moment.",
+      "package_not_purchasable": "This package is agreed in conversation. Please get in touch with us.",
+      "company_not_found": "We could not find that company.",
+      "invalid_billing_address": "Please check the billing address.",
+      "stripe_unavailable": "Payment is not possible right now. Please try again in a few minutes.",
+      "not_pending": "That order is already complete.",
+      "not_found": "That order does not exist.",
+      "already_rendered": "That invoice has already been created.",
+      "unexpected": "Something went wrong. Please try again."
+    }
+  },
+  "orders": {
+    "title": "Orders",
+    "description": "Your purchases, invoices and where each one stands.",
+    "emptyTitle": "No orders yet",
+    "emptyBody": "Once you buy a package, the order and its invoice appear here.",
+    "emptyAction": "See the packages",
+    "detailTitle": "Order {reference}",
+    "backToList": "Back to orders",
+    "columns": {
+      "reference": "Reference",
+      "package": "Package",
+      "amount": "Amount",
+      "status": "Status",
+      "date": "Date"
+    },
+    "status": {
+      "pending": "Open",
+      "paid": "Paid",
+      "cancelled": "Cancelled",
+      "refunded": "Refunded",
+      "expired": "Expired",
+      "confirming": "Confirming payment",
+      "awaitingTransfer": "Awaiting payment"
+    },
+    "confirmingTitle": "We are confirming your payment",
+    "confirmingBody": "This usually takes a few seconds. You can leave this page open.",
+    "confirmingSlowTitle": "This is taking longer than usual",
+    "confirmingSlowBody": "Your payment is not lost. We will email you as soon as it is confirmed.",
+    "awaitingTransferTitle": "Awaiting your payment",
+    "awaitingTransferBody": "Please transfer the amount using the QR payment slip on the invoice. Due on {dueDate}.",
+    "paidTitle": "Paid",
+    "paidBody": "Thank you. We will be in touch to agree the on site date.",
+    "expiredTitle": "This order expired",
+    "expiredBody": "The payment was not completed. You can buy the package again at any time.",
+    "cancelledTitle": "This order was cancelled",
+    "cancelledBody": "The invoice is kept for bookkeeping.",
+    "summaryTitle": "Amount",
+    "net": "Net amount",
+    "vat": "VAT {rate}",
+    "gross": "Total",
+    "billingTitle": "Billing address",
+    "invoiceTitle": "Invoice",
+    "invoiceNumber": "Invoice number {number}",
+    "invoiceDownload": "Download the invoice",
+    "invoicePending": "Your invoice is being prepared and will be ready shortly.",
+    "invoiceFailed": "We could not create the invoice. We are on it and will be in touch.",
+    "historyTitle": "History",
+    "more": "Show more"
+  },
+  "invoice": {
+    "title": "Invoice",
+    "number": "Invoice number",
+    "date": "Invoice date",
+    "due": "Payable by",
+    "orderReference": "Order reference",
+    "billTo": "Bill to",
+    "uid": "UID",
+    "description": "Description",
+    "net": "Net",
+    "vat": "VAT {rate}",
+    "gross": "Total",
+    "paymentNote": "Please use the QR payment slip below to pay."
+  },
+  "adminOrders": {
+    "title": "Orders",
+    "description": "Payments, invoices and open bank transfers.",
+    "emptyTitle": "No orders yet",
+    "emptyBody": "Once a client buys a package, the order appears here.",
+    "columns": {
+      "reference": "Reference",
+      "organization": "Client",
+      "package": "Package",
+      "amount": "Amount",
+      "method": "Payment method",
+      "status": "Status",
+      "invoice": "Invoice",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "method": {
+      "card": "Card",
+      "bank_transfer": "Invoice"
+    },
+    "markPaid": "Mark as paid",
+    "markPaidConfirm": "Confirm the payment for {reference} arrived?",
+    "cancel": "Cancel",
+    "cancelReason": "Reason for cancelling",
+    "cancelConfirm": "Cancel the order",
+    "retryRender": "Create the invoice again",
+    "invoicePending": "In progress",
+    "invoiceFailed": "Failed",
+    "noInvoice": "None",
+    "done": "Done",
+    "filterAll": "All",
+    "filterPending": "Open",
+    "filterPaid": "Paid"
   }
 }

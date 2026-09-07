@@ -67,9 +67,11 @@ describe("PackageCard (spec 0009, AC-5, AC-6)", () => {
     );
     expect(screen.getByText(messages.output)).toBeInTheDocument();
     expect(screen.getByText(messages.outcome)).toBeInTheDocument();
+    // Spec 0011 (AC-16): the button carries the checkout for the package it sits on, so a signed
+    // out visitor lands back on it after signing up.
     expect(screen.getByRole("link", { name: en.marketing.pricing.cta })).toHaveAttribute(
       "href",
-      "/en/sign-up",
+      `/en/sign-up?next=${encodeURIComponent("/en/app/checkout?package=compliance")}`,
     );
   });
 

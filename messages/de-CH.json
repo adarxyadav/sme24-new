@@ -46,7 +46,8 @@
   "nav": {
     "label": "Navigation",
     "app": {
-      "overview": "Übersicht"
+      "overview": "Übersicht",
+      "orders": "Bestellungen"
     },
     "expert": {
       "overview": "Übersicht"
@@ -55,7 +56,8 @@
       "overview": "Übersicht",
       "design": "Design Galerie",
       "emails": "E-Mails",
-      "enquiries": "Anfragen"
+      "enquiries": "Anfragen",
+      "orders": "Bestellungen"
     }
   },
   "theme": {
@@ -1153,6 +1155,19 @@
         "retainer": "Retainer-Anfrage",
         "general": "Frage"
       }
+    },
+    "order_confirmed": {
+      "subject": "Ihre Bestellung {reference} ist bestätigt",
+      "preview": "Zahlung eingegangen. Ihre Rechnung mit ausgewiesener MWST liegt bereit.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Vielen Dank. Ihre Zahlung für {packageName} ist bei uns eingegangen.",
+      "amounts": "Netto {net}, zuzüglich {vatRate} MWST von {vat}, Gesamtbetrag {gross}.",
+      "references": "Rechnungsnummer {invoiceNumber}, Bestellreferenz {reference}.",
+      "invoiceAttached": "Die Rechnung finden Sie als PDF im Anhang und jederzeit im Kundenbereich.",
+      "invoiceFollows": "Ihre Rechnung stellen wir Ihnen in Kürze zu.",
+      "nextStep": "Wir melden uns bei Ihnen, um den Termin für die Begehung vor Ort zu vereinbaren.",
+      "button": "Bestellung ansehen"
     }
   },
   "emails": {
@@ -1723,5 +1738,164 @@
       "conflict": "Jemand hat diese Angaben gleichzeitig gespeichert. Laden Sie die Seite neu und versuchen Sie es erneut.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
     }
+  },
+  "checkout": {
+    "title": "Kasse",
+    "description": "Wählen Sie Ihr Paket und schliessen Sie den Kauf ab.",
+    "packageLegend": "Paket",
+    "billingLegend": "Rechnungsadresse",
+    "paymentLegend": "Zahlungsart",
+    "companyLabel": "Unternehmen",
+    "companyHint": "Für welches Unternehmen die Beurteilung durchgeführt wird.",
+    "summaryTitle": "Zusammenfassung",
+    "net": "Nettobetrag",
+    "vat": "MWST {rate}",
+    "gross": "Gesamtbetrag",
+    "vatNote": "Alle Preise in CHF. Die MWST wird auf der Rechnung ausgewiesen.",
+    "methodCard": "Karte",
+    "methodCardHint": "Sie werden zur gesicherten Zahlungsseite von Stripe weitergeleitet.",
+    "methodInvoice": "Rechnung",
+    "methodInvoiceHint": "Sie erhalten eine Rechnung mit QR-Zahlteil, zahlbar innert 30 Tagen.",
+    "submitCard": "Zur Zahlung",
+    "submitInvoice": "Rechnung anfordern",
+    "submitting": "Einen Moment…",
+    "noCompanyTitle": "Zuerst Ihr Unternehmen erfassen",
+    "noCompanyBody": "Bevor Sie ein Paket kaufen können, brauchen wir Ihr Unternehmen. Das dauert eine Minute.",
+    "noCompanyAction": "Unternehmen erfassen",
+    "fields": {
+      "billingName": "Firmenname",
+      "billingStreet": "Strasse und Nummer",
+      "billingPostcode": "PLZ",
+      "billingTown": "Ort",
+      "billingCountry": "Land",
+      "billingUid": "UID (optional)",
+      "billingUidPlaceholder": "CHE-123.456.789",
+      "billingUidHint": "Ihre Schweizer UID, zum Beispiel CHE-123.456.789. Für den MWST-Abzug Ihrer Buchhaltung."
+    },
+    "validation": {
+      "billingNameRequired": "Bitte geben Sie den Firmennamen an.",
+      "billingNameLong": "Der Firmenname ist zu lang.",
+      "billingStreetRequired": "Bitte geben Sie Strasse und Nummer an.",
+      "billingStreetLong": "Die Adresse ist zu lang.",
+      "billingPostcodeRequired": "Bitte geben Sie die Postleitzahl an.",
+      "billingPostcodeLong": "Die Postleitzahl ist zu lang.",
+      "billingTownRequired": "Bitte geben Sie den Ort an.",
+      "billingTownLong": "Der Ort ist zu lang.",
+      "billingCountryInvalid": "Bitte geben Sie ein Länderkürzel aus zwei Buchstaben an.",
+      "billingUidInvalid": "Diese UID ist nicht gültig. Bitte prüfen Sie die Nummer.",
+      "reasonRequired": "Bitte geben Sie einen Grund an.",
+      "reasonLong": "Der Grund ist zu lang."
+    },
+    "errors": {
+      "validation": "Bitte prüfen Sie Ihre Eingaben.",
+      "forbidden": "Dafür fehlt Ihnen die Berechtigung.",
+      "package_not_found": "Dieses Paket gibt es nicht.",
+      "package_inactive": "Dieses Paket ist zurzeit nicht buchbar.",
+      "package_not_purchasable": "Dieses Paket wird im Gespräch vereinbart. Nehmen Sie mit uns Kontakt auf.",
+      "company_not_found": "Dieses Unternehmen konnten wir nicht finden.",
+      "invalid_billing_address": "Bitte prüfen Sie die Rechnungsadresse.",
+      "stripe_unavailable": "Die Zahlung ist gerade nicht möglich. Bitte versuchen Sie es in einigen Minuten erneut.",
+      "not_pending": "Diese Bestellung ist bereits abgeschlossen.",
+      "not_found": "Diese Bestellung gibt es nicht.",
+      "already_rendered": "Diese Rechnung wurde bereits erstellt.",
+      "unexpected": "Da ist etwas schiefgelaufen. Bitte versuchen Sie es erneut."
+    }
+  },
+  "orders": {
+    "title": "Bestellungen",
+    "description": "Ihre Käufe, Rechnungen und deren Status.",
+    "emptyTitle": "Noch keine Bestellung",
+    "emptyBody": "Sobald Sie ein Paket kaufen, finden Sie hier die Bestellung und die Rechnung.",
+    "emptyAction": "Pakete ansehen",
+    "detailTitle": "Bestellung {reference}",
+    "backToList": "Zurück zu den Bestellungen",
+    "columns": {
+      "reference": "Referenz",
+      "package": "Paket",
+      "amount": "Betrag",
+      "status": "Status",
+      "date": "Datum"
+    },
+    "status": {
+      "pending": "Offen",
+      "paid": "Bezahlt",
+      "cancelled": "Storniert",
+      "refunded": "Rückerstattet",
+      "expired": "Abgelaufen",
+      "confirming": "Zahlung wird bestätigt",
+      "awaitingTransfer": "Warten auf Zahlungseingang"
+    },
+    "confirmingTitle": "Wir bestätigen Ihre Zahlung",
+    "confirmingBody": "Das dauert meist nur wenige Sekunden. Sie können diese Seite offen lassen.",
+    "confirmingSlowTitle": "Das dauert länger als üblich",
+    "confirmingSlowBody": "Ihre Zahlung geht nicht verloren. Sobald sie bestätigt ist, erhalten Sie eine E-Mail von uns.",
+    "awaitingTransferTitle": "Warten auf Ihre Zahlung",
+    "awaitingTransferBody": "Bitte überweisen Sie den Betrag mit dem QR-Zahlteil der Rechnung. Fällig am {dueDate}.",
+    "paidTitle": "Bezahlt",
+    "paidBody": "Vielen Dank. Wir melden uns, um den Termin vor Ort zu vereinbaren.",
+    "expiredTitle": "Diese Bestellung ist abgelaufen",
+    "expiredBody": "Die Zahlung wurde nicht abgeschlossen. Sie können das Paket jederzeit erneut kaufen.",
+    "cancelledTitle": "Diese Bestellung wurde storniert",
+    "cancelledBody": "Die Rechnung bleibt aus buchhalterischen Gründen erhalten.",
+    "summaryTitle": "Betrag",
+    "net": "Nettobetrag",
+    "vat": "MWST {rate}",
+    "gross": "Gesamtbetrag",
+    "billingTitle": "Rechnungsadresse",
+    "invoiceTitle": "Rechnung",
+    "invoiceNumber": "Rechnungsnummer {number}",
+    "invoiceDownload": "Rechnung herunterladen",
+    "invoicePending": "Die Rechnung wird gerade erstellt und steht in Kürze bereit.",
+    "invoiceFailed": "Die Rechnung konnte nicht erstellt werden. Wir kümmern uns darum und melden uns.",
+    "historyTitle": "Verlauf",
+    "more": "Weitere anzeigen"
+  },
+  "invoice": {
+    "title": "Rechnung",
+    "number": "Rechnungsnummer",
+    "date": "Rechnungsdatum",
+    "due": "Zahlbar bis",
+    "orderReference": "Bestellreferenz",
+    "billTo": "Rechnung an",
+    "uid": "UID",
+    "description": "Beschreibung",
+    "net": "Netto",
+    "vat": "MWST {rate}",
+    "gross": "Gesamtbetrag",
+    "paymentNote": "Bitte verwenden Sie den QR-Zahlteil unten für die Zahlung."
+  },
+  "adminOrders": {
+    "title": "Bestellungen",
+    "description": "Zahlungen, Rechnungen und offene Überweisungen.",
+    "emptyTitle": "Noch keine Bestellung",
+    "emptyBody": "Sobald ein Kunde ein Paket kauft, erscheint die Bestellung hier.",
+    "columns": {
+      "reference": "Referenz",
+      "organization": "Kunde",
+      "package": "Paket",
+      "amount": "Betrag",
+      "method": "Zahlungsart",
+      "status": "Status",
+      "invoice": "Rechnung",
+      "date": "Datum",
+      "actions": "Aktionen"
+    },
+    "method": {
+      "card": "Karte",
+      "bank_transfer": "Rechnung"
+    },
+    "markPaid": "Als bezahlt markieren",
+    "markPaidConfirm": "Zahlungseingang für {reference} bestätigen?",
+    "cancel": "Stornieren",
+    "cancelReason": "Grund der Stornierung",
+    "cancelConfirm": "Bestellung stornieren",
+    "retryRender": "Rechnung erneut erstellen",
+    "invoicePending": "In Arbeit",
+    "invoiceFailed": "Fehlgeschlagen",
+    "noInvoice": "Keine",
+    "done": "Erledigt",
+    "filterAll": "Alle",
+    "filterPending": "Offen",
+    "filterPaid": "Bezahlt"
   }
 }

@@ -94,6 +94,17 @@ export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
     ],
     buttonLabel: "Open enquiry",
   }),
+  "invoice.render_failed": (fields, context) => ({
+    title: "Invoice render failed",
+    fields: [
+      ["Invoice", fields.invoiceNumber],
+      ["Order", fields.reference],
+      ["Organization", fields.organizationName],
+      ["Error", fields.errorMessage],
+      ["Time", format.dateTime(context.now, "dateTime")],
+    ],
+    buttonLabel: "Open invoice",
+  }),
 };
 
 /** Presents one alert through its registry entry. Pure. */

@@ -27,7 +27,14 @@ const codeSchema = signUpSchema.extend({ password: z.string().max(256) });
  * `defaultCompany` prefills the organization name from the landing page's lookup field (spec
  * 0009, AC-5). Browser.
  */
-export function SignUpForm({ defaultCompany = "" }: { readonly defaultCompany?: string }) {
+export function SignUpForm({
+  defaultCompany = "",
+  next,
+}: {
+  readonly defaultCompany?: string;
+  /** Where to land after signing up, validated against the locale by `landingPath` (spec 0005). */
+  readonly next?: string;
+}) {
   const t = useTranslations("auth.signUp");
   const v = useTranslations("auth.validation");
   const locale = useLocale();
@@ -44,6 +51,7 @@ export function SignUpForm({ defaultCompany = "" }: { readonly defaultCompany?: 
       password: "",
       termsAccepted: false,
       locale,
+      next,
     },
   });
   const password = useAuthAction<{ email: string }, SignUpInput>(signUp);
@@ -54,8 +62,13 @@ export function SignUpForm({ defaultCompany = "" }: { readonly defaultCompany?: 
   const codeSentTo = code.result?.ok ? code.result.data.email : null;
 
   useEffect(() => {
-    if (codeSentTo) router.push({ pathname: "/verify-code", query: { email: codeSentTo } });
-  }, [codeSentTo, router]);
+    if (codeSentTo) {
+      router.push({
+        pathname: "/verify-code",
+        query: next ? { email: codeSentTo, next } : { email: codeSentTo },
+      });
+    }
+  }, [codeSentTo, next, router]);
 
   if (password.result?.ok) {
     return (

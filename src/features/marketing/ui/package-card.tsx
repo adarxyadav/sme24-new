@@ -1,6 +1,7 @@
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
+import { checkoutPath } from "@/features/checkout/checkout-path";
 import type { Package } from "@/features/marketing/packages";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
   const t = useTranslations("marketing.packages");
   const pricing = useTranslations("marketing.pricing");
   const format = useFormatter();
+  const locale = useLocale() as Parameters<typeof checkoutPath>[0];
   const onDemand = entry.priceChf === null;
   const full = variant === "full";
 
@@ -81,7 +83,19 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             </Button>
           ) : (
             <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2">
-              <Link href="/sign-up">{pricing("cta")}</Link>
+              {/*
+                Spec 0011 (AC-16): the chosen package rides along, so a signed out visitor lands
+                back on the checkout for the package they picked once they have signed up. A
+                signed in client is sent straight to the checkout by the sign up page.
+              */}
+              <Link
+                href={{
+                  pathname: "/sign-up",
+                  query: { next: checkoutPath(locale, entry.key) },
+                }}
+              >
+                {pricing("cta")}
+              </Link>
             </Button>
           )}
         </div>

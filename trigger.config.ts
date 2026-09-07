@@ -33,6 +33,12 @@ export default defineConfig({
     },
   },
   build: {
+    // pdfkit loads its standard fonts through the Node subpath import `#standard-fonts/*`, resolved
+    // with `createRequire(import.meta.url)`. Bundled, that resolves against the bundle instead of
+    // pdfkit's own package.json, so `render-invoice` dies on the first `.font("Helvetica")` call.
+    // Keeping pdfkit external leaves the specifier to resolve where it was written. swissqrbill
+    // bundles fine and does not need this.
+    external: ["pdfkit"],
     extensions: sentryUpload,
   },
 });

@@ -80,6 +80,27 @@ pnpm user:invite --email name@sme24.ch --role ops --locale de
 
 Verify by hand after every change to the callback handler or `finalizeSignIn` (AC-5): a new Google account lands on `/app/onboarding` and reaches `/app` after naming the company; a Microsoft work account does the same; the invited expert signing in with the matching Google address keeps the expert role and lands on `/expert`.
 
+### Test accounts on a preview or staging deployment
+
+`supabase/seed.sql` only ever runs on the local stack (`supabase db reset`), so a hosted environment starts with no way to sign in and drive the signed in flows. `pnpm users:seed` is its hosted counterpart: it creates the same four accounts with the same fixed ids, already email confirmed, and prints a generated password for each one once.
+
+```sh
+vercel env pull .env.local --environment=preview    # staging keys (production for prod)
+pnpm users:seed --dry-run                           # says what it would do, writes nothing
+pnpm users:seed
+```
+
+| Address | Role | Organization |
+| --- | --- | --- |
+| `client@example.com` | client | Musterfirma AG (owner) |
+| `client2@example.com` | client | Beispiel GmbH (owner), for cross tenant checks |
+| `expert@example.com` | expert | none |
+| `ops@example.com` | ops | none |
+
+The passwords are random and printed only by that run; rerunning the script rolls them, so store them in a password manager rather than in the repo. The script refuses to run against a database holding any user outside those four ids, which is the same guard `supabase/seed.sql` carries: a real environment therefore cannot be reseeded, and a production project can never have its passwords rewritten by it. Because a preview URL is reachable by anyone who has the link, delete these accounts (Supabase, Authentication, Users) before an environment carries real data.
+
+The accounts skip the email dependent paths on purpose. Sign up, confirmation, code, reset and invite still have to be proven through a real inbox with the [auth smoke checklist](auth-checklist.md); these four exist so the flows *behind* sign in can be exercised without one.
+
 ## Sessions
 
 Access tokens live one hour, refresh tokens rotate, there is no inactivity cutoff. The proxy refreshes the cookies on every request, also on the redirects it issues itself. Sign out is local to the device; a password change revokes every other session. MFA for ops and a session policy are follow ups (spec 0005, follow up list).

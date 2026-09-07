@@ -41,6 +41,7 @@ pnpm db:reset && pnpm db:types   # reapply locally, then regenerate src/lib/supa
 pnpm trigger:dev             # Trigger.dev tasks locally (needs a project ref; the `trigger` binary comes from the pinned `trigger.dev` dev dependency)
 pnpm email:dev               # React Email preview server on port 3200, one preview per template and language (src/lib/email/previews/)
 pnpm user:invite --email <address> --role expert|ops [--locale de|en] [--name "…"]   # invite a staff user with the role fixed; needs the target environment's Supabase keys in .env.local (docs/auth.md)
+pnpm users:seed [--dry-run]  # the hosted counterpart of supabase/seed.sql: the four role test accounts, confirmed, with generated passwords printed once; refuses a database holding any other user (docs/auth.md)
 pnpm benchmarks:migration    # generate supabase/migrations/<timestamp>_benchmark_seed.sql from supabase/seed-data/*.csv (commit the file; then db:reset and test:db)
 pnpm benchmarks:recompute    # trigger benchmark-company for every company with a snapshot; reads the target environment's Supabase and Trigger.dev keys from .env.local (docs/benchmark.md)
 ```

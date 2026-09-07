@@ -4,10 +4,12 @@ import {
   benchmarkReadyDataSchema,
   type EmailTemplateName,
   enquiryReceivedDataSchema,
+  orderConfirmedDataSchema,
   welcomeDataSchema,
 } from "./schema";
 import { BenchmarkReadyEmail } from "./templates/benchmark-ready";
 import { EnquiryReceivedEmail } from "./templates/enquiry-received";
+import { OrderConfirmedEmail } from "./templates/order-confirmed";
 import type { TemplateProps } from "./templates/props";
 import { WelcomeEmail } from "./templates/welcome";
 
@@ -48,6 +50,14 @@ export const EMAIL_TEMPLATES = {
     link: "/",
     notify: false,
     Component: EnquiryReceivedEmail,
+  }),
+  // The button points at the order list rather than one order, because the template renders
+  // without knowing the id; the body carries the reference the buyer quotes (spec 0011, AC-9).
+  order_confirmed: defineTemplate({
+    schema: orderConfirmedDataSchema,
+    link: "/app/orders",
+    notify: true,
+    Component: OrderConfirmedEmail,
   }),
 } as const satisfies Record<EmailTemplateName, unknown>;
 

@@ -31,6 +31,9 @@ export const signUpSchema = z.object({
   password: passwordSchema,
   termsAccepted: consentSchema,
   locale: localeSchema,
+  // Where to land afterwards, the same validated mechanism sign in uses: a pricing page button
+  // carries the checkout for the package the visitor picked (spec 0011, AC-16).
+  next: nextSchema,
 });
 export type SignUpInput = z.input<typeof signUpSchema>;
 export type SignUpValues = z.output<typeof signUpSchema>;

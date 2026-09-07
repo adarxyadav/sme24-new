@@ -632,6 +632,81 @@ export type Database = {
           },
         ]
       }
+      invoices: {
+        Row: {
+          cancelled_at: string | null
+          created_at: string
+          due_date: string
+          id: string
+          issued_at: string
+          number: string
+          order_id: string
+          organization_id: string
+          pdf_failed_at: string | null
+          pdf_path: string | null
+          pdf_rendered_at: string | null
+          qr_reference: string
+          seller_address: string
+          seller_iban: string
+          seller_name: string
+          seller_uid: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          issued_at?: string
+          number: string
+          order_id: string
+          organization_id: string
+          pdf_failed_at?: string | null
+          pdf_path?: string | null
+          pdf_rendered_at?: string | null
+          qr_reference: string
+          seller_address: string
+          seller_iban: string
+          seller_name: string
+          seller_uid: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          issued_at?: string
+          number?: string
+          order_id?: string
+          organization_id?: string
+          pdf_failed_at?: string | null
+          pdf_path?: string | null
+          pdf_rendered_at?: string | null
+          qr_reference?: string
+          seller_address?: string
+          seller_iban?: string
+          seller_name?: string
+          seller_uid?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_definitions: {
         Row: {
           created_at: string
@@ -726,6 +801,182 @@ export type Database = {
           },
         ]
       }
+      order_events: {
+        Row: {
+          actor_id: string | null
+          actor_role: string
+          from_status: string | null
+          id: string
+          occurred_at: string
+          order_id: string
+          organization_id: string
+          reason: string | null
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role: string
+          from_status?: string | null
+          id?: string
+          occurred_at?: string
+          order_id: string
+          organization_id: string
+          reason?: string | null
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string
+          from_status?: string | null
+          id?: string
+          occurred_at?: string
+          order_id?: string
+          organization_id?: string
+          reason?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          billing_country: string
+          billing_name: string
+          billing_postcode: string
+          billing_street: string
+          billing_town: string
+          billing_uid: string | null
+          cancelled_at: string | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_date: string | null
+          expires_at: string | null
+          gross_rappen: number
+          id: string
+          locale: string
+          net_rappen: number
+          organization_id: string
+          package_key: string
+          package_name_snapshot: string
+          paid_at: string | null
+          payment_method: string
+          reference: string
+          status: string
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          vat_rappen: number
+          vat_rate: number
+        }
+        Insert: {
+          billing_country?: string
+          billing_name: string
+          billing_postcode: string
+          billing_street: string
+          billing_town: string
+          billing_uid?: string | null
+          cancelled_at?: string | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          expires_at?: string | null
+          gross_rappen: number
+          id?: string
+          locale: string
+          net_rappen: number
+          organization_id: string
+          package_key: string
+          package_name_snapshot: string
+          paid_at?: string | null
+          payment_method: string
+          reference: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          vat_rappen: number
+          vat_rate: number
+        }
+        Update: {
+          billing_country?: string
+          billing_name?: string
+          billing_postcode?: string
+          billing_street?: string
+          billing_town?: string
+          billing_uid?: string | null
+          cancelled_at?: string | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          expires_at?: string | null
+          gross_rappen?: number
+          id?: string
+          locale?: string
+          net_rappen?: number
+          organization_id?: string
+          package_key?: string
+          package_name_snapshot?: string
+          paid_at?: string | null
+          payment_method?: string
+          reference?: string
+          status?: string
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          vat_rappen?: number
+          vat_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_package_key_fkey"
+            columns: ["package_key"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       organization_members: {
         Row: {
           created_at: string
@@ -805,6 +1056,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      packages: {
+        Row: {
+          created_at: string
+          is_active: boolean
+          key: string
+          price_rappen: number | null
+          sort_order: number
+          updated_at: string
+          vat_rate: number
+        }
+        Insert: {
+          created_at?: string
+          is_active?: boolean
+          key: string
+          price_rappen?: number | null
+          sort_order: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Update: {
+          created_at?: string
+          is_active?: boolean
+          key?: string
+          price_rappen?: number | null
+          sort_order?: number
+          updated_at?: string
+          vat_rate?: number
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -947,6 +1228,33 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_events: {
+        Row: {
+          error: string | null
+          event_id: string
+          payload: Json
+          processed_at: string | null
+          received_at: string
+          type: string
+        }
+        Insert: {
+          error?: string | null
+          event_id: string
+          payload: Json
+          processed_at?: string | null
+          received_at?: string
+          type: string
+        }
+        Update: {
+          error?: string | null
+          event_id?: string
+          payload?: Json
+          processed_at?: string | null
+          received_at?: string
+          type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       company_kpi_current: {
@@ -1013,6 +1321,42 @@ export type Database = {
       }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      issue_invoice: {
+        Args: {
+          due_days?: number
+          order_id: string
+          seller_address: string
+          seller_iban: string
+          seller_name: string
+          seller_uid: string
+        }
+        Returns: {
+          invoice_id: string
+          invoice_number: string
+          qr_reference: string
+        }[]
+      }
+      next_order_reference: { Args: never; Returns: string }
+      scor_reference: { Args: { body: string }; Returns: string }
+      settle_order: {
+        Args: {
+          actor_id: string
+          actor_role: string
+          due_days?: number
+          order_id: string
+          paid_at: string
+          seller_address: string
+          seller_iban: string
+          seller_name: string
+          seller_uid: string
+        }
+        Returns: {
+          already_settled: boolean
+          invoice_id: string
+          invoice_number: string
+          qr_reference: string
+        }[]
+      }
     }
     Enums: {
       app_role: "client" | "expert" | "ops"

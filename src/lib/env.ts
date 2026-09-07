@@ -25,6 +25,13 @@ function requiredWhen(condition: boolean) {
   return condition ? nonEmpty : optionalString;
 }
 
+/** Days from issue to the invoice due date (spec 0011), a positive whole number, 30 by default. */
+const dueDays = z
+  .string()
+  .optional()
+  .transform((value) => (value === undefined || value.trim() === "" ? 30 : Number(value.trim())))
+  .pipe(z.number().int().positive().max(365));
+
 /**
  * `EMAIL_ALLOWED_RECIPIENTS` (spec 0006, AC-6): comma separated addresses or `@domain` entries,
  * lowercased; an empty variable means no allowlist (every recipient may be mailed).
@@ -66,6 +73,15 @@ const serverSchema = clientSchema.extend({
   // preview that had no Resend webhook yet.
   RESEND_WEBHOOK_SECRET: optionalString,
   OPS_ALERT_WEBHOOK_URL: optionalString,
+  // Spec 0011: the seller facts printed on every invoice, frozen onto the row at issue. Optional
+  // so a preview without them still boots; SELLER_PLACEHOLDERS in
+  // src/features/checkout/seller.ts is the guard that keeps a placeholder out of production.
+  SELLER_NAME: optionalString,
+  SELLER_ADDRESS: optionalString,
+  SELLER_UID: optionalString,
+  SELLER_IBAN: optionalString,
+  // Days from issue to the due date on the bank transfer path; 30 is the Swiss default.
+  INVOICE_DUE_DAYS: dueDays,
 });
 
 const taskSchema = z
@@ -89,6 +105,13 @@ const taskSchema = z
     EMAIL_SMTP_URL: optionalString,
     EMAIL_ALLOWED_RECIPIENTS: allowlist,
     OPS_ALERT_WEBHOOK_URL: optionalString,
+    // Spec 0011: the render task prints the seller on the invoice, and the ops alert needs the
+    // Stripe key only in the app, never here.
+    SELLER_NAME: optionalString,
+    SELLER_ADDRESS: optionalString,
+    SELLER_UID: optionalString,
+    SELLER_IBAN: optionalString,
+    INVOICE_DUE_DAYS: dueDays,
   })
   .superRefine((env, context) => {
     // A deployed task must not silently run the fixture: it needs the Parallel key unless the
