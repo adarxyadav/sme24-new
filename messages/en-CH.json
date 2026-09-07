@@ -331,6 +331,26 @@
       "closing": {
         "title": "Start with the benchmark. It is free.",
         "lead": "Type your company name. The benchmark follows, at no cost."
+      },
+      "free": "The benchmark is free. No sales call.",
+      "example": {
+        "label": "Example benchmark for {company}",
+        "company": "Muster AG",
+        "sector": "NOGA C 25, metal products",
+        "nextStep": "Recommended next step",
+        "seePackage": "See the package",
+        "peersCertified": "{percent} of peers certified",
+        "kpis": {
+          "ltifr": "LTIFR",
+          "trifr": "TRIFR",
+          "fatalities": "Fatalities",
+          "lost_days_per_incident": "Lost days per incident",
+          "accident_rate_per_1000_fte": "Accident rate per 1 000 FTE",
+          "absenteeism_rate": "Absenteeism rate",
+          "near_miss_rate": "Near misses per 100 employees",
+          "iso_45001_certified": "ISO 45001 certified"
+        },
+        "savingUnit": "per year at the median"
       }
     },
     "pricing": {
@@ -904,7 +924,8 @@
         "xs": "Extra small",
         "sm": "Small",
         "default": "Default",
-        "lg": "Large"
+        "lg": "Large",
+        "xl": "Extra large"
       },
       "badge": {
         "default": "Default",
@@ -1119,7 +1140,8 @@
       "sectionMinor": "Section opener, minor tier",
       "sectionTitle": "Senior experts. No slides.",
       "sectionEyebrow": "How it works",
-      "sectionLead": "One fixed price, one senior expert on site, one written report you can act on."
+      "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
+      "heroBenchmark": "Landing hero object: the example benchmark"
     }
   },
   "email": {

@@ -8,7 +8,7 @@ Six prerendered pages in German and English under `src/app/[locale]/(marketing)/
 
 | Page | English | German | What it holds |
 |---|---|---|---|
-| Landing | `/en` | `/de` | The hero with the company lookup field into sign up, three proof points, how it works, the packages overview, the campaign wall, a closing call to action |
+| Landing | `/en` | `/de` | The centred hero with the company lookup field into sign up and the example benchmark (`HeroBenchmark`, figures in `src/features/marketing/hero-example.ts`) straddling its bottom edge, three proof points, how it works, the packages overview, the campaign wall, a closing call to action |
 | How it works | `/en/how-it-works` | `/de/so-funktionierts` | The four steps the landing page summarises, the division of labour between the client and us, how long each stage takes |
 | Expert network | `/en/expert-network` | `/de/expertennetzwerk` | What "senior" has to mean, how an expert is vetted into the network, how one is matched to a company, where the network reaches |
 | Pricing | `/en/pricing` | `/de/preise` | The four packages of the owner's ladder in price order (three snapshots and the implementation partner on demand), what every package includes, a short FAQ |

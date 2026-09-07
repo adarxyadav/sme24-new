@@ -331,6 +331,26 @@
       "closing": {
         "title": "Starten Sie mit dem Benchmark. Er ist kostenlos.",
         "lead": "Geben Sie den Namen Ihres Unternehmens ein. Der Benchmark folgt, ohne Kosten."
+      },
+      "free": "Der Benchmark ist kostenlos. Kein Verkaufsgespräch.",
+      "example": {
+        "label": "Beispiel-Benchmark für {company}",
+        "company": "Muster AG",
+        "sector": "NOGA C 25, Metallerzeugnisse",
+        "nextStep": "Empfohlener nächster Schritt",
+        "seePackage": "Zum Paket",
+        "peersCertified": "{percent} der Vergleichsfirmen zertifiziert",
+        "kpis": {
+          "ltifr": "LTIFR",
+          "trifr": "TRIFR",
+          "fatalities": "Todesfälle",
+          "lost_days_per_incident": "Ausfalltage pro Unfall",
+          "accident_rate_per_1000_fte": "Unfallrate pro 1 000 Vollzeitstellen",
+          "absenteeism_rate": "Absenzenquote",
+          "near_miss_rate": "Beinahe-Unfälle pro 100 Mitarbeitende",
+          "iso_45001_certified": "ISO 45001 zertifiziert"
+        },
+        "savingUnit": "pro Jahr am Median"
       }
     },
     "pricing": {
@@ -904,7 +924,8 @@
         "xs": "Extra klein",
         "sm": "Klein",
         "default": "Standard",
-        "lg": "Gross"
+        "lg": "Gross",
+        "xl": "Extra gross"
       },
       "badge": {
         "default": "Standard",
@@ -1119,7 +1140,8 @@
       "sectionMinor": "Abschnittskopf, Neben-Stufe",
       "sectionTitle": "Erfahrene Experten. Keine Folien.",
       "sectionEyebrow": "So funktioniert es",
-      "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können."
+      "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
+      "heroBenchmark": "Hero-Objekt der Startseite: der Beispiel-Benchmark"
     }
   },
   "email": {

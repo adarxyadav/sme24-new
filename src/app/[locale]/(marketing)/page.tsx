@@ -12,6 +12,7 @@ import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
+import { HeroBenchmark } from "@/features/marketing/ui/hero-benchmark";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
 import { StepsSection } from "@/features/marketing/ui/steps-section";
@@ -80,26 +81,40 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         ruled ground sits behind the whole block, so the hairlines start at the very top of the
         viewport rather than under the bar.
       */}
-      <RuledField hero className="dark -mt-16 bg-background text-foreground">
-        <section className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 pt-40 pb-24 sm:px-6 md:pt-52 md:pb-36">
+      <RuledField hero align="center" className="dark -mt-16 bg-background text-foreground">
+        <section className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pt-36 pb-56 text-center sm:px-6 md:pt-44 md:pb-64">
           <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
           <Statement
             as="h1"
             text={t("title")}
             className="max-w-4xl text-display-sm md:text-display lg:text-display-lg"
           />
-          <p className="max-w-prose text-lg text-muted-foreground">{t("lead")}</p>
-          <CompanyLookupField {...lookup} inverse />
-          <Link
-            href="/sign-in"
-            className="text-muted-foreground text-sm underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {t("signIn")}
-          </Link>
+          <p className="max-w-xl text-lg text-muted-foreground">{t("lead")}</p>
+          <CompanyLookupField
+            {...lookup}
+            inverse
+            size="hero"
+            className="mt-4 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
+          />
+          <p className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-muted-foreground text-sm">
+            <span>{t("free")}</span>
+            <Link href="/sign-in" className="underline underline-offset-4 hover:text-foreground">
+              {t("signIn")}
+            </Link>
+          </p>
         </section>
       </RuledField>
 
-      <section aria-label={t("pointsLabel")} className="border-b">
+      {/*
+        The hero object (docs/design.md, hero object): the example benchmark pulls up over the
+        bottom edge of the jet block, so the page's one break of its own grid is the product
+        itself. The hero's extra bottom padding above is what the slab overlaps.
+      */}
+      <div className="relative z-10 mx-auto -mt-48 max-w-6xl px-4 sm:px-6 md:-mt-56">
+        <HeroBenchmark />
+      </div>
+
+      <section aria-label={t("pointsLabel")} className="mt-16 border-y md:mt-24">
         <ul className="mx-auto grid max-w-6xl gap-px sm:grid-cols-3 sm:divide-x">
           {POINTS.map((point) => (
             <li key={point} className="flex flex-col gap-3 px-4 py-10 sm:px-6">

@@ -122,13 +122,17 @@ The opener follows from the tier, so there is nothing extra to decide per sectio
 
 `SectionHeader` in `src/features/marketing/ui/` renders all three from a `tier` prop; a page composes it rather than hand rolling the markup. A section that is deliberately different (the campaign wall, the packages grid) may still open with its own markup, but it picks one of the three shapes.
 
+### Hero object
+
+The landing hero shows the product instead of describing it: `HeroBenchmark` (`src/features/marketing/ui/hero-benchmark.tsx`) draws the example benchmark of Muster AG (`hero-example.ts`) the way the dashboard draws a real one, from the same `benchmark.*` strings and formatters, on a `bg-card` slab with hairlines and no elevation. The slab straddles the bottom edge of the jet hero (the hero keeps extra bottom padding, the slab pulls up with a negative margin), which is the one place the page breaks its own grid; in the dark theme the seam disappears and the slab sits obsidian on jet. The hero's own controls take the `xl` button size and an `h-11` input (`CompanyLookupField size="hero"`); nothing else on the site uses that size. The slab shows what exists (cost, gaps, positions, the recommended package); the ranked shortlist joins when expert matching ships.
+
 ### Tier map
 
 The tier of every section that exists today. A new section joins this table.
 
 | Page | Sections in order |
 |---|---|
-| Landing | anchor jet hero · minor proof points · **major ruled steps** · major packages · minor campaign wall · anchor jet closing |
+| Landing | anchor jet hero, centred, with the hero object straddling its bottom edge · minor proof points · **major ruled steps** · major packages · minor campaign wall · anchor jet closing |
 | How it works | anchor opener · **major ruled steps** · major split of labour · minor timing · anchor jet closing |
 | Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
 | Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |
