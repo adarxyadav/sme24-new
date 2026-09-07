@@ -25,6 +25,14 @@ function request(path: string) {
   return new NextRequest(`https://sme24.ch${path}`);
 }
 
+/** A server action post, the shape the router sends when a form calls a `"use server"` function. */
+function actionRequest(path: string) {
+  return new NextRequest(`https://sme24.ch${path}`, {
+    method: "POST",
+    headers: { "next-action": "7f1c0d2e" },
+  });
+}
+
 function claimsFor(role: string, organizationId?: string) {
   return {
     data: {
@@ -86,6 +94,19 @@ describe("request proxy (spec 0004, AC-13)", () => {
     expect(redirectedTo(await proxy(request("/en/app/companies")))).toBe(
       "/en/sign-in?next=%2Fen%2Fapp%2Fcompanies",
     );
+  });
+
+  it("lets a signed out server action post through instead of redirecting it", async () => {
+    // Sign out clears the cookies, so a second click, a stale tab or an expired session posts the
+    // action with no claims. A redirect keeps the POST method, and the page it lands on answers
+    // with HTML the router cannot read as an action reply, which is the "This page couldn't load"
+    // screen. The action runs and redirects on its own; RLS is still the real boundary.
+    expect(redirectedTo(await proxy(actionRequest("/de/app")))).toBeNull();
+    expect(redirectedTo(await proxy(actionRequest("/en/admin")))).toBeNull();
+  });
+
+  it("still redirects a signed out page view, only action posts pass", async () => {
+    expect(redirectedTo(await proxy(request("/de/app")))).toBe("/de/sign-in?next=%2Fde%2Fapp");
   });
 
   it("sends the wrong role to the forbidden page of the request's language", async () => {

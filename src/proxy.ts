@@ -19,7 +19,8 @@ import { createProxyClient } from "@/lib/supabase/proxy";
  * 3. A signed in user on a sign in, sign up, code or forgot password page goes to their role home
  *    (`/reset-password` is left alone: a recovery session is signed in on purpose).
  * 4. Area gate: `/app` needs client, `/expert` needs expert, `/admin` needs ops, read from the
- *    access token claims. The proxy only gates areas; RLS remains the real boundary.
+ *    access token claims. The proxy only gates areas; RLS remains the real boundary. Server action
+ *    posts pass the gate untouched, a redirected POST breaks the router's action reply.
  * 5. Onboarding: a client without an organization claim may open only `/app/onboarding`; a client
  *    with one is sent from `/app/onboarding` to `/app`.
  */
@@ -79,6 +80,13 @@ export async function proxy(request: NextRequest) {
 
   const area = areaFromPathname(pathname);
   if (!area) return response;
+
+  // A server action posts to the page it renders. Redirecting that POST sends the browser on to
+  // another page with the method kept, and the HTML it answers with is not a server action reply,
+  // so the router gives up with "This page couldn't load". Sign out is the common case: it clears
+  // the cookies, so a second click, a stale tab or an expired session arrives here with no claims.
+  // Let the action run instead; it redirects on its own, and RLS is still the real boundary.
+  if (request.method === "POST" && request.headers.has("next-action")) return response;
 
   if (!claims) {
     const signInUrl = new URL(localizedPath(locale, "/sign-in"), request.url);
