@@ -292,6 +292,11 @@ export function computeBenchmark({
   const inputOf = (key: KpiKey) => inputKpis.find((input) => input.key === key);
 
   // (5) Cost.
+  // The cast lies: `assumptions` holds whatever rows the database returned, so any key whose row
+  // is absent reads back `undefined` at runtime while TypeScript still types it `number`. Every
+  // `typeof … === "number"` guard below is therefore load bearing and must not be "simplified"
+  // away on the strength of the type. See the deferred item in docs/scope/index.md: `costAt`
+  // still reads `values.hours_per_fte` unguarded and yields NaN when that row is missing.
   const values = Object.fromEntries(
     assumptions.map((assumption) => [assumption.key, assumption.value]),
   ) as Record<AssumptionKey, number>;

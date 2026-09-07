@@ -454,6 +454,22 @@ describe("the derived injury counts (spec 0012)", () => {
     expect(body.assumptions.map((assumption) => assumption.key)).toContain("hours_per_fte");
   });
 
+  // The spec makes the derived block's lost time precedence deliberately independent of the cost
+  // line's: LTIFR first here, whatever the cost line picked. With both rates present the two
+  // diverge, which is the case that would break if someone "simplified" the block to reuse
+  // `cost.incidentKpi`. The AC-9 equality above holds only when the keys agree, so pin the
+  // disagreement too.
+  it("prefers LTIFR even when the cost line took the Suva rate (AC-9)", () => {
+    const body = compute();
+    // The default fixture carries both rates, and the two lines choose differently.
+    expect(body.cost?.incidentKpi).toBe("accident_rate_per_1000_fte");
+    expect(body.derived?.lostTime?.fromKey).toBe("ltifr");
+    expect(body.derived?.lostTime?.count).not.toBeCloseTo(body.cost?.incidents ?? 0, 6);
+    // Each still used its own rate through the one shared helper.
+    expect(body.derived?.lostTime?.count).toBeCloseTo(2.4 * exposureHours, 10);
+    expect(body.cost?.incidents).toBeCloseTo((68 * 420) / 1000, 10);
+  });
+
   it("drops only the count whose rate is missing (AC-6)", () => {
     const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "trifr") });
     expect(body.derived?.lostTime).not.toBeNull();

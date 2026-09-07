@@ -29,7 +29,7 @@ the block only appears on a `benchmark-model@2` row, so recompute after any chan
 
 ## Commands
 
-- [x] `pnpm test` → 1259 tests pass, including the derived model suite, the `exposureCount` dispatch, the version map and the segment tests with axe → AC-6, AC-7, AC-8, AC-9, AC-12, AC-14, AC-16
+- [x] `pnpm test` → 1262 tests pass, including the derived model suite, the `exposureCount` dispatch, the version map, the task's write schema lookup and the segment tests with axe → AC-6, AC-7, AC-8, AC-9, AC-12, AC-14, AC-15, AC-16
 - [x] `pnpm test:db` → 466 pgTAP tests pass, including `has_column` and `col_is_null` on `benchmark_snapshots.derived` and a service role write of a version 2 row → AC-13
 - [x] `psql $DB -c "select count(*) from kpi_definitions"` before and after a recompute → unchanged, and `select distinct source from company_kpis` still returns only `research` and `client` → AC-13
 - [x] `psql $DB -c "\d public.benchmark_snapshots"` → exactly one new column, `derived jsonb`, nullable, no default → AC-13
@@ -44,6 +44,15 @@ pure `computeBenchmark`, not the form, because the fixture research provider alw
 `/test` on 2026-09-08 locked both into the suite as model tests, so neither depends on a hand run
 again, and added a third pinning the two version `SNAPSHOT_SCHEMAS` map and the unwidened version 1
 schema, the load bearing invariant whose failure is silent.
+A second `/test` pass on 2026-09-08 closed the two remaining gaps between the hand run steps and the
+suite. The AC-9 boundary step above (the cost line on Suva while the derived block stays on LTIFR) is
+now a model test, so the deliberate divergence is pinned rather than only observed; and the AC-15
+mechanism itself is now covered in `tests/trigger/benchmark-company.test.ts`, where two tests prove
+the task looks its write schema up by `MODEL_VERSION` and throws instead of storing partial blocks
+when a version has no entry. Both were mutation checked: reverting the task to the original
+`snapshotBlocksV1Schema` bug and swapping the derived block onto the cost line's precedence each fail
+the new tests. `pnpm test` reports 1262 passing; the two `send-email.local` failures are the
+pre-existing ones that need a running local stack.
 `pnpm test:db` was blocked on the first attempt, because three worktrees share one local Supabase
 stack and it carried another worktree's migrations, so `benchmark_snapshots.derived` was absent and
 every file aborted. Re-run 2026-09-08 on an uncontended stack after `pnpm db:reset`: 466 tests across

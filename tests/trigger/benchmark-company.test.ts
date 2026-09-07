@@ -407,7 +407,59 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       gaps: [],
       cost: null,
       assumptions: [],
+      // No rate and no headcount, so no derived block reaches the row either (spec 0012, AC-7).
+      derived: null,
     });
+  });
+
+  // The mechanism behind AC-15, not just its effect. The task used to name
+  // `snapshotBlocksV1Schema` directly, and zod strips unknown keys, so the derived block was
+  // produced and then silently dropped before the insert. The fix looks the write schema up by
+  // `MODEL_VERSION`; these two pin that it really is a lookup, so the next bump cannot regress
+  // the same way, and that an unknown version fails loudly instead of writing partial blocks.
+  it("parses against the schema its own MODEL_VERSION names, not a hardcoded one (AC-15)", async () => {
+    seedComputation();
+    (state.tables.companies?.[0] as Row).employees_count = 420;
+    const task = await loadTask();
+    await task.run(payload, { ctx });
+    const { MODEL_VERSION } = await import("@/features/benchmark/catalogue");
+    const { SNAPSHOT_SCHEMAS, parseSnapshotBlocks } = await import("@/features/benchmark/snapshot");
+    const stored = state.tables.benchmark_snapshots?.[0] as Row;
+    // The row is written under the live version, and that version really is in the map.
+    expect(stored.model_version).toBe(MODEL_VERSION);
+    expect(SNAPSHOT_SCHEMAS[MODEL_VERSION]).toBeDefined();
+    expect(stored.derived).not.toBeNull();
+    // What the task wrote round trips through the reader, so the write and read schemas agree.
+    const parsed = parseSnapshotBlocks({
+      model_version: stored.model_version as string,
+      inputs: stored.inputs,
+      results: stored.results,
+      gaps: stored.gaps,
+      cost: stored.cost,
+      assumptions: stored.assumptions,
+      derived: stored.derived,
+    });
+    expect(parsed.error).toBeNull();
+    expect(parsed.blocks?.derived).toEqual(stored.derived);
+  });
+
+  it("refuses to write rather than storing partial blocks when the version has no schema", async () => {
+    seedComputation();
+    (state.tables.companies?.[0] as Row).employees_count = 420;
+    const task = await loadTask();
+    const { MODEL_VERSION } = await import("@/features/benchmark/catalogue");
+    const { SNAPSHOT_SCHEMAS } = await import("@/features/benchmark/snapshot");
+    // A bump that forgot its schema entry: the guard must throw so Trigger.dev retries and Sentry
+    // sees it, rather than inserting a row the reader could never parse.
+    const map = SNAPSHOT_SCHEMAS as Record<string, unknown>;
+    const schema = map[MODEL_VERSION];
+    delete map[MODEL_VERSION];
+    try {
+      await expect(task.run(payload, { ctx })).rejects.toThrow(/no snapshot schema/);
+    } finally {
+      map[MODEL_VERSION] = schema;
+    }
+    expect(state.tables.benchmark_snapshots).toHaveLength(0);
   });
 });
 

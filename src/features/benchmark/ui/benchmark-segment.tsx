@@ -200,6 +200,10 @@ function kpiName(catalogue: readonly KpiDefinitionRow[], locale: LocaleCode, key
  * The catalogue name without its parenthetical gloss, for use inside a sentence: a column heading
  * wants "LTIFR (lost time injury frequency rate)", a provenance line wants "LTIFR" (spec 0012,
  * AC-4). A name with no parenthesis is returned unchanged. Pure.
+ *
+ * Assumes a catalogue name uses " (" only to open a gloss, in both languages. A KPI name that
+ * ever carries a parenthesis as part of the term itself would be truncated here, so a new
+ * `kpi_definitions` name keeps the gloss last and everything before it self contained.
  */
 function shortKpiName(name: string): string {
   return name.split(" (")[0]?.trim() || name;
