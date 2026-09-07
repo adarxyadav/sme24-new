@@ -114,11 +114,26 @@ describe("typed route map (spec 0004, AC-13)", () => {
     }
   });
 
-  it("localises the German slug of every marketing page and lists all four in the sitemap set (spec 0009, AC-1)", () => {
+  it("localises the German slug of every marketing page and lists them all in the sitemap set (spec 0009, AC-1)", () => {
+    expect(PATHNAMES["/how-it-works"]).toEqual({
+      "de-CH": "/so-funktionierts",
+      "en-CH": "/how-it-works",
+    });
+    expect(PATHNAMES["/expert-network"]).toEqual({
+      "de-CH": "/expertennetzwerk",
+      "en-CH": "/expert-network",
+    });
     expect(PATHNAMES["/pricing"]).toEqual({ "de-CH": "/preise", "en-CH": "/pricing" });
     expect(PATHNAMES["/about"]).toEqual({ "de-CH": "/ueber-uns", "en-CH": "/about" });
     expect(PATHNAMES["/contact"]).toEqual({ "de-CH": "/kontakt", "en-CH": "/contact" });
-    expect([...MARKETING_ROUTES]).toEqual(["/", "/pricing", "/about", "/contact"]);
+    expect([...MARKETING_ROUTES]).toEqual([
+      "/",
+      "/how-it-works",
+      "/expert-network",
+      "/pricing",
+      "/about",
+      "/contact",
+    ]);
     expect(PATHNAMES["/admin/enquiries"]).toBe("/admin/enquiries");
     expect(PATHNAMES["/admin/enquiries/[id]"]).toBe("/admin/enquiries/[id]");
   });

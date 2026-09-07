@@ -7,6 +7,8 @@ import { LOCALES, type Locale } from "@/i18n/routing";
 /** The marketing pages and their typed routes (spec 0009, AC-1). */
 export const MARKETING_PAGES = {
   landing: "/",
+  howItWorks: "/how-it-works",
+  expertNetwork: "/expert-network",
   pricing: "/pricing",
   about: "/about",
   contact: "/contact",

@@ -1,6 +1,9 @@
 import type {
   AboutPage,
+  CollectionPage,
   ContactPage,
+  HowTo,
+  HowToStep,
   ItemList,
   Offer,
   Organization,
@@ -80,11 +83,51 @@ export function aboutPageJsonLd(input: PageInput): WithContext<AboutPage> {
   };
 }
 
+export type HowToInput = PageInput & {
+  readonly steps: readonly { readonly name: string; readonly text: string }[];
+};
+
+/**
+ * `HowTo` for the how it works page: the four steps in order, each a `HowToStep` with its own
+ * anchor on the page. No `totalTime`, because the wait for a site visit depends on the location
+ * and a wrong duration in the rich result is worse than none. Pure.
+ */
+export function howToJsonLd(input: HowToInput): WithContext<HowTo> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: input.name,
+    url: input.url,
+    description: input.description,
+    inLanguage: input.inLanguage,
+    step: input.steps.map(
+      (step, index): HowToStep => ({
+        "@type": "HowToStep",
+        position: index + 1,
+        name: step.name,
+        text: step.text,
+      }),
+    ),
+  };
+}
+
 /** `ContactPage` for the contact page. Pure. */
 export function contactPageJsonLd(input: PageInput): WithContext<ContactPage> {
   return {
     "@context": "https://schema.org",
     "@type": "ContactPage",
+    name: input.name,
+    url: input.url,
+    description: input.description,
+    inLanguage: input.inLanguage,
+  };
+}
+
+/** `CollectionPage` for the expert network page, which describes a group rather than one thing. Pure. */
+export function collectionPageJsonLd(input: PageInput): WithContext<CollectionPage> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
     name: input.name,
     url: input.url,
     description: input.description,

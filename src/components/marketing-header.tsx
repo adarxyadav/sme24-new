@@ -29,47 +29,95 @@ export type MarketingLink = { readonly href: StaticPathname; readonly label: str
  */
 const DARK_HERO_ROUTES: readonly Pathname[] = ["/"];
 
-/** True once the page has scrolled past the header, so the bar can take its hairline (browser). */
-function useScrolled() {
-  const [scrolled, setScrolled] = useState(false);
+/**
+ * The bar's own height (`h-16` = 4rem), which is also how far a page that pulls its first section
+ * up behind the header (`-mt-16`) has to scroll before that section clears the bar.
+ */
+const HEADER_HEIGHT = 64;
+
+/**
+ * How the bar has to paint itself right now: `top` at rest, transparent, so whatever the page
+ * opens with shows through and there is no seam; `hero` while a dark first section is scrolling
+ * under it (inverted, over its own jet ground); `frosted` once the page proper has arrived.
+ */
+type BarState = "top" | "hero" | "frosted";
+
+/**
+ * The bar's state, driven by how far the dark first section still covers it rather than by a bare
+ * scroll offset (browser). A page whose hero is pulled up behind the header keeps the inverted,
+ * transparent bar for as long as the jet ground is actually behind it, and takes the frosted
+ * ground only once the hero's bottom edge has passed under: a fixed threshold would drop the
+ * inversion while the hero was still there, leaving the lockup dark on a translucent bar over
+ * black. Pages without such a hero simply switch at the bar's own height.
+ */
+function useBarState(overDarkHero: boolean): BarState {
+  const [state, setState] = useState<BarState>("top");
 
   useEffect(() => {
-    const read = () => setScrolled(window.scrollY > 8);
+    const read = () => {
+      // At rest the bar is transparent on every page, so the first section meets it without a
+      // seam. This is the only state that paints no ground of its own.
+      if (window.scrollY <= HEADER_HEIGHT) {
+        setState("top");
+        return;
+      }
+      if (!overDarkHero) {
+        setState("frosted");
+        return;
+      }
+      // The hero marks itself with `data-hero` (`RuledField`), so wrapping or reordering the block
+      // cannot move this threshold; the first section of `main` is the fallback for a page that
+      // has not marked one. While its bottom edge is still below the bar, the jet ground is what
+      // the bar sits on and the inversion has to hold.
+      const hero = document.querySelector("[data-hero]") ?? document.querySelector("main section");
+      const covered = hero ? hero.getBoundingClientRect().bottom > HEADER_HEIGHT : false;
+      setState(covered ? "hero" : "frosted");
+    };
     read();
     window.addEventListener("scroll", read, { passive: true });
-    return () => window.removeEventListener("scroll", read);
-  }, []);
+    window.addEventListener("resize", read, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", read);
+      window.removeEventListener("resize", read);
+    };
+  }, [overDarkHero]);
 
-  return scrolled;
+  return state;
 }
 
 /**
  * Public site header (spec 0003; spec 0009, AC-7): wordmark, navigation links with
  * `aria-current="page"` on the active one, the language switch and sign in. The bar sticks to the
  * top and is fully transparent until the page scrolls, so whatever the page opens with shows
- * through it in both themes and there is no seam; past 8px it takes a hairline and a frosted
- * ground (`bg-background/85` plus a backdrop blur). On a page that opens with the jet hero
- * (`DARK_HERO_ROUTES`), the unscrolled bar also carries `dark`, so the lockup, the links and the
- * controls invert and read on that ground in light mode too. The theme control lives in the
- * footer on desktop, and in the sheet below `md` where the links also collapse. Runs in the
- * browser; the marketing layout passes the links.
+ * through it in both themes and there is no seam; once the page proper is under it, it takes a
+ * hairline and a frosted ground (`bg-background/85` plus a backdrop blur). On a page that opens
+ * with the jet hero (`DARK_HERO_ROUTES`), the bar also carries `dark` for as long as that hero is
+ * behind it, so the lockup, the links and the controls invert and read on that ground in light
+ * mode too. The swap is driven by the hero's own bottom edge rather than a fixed scroll offset
+ * (`useBarState`), because the frosted ground is only 85% opaque: dropping the inversion while
+ * the jet hero was still behind the bar left a black lockup washed out over black, with the
+ * hero's text showing through the bar. The two halves are not animated, so they always land
+ * together. The theme control lives in the footer on desktop, and in the sheet below `md` where
+ * the links also collapse. Runs in the browser; the marketing layout passes the links.
  */
 export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) {
   const t = useTranslations();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const scrolled = useScrolled();
   const overDarkHero = DARK_HERO_ROUTES.includes(pathname);
+  const state = useBarState(overDarkHero);
   const current = (href: StaticPathname) => (pathname === href ? ("page" as const) : undefined);
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b transition-colors",
-        scrolled
-          ? "border-border bg-background/85 supports-backdrop-filter:backdrop-blur-md"
-          : "border-transparent bg-transparent",
-        !scrolled && overDarkHero && "dark text-foreground",
+        "sticky top-0 z-40 border-b",
+        state === "top" && "border-transparent bg-transparent",
+        state !== "top" &&
+          "border-border bg-background/85 supports-backdrop-filter:backdrop-blur-md",
+        // Over the hero the bar keeps the jet ground: `dark` re-resolves `bg-background/85` to the
+        // dark token, so the frosting is black-on-black rather than a white veil over the hero.
+        (state === "hero" || (state === "top" && overDarkHero)) && "dark text-foreground",
       )}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6">

@@ -47,18 +47,34 @@ test("the header links carry the German slugs and mark the current page (AC-7)",
 }) => {
   await page.goto("/de/preise");
   const nav = page.getByRole("navigation", { name: "Hauptnavigation" }).first();
-  await expect(nav.getByRole("link", { name: "Preise" })).toHaveAttribute("href", "/de/preise");
-  await expect(nav.getByRole("link", { name: "Preise" })).toHaveAttribute("aria-current", "page");
-  await expect(nav.getByRole("link", { name: "Über uns" })).toHaveAttribute(
+  await expect(nav.getByRole("link", { name: "Pakete" })).toHaveAttribute("href", "/de/preise");
+  await expect(nav.getByRole("link", { name: "Pakete" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "So funktioniert's" })).toHaveAttribute(
     "href",
-    "/de/ueber-uns",
+    "/de/so-funktionierts",
   );
-  await expect(nav.getByRole("link", { name: "Kontakt" })).toHaveAttribute("href", "/de/kontakt");
-  await expect(nav.getByRole("link", { name: "Kontakt" })).not.toHaveAttribute("aria-current");
+  await expect(nav.getByRole("link", { name: "So funktioniert's" })).not.toHaveAttribute(
+    "aria-current",
+  );
+  await expect(nav.getByRole("link", { name: "Expertennetzwerk" })).toHaveAttribute(
+    "href",
+    "/de/expertennetzwerk",
+  );
   const footer = page.getByRole("contentinfo");
   await expect(footer.getByRole("navigation", { name: "Produkt" })).toBeVisible();
   await expect(footer.getByRole("navigation", { name: "Unternehmen" })).toBeVisible();
   await expect(footer.getByRole("navigation", { name: "Rechtliches" })).toHaveCount(0);
+  // About and contact left the header with the nav of 2026-09-07; the footer is now the only
+  // place they are linked, so their German slugs are asserted there.
+  const company = footer.getByRole("navigation", { name: "Unternehmen" });
+  await expect(company.getByRole("link", { name: "Über uns" })).toHaveAttribute(
+    "href",
+    "/de/ueber-uns",
+  );
+  await expect(company.getByRole("link", { name: "Kontakt" })).toHaveAttribute(
+    "href",
+    "/de/kontakt",
+  );
 });
 
 test("a slug of the other language redirects to the language's own slug, so no second copy exists (AC-1)", async ({

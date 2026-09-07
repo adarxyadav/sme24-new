@@ -76,10 +76,160 @@
   },
   "marketing": {
     "nav": {
-      "pricing": "Pricing",
+      "howItWorks": "How it works",
+      "expertNetwork": "Expert network",
+      "pricing": "Packages",
       "about": "About",
       "contact": "Contact",
       "freeBenchmark": "Free benchmark"
+    },
+    "howItWorks": {
+      "meta": {
+        "title": "How it works",
+        "description": "From company lookup to a written report with ranked actions: the four steps, what you do and what we do."
+      },
+      "og": {
+        "statement": "Four steps. One report."
+      },
+      "eyebrow": "How it works",
+      "title": "Four steps. One report.",
+      "lead": "No discovery phase, no scoping workshop. You give us the company name; we come back with where you stand and what to fix first.",
+      "steps": {
+        "eyebrow": "The process",
+        "title": "What happens, in order.",
+        "items": {
+          "lookup": {
+            "title": "You name the company.",
+            "body": "One field on the landing page. We find the public record, the industry and the size band, so nothing is asked twice."
+          },
+          "benchmark": {
+            "title": "We benchmark it.",
+            "body": "Public disclosures and peer figures give you a first read against comparable Swiss companies. Free, before anyone visits."
+          },
+          "package": {
+            "title": "You pick the package.",
+            "body": "The price is on the page and it is the price. If the benchmark shows you need less than you thought, take the smaller one."
+          },
+          "expert": {
+            "title": "A senior expert visits.",
+            "body": "The person who walks your site is the person who writes the report. They have run safety in industry for decades."
+          }
+        }
+      },
+      "split": {
+        "eyebrow": "Division of labour",
+        "title": "Who does what.",
+        "yours": {
+          "title": "Yours.",
+          "items": {
+            "name": "Give us the company name.",
+            "access": "Give the expert site access for a day.",
+            "decide": "Decide what to act on first."
+          }
+        },
+        "ours": {
+          "title": "Ours.",
+          "items": {
+            "research": "Research the company and its peers.",
+            "visit": "Walk the site and interview your people.",
+            "write": "Write the findings, ranked, with what each one costs."
+          }
+        }
+      },
+      "timing": {
+        "eyebrow": "Timing",
+        "title": "How long it takes.",
+        "lead": "From the moment you pick a package.",
+        "items": {
+          "benchmark": {
+            "title": "Minutes.",
+            "body": "The free benchmark returns while you are on the page."
+          },
+          "visit": {
+            "title": "Two weeks.",
+            "body": "Typical wait for a site visit, depending on where you are."
+          },
+          "report": {
+            "title": "Ten days.",
+            "body": "From the visit to the written report in your inbox."
+          }
+        }
+      },
+      "closing": {
+        "title": "Start with the benchmark. It is free.",
+        "cta": "Benchmark your company for free"
+      }
+    },
+    "expertNetwork": {
+      "meta": {
+        "title": "Expert network",
+        "description": "The senior EHS experts who visit your site: how they are vetted, what they have run and how one is matched to your company."
+      },
+      "og": {
+        "statement": "Senior people. No juniors."
+      },
+      "eyebrow": "Expert network",
+      "title": "Senior people. No juniors.",
+      "lead": "Every site visit is done by someone who has carried legal responsibility for safety in industry. Not a consultant who read about it.",
+      "standard": {
+        "title": "What we mean by senior.",
+        "intro": "Nobody joins the network without all four.",
+        "items": {
+          "years": {
+            "title": "Fifteen years, minimum.",
+            "body": "In an operating role in industry, not in advisory. Most of the network has considerably more."
+          },
+          "accountable": {
+            "title": "Personally accountable.",
+            "body": "They have held the safety role where the legal responsibility sat with them, and been audited on it."
+          },
+          "sector": {
+            "title": "Sector depth.",
+            "body": "Manufacturing, chemicals, construction, logistics, food. We match the sector, not just the standard."
+          },
+          "swiss": {
+            "title": "Swiss practice.",
+            "body": "Fluent in SUVA, EKAS and the cantonal reality, in the language your team actually speaks on site."
+          }
+        }
+      },
+      "vetting": {
+        "eyebrow": "Vetting",
+        "title": "How someone gets in.",
+        "steps": {
+          "record": {
+            "title": "Record check.",
+            "body": "Roles, sites, standards, references from people who reported to them."
+          },
+          "shadow": {
+            "title": "A shadowed visit.",
+            "body": "Their first assessment runs alongside an established expert, both writing."
+          },
+          "review": {
+            "title": "Written review.",
+            "body": "We read the report as a client would. Vague findings do not pass."
+          },
+          "ongoing": {
+            "title": "Every report after.",
+            "body": "Client feedback is scored on each assignment. The bar does not drop after entry."
+          }
+        }
+      },
+      "matching": {
+        "eyebrow": "Matching",
+        "title": "How you get yours.",
+        "lead": "You do not pick from a directory. We assign the expert whose sector and standards match the company, and who can reach your site. If the fit is wrong, you get another one and we absorb the cost."
+      },
+      "coverage": {
+        "eyebrow": "Coverage",
+        "title": "Where we go.",
+        "lead": "The network covers all of German and French speaking Switzerland, with visits arranged from the nearest expert to reduce travel.",
+        "note": "Ticino by arrangement."
+      },
+      "closing": {
+        "title": "See where you stand. For free.",
+        "cta": "Benchmark your company for free"
+      }
     },
     "footer": {
       "product": "Product",
@@ -662,6 +812,8 @@
       "eyebrowText": "Four steps",
       "inverseText": "Fixed price. No negotiation. Kick off the same week.",
       "inverseBody": "Every component works on the jet ground because the block switches the tokens for its subtree.",
+      "ruledField": "Ruled field",
+      "ruledFieldBody": "Vertical hairlines behind a block, at a third of the border token and masked away from the type. Decoration only: the layer is aria-hidden.",
       "signature": "Signature",
       "rules": "Rules",
       "rule": {

@@ -76,10 +76,160 @@
   },
   "marketing": {
     "nav": {
-      "pricing": "Preise",
+      "howItWorks": "So funktioniert's",
+      "expertNetwork": "Expertennetzwerk",
+      "pricing": "Pakete",
       "about": "Über uns",
       "contact": "Kontakt",
       "freeBenchmark": "Kostenloser Benchmark"
+    },
+    "howItWorks": {
+      "meta": {
+        "title": "So funktioniert's",
+        "description": "Von der Firmensuche zum schriftlichen Bericht mit priorisierten Massnahmen: die vier Schritte, Ihr Teil und unserer."
+      },
+      "og": {
+        "statement": "Vier Schritte. Ein Bericht."
+      },
+      "eyebrow": "So funktioniert's",
+      "title": "Vier Schritte. Ein Bericht.",
+      "lead": "Keine Discovery-Phase, kein Scoping-Workshop. Sie nennen uns die Firma; wir sagen Ihnen, wo Sie stehen und was zuerst zu tun ist.",
+      "steps": {
+        "eyebrow": "Der Ablauf",
+        "title": "Was passiert, der Reihe nach.",
+        "items": {
+          "lookup": {
+            "title": "Sie nennen die Firma.",
+            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse, damit nichts zweimal gefragt wird."
+          },
+          "benchmark": {
+            "title": "Wir vergleichen sie.",
+            "body": "Öffentliche Angaben und Zahlen vergleichbarer Schweizer Firmen ergeben eine erste Einordnung. Kostenlos, bevor jemand vorbeikommt."
+          },
+          "package": {
+            "title": "Sie wählen das Paket.",
+            "body": "Der Preis steht auf der Seite, und er gilt. Zeigt der Benchmark, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere."
+          },
+          "expert": {
+            "title": "Ein Senior kommt vorbei.",
+            "body": "Wer durch Ihren Betrieb geht, schreibt auch den Bericht. Diese Leute haben jahrzehntelang Arbeitssicherheit in der Industrie verantwortet."
+          }
+        }
+      },
+      "split": {
+        "eyebrow": "Aufgabenteilung",
+        "title": "Wer was macht.",
+        "yours": {
+          "title": "Ihr Teil.",
+          "items": {
+            "name": "Den Firmennamen nennen.",
+            "access": "Dem Experten einen Tag lang Zugang zum Betrieb geben.",
+            "decide": "Entscheiden, was zuerst angepackt wird."
+          }
+        },
+        "ours": {
+          "title": "Unser Teil.",
+          "items": {
+            "research": "Die Firma und ihre Vergleichsgruppe recherchieren.",
+            "visit": "Durch den Betrieb gehen und mit Ihren Leuten sprechen.",
+            "write": "Die Befunde priorisiert festhalten, mit Kostenfolge je Punkt."
+          }
+        }
+      },
+      "timing": {
+        "eyebrow": "Dauer",
+        "title": "Wie lange es dauert.",
+        "lead": "Ab dem Moment, in dem Sie ein Paket wählen.",
+        "items": {
+          "benchmark": {
+            "title": "Minuten.",
+            "body": "Der kostenlose Benchmark kommt zurück, während Sie auf der Seite sind."
+          },
+          "visit": {
+            "title": "Zwei Wochen.",
+            "body": "Übliche Wartezeit bis zum Besuch, je nach Standort."
+          },
+          "report": {
+            "title": "Zehn Tage.",
+            "body": "Vom Besuch bis zum schriftlichen Bericht in Ihrem Postfach."
+          }
+        }
+      },
+      "closing": {
+        "title": "Fangen Sie mit dem Benchmark an. Kostenlos.",
+        "cta": "Firma kostenlos vergleichen"
+      }
+    },
+    "expertNetwork": {
+      "meta": {
+        "title": "Expertennetzwerk",
+        "description": "Die Senior-EHS-Experten, die zu Ihnen kommen: wie wir sie prüfen, was sie verantwortet haben und wie einer zu Ihrer Firma passt."
+      },
+      "og": {
+        "statement": "Senior-Leute. Keine Junioren."
+      },
+      "eyebrow": "Expertennetzwerk",
+      "title": "Senior-Leute. Keine Junioren.",
+      "lead": "Jeden Besuch macht jemand, der in der Industrie selbst für Arbeitssicherheit geradestehen musste. Kein Berater, der darüber gelesen hat.",
+      "standard": {
+        "title": "Was Senior bei uns heisst.",
+        "intro": "Ohne alle vier Punkte kommt niemand ins Netzwerk.",
+        "items": {
+          "years": {
+            "title": "Mindestens fünfzehn Jahre.",
+            "body": "In einer operativen Rolle in der Industrie, nicht in der Beratung. Die meisten bringen deutlich mehr mit."
+          },
+          "accountable": {
+            "title": "Persönlich verantwortlich.",
+            "body": "Sie hatten die Sicherheitsrolle inne, in der die rechtliche Verantwortung bei ihnen lag, und wurden darauf geprüft."
+          },
+          "sector": {
+            "title": "Branchentiefe.",
+            "body": "Produktion, Chemie, Bau, Logistik, Lebensmittel. Wir gleichen die Branche ab, nicht nur die Norm."
+          },
+          "swiss": {
+            "title": "Schweizer Praxis.",
+            "body": "Sattelfest in SUVA, EKAS und der kantonalen Realität, in der Sprache, die Ihre Leute im Betrieb sprechen."
+          }
+        }
+      },
+      "vetting": {
+        "eyebrow": "Prüfung",
+        "title": "Wie jemand aufgenommen wird.",
+        "steps": {
+          "record": {
+            "title": "Werdegang.",
+            "body": "Rollen, Betriebe, Normen, Referenzen von Leuten, die ihnen unterstellt waren."
+          },
+          "shadow": {
+            "title": "Ein begleiteter Besuch.",
+            "body": "Die erste Beurteilung läuft neben einem etablierten Experten, beide schreiben."
+          },
+          "review": {
+            "title": "Schriftliche Prüfung.",
+            "body": "Wir lesen den Bericht wie ein Kunde. Vage Befunde bestehen nicht."
+          },
+          "ongoing": {
+            "title": "Und danach jeder Bericht.",
+            "body": "Jede Arbeit wird von den Kunden bewertet. Die Latte sinkt nach der Aufnahme nicht."
+          }
+        }
+      },
+      "matching": {
+        "eyebrow": "Zuteilung",
+        "title": "Wie Sie Ihren bekommen.",
+        "lead": "Sie wählen nicht aus einem Verzeichnis. Wir teilen den Experten zu, dessen Branche und Normen zur Firma passen und der Ihren Standort erreicht. Passt es nicht, bekommen Sie einen anderen, und wir tragen die Kosten."
+      },
+      "coverage": {
+        "eyebrow": "Abdeckung",
+        "title": "Wohin wir kommen.",
+        "lead": "Das Netzwerk deckt die ganze Deutsch- und Westschweiz ab; Besuche übernimmt jeweils der nächstgelegene Experte, das hält die Anfahrt kurz.",
+        "note": "Tessin auf Anfrage."
+      },
+      "closing": {
+        "title": "Sehen Sie, wo Sie stehen. Kostenlos.",
+        "cta": "Firma kostenlos vergleichen"
+      }
     },
     "footer": {
       "product": "Produkt",
@@ -662,6 +812,8 @@
       "eyebrowText": "Vier Schritte",
       "inverseText": "Fixpreis. Kein Verhandeln. Start in derselben Woche.",
       "inverseBody": "Jede Komponente funktioniert auf der Jet-Fläche, weil der Block die Tokens für seinen Teilbaum umstellt.",
+      "ruledField": "Liniertes Feld",
+      "ruledFieldBody": "Senkrechte Haarlinien hinter einem Block, auf einem Drittel des Border-Tokens und von der Schrift weggeblendet. Reine Dekoration: die Ebene ist aria-hidden.",
       "signature": "Signatur",
       "rules": "Regeln",
       "rule": {
