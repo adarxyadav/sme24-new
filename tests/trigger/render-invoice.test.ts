@@ -3,9 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * The exhausted render (spec 0011, AC-10): a failing invoice PDF never unwinds a payment. When
- * the worker has spent all three attempts, `catchError` sets `pdf_failed_at`, names the invoice
+ * the worker has spent all three attempts, `onFailure` sets `pdf_failed_at`, names the invoice
  * and the order in an ops alert, and leaves the order alone, so the client keeps their purchase
  * and ops can retry the render by hand.
+ *
+ * The hook has to be `onFailure`, which the SDK runs once the run has exhausted every retry, and
+ * never `catchError`, which runs on each uncaught error and exists to steer retrying. Carrying
+ * these effects on `catchError` stamped `pdf_failed_at` and alerted ops on the first transient
+ * error, healing itself only if a later attempt happened to succeed; the first test below pins
+ * the hook so that regression cannot come back quietly.
  *
  * The hook is tested directly because it only runs after the retries are gone, which the local
  * dev worker skips: the app cannot be driven into this state. Mocking `schemaTask` to its own
@@ -82,17 +88,24 @@ const INVOICE = "0e000000-0000-4000-8000-000000000001";
 
 const ctx = { run: { id: "run_render_1" }, attempt: { number: 3 } };
 
-async function loadHook() {
+type Hooks = {
+  onFailure?: (input: {
+    payload: { invoiceId: string };
+    error: unknown;
+    ctx: typeof ctx;
+  }) => Promise<void>;
+  catchError?: unknown;
+};
+
+async function loadTask(): Promise<Hooks> {
   const module = await import("@/trigger/render-invoice");
-  return (
-    module.renderInvoiceTask as unknown as {
-      catchError: (input: {
-        payload: { invoiceId: string };
-        error: unknown;
-        ctx: typeof ctx;
-      }) => Promise<void>;
-    }
-  ).catchError;
+  return module.renderInvoiceTask as unknown as Hooks;
+}
+
+async function loadHook() {
+  const onFailure = (await loadTask()).onFailure;
+  if (!onFailure) throw new Error("the task carries no onFailure hook");
+  return onFailure;
 }
 
 beforeEach(() => {
@@ -107,11 +120,19 @@ beforeEach(() => {
   boundary.errors = [];
 });
 
-describe("render-invoice catchError (AC-10)", () => {
+describe("render-invoice onFailure (AC-10)", () => {
+  it("carries the exhausted-retries effects on onFailure, never on catchError", async () => {
+    // `catchError` fires on every failed attempt, so the stamp and the alert would land on the
+    // first transient error rather than once the retries are gone. Only `onFailure` waits.
+    const task = await loadTask();
+    expect(typeof task.onFailure).toBe("function");
+    expect(task.catchError).toBeUndefined();
+  });
+
   it("stamps pdf_failed_at on the invoice it was given, and touches nothing else", async () => {
-    const catchError = await loadHook();
+    const onFailure = await loadHook();
     const before = Date.now();
-    await catchError({ payload: { invoiceId: INVOICE }, error: new Error("pdfkit blew up"), ctx });
+    await onFailure({ payload: { invoiceId: INVOICE }, error: new Error("pdfkit blew up"), ctx });
 
     expect(boundary.updates).toHaveLength(1);
     const update = boundary.updates[0];
@@ -131,8 +152,8 @@ describe("render-invoice catchError (AC-10)", () => {
   });
 
   it("fires one ops alert naming the invoice, the order and the organization", async () => {
-    const catchError = await loadHook();
-    await catchError({
+    const onFailure = await loadHook();
+    await onFailure({
       payload: { invoiceId: INVOICE },
       error: new Error("invoice upload failed: storage refused"),
       ctx,
@@ -153,8 +174,8 @@ describe("render-invoice catchError (AC-10)", () => {
   });
 
   it("sends fields the real alert schema and its presenter accept", async () => {
-    const catchError = await loadHook();
-    await catchError({ payload: { invoiceId: INVOICE }, error: new Error("boom"), ctx });
+    const onFailure = await loadHook();
+    await onFailure({ payload: { invoiceId: INVOICE }, error: new Error("boom"), ctx });
 
     // The alert is only useful if the ops channel can actually render it, so parse the payload
     // the hook built with the production schema the `ops-alert` task itself parses, then present
@@ -174,8 +195,8 @@ describe("render-invoice catchError (AC-10)", () => {
 
   it("still records the failure when the invoice row cannot be read", async () => {
     boundary.readError = { message: "connection reset" };
-    const catchError = await loadHook();
-    await catchError({ payload: { invoiceId: INVOICE }, error: new Error("boom"), ctx });
+    const onFailure = await loadHook();
+    await onFailure({ payload: { invoiceId: INVOICE }, error: new Error("boom"), ctx });
 
     // A lookup that fails must not swallow the stamp or the alert: losing both would leave a
     // paid order with no PDF and nobody told.
@@ -190,8 +211,8 @@ describe("render-invoice catchError (AC-10)", () => {
   });
 
   it("truncates a runaway error message to what the alert schema allows", async () => {
-    const catchError = await loadHook();
-    await catchError({ payload: { invoiceId: INVOICE }, error: new Error("x".repeat(2000)), ctx });
+    const onFailure = await loadHook();
+    await onFailure({ payload: { invoiceId: INVOICE }, error: new Error("x".repeat(2000)), ctx });
 
     const alert = boundary.alerts[0];
     if (!alert) throw new Error("the hook raised no alert");
@@ -203,8 +224,8 @@ describe("render-invoice catchError (AC-10)", () => {
   });
 
   it("reports a non Error throw rather than losing the reason", async () => {
-    const catchError = await loadHook();
-    await catchError({ payload: { invoiceId: INVOICE }, error: "storage timed out", ctx });
+    const onFailure = await loadHook();
+    await onFailure({ payload: { invoiceId: INVOICE }, error: "storage timed out", ctx });
 
     expect(boundary.alerts[0]?.fields).toMatchObject({ errorMessage: "storage timed out" });
     expect(boundary.errors.map((entry) => entry.message)).toContain(
