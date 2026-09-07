@@ -92,6 +92,24 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(card.getByText("1 of 8 KPIs compared")).toBeVisible();
     await expect(page.locator("[data-provisional-note]")).toBeVisible();
 
+    // The derived counts (spec 0012, AC-1, AC-3, AC-4, AC-6): the fixture company carries only the
+    // Suva accident rate, so the lost time count comes from the fallback path and names it in the
+    // short phrase, and the recordable count is absent because there is no TRIFR.
+    const derived = card.locator("[data-derived-block]");
+    await expect(derived).toBeVisible();
+    const lostTime = derived.locator('[data-derived-count="lost-time"]');
+    // 28.56 injuries a year, shown to one decimal (AC-8).
+    await expect(lostTime.locator("[data-derived-value]")).toHaveText(INCIDENTS.toFixed(1));
+    await expect(lostTime.getByText("Calculated", { exact: true })).toBeVisible();
+    await expect(lostTime.locator("[data-derived-from]")).toHaveAttribute(
+      "data-derived-from",
+      "accident_rate_per_1000_fte",
+    );
+    await expect(lostTime).toContainText("Calculated from the researched Suva accident rate for");
+    await expect(derived.locator('[data-derived-count="recordable"]')).toHaveCount(0);
+    // A calculated number never borrows a confidence score (AC-5).
+    await expect(derived.locator("[data-confidence]")).toHaveCount(0);
+
     // The priority gaps (AC-9 b): the accident rate is the only KPI with a peer row in the seed.
     const gaps = page.locator("[data-gaps]");
     await expect(gaps).toHaveAttribute("data-gaps", "1");

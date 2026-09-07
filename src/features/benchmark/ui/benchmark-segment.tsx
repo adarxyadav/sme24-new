@@ -196,6 +196,15 @@ function kpiName(catalogue: readonly KpiDefinitionRow[], locale: LocaleCode, key
   return (definition ? localizedText(definition.name, locale) : "") || key;
 }
 
+/**
+ * The catalogue name without its parenthetical gloss, for use inside a sentence: a column heading
+ * wants "LTIFR (lost time injury frequency rate)", a provenance line wants "LTIFR" (spec 0012,
+ * AC-4). A name with no parenthesis is returned unchanged. Pure.
+ */
+function shortKpiName(name: string): string {
+  return name.split(" (")[0]?.trim() || name;
+}
+
 /** The KPI whose confidence equals the snapshot's (the one that drove the count), among the cost rows. Pure. */
 export function confidenceDriver(snapshot: ParsedSnapshot): KpiKey | null {
   const cost = snapshot.blocks.cost;
@@ -231,13 +240,13 @@ function DerivedCountRow({
   readonly format: Formatter;
 }) {
   // The Suva rate gets its own short phrase: the catalogue name reads as an unreadable sentence
-  // when interpolated ("Calculated from your Accidents per 1000 full time employees for 2024").
+  // when interpolated ("Calculated from your Accident rate per 1 000 FTE for 2024").
   const suva = count.fromKey === "accident_rate_per_1000_fte";
   const client = count.fromSource === "client";
   const provenance = suva
     ? t(client ? "derived.fromClientSuva" : "derived.fromResearchSuva", { year: count.fromYear })
     : t(client ? "derived.fromClient" : "derived.fromResearch", {
-        kpi: kpiName(catalogue, locale, count.fromKey),
+        kpi: shortKpiName(kpiName(catalogue, locale, count.fromKey)),
         year: count.fromYear,
       });
 

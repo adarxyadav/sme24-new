@@ -254,9 +254,28 @@ describe("the derived injury counts (spec 0012)", () => {
     );
     const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
     // The KPI name comes from the catalogue in the reader's language, not a hardcoded label.
-    expect(lostTime).toHaveTextContent("Calculated from your ltifr (en) for 2024");
+    // The fixture names are "ltifr (en)" / "trifr (en)", so the gloss is dropped here too.
+    expect(lostTime).toHaveTextContent("Calculated from your ltifr for 2024");
     const recordable = container.querySelector('[data-derived-count="recordable"]') as HTMLElement;
-    expect(recordable).toHaveTextContent("Calculated from the researched trifr (en) for 2025");
+    expect(recordable).toHaveTextContent("Calculated from the researched trifr for 2025");
+  });
+
+  it("drops the catalogue name's parenthetical gloss inside the sentence (AC-4)", async () => {
+    const withGloss = catalogue.map((entry) =>
+      entry.key === "ltifr"
+        ? {
+            ...entry,
+            name: {
+              de: "LTIFR (Unfälle mit Ausfallzeit)",
+              en: "LTIFR (lost time injury frequency rate)",
+            },
+          }
+        : entry,
+    );
+    const { container } = await renderSegment({ ...withDerived(), catalogue: withGloss });
+    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    expect(lostTime).toHaveTextContent("Calculated from the researched LTIFR for 2025");
+    expect(lostTime).not.toHaveTextContent("lost time injury frequency rate");
   });
 
   it("uses the short Suva phrase rather than the catalogue name (AC-4)", async () => {
