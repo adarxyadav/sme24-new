@@ -93,7 +93,7 @@ spec [0012](../specs/0012-derived-injury-counts/index.md) · code in `src/featur
   - [x] The derivation: `exposureCount` lifted out of `costAt` dispatching on rate shape, the derived block in `computeBenchmark` with the Suva fallback and the missing input guards, `hours_per_fte` registered as used, the block carried through the `benchmark-company` parse and insert (AC-1, AC-2, AC-4, AC-6, AC-7, AC-9, AC-10, AC-11, AC-15, AC-16)
   - [x] The card and its strings: the block in the opportunity card above the CHF figure, lost time then recordable at one decimal, the outline `Calculated` badge with its gallery section, the provenance lines including the Suva variant, both catalogs (AC-1, AC-2, AC-3, AC-5, AC-8)
   - [x] Harden and document: Vitest over the model and the version map, the Playwright assertion with axe, `docs/benchmark.md` and the post deploy recompute note (AC-13, AC-14)
-- [ ] Verify it: `/check verify derived injury counts`
+- [x] Verify it: `/check verify derived injury counts`
 - [ ] Test it: `/test derived injury counts`
 - [ ] Review it (fresh model): `/check review derived injury counts`
 - [ ] Document it: `/document derived injury counts`
