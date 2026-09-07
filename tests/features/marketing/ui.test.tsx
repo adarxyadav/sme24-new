@@ -250,10 +250,11 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
 
     // The inversion is held by the hero's own bottom edge, not a scroll offset: while the jet
     // ground is still behind the bar it has to stay inverted, or the lockup goes black on black.
-    // The component finds the hero as `main section` in the document, and jsdom gives every
-    // element a zero rect, so a stand in with a stubbed geometry stands in for the real hero.
+    // The component finds the hero by its `data-hero` marker, and jsdom gives every element a
+    // zero rect, so a stand in with a stubbed geometry stands in for the real hero.
     const main = document.createElement("main");
     const hero = document.createElement("section");
+    hero.setAttribute("data-hero", "true");
     main.append(hero);
     document.body.append(main);
     const heroBottom = vi.spyOn(hero, "getBoundingClientRect");

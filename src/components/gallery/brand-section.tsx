@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Logo } from "@/components/brand/logo";
+import { RuledField } from "@/components/brand/ruled-field";
 import { Signature } from "@/components/brand/signature";
 import { Statement } from "@/components/brand/statement";
 import { Example } from "@/components/gallery/gallery-section";
@@ -69,6 +70,16 @@ export function BrandSection() {
           <Statement text={t("inverseText")} className="text-display-sm" />
           <p className="max-w-prose text-muted-foreground text-sm">{t("inverseBody")}</p>
         </div>
+      </Example>
+
+      <Example label={t("ruledField")}>
+        <RuledField className="dark w-full bg-background text-foreground">
+          <div className="flex flex-col gap-6 p-8 sm:p-10">
+            <p className="eyebrow text-muted-foreground">{t("eyebrowText")}</p>
+            <Statement text={t("inverseText")} className="text-display-sm" />
+            <p className="max-w-prose text-muted-foreground text-sm">{t("ruledFieldBody")}</p>
+          </div>
+        </RuledField>
       </Example>
 
       <Example label={t("signature")}>

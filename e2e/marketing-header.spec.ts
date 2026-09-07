@@ -107,7 +107,7 @@ test("the unscrolled bar inverts over the landing hero, in light mode too (no se
   // The hero runs up behind the bar, so the pixels behind the header are the hero's jet ground
   // rather than the white page background: that is what "no seam" means here.
   const heroTop = await page.evaluate(() => {
-    const hero = document.querySelector("main section") as HTMLElement;
+    const hero = document.querySelector("[data-hero]") as HTMLElement;
     return {
       top: hero.getBoundingClientRect().top,
       background: getComputedStyle(hero).backgroundColor,
@@ -129,7 +129,7 @@ test("the unscrolled bar inverts over the landing hero, in light mode too (no se
   expect((await readBar(page)).dark).toBe(true);
 
   await page.evaluate(() => {
-    const hero = document.querySelector("main section") as HTMLElement;
+    const hero = document.querySelector("[data-hero]") as HTMLElement;
     window.scrollTo(0, hero.getBoundingClientRect().bottom + window.scrollY + 100);
   });
   await expect.poll(async () => (await readBar(page)).dark, { timeout: 10_000 }).toBe(false);
@@ -147,7 +147,7 @@ test("the bar never shows dark ink over the jet hero while the hero is still beh
   // a bar whose 85% white ground barely covered the black hero, with the hero's text showing
   // through. Sampling only the first few pixels would step straight over that.
   const heroBottom = await page.evaluate(
-    () => (document.querySelector("main section") as HTMLElement).getBoundingClientRect().bottom,
+    () => (document.querySelector("[data-hero]") as HTMLElement).getBoundingClientRect().bottom,
   );
   expect(
     heroBottom,

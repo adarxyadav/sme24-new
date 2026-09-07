@@ -6,6 +6,7 @@ import {
   CampaignPiece,
   CampaignWall,
 } from "@/components/brand/campaign";
+import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
@@ -75,10 +76,12 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         The hero runs up behind the sticky header (`-mt-16`, the bar's `h-16`, given back as
         `pt-16` inside) so the jet ground reaches the top of the viewport. The unscrolled bar is
         transparent and inverts over it, which is what makes the two meet without a seam in light
-        mode as well as dark; `DARK_HERO_ROUTES` in the header names this page for that.
+        mode as well as dark; `DARK_HERO_ROUTES` in the header names this page for that. The
+        ruled ground sits behind the whole block, so the hairlines start at the very top of the
+        viewport rather than under the bar.
       */}
-      <section className="dark -mt-16 bg-background text-foreground">
-        <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 pt-40 pb-24 sm:px-6 md:pt-52 md:pb-36">
+      <RuledField hero className="dark -mt-16 bg-background text-foreground">
+        <section className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 pt-40 pb-24 sm:px-6 md:pt-52 md:pb-36">
           <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
           <Statement
             as="h1"
@@ -93,8 +96,8 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
           >
             {t("signIn")}
           </Link>
-        </div>
-      </section>
+        </section>
+      </RuledField>
 
       <section aria-label={t("pointsLabel")} className="border-b">
         <ul className="mx-auto grid max-w-6xl gap-px sm:grid-cols-3 sm:divide-x">

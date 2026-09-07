@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { CampaignFrame, CampaignGrid, CampaignPiece } from "@/components/brand/campaign";
 import { Logo } from "@/components/brand/logo";
+import { RuledField } from "@/components/brand/ruled-field";
 import { Signature } from "@/components/brand/signature";
 import { Statement, splitSentences } from "@/components/brand/statement";
 import de from "../messages/de-CH.json";
@@ -110,5 +111,38 @@ describe("Campaign blocks", () => {
       container.querySelectorAll("[data-slot=campaign-frame] [aria-hidden='true']"),
     ).toHaveLength(2);
     expect(screen.queryByText(de.brand.signature)).not.toBeInTheDocument();
+  });
+});
+
+describe("RuledField (the ruled ground)", () => {
+  it("hides the rules from assistive technology and leaves the content addressable", () => {
+    const { container } = withMessages(
+      <RuledField>
+        <p>On the ruled ground.</p>
+      </RuledField>,
+    );
+    // The rules carry no information, so the layer is decorative and must never be announced.
+    const layer = container.querySelector("[aria-hidden='true']");
+    expect(layer).toBeInTheDocument();
+    expect(layer).not.toHaveTextContent(/\S/);
+    expect(screen.getByText("On the ruled ground.")).toBeInTheDocument();
+  });
+
+  it("marks the hero only when asked, because the sticky header measures that element", () => {
+    // `data-hero` is the header's threshold (`useBarState`): a plain field must not claim it, or
+    // a second ruled block on the page would move where the bar drops its inversion.
+    const { container: plain } = withMessages(
+      <RuledField>
+        <p>Plain.</p>
+      </RuledField>,
+    );
+    expect(plain.querySelector("[data-hero]")).toBeNull();
+
+    const { container: hero } = withMessages(
+      <RuledField hero>
+        <p>Hero.</p>
+      </RuledField>,
+    );
+    expect(hero.querySelector("[data-hero]")).toBeInTheDocument();
   });
 });

@@ -65,9 +65,11 @@ function useBarState(overDarkHero: boolean): BarState {
         setState("frosted");
         return;
       }
-      // The hero is the first section of the page's `main`; while its bottom edge is still below
-      // the bar, the jet ground is what the bar sits on and the inversion has to hold.
-      const hero = document.querySelector("main section");
+      // The hero marks itself with `data-hero` (`RuledField`), so wrapping or reordering the block
+      // cannot move this threshold; the first section of `main` is the fallback for a page that
+      // has not marked one. While its bottom edge is still below the bar, the jet ground is what
+      // the bar sits on and the inversion has to hold.
+      const hero = document.querySelector("[data-hero]") ?? document.querySelector("main section");
       const covered = hero ? hero.getBoundingClientRect().bottom > HEADER_HEIGHT : false;
       setState(covered ? "hero" : "frosted");
     };

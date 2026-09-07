@@ -812,6 +812,8 @@
       "eyebrowText": "Vier Schritte",
       "inverseText": "Fixpreis. Kein Verhandeln. Start in derselben Woche.",
       "inverseBody": "Jede Komponente funktioniert auf der Jet-Fläche, weil der Block die Tokens für seinen Teilbaum umstellt.",
+      "ruledField": "Liniertes Feld",
+      "ruledFieldBody": "Senkrechte Haarlinien hinter einem Block, auf einem Drittel des Border-Tokens und von der Schrift weggeblendet. Reine Dekoration: die Ebene ist aria-hidden.",
       "signature": "Signatur",
       "rules": "Regeln",
       "rule": {

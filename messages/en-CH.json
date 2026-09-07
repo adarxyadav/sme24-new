@@ -812,6 +812,8 @@
       "eyebrowText": "Four steps",
       "inverseText": "Fixed price. No negotiation. Kick off the same week.",
       "inverseBody": "Every component works on the jet ground because the block switches the tokens for its subtree.",
+      "ruledField": "Ruled field",
+      "ruledFieldBody": "Vertical hairlines behind a block, at a third of the border token and masked away from the type. Decoration only: the layer is aria-hidden.",
       "signature": "Signature",
       "rules": "Rules",
       "rule": {
