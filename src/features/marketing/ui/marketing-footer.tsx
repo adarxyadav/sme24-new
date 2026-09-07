@@ -37,6 +37,8 @@ export function MarketingFooter({ legal = [] }: MarketingFooterProps) {
       key: "product",
       title: t("marketing.footer.product"),
       links: [
+        { kind: "route", href: "/how-it-works", label: t("marketing.nav.howItWorks") },
+        { kind: "route", href: "/expert-network", label: t("marketing.nav.expertNetwork") },
         { kind: "route", href: "/pricing", label: t("marketing.nav.pricing") },
         { kind: "route", href: "/sign-up", label: t("marketing.nav.freeBenchmark") },
       ],

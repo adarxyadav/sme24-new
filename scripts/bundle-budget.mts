@@ -9,8 +9,8 @@
  * never downloads it; a chunk loaded later through `import()` does not count, it is off the
  * critical path), sums their gzipped bytes and compares the total with the budget in `BUDGETS_KB`
  * (1 kB is 1024 bytes, the same per language). It also fails when a module script of any page
- * contains the Sentry integration name `BrowserTracing`, or a module script of `/`, `/pricing` or
- * `/about` contains the zod marker `$ZodError`. One table, exit code 1 on any page over budget,
+ * contains the Sentry integration name `BrowserTracing`, or a module script of any page but
+ * `/contact` contains the zod marker `$ZodError`. One table, exit code 1 on any page over budget,
  * any marker hit or any missing page. Remote mode sends `x-vercel-protection-bypass` from
  * `VERCEL_AUTOMATION_BYPASS_SECRET` when set. Plain Node; `docs/marketing.md` cites the budgets
  * from here and `tests/scripts/bundle-budget.test.ts` keeps `PAGES` equal to the routing tables.
@@ -22,7 +22,13 @@ import { parseArgs } from "node:util";
 import { gzipSync } from "node:zlib";
 import { PATHNAMES } from "../src/i18n/pathnames.ts";
 
-export type MarketingRoute = "/" | "/pricing" | "/about" | "/contact";
+export type MarketingRoute =
+  | "/"
+  | "/how-it-works"
+  | "/expert-network"
+  | "/pricing"
+  | "/about"
+  | "/contact";
 export type BudgetLocale = "en-CH" | "de-CH";
 export type BudgetPage = { readonly locale: BudgetLocale; readonly route: MarketingRoute };
 
@@ -35,13 +41,21 @@ export const LOCALE_PREFIXES: Readonly<Record<BudgetLocale, string>> = {
 /** The budgets in kB of 1024 bytes per route, the same in both languages. The single source. */
 export const BUDGETS_KB: Readonly<Record<MarketingRoute, number>> = {
   "/": 250,
+  "/how-it-works": 250,
+  "/expert-network": 250,
   "/pricing": 250,
   "/about": 250,
   "/contact": 350,
 };
 
 /** The routes whose module scripts must carry no zod (the contact form keeps its resolver). */
-export const ZOD_FREE_ROUTES: readonly MarketingRoute[] = ["/", "/pricing", "/about"];
+export const ZOD_FREE_ROUTES: readonly MarketingRoute[] = [
+  "/",
+  "/how-it-works",
+  "/expert-network",
+  "/pricing",
+  "/about",
+];
 
 /** A string literal minification keeps: the browser tracing integration's name. */
 export const SENTRY_MARKER = "BrowserTracing";
@@ -51,10 +65,14 @@ export const ZOD_MARKER = "$ZodError";
 /** The eight pages, listed literally (`routing.locales` times `MARKETING_ROUTES`, equality tested). */
 export const PAGES: readonly BudgetPage[] = [
   { locale: "de-CH", route: "/" },
+  { locale: "de-CH", route: "/how-it-works" },
+  { locale: "de-CH", route: "/expert-network" },
   { locale: "de-CH", route: "/pricing" },
   { locale: "de-CH", route: "/about" },
   { locale: "de-CH", route: "/contact" },
   { locale: "en-CH", route: "/" },
+  { locale: "en-CH", route: "/how-it-works" },
+  { locale: "en-CH", route: "/expert-network" },
   { locale: "en-CH", route: "/pricing" },
   { locale: "en-CH", route: "/about" },
   { locale: "en-CH", route: "/contact" },

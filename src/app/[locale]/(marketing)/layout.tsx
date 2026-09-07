@@ -38,9 +38,9 @@ export default async function MarketingLayout({ children, params }: LayoutProps<
       <SkipLink />
       <MarketingHeader
         links={[
+          { href: "/how-it-works", label: t("howItWorks") },
+          { href: "/expert-network", label: t("expertNetwork") },
           { href: "/pricing", label: t("pricing") },
-          { href: "/about", label: t("about") },
-          { href: "/contact", label: t("contact") },
         ]}
       />
       <main id="main" tabIndex={-1} className="outline-none">
