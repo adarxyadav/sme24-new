@@ -2010,7 +2010,6 @@
       "bank_transfer": "Rechnung"
     },
     "markPaid": "Als bezahlt markieren",
-    "markPaidConfirm": "Zahlungseingang für {reference} bestätigen?",
     "cancel": "Stornieren",
     "cancelReason": "Grund der Stornierung",
     "cancelDescription": "Bestellung {reference} stornieren? Geben Sie unten den Grund der Stornierung an.",

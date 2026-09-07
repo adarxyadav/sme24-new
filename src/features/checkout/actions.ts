@@ -49,6 +49,11 @@ type Actor = {
   readonly supabase: Client;
   readonly userId: string;
   readonly organizationId: string;
+  /**
+   * The RLS bypassing client, minted only after this actor was authorized, the same way
+   * `requireOps` in `ops-actions.ts` mints its own. Lazy, so the plain paths never construct one.
+   */
+  readonly service: () => Client;
 };
 
 /** A signed in client with an organization claim; authorization lives here, not only in the proxy. */
@@ -60,7 +65,11 @@ async function requireClient(): Promise<Actor | null> {
   if (roleFromClaims(claims) !== "client" || typeof claims?.sub !== "string" || !organizationId) {
     return null;
   }
-  return { supabase, userId: claims.sub, organizationId };
+  const service = () => {
+    const env = serverEnv();
+    return createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
+  };
+  return { supabase, userId: claims.sub, organizationId, service };
 }
 
 function localeOf(input: unknown): Locale {
@@ -261,9 +270,8 @@ export async function startCheckout(
   try {
     // App roles cannot update orders. This server-only write is scoped to the order just
     // inserted under the buyer's RLS policies, never an order id supplied by the caller.
-    const env = serverEnv();
-    const service = createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
-    const { error: updateError } = await service
+    const { error: updateError } = await actor
+      .service()
       .from("orders")
       .update({ stripe_checkout_session_id: session.id })
       .eq("id", order.id)

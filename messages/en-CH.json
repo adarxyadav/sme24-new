@@ -2010,7 +2010,6 @@
       "bank_transfer": "Invoice"
     },
     "markPaid": "Mark as paid",
-    "markPaidConfirm": "Confirm the payment for {reference} arrived?",
     "cancel": "Cancel",
     "cancelReason": "Reason for cancelling",
     "cancelDescription": "Cancel order {reference}? Enter the reason for cancelling below.",
