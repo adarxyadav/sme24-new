@@ -417,4 +417,10 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
     expect(broken.blocks).toBeNull();
     expect(broken.error).toContain("gaps");
   });
+
+  it("keeps parsing a stored version 1 row under its literal key (spec 0012, AC-12)", () => {
+    const v1 = parseSnapshotBlocks({ model_version: "benchmark-model@1", ...valid });
+    expect(v1.error).toBeNull();
+    expect(v1.blocks).not.toBeNull();
+  });
 });

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { KPI_KEYS } from "@/features/research/catalogue";
-import { ASSUMPTION_KEYS, MODEL_VERSION, SIZE_BANDS } from "./catalogue";
+import { ASSUMPTION_KEYS, SIZE_BANDS } from "./catalogue";
 
 /**
  * The snapshot block schemas (spec 0008, AC-4, AC-9): what `benchmark_snapshots.inputs`,
@@ -122,9 +122,12 @@ export type SnapshotScalars = {
 /** What `computeBenchmark` returns and the task stores. */
 export type SnapshotBody = SnapshotBlocks & SnapshotScalars;
 
-/** The block schema per model version; a version missing here is unreadable by design. */
+/**
+ * The block schema per model version, under literal keys so a bump to `MODEL_VERSION` adds an
+ * entry instead of renaming the only one. A version missing here is unreadable by design.
+ */
 export const SNAPSHOT_SCHEMAS: Readonly<Record<string, z.ZodType<SnapshotBlocks>>> = {
-  [MODEL_VERSION]: snapshotBlocksV1Schema,
+  "benchmark-model@1": snapshotBlocksV1Schema,
 };
 
 export type SnapshotRowLike = {
