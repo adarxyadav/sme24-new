@@ -5,10 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LOCALE_CODE, type Locale, resolveLocale } from "@/i18n/routing";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
+import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { stripe, stripeConfigured } from "@/lib/stripe/client";
 import { createActionClient } from "@/lib/supabase/action";
 import type { Database } from "@/lib/supabase/database.types";
+import { createServiceClient } from "@/lib/supabase/service";
 import { parseWith } from "@/lib/validation";
 import { classifyOrderInsertError } from "./errors";
 import { computeAmounts } from "./money";
@@ -256,15 +258,28 @@ export async function startCheckout(
     return { ok: false, error: "stripe_unavailable" };
   }
 
-  const { error: updateError } = await actor.supabase
-    .from("orders")
-    .update({ stripe_checkout_session_id: session.id } as never)
-    .eq("id", order.id);
-  if (updateError) {
-    // The session exists and the buyer can still pay; the webhook finds the order by its
-    // client_reference_id, so the missing id is a reconciliation problem, not a lost payment.
-    Sentry.captureException(updateError);
-    log.error("checkout: could not store the stripe session id", { orderId: order.id });
+  try {
+    // App roles cannot update orders. This server-only write is scoped to the order just
+    // inserted under the buyer's RLS policies, never an order id supplied by the caller.
+    const env = serverEnv();
+    const service = createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
+    const { error: updateError } = await service
+      .from("orders")
+      .update({ stripe_checkout_session_id: session.id })
+      .eq("id", order.id)
+      .eq("organization_id", actor.organizationId)
+      .select("id")
+      .single();
+    if (updateError) throw updateError;
+  } catch (error) {
+    // Never hand out a payable URL until persistence is confirmed: the sweep treats a null
+    // session id as an unstarted checkout. A zero-row update must fail here too.
+    Sentry.captureException(error);
+    log.error("checkout: could not store the stripe session id", {
+      orderId: order.id,
+      sessionId: session.id,
+    });
+    return { ok: false, error: "unexpected" };
   }
 
   if (!session.url) {

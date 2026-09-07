@@ -2013,6 +2013,7 @@
     "markPaidConfirm": "Confirm the payment for {reference} arrived?",
     "cancel": "Cancel",
     "cancelReason": "Reason for cancelling",
+    "cancelDescription": "Cancel order {reference}? Enter the reason for cancelling below.",
     "cancelConfirm": "Cancel the order",
     "retryRender": "Create the invoice again",
     "invoicePending": "In progress",

@@ -89,7 +89,7 @@ export function OrderActions({
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("cancelConfirm")}</DialogTitle>
-                <DialogDescription>{t("markPaidConfirm", { reference })}</DialogDescription>
+                <DialogDescription>{t("cancelDescription", { reference })}</DialogDescription>
               </DialogHeader>
               <Field>
                 <FieldLabel htmlFor={`reason-${orderId}`}>{t("cancelReason")}</FieldLabel>
