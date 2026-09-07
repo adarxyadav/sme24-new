@@ -483,57 +483,26 @@ GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE ON TABLE "pu
 
 REVOKE ALL ON TABLE "public"."expert_profiles" FROM "anon";
 
-REVOKE ALL ("availability_note") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("availability_note") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("availability") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("availability") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("available_from") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("available_from") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("bio") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("bio") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("competencies") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("competencies") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("headline") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("headline") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("industries") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("industries") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("languages") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("languages") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("phone") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("phone") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("regions") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("regions") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("standards") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("standards") ON TABLE "public"."expert_profiles" TO "authenticated";
-
-REVOKE ALL ("years_experience") ON TABLE "public"."expert_profiles" FROM "authenticated";
-
-GRANT UPDATE ("years_experience") ON TABLE "public"."expert_profiles" TO "authenticated";
-
 REVOKE ALL ON TABLE "public"."expert_profiles" FROM "authenticated";
 
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER ON TABLE "public"."expert_profiles" TO "authenticated";
+
+-- Re added by hand, and deliberately after the table level REVOKE ALL above: the generated
+-- diff emits these column grants before that revoke, which drops every one of them again and
+-- leaves the expert unable to edit their own profile (AGENTS.md, the first of the three things
+-- the diff misses). Ops and the expert share this grant; the policies are what separate them.
+GRANT UPDATE ("availability") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("availability_note") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("available_from") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("bio") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("competencies") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("headline") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("industries") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("languages") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("phone") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("regions") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("standards") ON TABLE "public"."expert_profiles" TO "authenticated";
+GRANT UPDATE ("years_experience") ON TABLE "public"."expert_profiles" TO "authenticated";
 
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE ON TABLE "public"."expert_profiles" TO "postgres";
 
