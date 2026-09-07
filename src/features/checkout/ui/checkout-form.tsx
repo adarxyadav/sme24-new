@@ -17,7 +17,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { type CheckoutResult, type StartCheckoutData, startCheckout } from "../actions";
+import { useRouter } from "@/i18n/navigation";
+import {
+  type CheckoutResult,
+  type RequestInvoiceData,
+  requestInvoice,
+  type StartCheckoutData,
+  startCheckout,
+} from "../actions";
 import { computeAmounts } from "../money";
 import { billingAddressSchema } from "../schema";
 
@@ -71,13 +78,19 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
   const t = useTranslations("checkout");
   const tv = useTranslations("checkout.validation");
   const locale = useLocale();
+  const router = useRouter();
 
   const [packageKey, setPackageKey] = useState(() => initialPackageKey ?? packages[0]?.key ?? "");
   const [companyId, setCompanyId] = useState(() => companies[0]?.id ?? "");
+  const [method, setMethod] = useState<"card" | "bank_transfer">("card");
   const [state, action, pending] = useActionState<
     CheckoutResult<StartCheckoutData> | null,
     unknown
   >(startCheckout, null);
+  const [invoiceState, invoiceAction, invoicePending] = useActionState<
+    CheckoutResult<RequestInvoiceData> | null,
+    unknown
+  >(requestInvoice, null);
 
   const chosen = packages.find((entry) => entry.key === packageKey) ?? packages[0];
   const prefill = companies.find((entry) => entry.id === companyId);
@@ -106,7 +119,9 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
     [chosen],
   );
 
-  const error = state && !state.ok ? state.error : null;
+  const error =
+    state && !state.ok ? state.error : invoiceState && !invoiceState.ok ? invoiceState.error : null;
+  const busy = pending || invoicePending;
 
   // Stripe Checkout is a hosted page on Stripe's own domain, so the browser leaves the app here.
   // A full assignment rather than the router: this is not an app route.
@@ -114,12 +129,24 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
     if (state?.ok) window.location.assign(state.data.checkoutUrl);
   }, [state]);
 
+  // The bank transfer path stays inside the app: the order and its invoice already exist, so the
+  // buyer goes straight to the order page to download the QR bill.
+  useEffect(() => {
+    if (invoiceState?.ok) {
+      router.push({ pathname: "/app/orders/[id]", params: { id: invoiceState.data.orderId } });
+    }
+  }, [invoiceState, router]);
+
   return (
     <form
       className="flex flex-col gap-8"
       onSubmit={handleSubmit((values) => {
+        const payload = { ...values, packageKey, companyId, locale };
         startTransition(() => {
-          action({ ...values, packageKey, companyId, locale });
+          // The two paths share every input and differ only in which action takes it: the card
+          // path opens Stripe, the transfer path issues the invoice and stays in the app.
+          if (method === "card") action(payload);
+          else invoiceAction(payload);
         });
       })}
       noValidate
@@ -268,12 +295,44 @@ export function CheckoutForm({ companies, packages, initialPackageKey }: Checkou
         </section>
       ) : null}
 
-      <div className="flex flex-col gap-4">
-        <Button type="submit" size="lg" disabled={pending || !chosen}>
-          <CreditCardIcon data-icon="inline-start" aria-hidden="true" />
-          {pending ? t("submitting") : t("submitCard")}
+      <fieldset className="flex flex-col gap-4">
+        <legend className="text-lg font-semibold">{t("paymentLegend")}</legend>
+        <RadioGroup
+          value={method}
+          onValueChange={(value) => setMethod(value as "card" | "bank_transfer")}
+          className="grid gap-px border bg-border sm:grid-cols-2"
+        >
+          {(
+            [
+              ["card", "methodCard", "methodCardHint", CreditCardIcon],
+              ["bank_transfer", "methodInvoice", "methodInvoiceHint", FileTextIcon],
+            ] as const
+          ).map(([value, label, hint, Icon]) => (
+            <label
+              key={value}
+              htmlFor={`method-${value}`}
+              className="flex cursor-pointer flex-col gap-2 bg-card p-6 has-[:checked]:bg-accent"
+            >
+              <span className="flex items-center gap-2">
+                <RadioGroupItem value={value} id={`method-${value}`} />
+                <Icon className="size-4" aria-hidden="true" />
+                <span className="text-base font-semibold">{t(label)}</span>
+              </span>
+              <span className="text-sm text-muted-foreground">{t(hint)}</span>
+            </label>
+          ))}
+        </RadioGroup>
+      </fieldset>
+
+      <div>
+        <Button type="submit" size="lg" disabled={busy || !chosen}>
+          {method === "card" ? (
+            <CreditCardIcon data-icon="inline-start" aria-hidden="true" />
+          ) : (
+            <FileTextIcon data-icon="inline-start" aria-hidden="true" />
+          )}
+          {busy ? t("submitting") : method === "card" ? t("submitCard") : t("submitInvoice")}
         </Button>
-        <p className="text-xs text-muted-foreground">{t("methodCardHint")}</p>
       </div>
     </form>
   );

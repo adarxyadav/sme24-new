@@ -113,7 +113,7 @@ export const confirmOrderTask = schemaTask({
 
     // Steps 3 and 4 are keyed on the order, so a retry after a crash sends one email and raises
     // one alert however many times this task runs.
-    await sendConfirmation(supabase, order, settled.data.invoiceNumber);
+    await sendConfirmation(order, settled.data.invoiceNumber);
     await raiseAlertFromTask({
       kind: "payment.received",
       idempotencyKey: `payment-received/${orderId}`,
@@ -146,11 +146,7 @@ async function organizationName(supabase: Service, organizationId: string): Prom
 }
 
 /** Sends the confirmation to the buyer, keyed on the order so a retry sends one email. */
-async function sendConfirmation(
-  supabase: Service,
-  order: OrderRow,
-  invoiceNumber: string,
-): Promise<void> {
+async function sendConfirmation(order: OrderRow, invoiceNumber: string): Promise<void> {
   if (!order.created_by) {
     logger.warn("confirm order: the order has no buyer to email", { orderId: order.id });
     return;

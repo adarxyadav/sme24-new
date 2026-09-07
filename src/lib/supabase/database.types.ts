@@ -1321,6 +1321,21 @@ export type Database = {
       }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      issue_invoice: {
+        Args: {
+          due_days?: number
+          order_id: string
+          seller_address: string
+          seller_iban: string
+          seller_name: string
+          seller_uid: string
+        }
+        Returns: {
+          invoice_id: string
+          invoice_number: string
+          qr_reference: string
+        }[]
+      }
       next_order_reference: { Args: never; Returns: string }
       scor_reference: { Args: { body: string }; Returns: string }
       settle_order: {

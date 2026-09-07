@@ -1,6 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, tasks } from "@trigger.dev/sdk";
-import type Stripe from "stripe";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import type { Database } from "@/lib/supabase/database.types";

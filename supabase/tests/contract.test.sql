@@ -130,7 +130,7 @@ select is_empty(
   'audit_log has no foreign key, so the trail outlives the user and the organization');
 
 -- Functions ------------------------------------------------------------------------------
--- Security definer stays inside private, plus the six public entry points that need it:
+-- Security definer stays inside private, plus the seven public entry points that need it:
 -- create_organization (the only insert path for organizations), add_organization_member (the only
 -- member facing insert path for memberships, which has to read the target's profile to check they
 -- consented) and handle_new_user (the auth trigger from spec 0001 that writes profiles as
@@ -139,12 +139,14 @@ select is_empty(
 -- settlement, which writes orders and invoices, and no app role may write either; execute is
 -- revoked from anon and authenticated, so only the service role reaches it) and
 -- next_order_reference (spec 0011: the order reference sequence is not granted to the app roles,
--- and a burnt reference costs nothing, unlike an invoice number, so clients may draw one).
+-- and a burnt reference costs nothing, unlike an invoice number, so clients may draw one) and
+-- issue_invoice (spec 0011: the bank transfer path's invoice, drawn in the same small transaction;
+-- service role only, like settle_order).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name), ('next_order_reference'::name), ('settle_order'::name) $$,
-  'the only security definer functions in public are the six recorded entry points');
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('create_organization'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('settle_order'::name) $$,
+  'the only security definer functions in public are the seven recorded entry points');
 -- settle_order writes money rows, so its execute grant is checked explicitly: the service role
 -- only. Supabase's default privileges grant execute to anon and authenticated on every new public
 -- function, and the declarative diff's REVOKE ... FROM PUBLIC does not remove those direct grants,
@@ -154,9 +156,9 @@ select is_empty(
      join pg_namespace n on n.oid = p.pronamespace
      cross join lateral aclexplode(p.proacl) a
      join pg_roles r on r.oid = a.grantee
-     where n.nspname = 'public' and p.proname in ('settle_order', 'scor_reference')
+     where n.nspname = 'public' and p.proname in ('settle_order', 'scor_reference', 'issue_invoice')
        and a.privilege_type = 'EXECUTE' and r.rolname in ('anon', 'authenticated') $$,
-  'no app role may execute settle_order or scor_reference');
+  'no app role may execute settle_order, scor_reference or issue_invoice');
 select is_empty(
   $$ select r.rolname from pg_proc p
      join pg_namespace n on n.oid = p.pronamespace

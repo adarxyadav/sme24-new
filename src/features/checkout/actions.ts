@@ -12,7 +12,6 @@ import type { Database } from "@/lib/supabase/database.types";
 import { parseWith } from "@/lib/validation";
 import { classifyOrderInsertError } from "./errors";
 import { computeAmounts } from "./money";
-import { orderReference } from "./reference";
 import { checkoutSchema } from "./schema";
 
 /**
@@ -272,4 +271,72 @@ export async function startCheckout(
     ok: true,
     data: { checkoutUrl: session.url, orderId: order.id, reference: order.reference },
   };
+}
+
+export type RequestInvoiceData = { orderId: string; reference: string };
+
+/**
+ * Buys a package by bank transfer (AC-8, AC-19). Same validation and freezing as `startCheckout`,
+ * but the invoice is issued **at creation** rather than at payment: the buyer needs the document
+ * with its QR bill before they can pay it. So the order is `pending` with an invoice, which is
+ * simply an unpaid invoice (invariant 11), and ops mark it paid when the money lands.
+ *
+ * Server action, client member of the organization.
+ */
+export async function requestInvoice(
+  _previous: CheckoutResult<RequestInvoiceData> | null,
+  input: unknown,
+): Promise<CheckoutResult<RequestInvoiceData>> {
+  const locale = localeOf(input) ?? (await getLocale());
+  const actor = await requireClient();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(checkoutSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "invalid_billing_address" };
+
+  const prepared = await prepareOrder(actor, parsed.data, locale, "bank_transfer");
+  if (!prepared.ok) return prepared;
+
+  const { data: order, error: insertError } = await actor.supabase
+    .from("orders")
+    .insert(prepared.data as never)
+    .select("id, reference")
+    .single();
+  if (insertError || !order) {
+    const classified = classifyOrderInsertError(insertError);
+    log.error("request invoice: order insert failed", { error: classified });
+    if (classified === "forbidden") return { ok: false, error: "forbidden" };
+    return { ok: false, error: "unexpected" };
+  }
+
+  await actor.supabase.from("order_events").insert({
+    organization_id: actor.organizationId,
+    order_id: order.id,
+    to_status: "pending",
+    actor_id: actor.userId,
+    actor_role: "client",
+  });
+
+  // Issuing the invoice and rendering it needs the service role, so it runs in a task: the client
+  // may not write an invoice row (AC-12), and the number must be drawn in the small transaction.
+  const { error: issueError } = await issueInvoiceForTransfer(order.id);
+  if (issueError) {
+    // The order exists and ops can still issue the invoice by hand; the client sees the order.
+    Sentry.captureException(issueError);
+    log.error("request invoice: the invoice could not be issued", { orderId: order.id });
+  }
+
+  log.info("invoice requested", { orderId: order.id, reference: order.reference });
+  return { ok: true, data: { orderId: order.id, reference: order.reference } };
+}
+
+/** Enqueues the task that issues and renders a bank transfer invoice. Server action helper. */
+async function issueInvoiceForTransfer(orderId: string): Promise<{ error: unknown }> {
+  try {
+    const { issueInvoiceTask } = await import("@/trigger/issue-invoice");
+    await issueInvoiceTask.trigger({ orderId }, { idempotencyKey: `invoice-issue/${orderId}` });
+    return { error: null };
+  } catch (error) {
+    return { error };
+  }
 }
