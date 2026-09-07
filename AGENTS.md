@@ -78,7 +78,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title/index.md` (decision and 
 Chosen by `/audit` on 2026-09-03; `/develop tooling` installs what is not yet there.
 - Lint and format: Biome (installed, `biome.json`). ESLint jsx-a11y declined; Biome plus axe instead.
 - Pre-commit: **lefthook** (installed, `lefthook.yml`) running Biome check on staged files plus `pnpm typecheck` on every commit, and a conventional commit message check.
-- Tests: Vitest with Testing Library, Playwright with axe (both installed).
+- Tests: Vitest with Testing Library, Playwright with axe (both installed). `axe-core` is a dev dependency too, so a Vitest test can run axe over a rendered state the e2e specs never walk (`tests/features/benchmark/ui/benchmark-segment.test.tsx`).
 - CI: GitHub Actions (installed): `ci.yml` check and database jobs (database starts the local stack, runs pgTAP, then compares the generated types), `deploy.yml` migrate then tasks, `e2e.yml` on every Vercel deployment. Branch protection on `main` and `production` requiring `check` and `database` is still to set.
 
 ## Git
