@@ -163,6 +163,8 @@ export default async function AppPage() {
             state={dashboard.benchmarkState}
             catalogue={dashboard.catalogue}
             assumptions={dashboard.benchmarkAssumptions}
+            industryHasPeers={dashboard.industryHasPeers}
+            snapshotPeers={dashboard.benchmarkPeers}
             company={{
               id: company.id,
               industryCode: company.industry_code,

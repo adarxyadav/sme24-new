@@ -7,6 +7,11 @@ import {
   loadLatestSnapshot,
   type ParsedSnapshot,
 } from "@/features/benchmark/queries";
+import {
+  countApprovedPeers,
+  loadSnapshotPeers,
+  type SnapshotPeerCompany,
+} from "@/features/peers/queries";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 import { queryError } from "@/lib/supabase/query-error";
 import { isKpiKey, type KpiKey, RUN_LIMIT_PER_DAY, YEARS_PER_RUN } from "./catalogue";
@@ -56,6 +61,10 @@ export type CompanyDashboard = {
   readonly benchmarkState: BenchmarkState;
   /** The assumption rows (labels and notes) the disclosure names by key (spec 0008, AC-10). */
   readonly benchmarkAssumptions: readonly AssumptionRow[];
+  /** The named peers the snapshot compared against, for the disclosure (spec 0012, AC-13). */
+  readonly benchmarkPeers: readonly SnapshotPeerCompany[];
+  /** True when the snapshot's section and band holds an approved named peer (spec 0012, AC-9's note). */
+  readonly industryHasPeers: boolean;
   /** Every current row of the company, narrowed and ordered by KPI then year descending (spec 0010, AC-10). */
   readonly kpiRows: readonly KpiRow[];
   /** The newest `updated_at` among the client rows (spec 0010, AC-10, AC-13), `null` without one. */
@@ -144,6 +153,8 @@ export async function getCompanyDashboard(
       benchmark: null,
       benchmarkState: "unavailable",
       benchmarkAssumptions: [],
+      benchmarkPeers: [],
+      industryHasPeers: false,
       kpiRows: [],
       clientKpiUpdatedAt: null,
     };
@@ -154,7 +165,17 @@ export async function getCompanyDashboard(
     loadCurrentKpis(supabase, company.id),
     loadLatestSnapshot(supabase, company.id),
   ]);
-  const benchmarkAssumptions = benchmark ? await loadAssumptionRows(supabase) : [];
+  const [benchmarkAssumptions, benchmarkPeers, approvedPeers] = await Promise.all([
+    benchmark ? loadAssumptionRows(supabase) : [],
+    loadSnapshotPeers(supabase, benchmark ? peersUsed(benchmark) : []),
+    benchmark
+      ? countApprovedPeers(
+          supabase,
+          benchmark.blocks.inputs.section,
+          benchmark.blocks.inputs.sizeBand,
+        )
+      : 0,
+  ]);
   const years = newestYears(currentRows);
   const rows = currentRows.filter(
     (row) => row.period_year !== null && years.includes(row.period_year),
@@ -183,9 +204,22 @@ export async function getCompanyDashboard(
     benchmark,
     benchmarkState,
     benchmarkAssumptions,
+    benchmarkPeers,
+    industryHasPeers: approvedPeers > 0,
     kpiRows,
     clientKpiUpdatedAt,
   };
+}
+
+/** The peer labels and KPI row ids a snapshot's peer sets hold (spec 0012, AC-13, AC-16). Pure. */
+export function peersUsed(
+  snapshot: ParsedSnapshot,
+): ReadonlyArray<{ readonly label: string; readonly kpiRowId: string }> {
+  return snapshot.blocks.results.flatMap(
+    (result) =>
+      result.peerSet?.values.map((entry) => ({ label: entry.label, kpiRowId: entry.kpiRowId })) ??
+      [],
+  );
 }
 
 async function loadCompany(supabase: Client, organizationId: string): Promise<Company | null> {

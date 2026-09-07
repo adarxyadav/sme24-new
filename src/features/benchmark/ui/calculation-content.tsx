@@ -2,6 +2,7 @@ import { ExternalLinkIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
+import type { SnapshotPeerCompany } from "@/features/peers/queries";
 import { KPI_CATALOGUE } from "@/features/research/catalogue";
 import type { KpiDefinitionRow } from "@/features/research/queries";
 import { localizedText } from "@/features/research/ui/kpi-table";
@@ -13,20 +14,25 @@ export type CalculationContentProps = {
   readonly catalogue: readonly KpiDefinitionRow[];
   readonly assumptions: readonly AssumptionRow[];
   readonly locale: LocaleCode;
+  /** The named peers the snapshot compared against, resolved from its stored row ids (spec 0012, AC-13). */
+  readonly peers?: readonly SnapshotPeerCompany[];
 };
 
 /**
- * The body of "How this is calculated" (spec 0008, AC-10): the formula in words, every
- * assumption the snapshot used with its value, unit, source and provisional mark, the fixed FTE
- * line, and the inputs used (per KPI the value, year, source kind, peer rung and year; the
- * headcount; the section and band). Everything is read from the snapshot's blocks; the labels
- * come from `benchmark_assumptions.label` and `kpi_definitions.name`. Server component.
+ * The body of "How this is calculated" (spec 0008, AC-10; spec 0012, AC-13): the formula in
+ * words, every assumption the snapshot used with its value, unit, source and provisional mark,
+ * the fixed FTE line, the inputs used (per KPI the value, year, source kind, peer rung and year;
+ * the headcount; the section and band), and the named peers the snapshot compared against by
+ * legal name with their sources and research dates. Everything is read from the snapshot's
+ * blocks and the rows they point at; the labels come from `benchmark_assumptions.label` and
+ * `kpi_definitions.name`. Server component.
  */
 export async function CalculationContent({
   snapshot,
   catalogue,
   assumptions,
   locale,
+  peers = [],
 }: CalculationContentProps) {
   const t = await getTranslations("benchmark");
   const research = await getTranslations("research.table");
@@ -157,6 +163,82 @@ export async function CalculationContent({
           })}
         </ul>
       </section>
+
+      {peers.length > 0 ? (
+        <section className="flex flex-col gap-2" data-peers-compared={peers.length}>
+          <h4 className="font-semibold">{t("peerSet.disclosure.title")}</h4>
+          <p className="max-w-prose text-muted-foreground">{t("peerSet.disclosure.intro")}</p>
+          <ul className="flex flex-col gap-2">
+            {peers.map((entry) => (
+              <li
+                key={entry.label}
+                className="flex flex-col gap-1 rounded-md border px-3 py-2"
+                data-peer-label={entry.label}
+                data-peer-resolved={entry.resolved}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{entry.label}</span>
+                  {entry.resolved ? (
+                    <span>
+                      {entry.website ? (
+                        <a
+                          href={entry.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          // WCAG 2.2 target size: the link needs 24px of height and clear space.
+                          className="inline-flex min-h-6 items-center gap-1 py-0.5 underline underline-offset-2"
+                        >
+                          {entry.name}
+                          <ExternalLinkIcon className="size-3" aria-hidden="true" />
+                        </a>
+                      ) : (
+                        entry.name
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">{t("peerSet.disclosure.retired")}</span>
+                  )}
+                  {entry.resolved ? (
+                    <span className="text-muted-foreground text-xs">
+                      {entry.researchedAt
+                        ? t("peerSet.disclosure.researched", {
+                            date: format.dateTime(new Date(entry.researchedAt), "dateShort"),
+                          })
+                        : t("peerSet.disclosure.notResearched")}
+                    </span>
+                  ) : null}
+                </div>
+                {entry.resolved ? (
+                  entry.sources.length > 0 ? (
+                    <ul className="flex flex-col gap-1 text-muted-foreground text-xs">
+                      {entry.sources.map((source) => (
+                        <li key={source.url}>
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            // WCAG 2.2 target size: 24px of height, and the column keeps them apart.
+                            className="inline-flex min-h-6 items-center py-0.5 underline underline-offset-2"
+                          >
+                            {source.title || source.url}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">
+                      {t("peerSet.disclosure.noSources")}
+                    </span>
+                  )
+                ) : null}
+              </li>
+            ))}
+          </ul>
+          <p className="max-w-prose text-muted-foreground text-xs">
+            {t("peerSet.disclosure.anonymousNote")}
+          </p>
+        </section>
+      ) : null}
     </div>
   );
 }

@@ -246,7 +246,11 @@ select throws_ok(
 select pg_temp.as_postgres();
 
 -- The research run sync (AC-4, AC-14) --------------------------------------------------------
+-- The quota section above filled the house organization's 24 hour window, and the quota trigger
+-- would now refuse every insert below. Age those runs out so the sync assertions can write.
 select pg_temp.as_postgres();
+update public.research_runs set created_at = now() - interval '25 hours'
+  where organization_id = '99999999-9999-4999-8999-999999999999';
 insert into public.research_runs (id, organization_id, company_id, status) values
   ('0d100000-0000-4000-8000-000000000001', '99999999-9999-4999-8999-999999999999', '0f000000-0000-4000-8000-000000000002', 'queued');
 select pg_temp.as_service_role();

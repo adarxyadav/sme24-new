@@ -1,6 +1,6 @@
 # Peer benchmark and CHF opportunity
 
-The runbook for feature 9 (spec [0008](specs/0008-peer-benchmark-chf-opportunity/index.md)): how the benchmark is computed, what a snapshot holds, how the peer seed is curated and generated, how to recompute every company, and the gate production must pass. Nothing here calls a model. The benchmark is arithmetic over stored rows.
+The runbook for feature 9 (spec [0008](specs/0008-peer-benchmark-chf-opportunity/index.md)) and feature 27 (spec [0012](specs/0012-named-peer-comparison/index.md)): how the benchmark is computed, what a snapshot holds, how the peer seed is curated and generated, how the named peers are proposed, approved and refreshed, how to recompute every company, and the gate production must pass. The benchmark arithmetic itself calls no model: it is arithmetic over stored rows, and a test enforces that.
 
 ## The model in words
 
@@ -86,6 +86,30 @@ Every value in the first seed carries `provisional = true`, was read on 2026-09-
 
 The two multiplier rows and the absence day cost are the weakest rows of the seed: their sources are secondary citations, not the EU OSHA or ILO tables the spec names. They exist so the cost model runs end to end; the owner replaces them.
 
+## Named peers (spec 0012)
+
+Beside the statistics band, a client is compared against about ten real Swiss companies of their own NOGA section and size band. Those peers are ordinary companies inside one ops owned house organization (`SME24 peer research`, a fixed id seeded by the `peer_companies` migration, no members by design), researched by the same pipeline as a client company. Their KPI values are ordinary `company_kpis` rows with `source 'research'`.
+
+**Where a model call is allowed.** Two places only, both outside the arithmetic: proposing candidate names (`peer-proposal@1`), and the existing research extraction. `computeBenchmark` stays pure, and `tests/features/benchmark/boundary.test.ts` fails if anything under `src/features/benchmark/` imports `src/lib/ai/`.
+
+**The ops loop** lives on `/admin/peers`:
+
+1. **Propose.** Pick a section and band, ask the model for candidates. Each comes back with a one line reason and is stored as `proposed` with the model and prompt version recorded. Nothing is researched and nothing is spent yet. A set that already holds ten approved peers refuses the proposal.
+2. **Approve or reject.** Approving goes through `public.approve_peer_company`, which takes an advisory lock on the section and band, refuses beyond ten, and assigns the next free label `Peer A` to `Peer J`. A rejected candidate keeps its row so the model does not propose the name again.
+3. **Research.** Select approved peers and confirm; the dialog names them and the number of runs, because each run costs money. The action re reads every peer, skips one that is no longer approved or already has an open run, and reports each skip with its reason.
+4. **Refresh.** The daily `refresh-peer-companies` schedule (03:30) picks up approved peers researched more than twelve months ago, at most ten per run. A peer whose refresh failed three times in a row is flagged on the screen, skipped by the schedule and raised once to Slack as `peers.refresh_flagged`; ops rerun or retire it.
+5. **Retire.** A peer that stopped publishing drops out of every set and frees its label. Its KPI rows stay, so an old snapshot is still explainable.
+
+**What the client sees.** A KPI gets a peer set only when at least five approved peers hold a value for it in the same section and band; `iso_45001_certified` never gets one, because a percentile over a yes or no value means nothing. Below five, the KPI shows the industry band as before plus a quiet note. The dot strip shades the statistics p25 to p75 behind one dot per peer with the client as a larger marker, and its axis spans the peers, the band and the client so an outlier is never clipped; a visually hidden table carries the same values. The percentile is `100 × (worse + 0.5 × equal) ÷ n` in the KPI's direction. The disclosure names the peers the snapshot actually used, resolved from the KPI row ids it stored, so the chart and the panel cannot disagree after a peer is retired.
+
+**What peers never change.** Every ranking, position, gap, quartile and CHF figure still comes from the `benchmarks` statistics rows and the assumptions. Adding or removing peers moves no CHF figure and no gap rank; `tests/features/benchmark/peer-set.test.ts` asserts that field for field.
+
+**Versions.** `MODEL_VERSION` is `benchmark-model@2`; `SNAPSHOT_SCHEMAS` holds both versions, so every `@1` row stays readable and is never rewritten. A `@2` snapshot in an industry with no peers is field for field identical to a `@1` snapshot.
+
+**Guards worth knowing.** The house organization has a higher research quota (50 runs per 24 hours against the client 5), enforced both in `private.research_run_allowed` and by a trigger on insert, because peer runs are written through the service client and so bypass RLS. `organization_members` refuses any row naming the house organization. Two widened `select` policies let any signed in user read an approved peer's company and KPI rows; they resolve through `peer_companies`, whose `company_id` is unique and always a house company, so they can never expose a client row. `supabase/tests/peer_companies.test.sql` proves all of that under real tokens.
+
+**Filling an industry.** Start with the sections the pilot clients are actually in rather than alphabetically. Five approved peers with data is the point at which a client sees anything; ten is the cap. Watch what ten runs cost before filling a second industry.
+
 ## Recompute every company
 
 After a seed replacement or a model change on the same version, refresh the clients:
@@ -115,7 +139,7 @@ Two things to know when running the worker locally:
 
 ## Launch gate
 
-Production carries no provisional row. Before the promotion, replace the rows from the published tables, generate the seed migration, run `pnpm benchmarks:recompute` on staging, and confirm this returns zero rows on both:
+Production carries no provisional row. From spec 0012 the gate also grows a peer coverage line: how many sections and bands hold five or more approved peers with data fresher than twelve months. A client in an uncovered section correctly sees the statistics only dashboard, but that is a coverage fact ops should see before go live rather than after. Before the promotion, replace the rows from the published tables, generate the seed migration, run `pnpm benchmarks:recompute` on staging, and confirm this returns zero rows on both:
 
 ```sql
 select 'benchmarks' as t, count(*) from public.benchmarks where provisional

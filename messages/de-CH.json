@@ -1104,7 +1104,9 @@
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
       "card": "Potenzialkarte",
       "collapsible": "Aufklappbare Erklärung",
-      "confidenceMedium": "Mittel"
+      "confidenceMedium": "Mittel",
+      "peerStrip": "Peer-Punktleiste",
+      "peerStripCaption": "LTIFR: Ihr Wert 3.10 gegenüber 6 namentlich bekannten Peers, besser als 50% von ihnen."
     },
     "marketing": {
       "packages": "Paketkarte: Fixpreis und Preis auf Anfrage",
@@ -1699,6 +1701,35 @@
       "forbidden": "Sie sind dafür nicht angemeldet.",
       "not_found": "Dieses Unternehmen wurde nicht gefunden.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
+    },
+    "peerSet": {
+      "percentile": "Besser als {percentile} von {n} namentlich bekannten Peers in Ihrem Abschnitt und Ihrer Grössenklasse.",
+      "notEnough": "Für diese Kennzahl gibt es noch nicht genug Peer-Daten.",
+      "betterLower": "Tiefer ist besser",
+      "betterHigher": "Höher ist besser",
+      "legend": {
+        "band": "Branche p25 bis p75",
+        "peers": "Namentlich bekannte Peers",
+        "you": "Ihr Unternehmen"
+      },
+      "sr": {
+        "caption": "{kpi}: Ihr Wert {value} gegenüber {n} namentlich bekannten Peers, besser als {percentile} von ihnen.",
+        "captionBand": "Das Branchenband reicht von {p25} bis {p75}.",
+        "peer": "Peer",
+        "value": "Wert",
+        "you": "Ihr Unternehmen",
+        "band": "Branche p25 bis p75"
+      },
+      "disclosure": {
+        "title": "Verglichene Peers",
+        "intro": "Die Grafik zeigt diese Unternehmen als Peer A bis Peer J. Jeder Wert wurde am angegebenen Datum aus der genannten öffentlichen Quelle gelesen.",
+        "researched": "recherchiert am {date}",
+        "notResearched": "noch nicht recherchiert",
+        "retired": "nicht mehr in der Peer-Gruppe; der Wert bleibt wie verglichen",
+        "sources": "Quellen",
+        "noSources": "keine Quelle gespeichert",
+        "anonymousNote": "Peers sind in der Grafik anonym gekennzeichnet; die Namen stehen nur hier."
+      }
     }
   },
   "peers": {

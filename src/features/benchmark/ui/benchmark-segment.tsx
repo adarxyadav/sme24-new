@@ -3,12 +3,14 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PeerDotStrip } from "@/components/ui/peer-dot-strip";
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { BenchmarkState } from "@/features/benchmark/catalogue";
+import { type BenchmarkState, PEER_SET_EXCLUDED_KPIS } from "@/features/benchmark/catalogue";
 import { roundChf } from "@/features/benchmark/model";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
 import type { SnapshotGap, SnapshotPeer, SnapshotResult } from "@/features/benchmark/snapshot";
+import type { SnapshotPeerCompany } from "@/features/peers/queries";
 import {
   isKpiKey,
   KPI_CATALOGUE,
@@ -33,6 +35,10 @@ export type BenchmarkSegmentProps = {
   /** The company facts the form edits (AC-11). */
   readonly company: FactsFormProps["company"];
   readonly locale: LocaleCode;
+  /** True when the snapshot's section and band holds at least one approved named peer (spec 0012, AC-9's note). */
+  readonly industryHasPeers?: boolean;
+  /** The named peers the snapshot compared against, for the disclosure (spec 0012, AC-13). */
+  readonly snapshotPeers?: readonly SnapshotPeerCompany[];
 };
 
 type Formatter = Awaited<ReturnType<typeof getFormatter>>;
@@ -53,9 +59,11 @@ function formatQuartile(
 }
 
 /**
- * The benchmark segment of the dashboard (spec 0008, AC-9): the opportunity card, the priority
- * gaps and the per KPI positions read from the newest snapshot, or one of the three waiting
- * states. Server component.
+ * The benchmark segment of the dashboard (spec 0008, AC-9; spec 0012, AC-12, AC-13, AC-18): the
+ * opportunity card, the priority gaps and the per KPI positions read from the newest snapshot,
+ * each position with its named peer dot strip when the snapshot holds a peer set for the KPI,
+ * or one of the three waiting states. Without peers the segment renders exactly as before.
+ * Server component.
  */
 export async function BenchmarkSegment({
   snapshot,
@@ -64,6 +72,8 @@ export async function BenchmarkSegment({
   assumptions,
   company,
   locale,
+  industryHasPeers = false,
+  snapshotPeers = [],
 }: BenchmarkSegmentProps) {
   const t = await getTranslations("benchmark");
   const research = await getTranslations("research.table");
@@ -131,6 +141,7 @@ export async function BenchmarkSegment({
               catalogue={catalogue}
               assumptions={assumptions}
               locale={locale}
+              peers={snapshotPeers}
             />
             <section className="flex flex-col gap-2" data-correct-facts>
               <h4 className="font-semibold text-sm">{t("disclosure.correctTitle")}</h4>
@@ -155,6 +166,7 @@ export async function BenchmarkSegment({
             t={t}
             format={format}
             yesNo={yesNo}
+            industryHasPeers={industryHasPeers}
           />
         </>
       ) : null}
@@ -402,6 +414,8 @@ function peerLabel(peer: SnapshotPeer, t: Translator): string {
     : `${base}, ${t("positions.sample", { n: peer.sampleSize })}`;
 }
 
+type PositionProps = ValueProps & { readonly industryHasPeers: boolean };
+
 function PositionRow({
   definition,
   result,
@@ -411,7 +425,8 @@ function PositionRow({
   t,
   format,
   yesNo,
-}: ValueProps & {
+  industryHasPeers,
+}: PositionProps & {
   readonly definition: KpiDefinitionRow;
   readonly result: SnapshotResult | undefined;
 }) {
@@ -430,12 +445,17 @@ function PositionRow({
         }
       : null;
   const bandLabel = result?.position ? t(`positions.band.${result.position}`) : null;
+  const peerSet = result?.peerSet ?? null;
+  const direction = key ? KPI_CATALOGUE[key].direction : "lower_is_better";
+  const peerEligible = key !== null && !PEER_SET_EXCLUDED_KPIS.includes(key);
+  const formatValue = (n: number) => formatKpiValue(n, kind, format, yesNo);
 
   return (
     <li
       className="grid gap-2 rounded-lg border p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
       data-position-kpi={definition.key}
       data-position={result?.position ?? ""}
+      data-peer-set={peerSet?.n ?? ""}
     >
       <div className="flex flex-col gap-0.5">
         <span className="font-medium">{name}</span>
@@ -476,12 +496,71 @@ function PositionRow({
         ) : value !== null ? (
           <span className="text-muted-foreground text-sm">{t("positions.noPeer")}</span>
         ) : null}
+        {peerSet && input && value !== null ? (
+          <div className="flex flex-col gap-1 border-t pt-2" data-peer-strip={peerSet.n}>
+            <span className="text-sm" data-peer-percentile={peerSet.percentile}>
+              {t("peerSet.percentile", {
+                percentile: format.number(peerSet.percentile / 100, "percent"),
+                n: peerSet.n,
+              })}
+            </span>
+            <PeerDotStrip
+              peers={peerSet.values.map((entry) => ({
+                label: entry.label,
+                value: entry.value,
+                formatted: formatValue(entry.value),
+              }))}
+              client={{ label: t("peerSet.sr.you"), value: input.value, formatted: value }}
+              band={
+                peer && quartiles
+                  ? {
+                      p25: peer.p25,
+                      p75: peer.p75,
+                      p25Formatted: quartiles.p25,
+                      p75Formatted: quartiles.p75,
+                    }
+                  : null
+              }
+              direction={direction}
+              labels={{
+                caption: [
+                  t("peerSet.sr.caption", {
+                    kpi: name,
+                    value,
+                    n: peerSet.n,
+                    percentile: format.number(peerSet.percentile / 100, "percent"),
+                  }),
+                  peer && quartiles
+                    ? t("peerSet.sr.captionBand", { p25: quartiles.p25, p75: quartiles.p75 })
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" "),
+                peer: t("peerSet.sr.peer"),
+                value: t("peerSet.sr.value"),
+                you: t("peerSet.sr.you"),
+                band: t("peerSet.sr.band"),
+                better:
+                  direction === "lower_is_better"
+                    ? t("peerSet.betterLower")
+                    : t("peerSet.betterHigher"),
+                legendBand: t("peerSet.legend.band"),
+                legendPeers: t("peerSet.legend.peers"),
+                legendYou: t("peerSet.legend.you"),
+              }}
+            />
+          </div>
+        ) : industryHasPeers && peerEligible && value !== null ? (
+          <span className="text-muted-foreground text-xs" data-peer-note>
+            {t("peerSet.notEnough")}
+          </span>
+        ) : null}
       </div>
     </li>
   );
 }
 
-function PositionList(props: ValueProps) {
+function PositionList(props: PositionProps) {
   const { snapshot, catalogue, t } = props;
   return (
     <section aria-labelledby="positions-heading" className="flex flex-col gap-3">

@@ -1104,7 +1104,9 @@
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "card": "Opportunity card",
       "collapsible": "Collapsible disclosure",
-      "confidenceMedium": "Medium"
+      "confidenceMedium": "Medium",
+      "peerStrip": "Peer dot strip",
+      "peerStripCaption": "LTIFR: your value 3.10 against 6 named peers, better than 50% of them."
     },
     "marketing": {
       "packages": "Package card: fixed price and price on request",
@@ -1699,6 +1701,35 @@
       "forbidden": "You are not signed in for this.",
       "not_found": "This company was not found.",
       "unexpected": "Something went wrong. Please try again later."
+    },
+    "peerSet": {
+      "percentile": "Better than {percentile} of {n} named peers in your section and size band.",
+      "notEnough": "Not enough named peer data for this KPI yet.",
+      "betterLower": "Lower is better",
+      "betterHigher": "Higher is better",
+      "legend": {
+        "band": "Industry p25 to p75",
+        "peers": "Named peers",
+        "you": "Your company"
+      },
+      "sr": {
+        "caption": "{kpi}: your value {value} against {n} named peers, better than {percentile} of them.",
+        "captionBand": "The industry band runs from {p25} to {p75}.",
+        "peer": "Peer",
+        "value": "Value",
+        "you": "Your company",
+        "band": "Industry p25 to p75"
+      },
+      "disclosure": {
+        "title": "Named peers compared",
+        "intro": "The chart shows these companies as Peer A to Peer J. Every value was read from the public source listed, on the date shown.",
+        "researched": "researched on {date}",
+        "notResearched": "not researched yet",
+        "retired": "no longer in the peer set; the value stays as compared",
+        "sources": "Sources",
+        "noSources": "no source stored",
+        "anonymousNote": "Peers are labelled anonymously on the chart; the names live here only."
+      }
     }
   },
   "peers": {

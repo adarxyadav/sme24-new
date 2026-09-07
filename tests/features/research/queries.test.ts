@@ -166,6 +166,8 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
       benchmark: null,
       benchmarkState: "unavailable",
       benchmarkAssumptions: [],
+      benchmarkPeers: [],
+      industryHasPeers: false,
       kpiRows: [],
       clientKpiUpdatedAt: null,
     });

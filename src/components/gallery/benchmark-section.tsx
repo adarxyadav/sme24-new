@@ -7,6 +7,7 @@ import { Example } from "@/components/gallery/gallery-section";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { PeerDotStrip } from "@/components/ui/peer-dot-strip";
 import { QuartileBand } from "@/components/ui/quartile-band";
 
 /** The three shapes of the band: inside the top quarter, below the median, beyond p75. */
@@ -16,10 +17,17 @@ const BANDS = [
   { key: "bandOutside", p25: 34.9, median: 49.9, p75: 66.4, value: 68 },
 ] as const;
 
+/** Six named peers around a client at 3.1, lower is better (spec 0012): the peer dot strip's example. */
+const STRIP_PEERS = [1.2, 2.4, 3.1, 3.1, 5.6, 8.9].map((value, index) => ({
+  label: `Peer ${String.fromCharCode(65 + index)}`,
+  value,
+  formatted: value.toFixed(2),
+}));
+
 /**
- * The benchmark primitives (spec 0008, AC-14): the `QuartileBand` in three shapes, a static
- * opportunity card and the `Collapsible` disclosure, so axe scans them on the gallery. Runs in
- * the browser.
+ * The benchmark primitives (spec 0008, AC-14; spec 0012, AC-12): the `QuartileBand` in three
+ * shapes, the `PeerDotStrip` with a peer outside the band, a static opportunity card and the
+ * `Collapsible` disclosure, so axe scans them on the gallery. Runs in the browser.
  */
 export function BenchmarkSection() {
   const t = useTranslations("gallery.benchmark");
@@ -46,6 +54,25 @@ export function BenchmarkSection() {
           </Example>
         ))}
       </div>
+      <Example label={t("peerStrip")}>
+        <PeerDotStrip
+          peers={STRIP_PEERS}
+          client={{ label: b("peerSet.sr.you"), value: 3.1, formatted: "3.10" }}
+          band={{ p25: 1, p75: 4, p25Formatted: "1.00", p75Formatted: "4.00" }}
+          direction="lower_is_better"
+          labels={{
+            caption: t("peerStripCaption"),
+            peer: b("peerSet.sr.peer"),
+            value: b("peerSet.sr.value"),
+            you: b("peerSet.sr.you"),
+            band: b("peerSet.sr.band"),
+            better: b("peerSet.betterLower"),
+            legendBand: b("peerSet.legend.band"),
+            legendPeers: b("peerSet.legend.peers"),
+            legendYou: b("peerSet.legend.you"),
+          }}
+        />
+      </Example>
       <div className="grid gap-8 lg:grid-cols-2">
         <Example label={t("card")}>
           <Card>

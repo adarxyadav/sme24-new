@@ -2,7 +2,15 @@
 
 import * as Sentry from "@sentry/nextjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { NOGA_SECTIONS } from "@/features/benchmark/catalogue";
 import { type Locale, resolveLocale } from "@/i18n/routing";
+import { structuredOutput } from "@/lib/ai/gateway";
+import {
+  PEER_PROPOSAL_PROMPT_VERSION,
+  peerProposalPrompt,
+  peerProposalSystemPrompt,
+} from "@/lib/ai/prompts/peer-proposal";
+import { type PeerCandidate, peerProposalSchema } from "@/lib/ai/schemas/peer-proposal";
 import { roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
@@ -11,15 +19,22 @@ import type { Database } from "@/lib/supabase/database.types";
 import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import { parseWith } from "@/lib/validation";
-import { HOUSE_ORGANIZATION_ID } from "./catalogue";
+import { HOUSE_ORGANIZATION_ID, MAX_PEERS_PER_SET, PROPOSAL_MODEL } from "./catalogue";
 import { type PeerSkip, startPeerRuns } from "./runs";
-import { addPeerSchema, peerIdSchema, rejectPeerSchema, researchPeersSchema } from "./schema";
+import {
+  addPeerSchema,
+  peerIdSchema,
+  proposePeersSchema,
+  rejectPeerSchema,
+  researchPeersSchema,
+} from "./schema";
 
 type Client = SupabaseClient<Database>;
 
 /**
- * The peer server actions (spec 0012, AC-1 to AC-4): ops add a peer by hand, approve, reject and
- * retire one, and start research on a batch or a single peer. Every action checks the ops role
+ * The peer server actions (spec 0012, AC-1 to AC-4): ops propose candidates through the model,
+ * add a peer by hand, approve, reject and retire one, and start research on a batch or a single
+ * peer. Every action checks the ops role
  * from the claims (not only the proxy), parses its input with the feature's schema and answers a
  * typed result. Writes to `peer_companies` and `companies` go through the ops policies under
  * RLS; only the research run insert uses the service client, because an ops token never carries
@@ -32,7 +47,9 @@ export type PeerActionError =
   | "not_found"
   | "invalid_status"
   | "set_full"
+  | "already_full"
   | "duplicate"
+  | "ai_unavailable"
   | "trigger_unavailable"
   | "unexpected";
 
@@ -279,6 +296,189 @@ export async function rerunPeer(
 
 /** A rerun refused for one of the skip reasons (`not_approved`, `run_in_progress`, `quota_exceeded`, `trigger_failed`). */
 export type PeerRerunRefused = { ok: false; error: PeerSkip["reason"] };
+
+export type ProposePeersData = { proposed: number };
+
+/**
+ * Proposes candidates for one section and band (AC-2): reads the names already on the list so
+ * the model does not repeat them, asks the model through `structuredOutput`, and stores each
+ * candidate as a `proposed` peer with the model, the prompt version and the reason recorded. No
+ * research run is triggered and no number the model returns is ever stored. Refuses with
+ * `already_full` when the set already holds ten approved peers, so nothing is spent on a set
+ * that cannot take another peer. Server action, ops.
+ */
+export async function proposePeers(
+  _previous: PeerActionResult<ProposePeersData> | null,
+  input: unknown,
+): Promise<PeerActionResult<ProposePeersData>> {
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+  const parsed = parseWith(proposePeersSchema, input, localeOf(input));
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { supabase } = actor;
+  const { section, sizeBand, count } = parsed.data;
+
+  const { data: onFile, error: onFileError } = await supabase
+    .from("peer_companies")
+    .select("status, company:companies!inner(name, legal_name)")
+    .eq("industry_section", section)
+    .eq("size_band", sizeBand);
+  if (onFileError) return unexpected("propose-peers", onFileError);
+  if (onFile.filter((row) => row.status === "approved").length >= MAX_PEERS_PER_SET) {
+    return { ok: false, error: "already_full" };
+  }
+  const exclude = [
+    ...new Set(
+      onFile.flatMap((row) =>
+        [row.company.name, row.company.legal_name].filter((name): name is string => Boolean(name)),
+      ),
+    ),
+  ];
+
+  const apiKey = serverEnv().AI_GATEWAY_API_KEY;
+  if (!apiKey) {
+    log.warn("peer proposal skipped: AI_GATEWAY_API_KEY is not set", { section, sizeBand });
+    return { ok: false, error: "ai_unavailable" };
+  }
+  let candidates: readonly PeerCandidate[];
+  try {
+    const output = await structuredOutput({
+      apiKey,
+      schema: peerProposalSchema,
+      system: peerProposalSystemPrompt(),
+      prompt: peerProposalPrompt({
+        section,
+        sectionName: sectionNameOf(section),
+        sizeBand,
+        count,
+        exclude,
+      }),
+    });
+    candidates = output.candidates;
+  } catch (error) {
+    log.error("peer proposal failed", {
+      section,
+      sizeBand,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+    Sentry.captureException(error, { tags: { source: "propose-peers" } });
+    return { ok: false, error: "ai_unavailable" };
+  }
+
+  const known = new Set(exclude.map((name) => name.toLowerCase()));
+  const fresh = candidates.filter((candidate) => !known.has(candidate.name.toLowerCase()));
+  const proposedAt = new Date().toISOString();
+  let stored = 0;
+  try {
+    for (const candidate of fresh) {
+      if (await storeCandidate(actor, candidate, section, sizeBand, proposedAt)) stored += 1;
+    }
+  } catch (error) {
+    return unexpected("propose-peers", error);
+  }
+  log.info("peers proposed", {
+    section,
+    sizeBand,
+    returned: candidates.length,
+    stored,
+    by: actor.userId,
+  });
+  return { ok: true, data: { proposed: stored } };
+}
+
+/** One candidate as a house company plus its `proposed` peer row; a name already on file is skipped. */
+async function storeCandidate(
+  { supabase, userId }: Actor,
+  candidate: PeerCandidate,
+  section: string,
+  sizeBand: string,
+  proposedAt: string,
+): Promise<boolean> {
+  const { data: existing, error: existingError } = await supabase
+    .from("companies")
+    .select("id")
+    .eq("organization_id", HOUSE_ORGANIZATION_ID)
+    .ilike("name", candidate.name)
+    .limit(1)
+    .maybeSingle();
+  if (existingError) throw queryError(existingError);
+  if (existing) return false;
+
+  const host = candidate.website?.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  const { data: company, error: companyError } = await supabase
+    .from("companies")
+    .insert({
+      organization_id: HOUSE_ORGANIZATION_ID,
+      name: candidate.name,
+      legal_name: candidate.legalName,
+      website: host ? `https://${host}` : null,
+      country: COUNTRY,
+      is_peer: true,
+      created_by: userId,
+    })
+    .select("id")
+    .single();
+  if (companyError) throw queryError(companyError);
+
+  const { error: peerError } = await supabase.from("peer_companies").insert({
+    company_id: company.id,
+    industry_section: section,
+    size_band: sizeBand,
+    proposed_by: "ai",
+    proposal: {
+      model: PROPOSAL_MODEL,
+      promptVersion: PEER_PROPOSAL_PROMPT_VERSION,
+      reason: candidate.reason,
+      proposedAt,
+    },
+  });
+  if (peerError) {
+    const { error: removeError } = await supabase.from("companies").delete().eq("id", company.id);
+    if (removeError) {
+      log.warn("proposed company not removed", {
+        companyId: company.id,
+        reason: removeError.message,
+      });
+    }
+    throw queryError(peerError);
+  }
+  return true;
+}
+
+/** The section's English name for the prompt (not user facing text, so not a message key). Pure. */
+function sectionNameOf(section: string): string {
+  const known = NOGA_SECTIONS.some((entry) => entry.letter === section);
+  return known ? (SECTION_NAMES[section] ?? section) : section;
+}
+
+/**
+ * The 21 NOGA section names in English, for the proposal prompt only. The client facing labels
+ * live in the message catalogs (`benchmark.noga.sections`); a prompt is not user facing text, so
+ * it does not go through next-intl.
+ */
+const SECTION_NAMES: Record<string, string> = {
+  A: "Agriculture, forestry and fishing",
+  B: "Mining and quarrying",
+  C: "Manufacturing",
+  D: "Electricity, gas, steam and air conditioning supply",
+  E: "Water supply, sewerage and waste management",
+  F: "Construction",
+  G: "Wholesale and retail trade, repair of motor vehicles",
+  H: "Transportation and storage",
+  I: "Accommodation and food service activities",
+  J: "Information and communication",
+  K: "Financial and insurance activities",
+  L: "Real estate activities",
+  M: "Professional, scientific and technical activities",
+  N: "Administrative and support service activities",
+  O: "Public administration and defence",
+  P: "Education",
+  Q: "Human health and social work activities",
+  R: "Arts, entertainment and recreation",
+  S: "Other service activities",
+  T: "Activities of households as employers",
+  U: "Activities of extraterritorial organisations and bodies",
+};
 
 /** The service client for the run insert, or null when the task runner is not configured (no key, no run). */
 function serviceClient(): Client | null {

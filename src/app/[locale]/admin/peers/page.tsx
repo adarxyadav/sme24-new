@@ -10,6 +10,7 @@ import { ALL, peerFiltersSchema } from "@/features/peers/schema";
 import { AddPeerForm } from "@/features/peers/ui/add-peer-form";
 import { PeerFilterForm } from "@/features/peers/ui/peer-filters";
 import { PeersTable } from "@/features/peers/ui/peers-table";
+import { ProposePeersForm } from "@/features/peers/ui/propose-peers-form";
 import { clientMessages } from "@/i18n/client-messages";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -24,8 +25,8 @@ export async function generateMetadata() {
 
 /**
  * The ops peer screen (spec 0012, AC-2, AC-3, AC-4, AC-14): the flagged peers, the section, band
- * and status filter, the list with its research batch and per row actions, and the hand added
- * peer form. Ops only through the proxy and RLS.
+ * and status filter, the list with its research batch and per row actions, the model proposal
+ * form and the hand added peer form. Ops only through the proxy and RLS.
  */
 export default async function AdminPeersPage({ searchParams }: Props) {
   const params = await searchParams;
@@ -75,6 +76,18 @@ export default async function AdminPeersPage({ searchParams }: Props) {
         <PeerFilterForm filters={filters} />
         <PeersTable rows={rows} filters={filters} />
         <div className="grid gap-8 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("propose.title")}</CardTitle>
+              <CardDescription>{t("propose.description")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProposePeersForm
+                section={filters.section === ALL ? undefined : filters.section}
+                sizeBand={filters.sizeBand === ALL ? undefined : filters.sizeBand}
+              />
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>{t("add.title")}</CardTitle>

@@ -15,6 +15,7 @@ export const ALERT_KINDS = [
   "payment.received",
   "enquiry.received",
   "invoice.render_failed",
+  "peers.refresh_flagged",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -63,6 +64,15 @@ const alertFields = {
     organizationName: z.string().min(1).max(200),
     errorMessage: z.string().min(1).max(500),
   }),
+  /**
+   * Spec 0012 (AC-14): approved peers whose refresh failed the limit number of times in a row.
+   * The daily schedule skips them until ops rerun or retire them, so the set silently ages
+   * otherwise. No company name: the count is the signal, the screen holds the detail.
+   */
+  "peers.refresh_flagged": z.object({
+    flagged: z.number().int().positive(),
+    limit: z.number().int().positive(),
+  }),
 } as const satisfies Record<AlertKind, z.ZodType>;
 
 /** The typed fields of one kind. */
@@ -92,5 +102,6 @@ export const opsAlertPayloadSchema = z.discriminatedUnion("kind", [
   entry("payment.received"),
   entry("enquiry.received"),
   entry("invoice.render_failed"),
+  entry("peers.refresh_flagged"),
 ]);
 export type OpsAlertPayload = z.infer<typeof opsAlertPayloadSchema>;

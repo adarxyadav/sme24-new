@@ -49,6 +49,13 @@ export const PEER_REFRESH_BATCH = 10;
 /** Consecutive failed refreshes after which a peer is flagged and skipped by the schedule (AC-14). */
 export const PEER_REFRESH_MAX_FAILURES = 3;
 
+/**
+ * The model recorded on a proposal row. Mirrors `AI_MODEL` in `src/lib/ai/gateway.ts`, which
+ * this file cannot import: the catalogue is read by browser components and `gateway.ts` pulls in
+ * the `ai` package.
+ */
+export const PROPOSAL_MODEL = "anthropic/claude-sonnet-5";
+
 /** How many candidates one proposal asks the model for by default (AC-2). */
 export const PEER_PROPOSAL_COUNT = 10;
 

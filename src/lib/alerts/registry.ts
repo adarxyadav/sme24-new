@@ -105,6 +105,15 @@ export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
     ],
     buttonLabel: "Open invoice",
   }),
+  "peers.refresh_flagged": (fields, context) => ({
+    title: "Peer refresh needs attention",
+    fields: [
+      ["Flagged peers", String(fields.flagged)],
+      ["Failures in a row", String(fields.limit)],
+      ["Time", format.dateTime(context.now, "dateTime")],
+    ],
+    buttonLabel: "Open peers",
+  }),
 };
 
 /** Presents one alert through its registry entry. Pure. */
