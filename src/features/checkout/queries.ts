@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { afterCursorFilter, decodeCursor, encodeCursor } from "@/lib/supabase/cursor";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 import { queryError } from "@/lib/supabase/query-error";
 
@@ -27,10 +28,14 @@ export type OrderWithInvoice = {
   readonly invoice: InvoiceRow | null;
 };
 
-/** One page of the order list, keyset paginated on `created_at desc, id`. */
+/** One page of the order list, keyset paginated on `created_at desc, id desc`. */
 export type OrderPage = {
   readonly orders: readonly OrderRow[];
-  /** The cursor to pass for the next page, or null at the end of the list. */
+  /**
+   * The opaque cursor to pass for the next page, or null at the end of the list. It carries both
+   * halves of the sort key, because `created_at` alone is not unique: several orders can share a
+   * timestamp, and a cursor holding only the timestamp skips every row tied with it.
+   */
   readonly nextCursor: string | null;
 };
 
@@ -56,7 +61,8 @@ export async function getPackage(supabase: Client, key: string): Promise<Package
 /**
  * One page of the organization's orders, newest first (AC-1). Expired orders are hidden from the
  * client (AC-6): an abandoned checkout is not something the buyer needs to see again. The cursor
- * is the `created_at` of the last row of the previous page.
+ * is the opaque keyset cursor of the last row of the previous page, carrying `created_at` and
+ * `id` together so orders sharing a timestamp are not skipped.
  *
  * Server component.
  */
@@ -68,7 +74,8 @@ export async function listOrders(supabase: Client, cursor?: string | null): Prom
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(ORDERS_PAGE_SIZE + 1);
-  if (cursor) query = query.lt("created_at", cursor);
+  const after = decodeCursor(cursor ?? undefined);
+  if (after) query = query.or(afterCursorFilter(after));
 
   const { data, error } = await query;
   if (error) throw queryError(error);
@@ -77,7 +84,10 @@ export async function listOrders(supabase: Client, cursor?: string | null): Prom
   const hasMore = rows.length > ORDERS_PAGE_SIZE;
   const orders = hasMore ? rows.slice(0, ORDERS_PAGE_SIZE) : rows;
   const last = orders.at(-1);
-  return { orders, nextCursor: hasMore && last ? last.created_at : null };
+  return {
+    orders,
+    nextCursor: hasMore && last ? encodeCursor({ createdAt: last.created_at, id: last.id }) : null,
+  };
 }
 
 /**
@@ -159,7 +169,8 @@ export async function listAllOrders(
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(ORDERS_PAGE_SIZE + 1);
-  if (cursor) query = query.lt("created_at", cursor);
+  const after = decodeCursor(cursor ?? undefined);
+  if (after) query = query.or(afterCursorFilter(after));
 
   const { data, error } = await query;
   if (error) throw queryError(error);
@@ -179,5 +190,11 @@ export async function listAllOrders(
     };
   });
   const last = rows.at(-1);
-  return { rows, nextCursor: hasMore && last ? last.order.created_at : null };
+  return {
+    rows,
+    nextCursor:
+      hasMore && last
+        ? encodeCursor({ createdAt: last.order.created_at, id: last.order.id })
+        : null,
+  };
 }
