@@ -6,10 +6,12 @@ import { PACKAGES } from "@/features/marketing/packages";
 import { EnquiryForm } from "@/features/marketing/ui/enquiry-form";
 import { Faq } from "@/features/marketing/ui/faq";
 import { PackageCard } from "@/features/marketing/ui/package-card";
+import { SectionHeader } from "@/features/marketing/ui/section-header";
 
 /**
- * The marketing primitives (spec 0009, AC-15): a fixed price and the retainer package card, the
- * FAQ accordion, and the enquiry form empty and in its error state, so axe scans every state.
+ * The marketing primitives (spec 0009, AC-15): the section opener at its three tiers, a fixed
+ * price and the retainer package card, the FAQ accordion, and the enquiry form empty and in its
+ * error state, so axe scans every state.
  * Browser; the gallery page hands it the `marketing` messages.
  */
 export function MarketingSection() {
@@ -19,6 +21,25 @@ export function MarketingSection() {
 
   return (
     <div className="flex flex-col gap-12">
+      <Example label={t("sectionAnchor")}>
+        <SectionHeader
+          tier="anchor"
+          eyebrow={t("sectionEyebrow")}
+          title={t("sectionTitle")}
+          lead={t("sectionLead")}
+        />
+      </Example>
+      <Example label={t("sectionMajor")}>
+        <SectionHeader
+          tier="major"
+          eyebrow={t("sectionEyebrow")}
+          title={t("sectionTitle")}
+          lead={t("sectionLead")}
+        />
+      </Example>
+      <Example label={t("sectionMinor")}>
+        <SectionHeader tier="minor" title={t("sectionTitle")} lead={t("sectionLead")} />
+      </Example>
       <Example label={t("packages")}>
         <ul className="grid w-full gap-px border bg-border sm:grid-cols-2">
           {[compliance, retainer].map((entry) =>

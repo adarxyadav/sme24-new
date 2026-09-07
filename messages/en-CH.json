@@ -1113,7 +1113,13 @@
       "faqQuestionTwo": "Can I cancel?",
       "faqAnswerTwo": "Up to five working days before the visit.",
       "formEmpty": "Enquiry form, empty",
-      "formInvalid": "Enquiry form, every error shown"
+      "formInvalid": "Enquiry form, every error shown",
+      "sectionAnchor": "Section opener, anchor tier",
+      "sectionMajor": "Section opener, major tier",
+      "sectionMinor": "Section opener, minor tier",
+      "sectionTitle": "Senior experts. No slides.",
+      "sectionEyebrow": "How it works",
+      "sectionLead": "One fixed price, one senior expert on site, one written report you can act on."
     }
   },
   "email": {

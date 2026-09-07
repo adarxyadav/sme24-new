@@ -1113,7 +1113,13 @@
       "faqQuestionTwo": "Kann ich stornieren?",
       "faqAnswerTwo": "Bis fünf Arbeitstage vor dem Besuch.",
       "formEmpty": "Anfrageformular, leer",
-      "formInvalid": "Anfrageformular, alle Fehler angezeigt"
+      "formInvalid": "Anfrageformular, alle Fehler angezeigt",
+      "sectionAnchor": "Abschnittskopf, Anker-Stufe",
+      "sectionMajor": "Abschnittskopf, Haupt-Stufe",
+      "sectionMinor": "Abschnittskopf, Neben-Stufe",
+      "sectionTitle": "Erfahrene Experten. Keine Folien.",
+      "sectionEyebrow": "So funktioniert es",
+      "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können."
     }
   },
   "email": {

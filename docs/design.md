@@ -84,6 +84,57 @@ Semantic tokens only, named like shadcn so the installed components keep working
 - Radius `0.125rem` (`--radius`): block forms like the mark, corners barely softened so hairlines render cleanly. The preset derives `rounded-sm` to `rounded-4xl` from it, so even badges are rectangles.
 - Elevation: none on cards. Overlays (dialog, sheet, popover, menu) use the preset's shadow.
 
+## Marketing section vocabulary
+
+_Decided 2026-09-07, before the section by section refinement of the public site. It applies to `src/app/[locale]/(marketing)/` and the sections in `src/features/marketing/ui/`; the signed in areas keep the page anatomy below. The reason it exists: the first build gave all 23 bands one rhythm (`py-16 md:py-24`) and all 20 headings one size (`text-display-sm md:text-display`), so every section claimed equal weight and the pages read as a metronome. Tier is the one decision per section; rhythm, heading size and opener shape all follow from it. Ground is the second, independent axis._
+
+### Tiers
+
+Every marketing section is an anchor, a major or a minor. A page opens with an anchor, carries two or three majors and puts supporting content in minors.
+
+| Tier | Padding | Heading | Use |
+|---|---|---|---|
+| Anchor | `py-24 md:py-40` | `h1` `text-display-sm md:text-display-lg` | The page opener and the closing call to action. One or two per page, never more. |
+| Major | `py-16 md:py-28` | `h2` `text-display-sm md:text-display` | The two or three sections that carry the page's argument. |
+| Minor | `py-12 md:py-20` | `h2` `text-2xl md:text-display-sm tracking-headline` | Supporting bands: a list of inclusions, timings, coverage, an FAQ. |
+
+A minor's heading never scales past `text-display-sm`, which is what keeps a long page from reading flat. Cells inside a band keep `px-6 py-8`; the tier sets the band's own padding only. The container stays `mx-auto max-w-6xl px-4 sm:px-6` at every tier.
+
+### Grounds
+
+Ground is chosen independently of the tier, and jet stays rare so it keeps meaning.
+
+| Ground | Markup | Rule |
+|---|---|---|
+| White | (default) | Every section that is not one of the two below. |
+| Ruled | `RuledField` | The one section per page that turns the argument (the steps on the landing page, the vetting ladder on the expert network). At most one per page, never adjacent to another non white ground. |
+| Jet | `className="dark bg-background text-foreground"` | The page opener when it is a hero, and the closing call to action. Structural bookends, never mid page. A jet opener also carries `hero` on its `RuledField` and its route joins `DARK_HERO_ROUTES` so the header holds its inversion. |
+
+### Openers
+
+The opener follows from the tier, so there is nothing extra to decide per section.
+
+| Tier | Opener |
+|---|---|
+| Anchor | Stacked and left aligned: eyebrow, `Statement`, lead paragraph, `gap-6`. |
+| Major | Split: eyebrow and `Statement` in the left column, the lead in the right (`lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]`). The lead is optional; without one the heading spans. |
+| Minor | Inline, no eyebrow: a hairline above the band, heading and lead on one row (`md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]`), wrapping to two rows below `md`. |
+
+`SectionHeader` in `src/features/marketing/ui/` renders all three from a `tier` prop; a page composes it rather than hand rolling the markup. A section that is deliberately different (the campaign wall, the packages grid) may still open with its own markup, but it picks one of the three shapes.
+
+### Tier map
+
+The tier of every section that exists today. A new section joins this table.
+
+| Page | Sections in order |
+|---|---|
+| Landing | anchor jet hero · minor proof points · **major ruled steps** · major packages · minor campaign wall · anchor jet closing |
+| How it works | anchor opener · **major ruled steps** · major split of labour · minor timing · anchor jet closing |
+| Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
+| Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |
+| About | anchor opener · major story · **major ruled campaign grid** · minor how we work · anchor jet closing |
+| Contact | anchor opener · major facts and form · anchor jet closing |
+
 ## Motion
 
 Overlays and toasts use `tw-animate-css` fades and slides, 150 to 200ms. A global `prefers-reduced-motion: reduce` rule clamps every animation and transition to 1ms (not zero, so Radix exit animations still complete and overlays unmount). Do not add motion that carries meaning on its own.
