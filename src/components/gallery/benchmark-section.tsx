@@ -61,33 +61,37 @@ export function BenchmarkSection() {
                 <dl className="grid gap-3 sm:grid-cols-2">
                   <div className="flex flex-col gap-0.5">
                     <dt className="eyebrow text-muted-foreground">{b("derived.lostTime")}</dt>
-                    <dd className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium tabular-nums" data-numeric>
-                        {format.number(0.9, "oneDecimal")}
+                    <dd className="flex flex-col gap-0.5">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium tabular-nums" data-numeric>
+                          {format.number(0.9, "oneDecimal")}
+                        </span>
+                        <Badge variant="outline">
+                          <CalculatorIcon aria-hidden="true" />
+                          {b("derived.calculated")}
+                        </Badge>
                       </span>
-                      <Badge variant="outline">
-                        <CalculatorIcon aria-hidden="true" />
-                        {b("derived.calculated")}
-                      </Badge>
+                      <span className="text-muted-foreground text-xs">
+                        {b("derived.fromResearch", { kpi: "LTIFR", year: 2024 })}
+                      </span>
                     </dd>
-                    <p className="text-muted-foreground text-xs">
-                      {b("derived.fromResearch", { kpi: "LTIFR", year: 2024 })}
-                    </p>
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <dt className="eyebrow text-muted-foreground">{b("derived.recordable")}</dt>
-                    <dd className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium tabular-nums" data-numeric>
-                        {format.number(2.3, "oneDecimal")}
+                    <dd className="flex flex-col gap-0.5">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium tabular-nums" data-numeric>
+                          {format.number(2.3, "oneDecimal")}
+                        </span>
+                        <Badge variant="outline">
+                          <CalculatorIcon aria-hidden="true" />
+                          {b("derived.calculated")}
+                        </Badge>
                       </span>
-                      <Badge variant="outline">
-                        <CalculatorIcon aria-hidden="true" />
-                        {b("derived.calculated")}
-                      </Badge>
+                      <span className="text-muted-foreground text-xs">
+                        {b("derived.fromClient", { kpi: "TRIFR", year: 2024 })}
+                      </span>
                     </dd>
-                    <p className="text-muted-foreground text-xs">
-                      {b("derived.fromClient", { kpi: "TRIFR", year: 2024 })}
-                    </p>
                   </div>
                 </dl>
               </div>

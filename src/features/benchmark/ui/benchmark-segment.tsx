@@ -251,20 +251,24 @@ function DerivedCountRow({
       });
 
   return (
+    // A wrapper inside a `dl` may hold only `dt` and `dd`, so the provenance line lives inside the
+    // `dd` rather than beside it (axe `definition-list`).
     <div className="flex flex-col gap-0.5" data-derived-count={testId}>
       <dt className="eyebrow text-muted-foreground">{label}</dt>
-      <dd className="flex flex-wrap items-center gap-2">
-        <span className="font-medium tabular-nums" data-numeric data-derived-value>
-          {format.number(count.count, "oneDecimal")}
+      <dd className="flex flex-col gap-0.5">
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="font-medium tabular-nums" data-numeric data-derived-value>
+            {format.number(count.count, "oneDecimal")}
+          </span>
+          <Badge variant="outline">
+            <CalculatorIcon aria-hidden="true" />
+            {t("derived.calculated")}
+          </Badge>
         </span>
-        <Badge variant="outline">
-          <CalculatorIcon aria-hidden="true" />
-          {t("derived.calculated")}
-        </Badge>
+        <span className="text-muted-foreground text-xs" data-derived-from={count.fromKey}>
+          {provenance}
+        </span>
       </dd>
-      <p className="text-muted-foreground text-xs" data-derived-from={count.fromKey}>
-        {provenance}
-      </p>
     </div>
   );
 }
