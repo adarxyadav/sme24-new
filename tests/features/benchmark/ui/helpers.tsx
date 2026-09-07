@@ -261,6 +261,7 @@ export function parsedSnapshot(
     id: SNAPSHOT_ID,
     createdAt: "2026-09-06T08:00:00.000Z",
     triggerKind: "research",
+    // Deliberately a stored version 1 row: the UI must render one with no derived block (spec 0012, AC-12).
     modelVersion: "benchmark-model@1",
     kpisCompared: 5,
     peerProvisional: true,

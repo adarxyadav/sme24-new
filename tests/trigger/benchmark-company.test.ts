@@ -336,7 +336,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       company_id: COMPANY,
       research_run_id: RUN,
       trigger_kind: "research",
-      model_version: "benchmark-model@1",
+      model_version: "benchmark-model@2",
       peer_provisional: true,
       kpis_compared: 2,
       confidence: 0.9,
@@ -363,9 +363,19 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     ]);
     expect((stored.cost as Row).incidentKpi).toBe("accident_rate_per_1000_fte");
     expect((stored.cost as Row).lostDaysSource).toBe("default");
-    expect((stored.assumptions as Row[]).map((assumption) => assumption.key)).not.toContain(
+    // The cost line took the Suva path, but the derived block derived its lost time count from
+    // LTIFR, so the hours assumption is used after all and the disclosure names it (spec 0012, AC-11).
+    expect((stored.assumptions as Row[]).map((assumption) => assumption.key)).toContain(
       "hours_per_fte",
     );
+    // The block survives the task's parse and reaches the row rather than being stripped (AC-15).
+    // The derived block names LTIFR while the cost line took the Suva rate, so the two counts are
+    // deliberately different numbers here; the equality invariant holds only when the keys match.
+    const derived = stored.derived as Row;
+    expect(derived).not.toBeNull();
+    expect((derived.lostTime as Row).fromKey).toBe("ltifr");
+    expect((derived.lostTime as Row).count).toBeGreaterThan(0);
+    expect(derived.fte).toBe(420);
   });
 
   it("stores no research run on a client edit and a recompute", async () => {

@@ -8,10 +8,13 @@ import {
 } from "./catalogue";
 import type {
   AssumptionUsed,
+  DerivedCount,
+  DerivedFromKey,
   InputKpi,
   Position,
   SnapshotBody,
   SnapshotCost,
+  SnapshotDerived,
   SnapshotGap,
   SnapshotPeer,
   SnapshotResult,
@@ -174,6 +177,29 @@ type CostParts = {
   readonly annual: number;
 };
 
+/** The exposure basis a rate is quoted against; picks the arm of `exposureCount`. */
+export type RateShape = "per_1000_fte" | "per_million_hours";
+
+/**
+ * Turns a rate into a yearly count of incidents (spec 0012, AC-9). The only place a rate becomes
+ * a count: the cost line calls it for `incidents` and the derived block calls it for its counts,
+ * so the two can never disagree. Dispatches on the rate's shape rather than on a KPI key, so
+ * TRIFR takes the same per million hours arm as LTIFR. Pure.
+ */
+export function exposureCount(
+  shape: RateShape,
+  rate: number,
+  fte: number,
+  hoursPerFte: number,
+): number {
+  return shape === "per_1000_fte" ? (rate * fte) / 1000 : (rate * fte * hoursPerFte) / 1_000_000;
+}
+
+/** The shape each rate KPI is quoted against (spec 0012). Pure. */
+export function rateShapeOf(key: DerivedFromKey): RateShape {
+  return key === "accident_rate_per_1000_fte" ? "per_1000_fte" : "per_million_hours";
+}
+
 /** One evaluation of the cost formula (AC-18 rule 5). Pure. */
 function costAt(
   incidentKpi: "accident_rate_per_1000_fte" | "ltifr",
@@ -183,10 +209,7 @@ function costAt(
   values: Record<AssumptionKey, number>,
   multiplier: number,
 ): CostParts {
-  const incidents =
-    incidentKpi === "accident_rate_per_1000_fte"
-      ? (rate * fte) / 1000
-      : (rate * fte * values.hours_per_fte) / 1_000_000;
+  const incidents = exposureCount(rateShapeOf(incidentKpi), rate, fte, values.hours_per_fte);
   const costPerCase = values.direct_cost_per_case_chf + lostDays * values.cost_per_absence_day_chf;
   return { incidents, lostDays, costPerCase, annual: incidents * costPerCase * multiplier };
 }
@@ -387,6 +410,40 @@ export function computeBenchmark({
     rank: index + 1,
   }));
 
+  // (6b) The derived injury counts (spec 0012): display only, from the same exposure helper the
+  // cost line uses, so the two can never disagree. Never a KPI row, never peer compared.
+  const hoursPerFte = values.hours_per_fte;
+  const trifr = inputOf("trifr");
+  // LTIFR first, then the Suva accident rate as fallback: this is the reader's lost time figure,
+  // chosen independently of the cost line's own precedence.
+  const lostTimeInput = ltifr ?? accidentRate ?? null;
+  const derivedFrom = (
+    input: InputKpi,
+    key: DerivedFromKey,
+    exposureFte: number,
+  ): DerivedCount => ({
+    count: exposureCount(rateShapeOf(key), input.value, exposureFte, hoursPerFte),
+    fromKey: key,
+    fromValue: input.value,
+    fromSource: input.source,
+    fromYear: input.periodYear,
+  });
+  let derived: SnapshotDerived | null = null;
+  // No exposure without a positive headcount, and no arithmetic without the hours assumption:
+  // an absent row must leave the block absent rather than store NaN (AC-7, AC-16).
+  if (fte !== null && fte > 0 && typeof hoursPerFte === "number" && Number.isFinite(hoursPerFte)) {
+    const lostTime = lostTimeInput
+      ? derivedFrom(lostTimeInput, ltifr ? "ltifr" : "accident_rate_per_1000_fte", fte)
+      : null;
+    const recordable = trifr ? derivedFrom(trifr, "trifr", fte) : null;
+    if (lostTime || recordable) {
+      derived = { fte, hoursPerFte, lostTime, recordable };
+      // The disclosure must name the hours assumption whenever a count used it, including on the
+      // Suva path where the cost line would not have recorded it (AC-11).
+      usedAssumptionKeys.add("hours_per_fte");
+    }
+  }
+
   // (7) Confidence over the rows the cost used.
   const costRows = cost
     ? [incidentInput, cost.lostDaysSource === "kpi" ? lostDaysInput : undefined].filter(
@@ -419,6 +476,7 @@ export function computeBenchmark({
     gaps,
     cost,
     assumptions: usedAssumptions,
+    derived,
     kpisCompared: results.filter((result) => result.peer !== null).length,
     peerProvisional,
     confidence,

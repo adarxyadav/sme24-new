@@ -371,10 +371,13 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   it("flags provisional peers or assumptions and lists only the assumptions used", () => {
     const body = compute();
     expect(body.peerProvisional).toBe(true);
+    // hours_per_fte rides in on the derived block: the cost line took the Suva path and would not
+    // have recorded it, but both derived counts used it, so the disclosure must name it (spec 0012, AC-11).
     expect(body.assumptions.map((assumption) => assumption.key).sort()).toEqual(
       [
         "cost_per_absence_day_chf",
         "direct_cost_per_case_chf",
+        "hours_per_fte",
         "indirect_multiplier",
         "indirect_multiplier_high",
         "indirect_multiplier_low",
