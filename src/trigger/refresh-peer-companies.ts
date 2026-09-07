@@ -51,6 +51,16 @@ export const refreshPeerCompaniesTask = schedules.task({
       .gte("failed_refreshes", PEER_REFRESH_MAX_FAILURES);
     if (flaggedError) throw queryError(flaggedError);
 
+    // Flagged peers need attention even when none remain eligible for automatic research.
+    if ((flagged ?? 0) > 0) {
+      await raiseAlertFromTask({
+        kind: "peers.refresh_flagged",
+        fields: { flagged: flagged ?? 0, limit: PEER_REFRESH_MAX_FAILURES },
+        link: "/admin/peers",
+        idempotencyKey: `peers-flagged/${new Date().toISOString().slice(0, 10)}`,
+      });
+    }
+
     if (due.length === 0) {
       log.info("no peer is due for a refresh", {
         organizationId: HOUSE_ORGANIZATION_ID,
@@ -73,14 +83,6 @@ export const refreshPeerCompaniesTask = schedules.task({
       skipped: result.skipped.length,
       flagged: flagged ?? 0,
     });
-    if ((flagged ?? 0) > 0) {
-      await raiseAlertFromTask({
-        kind: "peers.refresh_flagged",
-        fields: { flagged: flagged ?? 0, limit: PEER_REFRESH_MAX_FAILURES },
-        link: "/admin/peers",
-        idempotencyKey: `peers-flagged/${new Date().toISOString().slice(0, 10)}`,
-      });
-    }
     return {
       triggered: result.triggered.length,
       skipped: result.skipped.length,
