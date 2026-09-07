@@ -15,7 +15,7 @@ Spec: [0011](../specs/0011-package-checkout-swiss-vat/index.md). Cards go throug
   - [x] One card purchase end to end: the checkout action, the Stripe webhook, the shared resumable `settleOrder` core, the orders UI and the confirmation email (AC-1, AC-5, AC-6, AC-7, AC-9, AC-10, AC-11, AC-18, AC-19)
   - [x] The invoice document: seller configuration with its placeholder guard, the SCOR reference, the private Storage bucket, and the QR-bill PDF render (AC-4, AC-17)
   - [x] Bank transfer and ops control: the invoice first path, ops mark paid and cancel, the pricing page buttons, and the sweep (AC-8, AC-16)
-- [ ] Verify it: `/check verify package checkout with Swiss VAT`
+- [x] Verify it: `/check verify package checkout with Swiss VAT` · every row proven 8 Sep 2026; AC-10's `catchError` hook by unit test, the full worker path owed on staging
 - [x] Test it: `/test package checkout with Swiss VAT`
 - [ ] Review it (fresh model): `/check review package checkout with Swiss VAT`
 - [ ] Document it: `/document package checkout with Swiss VAT`
