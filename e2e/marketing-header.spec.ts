@@ -3,10 +3,15 @@ import { expect, type Page, test } from "@playwright/test";
 /**
  * The sticky marketing header (spec 0009): the bar stays at the top as the page scrolls, is
  * transparent until the page has scrolled the bar's own height and then takes its hairline over
- * the frosted ground, inverts over the landing hero so it meets the jet ground without a seam in
- * light mode as well as dark, and stays plain on the three pages that open on the page
+ * the frosted ground, and stays plain on every marketing page, all of which now open on the page
  * background. The scroll margin that keeps a focused field and its error summary clear of the bar
  * is scoped to these pages only.
+ *
+ * The bar can also invert over a dark first section (`DARK_HERO_ROUTES` in `marketing-header.tsx`),
+ * which is how the landing page used to meet its jet hero without a seam. That list is empty since
+ * the hero moved onto the page ground on 2026-09-07, so no route exercises the inversion and there
+ * is nothing here to drive it: a page that gains a dark hero joins the list and brings its own
+ * coverage of the held inversion back with it.
  */
 
 /**
@@ -56,9 +61,9 @@ async function readBar(page: Page) {
 }
 
 /**
- * Scrolls clear of the threshold and waits for the bar to take a frosted ground. Which ground that
- * is depends on what is behind the bar: over the landing hero it is the dark token, elsewhere the
- * page theme's. Only the alpha is asserted here, so this holds for both.
+ * Scrolls clear of the threshold and waits for the bar to take a frosted ground: the page theme's,
+ * on every route now that no page opens on a dark hero. Only the alpha is asserted here, so this
+ * would still hold over a dark hero's own frosting.
  */
 async function scrollPast(page: Page) {
   await page.evaluate(() => window.scrollTo(0, 400));
@@ -95,82 +100,44 @@ for (const theme of ["light", "dark"] as const) {
   });
 }
 
-test("the unscrolled bar inverts over the landing hero, in light mode too (no seam)", async ({
+test("the landing hero opens on the page ground, so the bar has no seam to cover", async ({
   page,
 }) => {
   await forceTheme(page, "light");
   await page.goto("/en");
 
-  const bar = await readBar(page);
-  expect(bar.dark).toBe(true);
-
-  // The hero runs up behind the bar, so the pixels behind the header are the hero's jet ground
-  // rather than the white page background: that is what "no seam" means here.
-  const heroTop = await page.evaluate(() => {
-    const hero = document.querySelector("[data-hero]") as HTMLElement;
+  // The hero moved onto the page ground on 2026-09-07, which is what emptied `DARK_HERO_ROUTES`:
+  // in light mode it is white, so the transparent bar already matches it and there is no seam for
+  // an inversion to hide. Inverting here would put a white lockup on a white ground.
+  //
+  // The hero paints no ground of its own any more, which is the point: it is transparent down to
+  // the page background, so that is what the bar actually sits over and what has to be read here.
+  // Reading the hero's own `backgroundColor` would return `rgba(0, 0, 0, 0)` and score as jet.
+  const hero = await page.evaluate(() => {
+    const block = document.querySelector("[data-hero]") ?? document.querySelector("main section");
+    const element = block as HTMLElement;
     return {
-      top: hero.getBoundingClientRect().top,
-      background: getComputedStyle(hero).backgroundColor,
+      top: element.getBoundingClientRect().top,
+      ownBackground: getComputedStyle(element).backgroundColor,
+      pageGround: getComputedStyle(document.body).backgroundColor,
     };
   });
-  expect(heroTop.top).toBeLessThan(8);
-  expect(isBlack(heroTop.background)).toBe(true);
+  expect(hero.top).toBeLessThan(8);
+  expect(alphaOf(hero.ownBackground)).toBe(0);
+  expect(isBlack(hero.pageGround)).toBe(false);
 
-  // The lockup inverts with the bar, so it reads on the jet ground instead of vanishing.
+  // The lockup keeps the page theme's ink rather than inverting away from it.
   const logoColor = await page.evaluate(() => {
     const logo = document.querySelector("header [data-slot=logo]") as HTMLElement;
     return getComputedStyle(logo).color;
   });
-  expect(isBlack(logoColor)).toBe(false);
-
-  // The bar keeps the inversion for as long as the hero is behind it, then drops it and takes the
-  // page theme's frosted ground once the hero's bottom edge has passed under.
-  await scrollPast(page);
-  expect((await readBar(page)).dark).toBe(true);
-
-  await page.evaluate(() => {
-    const hero = document.querySelector("[data-hero]") as HTMLElement;
-    window.scrollTo(0, hero.getBoundingClientRect().bottom + window.scrollY + 100);
-  });
-  await expect.poll(async () => (await readBar(page)).dark, { timeout: 10_000 }).toBe(false);
+  expect(isBlack(logoColor)).toBe(true);
 });
 
-test("the bar never shows dark ink over the jet hero while the hero is still behind it", async ({
-  page,
-}) => {
-  await forceTheme(page, "light");
-  await page.goto("/en");
-
-  // The hero is pulled up behind the bar (`-mt-16`) and is taller than the viewport, so the jet
-  // ground stays behind the header for hundreds of pixels of scroll. The bar has to keep its
-  // inversion for every one of them: the regression dropped it at 8px, leaving a black lockup on
-  // a bar whose 85% white ground barely covered the black hero, with the hero's text showing
-  // through. Sampling only the first few pixels would step straight over that.
-  const heroBottom = await page.evaluate(
-    () => (document.querySelector("[data-hero]") as HTMLElement).getBoundingClientRect().bottom,
-  );
-  expect(
-    heroBottom,
-    "the hero should be tall enough for this to be worth sampling",
-  ).toBeGreaterThan(400);
-
-  for (const y of [0, 9, 24, 63, 120, 400, Math.round(heroBottom) - 120]) {
-    await page.evaluate((to) => window.scrollTo(0, to), y);
-    await page.evaluate(
-      () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-    );
-
-    const bar = await readBar(page);
-    // Inverted is the correct answer here; an opaque light bar would also be readable, but over
-    // this hero it is the wrong one, and `bg-background/85` is never opaque anyway.
-    expect(bar.dark, `bar dropped its inversion over the jet hero at scrollY ${y}`).toBe(true);
-  }
-});
-
-for (const path of ["/pricing", "/about", "/contact"] as const) {
+for (const path of ["/", "/pricing", "/about", "/contact"] as const) {
   test(`the bar stays plain on ${path}, which opens on the page background`, async ({ page }) => {
     await forceTheme(page, "light");
-    await page.goto(`/en${path}`);
+    await page.goto(path === "/" ? "/en" : `/en${path}`);
 
     const bar = await readBar(page);
     // No dark hero here, so inverting would put white text on the white page ground.
