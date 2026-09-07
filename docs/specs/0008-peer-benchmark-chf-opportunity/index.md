@@ -3,6 +3,8 @@
 **Date**: 2026-09-06
 **Status**: Accepted
 
+**Amended by spec [0012](../0012-named-peer-comparison/index.md)** (named peer comparison, 2026-09-07). Everything below still describes what this feature built, and every figure it computes is still arithmetic on stored rows. The one sentence spec 0012 narrows is "no model call": from feature 27 onward a model may propose candidate peer companies for ops to approve, and the research pipeline may extract a peer's KPIs, both outside the benchmark computation. `computeBenchmark` and everything else in `src/features/benchmark/model.ts` stay pure with no model call, enforced by an import boundary test. See [The model call line](../0012-named-peer-comparison/index.md#the-model-call-line).
+
 ## Summary
 
 Once the research pipeline (feature 8) has stored a company's safety KPIs, a background task compares each KPI with its industry peers, ranks the gaps that matter most, and estimates what workplace incidents cost the company per year in CHF, plus what reaching the peer median or the top quarter would save. The peer values come from a curated table seeded from published Swiss and European statistics (Suva, the Federal Statistical Office, Eurostat, the ISO Survey), the cost model is a small set of stored, sourced assumptions, and every result is written as an immutable snapshot with the exact inputs and assumptions it used, so any number on the dashboard can be traced back. The dashboard shows the opportunity first, the top three gaps next and the per KPI positions below, with a "how this is calculated" panel; the first snapshot per company also sends the benchmark ready email. Nothing here calls a model: the benchmark is arithmetic on stored rows.
