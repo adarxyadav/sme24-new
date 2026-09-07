@@ -264,13 +264,25 @@ test("the expert directory filters the register in the browser without a request
   await expect(page.getByText(/entries$/)).toBeVisible();
 
   // Filtering is pure client work: no navigation, no fetch, and the row count follows the filter.
-  const requests: string[] = [];
-  page.on("request", (request) => requests.push(request.url()));
+  // Only requests that would mean the filter went to the server count. A real deployment also
+  // prefetches the header links (`?_rsc=`) and flushes Sentry envelopes to its own ingest host
+  // once the page has loaded; both are background traffic that has nothing to do with the filter,
+  // and neither happens on the local dev server, so a blanket request count passes locally and
+  // fails against a deployment.
+  const fetched: string[] = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    const own = url.origin === new URL(page.url()).origin;
+    const kind = request.resourceType();
+    if (own && !url.searchParams.has("_rsc") && ["document", "fetch", "xhr"].includes(kind)) {
+      fetched.push(request.url());
+    }
+  });
   await page.getByLabel("Canton").selectOption("UR");
   // `useDeferredValue` re-renders the rows in a later pass, so the count is awaited rather than
   // read straight after the select. Uri is the smallest canton in the register.
   await expect(table.locator("tbody tr")).toHaveCount(3);
-  expect(requests.filter((url) => !url.startsWith("data:"))).toHaveLength(0);
+  expect(fetched).toHaveLength(0);
 
   // No contact detail reaches the page: the register's address, phone and email columns are dropped.
   await expect(table.getByRole("link")).toHaveCount(0);
