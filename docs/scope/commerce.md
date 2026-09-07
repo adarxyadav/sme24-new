@@ -10,11 +10,11 @@ From the opportunity dashboard the client picks one of the three fixed price pac
 Carried over from earlier specs: the four packages and prices already live in `src/features/marketing/packages.ts` and the pricing page's three fixed price buttons wait for checkout (spec 0009); promote that catalog into the `packages` table with a test that keeps the two equal.
 Spec: [0011](../specs/0011-package-checkout-swiss-vat/index.md). Cards go through Stripe Checkout, and a bank transfer path issues a real Swiss invoice with a QR-bill, because Swiss SMEs will not put a five figure purchase on a card. Payment confirmation reaches the database only through the Stripe webhook, so closing the browser cannot lose an order.
 - [x] Design it (spec): `/architect package checkout with Swiss VAT`
-- [ ] Build it: `/develop package checkout with Swiss VAT`
+- [x] Build it: `/develop package checkout with Swiss VAT` · code in `src/features/checkout/`, `src/lib/stripe/`, `src/trigger/{confirm-order,issue-invoice,render-invoice,sweep-orders}.ts`, `supabase/schemas/4*.sql`
   - [x] Tables, money arithmetic and the catalogue promotion: five tables with their policies, integer Rappen amounts, the `packages` seed and its equality test (AC-2, AC-3, AC-12, AC-13, AC-14, AC-15)
   - [x] One card purchase end to end: the checkout action, the Stripe webhook, the shared resumable `settleOrder` core, the orders UI and the confirmation email (AC-1, AC-5, AC-6, AC-7, AC-9, AC-10, AC-11, AC-18, AC-19)
-  - [ ] The invoice document: seller configuration with its placeholder guard, the SCOR reference, the private Storage bucket, and the QR-bill PDF render (AC-4, AC-17)
-  - [ ] Bank transfer and ops control: the invoice first path, ops mark paid and cancel, the pricing page buttons, and the sweep (AC-8, AC-16)
+  - [x] The invoice document: seller configuration with its placeholder guard, the SCOR reference, the private Storage bucket, and the QR-bill PDF render (AC-4, AC-17)
+  - [x] Bank transfer and ops control: the invoice first path, ops mark paid and cancel, the pricing page buttons, and the sweep (AC-8, AC-16)
 - [ ] Verify it: `/check verify package checkout with Swiss VAT`
 - [ ] Test it: `/test package checkout with Swiss VAT`
 - [ ] Review it (fresh model): `/check review package checkout with Swiss VAT`

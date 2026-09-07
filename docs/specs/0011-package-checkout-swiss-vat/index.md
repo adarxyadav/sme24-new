@@ -303,19 +303,19 @@ The project builds by **Tracer Bullet**: a thin thread runs end to end through d
 
 **Slice 2: the invoice document**
 
-12. Write `src/features/checkout/seller.ts` reading the seller environment variables, with `SELLER_PLACEHOLDERS` and its guard test. Satisfies **AC-17**.
-13. Write the pure `scorReference` helper (ISO 11649, mod 97 check digits over the invoice number's digits, per Value sourcing) with tests against known good references. Satisfies **AC-4**.
-14. Create the private `invoices` Storage bucket with its RLS policies on `storage.objects`. Satisfies **AC-4**, **AC-12**.
-15. Write the `render-invoice` Trigger.dev task using `swissqrbill/pdf`: draw the full invoice (seller with UID, buyer address, number, dates, line item, net, VAT rate and amount, gross) plus the QR-bill, upload to Storage, record `pdf_path`. On exhausting retries set `pdf_failed_at`, raise an ops alert, and let the email go out without the attachment. Satisfies **AC-4**, **AC-10**.
-16. Add the invoice download route minting a short lived signed URL, attach the PDF to the confirmation email (enqueued only after a successful render), and add `retryInvoiceRender` as an ops action for a row with `pdf_failed_at` set. Satisfies **AC-4**, **AC-10**.
+12. [x] Write `src/features/checkout/seller.ts` reading the seller environment variables, with `SELLER_PLACEHOLDERS` and its guard test. Satisfies **AC-17**.
+13. [x] Write the pure `scorReference` helper (ISO 11649, mod 97 check digits over the invoice number's digits, per Value sourcing) with tests against known good references. Satisfies **AC-4**.
+14. [x] Create the private `invoices` Storage bucket with its RLS policies on `storage.objects`. Satisfies **AC-4**, **AC-12**.
+15. [x] Write the `render-invoice` Trigger.dev task using `swissqrbill/pdf`: draw the full invoice (seller with UID, buyer address, number, dates, line item, net, VAT rate and amount, gross) plus the QR-bill, upload to Storage, record `pdf_path`. On exhausting retries set `pdf_failed_at`, raise an ops alert, and let the email go out without the attachment. Satisfies **AC-4**, **AC-10**.
+16. [x] Add the invoice download route minting a short lived signed URL, attach the PDF to the confirmation email (enqueued only after a successful render), and add `retryInvoiceRender` as an ops action for a row with `pdf_failed_at` set. Satisfies **AC-4**, **AC-10**.
 
 **Slice 3: bank transfer and ops control**
 
-17. Write `requestInvoice`: same validation and freezing as `startCheckout`, but issue the invoice immediately with its number and due date, and enqueue the render. Satisfies **AC-8**, **AC-19**.
-18. Add the payment method choice to the checkout UI and the "awaiting payment" dashboard state with the invoice download. Satisfies **AC-8**.
-19. Write `markOrderPaid` and `cancelOrder` as ops actions. `markOrderPaid` calls the same `settleOrder` core with `now()` and the ops actor, and nothing else. Add the minimal ops orders list under `/admin/orders` (the full ops shell is feature 12). Satisfies **AC-9**, **AC-13**.
-20. Wire the three pricing page buttons to checkout, carrying the chosen package through sign up for a signed out visitor. Satisfies **AC-16**.
-21. Write the `sweep-orders` scheduled task, mirroring `sweep-research-runs`: expire a `pending` card order with a null `stripe_checkout_session_id` older than 1 hour, and reconcile any card order with a session id against Stripe's own status. Satisfies **AC-6**.
+17. [x] Write `requestInvoice`: same validation and freezing as `startCheckout`, but issue the invoice immediately with its number and due date, and enqueue the render. Satisfies **AC-8**, **AC-19**.
+18. [x] Add the payment method choice to the checkout UI and the "awaiting payment" dashboard state with the invoice download. Satisfies **AC-8**.
+19. [x] Write `markOrderPaid` and `cancelOrder` as ops actions. `markOrderPaid` calls the same `settleOrder` core with `now()` and the ops actor, and nothing else. Add the minimal ops orders list under `/admin/orders` (the full ops shell is feature 12). Satisfies **AC-9**, **AC-13**.
+20. [x] Wire the three pricing page buttons to checkout, carrying the chosen package through sign up for a signed out visitor. Satisfies **AC-16**.
+21. [x] Write the `sweep-orders` scheduled task, mirroring `sweep-research-runs`: expire a `pending` card order with a null `stripe_checkout_session_id` older than 1 hour, and reconcile any card order with a session id against Stripe's own status. Satisfies **AC-6**.
 22. Write the Playwright specs: the card happy path against Stripe test mode, the bank transfer path through Mailpit, the cross tenant denial, and axe on every new page. Satisfies **AC-1**, **AC-8**, **AC-12**.
 
 ## Consequences
