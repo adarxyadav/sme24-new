@@ -92,8 +92,23 @@ export const ASSUMPTION_KEYS = [
 ] as const;
 export type AssumptionKey = (typeof ASSUMPTION_KEYS)[number];
 
-/** Names the rule set and snapshot schema; bumped by hand when a formula or rule changes. */
-export const MODEL_VERSION = "benchmark-model@1";
+/**
+ * Names the rule set and snapshot schema; bumped by hand when a formula or rule changes.
+ * `benchmark-model@2` (spec 0012) adds the optional peer set per KPI; every `@1` row stays
+ * readable through `SNAPSHOT_SCHEMAS`.
+ */
+export const MODEL_VERSION = "benchmark-model@2";
+
+/** A KPI gets a peer set only when at least this many approved peers hold a value for it (spec 0012, AC-9). */
+export const PEER_SET_MIN = 5;
+
+/** KPIs that never get a peer set: a percentile over a yes or no value is meaningless (spec 0012, AC-9). */
+export const PEER_SET_EXCLUDED_KPIS: readonly KpiKey[] = ["iso_45001_certified"];
+
+/** The peer set percentile keeps one decimal, the same precision the `percent` format shows. Pure. */
+export function roundPercentile(value: number): number {
+  return Math.round(value * 10) / 10;
+}
 
 /** How long the dashboard shows "calculating" after a trigger moment before it says "not available yet" (AC-9). */
 export const BENCHMARK_WAIT_MS = 120_000;

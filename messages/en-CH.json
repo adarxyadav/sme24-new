@@ -57,7 +57,8 @@
       "design": "Design gallery",
       "emails": "Emails",
       "enquiries": "Enquiries",
-      "orders": "Orders"
+      "orders": "Orders",
+      "peers": "Peers"
     }
   },
   "theme": {
@@ -1697,6 +1698,141 @@
       "validation": "Please check your entries.",
       "forbidden": "You are not signed in for this.",
       "not_found": "This company was not found.",
+      "unexpected": "Something went wrong. Please try again later."
+    }
+  },
+  "peers": {
+    "title": "Peer companies",
+    "description": "Named Swiss peers per industry section and size band. Propose, approve, research and refresh them here. Clients see approved peers anonymised as Peer A to Peer J.",
+    "filters": {
+      "legend": "Filter",
+      "section": "Industry section",
+      "sizeBand": "Size band",
+      "status": "Status",
+      "all": "All",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "status": {
+      "proposed": "Proposed",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "retired": "Retired"
+    },
+    "columns": {
+      "select": "Select for research",
+      "company": "Company",
+      "set": "Section · band",
+      "status": "Status",
+      "label": "Label",
+      "kpis": "KPI values",
+      "researched": "Last researched",
+      "actions": "Actions"
+    },
+    "table": {
+      "heading": "Peers",
+      "count": "{count, plural, =1 {1 peer} other {# peers}}",
+      "never": "Never",
+      "noLabel": "No label",
+      "openRun": "Run open ({status})",
+      "lastRun": "Last run {status}",
+      "failures": "{count, plural, =1 {1 failure in a row} other {# failures in a row}}",
+      "flagged": "Needs attention",
+      "proposedByAi": "Proposed by the model",
+      "proposedByOps": "Added by ops",
+      "reason": "Reason: {reason}",
+      "rejectionReason": "Rejected: {reason}"
+    },
+    "empty": {
+      "title": "No peers yet",
+      "description": "Add a peer by hand or run a proposal for a section and band."
+    },
+    "noResults": {
+      "title": "No peers match the filter",
+      "description": "Change the filter or reset it to see every peer."
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "retire": "Retire",
+      "rerun": "Rerun research",
+      "approved": "Approved as {label}.",
+      "rejected": "Peer rejected.",
+      "retired": "Peer retired. Clients pick it up at their next snapshot.",
+      "rerunStarted": "Research started.",
+      "rejectTitle": "Reject this peer?",
+      "rejectDescription": "The candidate stays on file so the model does not propose it again.",
+      "rejectReason": "Reason (optional)",
+      "confirmReject": "Reject",
+      "cancel": "Cancel"
+    },
+    "research": {
+      "selected": "Research selected ({count})",
+      "selectAll": "Select every approved peer in view",
+      "dialogTitle": "Start {count, plural, =1 {1 research run} other {# research runs}}?",
+      "dialogDescription": "Each run reads the peer's public reports through the research provider and costs money. A peer that is no longer approved or already has an open run is skipped.",
+      "confirm": "Start {count, plural, =1 {1 run} other {# runs}}",
+      "cancel": "Cancel",
+      "started": "{triggered, plural, =1 {1 run started} other {# runs started}}, {skipped, plural, =0 {none skipped} =1 {1 skipped} other {# skipped}}.",
+      "skipped": "Skipped: {list}.",
+      "skipReasons": {
+        "not_approved": "no longer approved",
+        "run_in_progress": "a run is already open",
+        "quota_exceeded": "the daily quota is used up",
+        "trigger_failed": "the run could not be started"
+      }
+    },
+    "flagged": {
+      "title": "{count, plural, =1 {1 peer needs} other {# peers need}} attention",
+      "description": "The refresh failed three times in a row. The daily schedule skips them until you rerun the research or retire them."
+    },
+    "add": {
+      "title": "Add a peer by hand",
+      "description": "A company you already know belongs in the set. It starts as proposed. Approve it to give it a label.",
+      "name": "Company name",
+      "legalName": "Legal name",
+      "website": "Website",
+      "websitePlaceholder": "example.ch",
+      "section": "Industry section",
+      "sizeBand": "Size band",
+      "submit": "Add peer",
+      "submitting": "Adding …",
+      "added": "Peer added as proposed."
+    },
+    "propose": {
+      "title": "Propose peers",
+      "description": "The model suggests Swiss companies for a section and band with a one line reason each. Nothing is researched until you approve a candidate.",
+      "section": "Industry section",
+      "sizeBand": "Size band",
+      "count": "How many",
+      "submit": "Propose candidates",
+      "submitting": "Asking the model …",
+      "proposed": "{count, plural, =1 {1 candidate} other {# candidates}} proposed.",
+      "none": "The model proposed no new candidate for this section and band."
+    },
+    "validation": {
+      "nameShort": "Enter at least 2 characters.",
+      "nameLong": "At most 200 characters.",
+      "legalNameLong": "At most 200 characters.",
+      "websiteInvalid": "Enter a valid website such as example.ch.",
+      "reasonLong": "At most 500 characters.",
+      "sectionInvalid": "Choose a section.",
+      "sizeBandInvalid": "Choose a size band.",
+      "countInvalid": "Enter a whole number from 1 to 10."
+    },
+    "errors": {
+      "validation": "Please check your entries.",
+      "forbidden": "You are not signed in as ops.",
+      "not_found": "This peer was not found.",
+      "invalid_status": "This peer is not in a state that allows that.",
+      "set_full": "This section and band already has ten approved peers.",
+      "already_full": "This section and band already has ten approved peers.",
+      "duplicate": "A peer with this name already exists in the house organization.",
+      "ai_unavailable": "The model could not be reached. Try again later.",
+      "run_in_progress": "A run is already open for this peer.",
+      "quota_exceeded": "The daily research quota of the house organization is used up.",
+      "not_approved": "Only an approved peer can be researched.",
+      "trigger_unavailable": "Research cannot be started: the task runner is not configured.",
       "unexpected": "Something went wrong. Please try again later."
     }
   },

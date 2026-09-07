@@ -4,16 +4,24 @@ import * as Sentry from "@sentry/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, queue, schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod";
-import { MODEL_VERSION, TRIGGER_KINDS, type TriggerKind } from "@/features/benchmark/catalogue";
+import {
+  MODEL_VERSION,
+  sectionOfDivision,
+  sizeBandOf,
+  TRIGGER_KINDS,
+  type TriggerKind,
+} from "@/features/benchmark/catalogue";
 import {
   computeBenchmark,
   type ModelAssumption,
   type ModelCatalogueEntry,
   type ModelKpiRow,
   type ModelPeerRow,
+  type ModelPeerValueRow,
   roundChf,
 } from "@/features/benchmark/model";
-import { type SnapshotBody, snapshotBlocksV1Schema } from "@/features/benchmark/snapshot";
+import { type SnapshotBody, snapshotBlocksV2Schema } from "@/features/benchmark/snapshot";
+import { getPeerSet } from "@/features/peers/queries";
 import { isKpiKey } from "@/features/research/catalogue";
 import { BENCHMARK_SNAPSHOT_CREATED_EVENT, type NewSendPayload } from "@/lib/email/schema";
 import { taskEnv } from "@/lib/env";
@@ -46,9 +54,11 @@ export type BenchmarkCompanyPayload = z.infer<typeof benchmarkCompanyPayloadSche
 
 /**
  * The benchmark task (spec 0008, AC-5): loads the company by id with the service client (a
- * missing or archived company is skipped without a write), the active catalogue, the company's
- * current KPI rows, the peer rows for the KPI keys present and every assumption, re reads the
- * company right before computing, runs the pure model, validates the body with the version 1
+ * missing or archived company is skipped without a write, and so is a peer company of the house
+ * organization, spec 0012: peers are compared against, never benchmarked), the active catalogue, the company's
+ * current KPI rows, the peer rows for the KPI keys present, the approved named peers' current
+ * KPI rows for the company's section and band (spec 0012, AC-8) and every assumption, re reads
+ * the company right before computing, runs the pure model, validates the body with the version 2
  * schema and inserts one immutable `benchmark_snapshots` row. A snapshot is inserted even when
  * nothing compared or the cost is null, so the dashboard state is always decided by a row. Every
  * read and write filters by the loaded company's id and organization. The company's first
@@ -70,8 +80,8 @@ export const benchmarkCompanyTask = schemaTask({
     const env = taskEnv();
     const supabase = createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
     const company = await loadCompany(supabase, payload.companyId);
-    if (!company) {
-      log.info("benchmark skipped: company missing or archived", {
+    if (!company || company.is_peer) {
+      log.info("benchmark skipped: company missing, archived or a peer", {
         companyId: payload.companyId,
         triggerKind: payload.triggerKind,
       });
@@ -94,6 +104,9 @@ export const benchmarkCompanyTask = schemaTask({
     const peers = await loadPeers(supabase, [...new Set(kpis.map((row) => row.kpiKey))]);
     // The re read right before computing: its updated_at becomes inputs.companyUpdatedAt (AC-5).
     const fresh = (await loadCompany(supabase, ids.companyId, ids.organizationId)) ?? company;
+    // The named peers of the company's own section and band, resolved the way the model resolves
+    // them (spec 0012): a company without a known section gets no peer set anywhere.
+    const peerValues = await loadPeerValues(supabase, fresh);
     const body = computeBenchmark({
       company: {
         id: fresh.id,
@@ -104,9 +117,10 @@ export const benchmarkCompanyTask = schemaTask({
       catalogue,
       kpis,
       peers,
+      peerValues,
       assumptions,
     });
-    const blocks = snapshotBlocksV1Schema.parse({
+    const blocks = snapshotBlocksV2Schema.parse({
       inputs: body.inputs,
       results: body.results,
       gaps: body.gaps,
@@ -122,11 +136,14 @@ export const benchmarkCompanyTask = schemaTask({
         year: result.peer?.periodYear ?? null,
         yearMatch: result.peer?.yearMatch ?? null,
         position: result.position,
+        peerSet: result.peerSet?.n ?? null,
+        peerPercentile: result.peerSet?.percentile ?? null,
       });
     }
     step("benchmark computed", {
       kpiRows: kpis.length,
       peerRows: peers.length,
+      peerValueRows: peerValues.length,
       kpisCompared: body.kpisCompared,
       gaps: blocks.gaps.length,
       costChf: body.costChf,
@@ -366,6 +383,16 @@ async function loadPeers(
         ]
       : [],
   );
+}
+
+/** The approved named peers' current KPI rows for the company's section and band (spec 0012, AC-8); none without a known section. */
+async function loadPeerValues(
+  supabase: Service,
+  company: CompanyRow,
+): Promise<readonly ModelPeerValueRow[]> {
+  const section = sectionOfDivision(company.industry_code);
+  if (!section) return [];
+  return getPeerSet(supabase, section, sizeBandOf(company.employees_count));
 }
 
 async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumption[]> {

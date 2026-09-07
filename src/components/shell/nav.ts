@@ -5,6 +5,7 @@ import {
   MailIcon,
   PaletteIcon,
   ReceiptIcon,
+  UsersIcon,
 } from "lucide-react";
 import type { Messages } from "next-intl";
 import type { StaticPathname } from "@/i18n/pathnames";
@@ -38,6 +39,7 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
     { href: "/admin/emails", labelKey: "admin.emails", icon: MailIcon },
     { href: "/admin/enquiries", labelKey: "admin.enquiries", icon: InboxIcon },
     { href: "/admin/orders", labelKey: "admin.orders", icon: ReceiptIcon },
+    { href: "/admin/peers", labelKey: "admin.peers", icon: UsersIcon },
     { href: "/admin/design", labelKey: "admin.design", icon: PaletteIcon },
   ],
 };

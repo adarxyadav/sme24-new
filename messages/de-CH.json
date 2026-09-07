@@ -57,7 +57,8 @@
       "design": "Design Galerie",
       "emails": "E-Mails",
       "enquiries": "Anfragen",
-      "orders": "Bestellungen"
+      "orders": "Bestellungen",
+      "peers": "Peers"
     }
   },
   "theme": {
@@ -1697,6 +1698,141 @@
       "validation": "Bitte prüfen Sie Ihre Eingaben.",
       "forbidden": "Sie sind dafür nicht angemeldet.",
       "not_found": "Dieses Unternehmen wurde nicht gefunden.",
+      "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
+    }
+  },
+  "peers": {
+    "title": "Peer-Unternehmen",
+    "description": "Namentlich bekannte Schweizer Peers pro Wirtschaftsabschnitt und Grössenklasse. Hier werden sie vorgeschlagen, freigegeben, recherchiert und aufgefrischt. Kunden sehen freigegebene Peers anonymisiert als Peer A bis Peer J.",
+    "filters": {
+      "legend": "Filter",
+      "section": "Wirtschaftsabschnitt",
+      "sizeBand": "Grössenklasse",
+      "status": "Status",
+      "all": "Alle",
+      "apply": "Anwenden",
+      "reset": "Zurücksetzen"
+    },
+    "status": {
+      "proposed": "Vorgeschlagen",
+      "approved": "Freigegeben",
+      "rejected": "Abgelehnt",
+      "retired": "Zurückgezogen"
+    },
+    "columns": {
+      "select": "Für Recherche auswählen",
+      "company": "Unternehmen",
+      "set": "Abschnitt · Klasse",
+      "status": "Status",
+      "label": "Kennzeichnung",
+      "kpis": "KPI-Werte",
+      "researched": "Zuletzt recherchiert",
+      "actions": "Aktionen"
+    },
+    "table": {
+      "heading": "Peers",
+      "count": "{count, plural, =1 {1 Peer} other {# Peers}}",
+      "never": "Nie",
+      "noLabel": "Keine Kennzeichnung",
+      "openRun": "Lauf offen ({status})",
+      "lastRun": "Letzter Lauf {status}",
+      "failures": "{count, plural, =1 {1 Fehlschlag in Folge} other {# Fehlschläge in Folge}}",
+      "flagged": "Braucht Aufmerksamkeit",
+      "proposedByAi": "Vom Modell vorgeschlagen",
+      "proposedByOps": "Von Ops erfasst",
+      "reason": "Begründung: {reason}",
+      "rejectionReason": "Abgelehnt: {reason}"
+    },
+    "empty": {
+      "title": "Noch keine Peers",
+      "description": "Erfassen Sie einen Peer von Hand oder lassen Sie Kandidaten für einen Abschnitt und eine Klasse vorschlagen."
+    },
+    "noResults": {
+      "title": "Kein Peer passt zum Filter",
+      "description": "Ändern Sie den Filter oder setzen Sie ihn zurück, um alle Peers zu sehen."
+    },
+    "actions": {
+      "approve": "Freigeben",
+      "reject": "Ablehnen",
+      "retire": "Zurückziehen",
+      "rerun": "Recherche wiederholen",
+      "approved": "Freigegeben als {label}.",
+      "rejected": "Peer abgelehnt.",
+      "retired": "Peer zurückgezogen. Kunden übernehmen das mit dem nächsten Snapshot.",
+      "rerunStarted": "Recherche gestartet.",
+      "rejectTitle": "Diesen Peer ablehnen?",
+      "rejectDescription": "Der Kandidat bleibt erfasst, damit das Modell ihn nicht erneut vorschlägt.",
+      "rejectReason": "Begründung (optional)",
+      "confirmReject": "Ablehnen",
+      "cancel": "Abbrechen"
+    },
+    "research": {
+      "selected": "Ausgewählte recherchieren ({count})",
+      "selectAll": "Alle freigegebenen Peers in der Ansicht auswählen",
+      "dialogTitle": "{count, plural, =1 {1 Recherchelauf} other {# Rechercheläufe}} starten?",
+      "dialogDescription": "Jeder Lauf liest die öffentlichen Berichte des Peers über den Rechercheanbieter und kostet Geld. Ein Peer, der nicht mehr freigegeben ist oder bereits einen offenen Lauf hat, wird übersprungen.",
+      "confirm": "{count, plural, =1 {1 Lauf} other {# Läufe}} starten",
+      "cancel": "Abbrechen",
+      "started": "{triggered, plural, =1 {1 Lauf gestartet} other {# Läufe gestartet}}, {skipped, plural, =0 {keiner übersprungen} =1 {1 übersprungen} other {# übersprungen}}.",
+      "skipped": "Übersprungen: {list}.",
+      "skipReasons": {
+        "not_approved": "nicht mehr freigegeben",
+        "run_in_progress": "ein Lauf ist bereits offen",
+        "quota_exceeded": "das Tageskontingent ist aufgebraucht",
+        "trigger_failed": "der Lauf konnte nicht gestartet werden"
+      }
+    },
+    "flagged": {
+      "title": "{count, plural, =1 {1 Peer braucht} other {# Peers brauchen}} Aufmerksamkeit",
+      "description": "Die Auffrischung ist dreimal in Folge fehlgeschlagen. Der tägliche Zeitplan überspringt sie, bis Sie die Recherche wiederholen oder den Peer zurückziehen."
+    },
+    "add": {
+      "title": "Peer von Hand erfassen",
+      "description": "Ein Unternehmen, von dem Sie wissen, dass es in die Gruppe gehört. Es startet als vorgeschlagen. Geben Sie es frei, damit es eine Kennzeichnung erhält.",
+      "name": "Firmenname",
+      "legalName": "Rechtlicher Name",
+      "website": "Website",
+      "websitePlaceholder": "beispiel.ch",
+      "section": "Wirtschaftsabschnitt",
+      "sizeBand": "Grössenklasse",
+      "submit": "Peer erfassen",
+      "submitting": "Wird erfasst …",
+      "added": "Peer als vorgeschlagen erfasst."
+    },
+    "propose": {
+      "title": "Peers vorschlagen lassen",
+      "description": "Das Modell schlägt Schweizer Unternehmen für einen Abschnitt und eine Klasse mit je einer Begründung vor. Recherchiert wird erst, wenn Sie einen Kandidaten freigeben.",
+      "section": "Wirtschaftsabschnitt",
+      "sizeBand": "Grössenklasse",
+      "count": "Wie viele",
+      "submit": "Kandidaten vorschlagen",
+      "submitting": "Modell wird befragt …",
+      "proposed": "{count, plural, =1 {1 Kandidat} other {# Kandidaten}} vorgeschlagen.",
+      "none": "Das Modell hat für diesen Abschnitt und diese Klasse keinen neuen Kandidaten vorgeschlagen."
+    },
+    "validation": {
+      "nameShort": "Mindestens 2 Zeichen eingeben.",
+      "nameLong": "Höchstens 200 Zeichen.",
+      "legalNameLong": "Höchstens 200 Zeichen.",
+      "websiteInvalid": "Eine gültige Website wie beispiel.ch eingeben.",
+      "reasonLong": "Höchstens 500 Zeichen.",
+      "sectionInvalid": "Abschnitt wählen.",
+      "sizeBandInvalid": "Grössenklasse wählen.",
+      "countInvalid": "Eine ganze Zahl von 1 bis 10 eingeben."
+    },
+    "errors": {
+      "validation": "Bitte prüfen Sie Ihre Eingaben.",
+      "forbidden": "Sie sind nicht als Ops angemeldet.",
+      "not_found": "Dieser Peer wurde nicht gefunden.",
+      "invalid_status": "Dieser Peer ist nicht in einem Status, der das erlaubt.",
+      "set_full": "Dieser Abschnitt und diese Klasse haben bereits zehn freigegebene Peers.",
+      "already_full": "Dieser Abschnitt und diese Klasse haben bereits zehn freigegebene Peers.",
+      "duplicate": "Ein Peer mit diesem Namen existiert in der Hausorganisation bereits.",
+      "ai_unavailable": "Das Modell war nicht erreichbar. Versuchen Sie es später erneut.",
+      "run_in_progress": "Für diesen Peer ist bereits ein Lauf offen.",
+      "quota_exceeded": "Das Tageskontingent der Hausorganisation ist aufgebraucht.",
+      "not_approved": "Nur ein freigegebener Peer kann recherchiert werden.",
+      "trigger_unavailable": "Die Recherche kann nicht gestartet werden: der Task-Runner ist nicht konfiguriert.",
       "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es später erneut."
     }
   },

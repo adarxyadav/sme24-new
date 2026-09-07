@@ -197,6 +197,31 @@ begin
 end;
 $$;
 
+-- The house organization writes its runs through the service client, which bypasses RLS and so
+-- the insert policy's quota check; this trigger applies the same helper on the way in, so a
+-- runaway loop is bounded in the database whatever client inserts (spec 0012, AC-5). Raises
+-- `quota_exceeded` (SQLSTATE SM429); the app branches on the code. Client organizations are
+-- untouched: their policy already refuses.
+create or replace function private.check_house_run_quota()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.organization_id = private.house_organization_id()
+     and not private.research_run_allowed(new.organization_id) then
+    raise exception 'quota_exceeded' using errcode = 'SM429';
+  end if;
+  return new;
+end;
+$$;
+
+revoke execute on function private.check_house_run_quota() from public;
+
+create trigger research_runs_check_house_quota
+  before insert on public.research_runs
+  for each row execute function private.check_house_run_quota();
+
 -- Approval (spec 0012, AC-3): one transaction under an advisory lock on the section and band,
 -- refuses beyond ten approved peers, assigns the next free label Peer A to Peer J and stamps
 -- who approved and when from the token. Definer so the count and the label are serialised; the

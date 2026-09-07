@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { KPI_KEYS } from "@/features/research/catalogue";
-import { ASSUMPTION_KEYS, MODEL_VERSION, SIZE_BANDS } from "./catalogue";
+import { ASSUMPTION_KEYS, MODEL_VERSION, PEER_SET_MIN, SIZE_BANDS } from "./catalogue";
 
 /**
- * The snapshot block schemas (spec 0008, AC-4, AC-9): what `benchmark_snapshots.inputs`,
- * `results`, `gaps`, `cost` and `assumptions` hold, keyed by `model_version` through
- * `SNAPSHOT_SCHEMAS`. A row whose version has no schema, or that fails its schema, is treated
- * as absent by the reader. Pure.
+ * The snapshot block schemas (spec 0008, AC-4, AC-9; spec 0012, AC-11): what
+ * `benchmark_snapshots.inputs`, `results`, `gaps`, `cost` and `assumptions` hold, keyed by
+ * `model_version` through `SNAPSHOT_SCHEMAS`. Version 2 adds an optional `peerSet` per result;
+ * version 1 rows keep their own schema and stay readable. A row whose version has no schema, or
+ * that fails its schema, is treated as absent by the reader. Pure.
  */
 
 export const POSITIONS = ["top_quarter", "above_median", "below_median", "bottom_quarter"] as const;
@@ -51,7 +52,29 @@ export const peerSchema = z.object({
 });
 export type SnapshotPeer = z.infer<typeof peerSchema>;
 
-export const resultSchema = z.object({
+/** One peer's value inside a peer set (spec 0012, AC-8, AC-16): the anonymous label and the KPI row it came from. */
+export const peerSetValueSchema = z.object({
+  label: z.string().regex(/^Peer [A-J]$/),
+  value: z.number(),
+  kpiRowId: z.uuid(),
+  periodYear: z.number().int(),
+});
+export type SnapshotPeerSetValue = z.infer<typeof peerSetValueSchema>;
+
+/** The peer set block of one KPI (spec 0012, AC-8): present only from `PEER_SET_MIN` peers on. */
+export const peerSetSchema = z.object({
+  n: z.number().int().min(PEER_SET_MIN),
+  section: z.string().regex(/^[A-U]$/),
+  sizeBand: z.enum(SIZE_BANDS),
+  values: z.array(peerSetValueSchema).min(PEER_SET_MIN),
+  percentile: z.number().min(0).max(100),
+  min: z.number(),
+  max: z.number(),
+});
+export type SnapshotPeerSet = z.infer<typeof peerSetSchema>;
+
+/** A version 1 result: the statistics peer, the position, the gap and the confidence. */
+export const resultV1Schema = z.object({
   key: z.enum(KPI_KEYS),
   peer: peerSchema.nullable(),
   position: z.enum(POSITIONS).nullable(),
@@ -59,6 +82,9 @@ export const resultSchema = z.object({
   gapRelative: z.number().nullable(),
   confidence: z.number().min(0).max(1).nullable(),
 });
+
+/** A version 2 result: version 1 plus the optional peer set (spec 0012, AC-11). */
+export const resultSchema = resultV1Schema.extend({ peerSet: peerSetSchema.optional() });
 export type SnapshotResult = z.infer<typeof resultSchema>;
 
 export const gapSchema = z.object({
@@ -100,12 +126,21 @@ export type AssumptionUsed = z.infer<typeof assumptionUsedSchema>;
 /** The five jsonb blocks of a version 1 row. */
 export const snapshotBlocksV1Schema = z.object({
   inputs: inputsSchema,
+  results: z.array(resultV1Schema),
+  gaps: z.array(gapSchema),
+  cost: costSchema.nullable(),
+  assumptions: z.array(assumptionUsedSchema),
+});
+
+/** The five jsonb blocks of a version 2 row: version 1 with the optional peer set per result. */
+export const snapshotBlocksV2Schema = z.object({
+  inputs: inputsSchema,
   results: z.array(resultSchema),
   gaps: z.array(gapSchema),
   cost: costSchema.nullable(),
   assumptions: z.array(assumptionUsedSchema),
 });
-export type SnapshotBlocks = z.infer<typeof snapshotBlocksV1Schema>;
+export type SnapshotBlocks = z.infer<typeof snapshotBlocksV2Schema>;
 
 /** The scalar columns the task writes beside the blocks. */
 export type SnapshotScalars = {
@@ -122,9 +157,10 @@ export type SnapshotScalars = {
 /** What `computeBenchmark` returns and the task stores. */
 export type SnapshotBody = SnapshotBlocks & SnapshotScalars;
 
-/** The block schema per model version; a version missing here is unreadable by design. */
+/** The block schema per model version; a version missing here is unreadable by design. A v1 row parses to blocks without any peer set. */
 export const SNAPSHOT_SCHEMAS: Readonly<Record<string, z.ZodType<SnapshotBlocks>>> = {
-  [MODEL_VERSION]: snapshotBlocksV1Schema,
+  "benchmark-model@1": snapshotBlocksV1Schema,
+  [MODEL_VERSION]: snapshotBlocksV2Schema,
 };
 
 export type SnapshotRowLike = {

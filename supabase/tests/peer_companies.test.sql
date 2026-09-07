@@ -5,7 +5,7 @@
 -- audit trail (AC-1, AC-3, AC-5, AC-7, AC-14).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(45);
+select plan(46);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -239,6 +239,11 @@ insert into public.research_runs (organization_id, company_id, status, finished_
 select '99999999-9999-4999-8999-999999999999', '0f000000-0000-4000-8000-000000000001', 'succeeded', now() from generate_series(1, 44);
 select is((select private.research_run_allowed('99999999-9999-4999-8999-999999999999')), false,
   'the house organization stops at fifty runs in 24 hours');
+select pg_temp.as_service_role();
+select throws_ok(
+  $$ insert into public.research_runs (organization_id, company_id) values ('99999999-9999-4999-8999-999999999999', '0f000000-0000-4000-8000-000000000001') $$,
+  'SM429', 'quota_exceeded', 'the fifty first house run is refused even through the service key');
+select pg_temp.as_postgres();
 
 -- The research run sync (AC-4, AC-14) --------------------------------------------------------
 select pg_temp.as_postgres();

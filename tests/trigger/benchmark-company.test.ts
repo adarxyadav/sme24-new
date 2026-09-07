@@ -319,7 +319,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     expect((await emailTrigger()).mock.calls).toHaveLength(0);
   });
 
-  it("stores one row keyed by the loaded company and organization with the version 1 blocks and the scalars", async () => {
+  it("stores one row keyed by the loaded company and organization with the version 2 blocks and the scalars", async () => {
     seedComputation();
     (state.tables.companies?.[0] as Row).employees_count = 420;
     (state.tables.companies?.[0] as Row).industry_code = "23.61";
@@ -336,7 +336,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       company_id: COMPANY,
       research_run_id: RUN,
       trigger_kind: "research",
-      model_version: "benchmark-model@1",
+      model_version: "benchmark-model@2",
       peer_provisional: true,
       kpis_compared: 2,
       confidence: 0.9,

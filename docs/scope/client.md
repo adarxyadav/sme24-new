@@ -92,8 +92,8 @@ spec [0012](../specs/0012-named-peer-comparison/index.md)
 - [x] Design it (spec): `/architect named peer comparison`
 - [ ] Build it: `/develop named peer comparison`
   - [x] Schema and the house organization: the `peer_companies` table with its constraints and RLS, the `is_peer` column, the seeded house organization and its membership guard, the two widened read policies, the house branch in the research quota, the `approve_peer_company` definer function, pgTAP and types (AC-1, AC-3, AC-5, AC-7)
-  - [ ] Thin thread on one peer: the peers feature folder, the approve and research actions with the service client run insert and the open run skip, a minimal `/admin/peers`, proven on one real peer end to end (AC-3, AC-4, AC-6)
-  - [ ] The pure peer layer: peer rows into `computeBenchmark`, the percentile formula and the five peer threshold, `benchmark-model@2` in the schema map, the peer set read in the task, the import boundary test (AC-8, AC-9, AC-10, AC-11, AC-16, AC-17)
+  - [x] Thin thread on one peer: the peers feature folder, the approve and research actions with the service client run insert and the open run skip, a minimal `/admin/peers`, proven on one real peer end to end (AC-3, AC-4, AC-6)
+  - [x] The pure peer layer: peer rows into `computeBenchmark`, the percentile formula and the five peer threshold, `benchmark-model@2` in the schema map, the peer set read in the task, the import boundary test (AC-8, AC-9, AC-10, AC-11, AC-16, AC-17)
   - [ ] Chart and disclosure: the dot strip with its axis rule and screen reader table, the peer list resolved from the snapshot ids, the not enough data note, both catalogs, the gallery section (AC-12, AC-13, AC-18)
   - [ ] Proposal, refresh and hardening: the `peer-proposal@1` prompt and `proposePeers`, reject and retire, the full ops screen, the daily refresh schedule with the failure flag, Vitest, pgTAP, Playwright with axe, `docs/benchmark.md` (AC-2, AC-14, AC-15)
 - [ ] Verify it: `/check verify named peer comparison`

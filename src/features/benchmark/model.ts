@@ -2,6 +2,9 @@ import { KPI_CATALOGUE, type KpiKey } from "@/features/research/catalogue";
 import {
   type AssumptionKey,
   COST_LINKED_KPIS,
+  PEER_SET_EXCLUDED_KPIS,
+  PEER_SET_MIN,
+  roundPercentile,
   type SizeBand,
   sectionOfDivision,
   sizeBandOf,
@@ -14,13 +17,17 @@ import type {
   SnapshotCost,
   SnapshotGap,
   SnapshotPeer,
+  SnapshotPeerSet,
   SnapshotResult,
 } from "./snapshot";
 
 /**
- * The benchmark model (spec 0008, AC-4 and AC-18): pure arithmetic over stored rows. The task
- * feeds it the company, the active catalogue, the current KPI rows, the candidate peer rows and
- * the assumptions; it returns the snapshot body (blocks and scalars). Runs anywhere, no I/O.
+ * The benchmark model (spec 0008, AC-4 and AC-18; spec 0012, AC-8 to AC-10): pure arithmetic
+ * over stored rows. The task feeds it the company, the active catalogue, the current KPI rows,
+ * the candidate statistics rows, the named peers' values and the assumptions; it returns the
+ * snapshot body (blocks and scalars). Every ranking, position, gap and CHF figure comes from
+ * the statistics rows alone; the named peers only add a display block and a percentile inside
+ * their set. Runs anywhere, no I/O, no model call (a Vitest test keeps `src/lib/ai` out).
  */
 
 export type ModelCompany = {
@@ -62,11 +69,26 @@ export type ModelPeerRow = {
 
 export type ModelAssumption = AssumptionUsed;
 
+/** One current KPI row of a named peer (spec 0012, AC-8): its anonymous label, never its name. */
+export type ModelPeerValueRow = {
+  readonly kpiRowId: string;
+  readonly peerId: string;
+  readonly label: string;
+  readonly kpiKey: KpiKey;
+  readonly value: number;
+  readonly periodYear: number;
+  readonly industrySection: string;
+  readonly sizeBand: SizeBand;
+};
+
 export type ModelInput = {
   readonly company: ModelCompany;
   readonly catalogue: readonly ModelCatalogueEntry[];
   readonly kpis: readonly ModelKpiRow[];
+  /** The statistics rows (`benchmarks`): the basis of every position, gap and CHF figure. */
   readonly peers: readonly ModelPeerRow[];
+  /** The named peers' current KPI rows (spec 0012); absent or empty means no peer set anywhere. */
+  readonly peerValues?: readonly ModelPeerValueRow[];
   readonly assumptions: readonly ModelAssumption[];
   readonly now?: Date;
 };
@@ -167,6 +189,59 @@ export function gapOf(
   return { gapToMedian, gapRelative: median === 0 ? null : gapToMedian / median };
 }
 
+/**
+ * The peer set of one KPI (spec 0012, AC-8, AC-9): the approved peers of the company's section
+ * and band holding a value for the KPI, one value per peer (its newest year), present only from
+ * `PEER_SET_MIN` peers on and never for an excluded KPI. The percentile is
+ * `100 * (worse + 0.5 * equal) / n`, where `worse` counts the peers the client beats in the
+ * KPI's direction and `equal` the exact ties, one decimal. Pure.
+ */
+export function peerSetOf(
+  peerValues: readonly ModelPeerValueRow[],
+  key: KpiKey,
+  direction: ModelCatalogueEntry["direction"],
+  section: string | null,
+  sizeBand: SizeBand,
+  clientValue: number,
+): SnapshotPeerSet | null {
+  if (section === null || PEER_SET_EXCLUDED_KPIS.includes(key) || direction === "neutral") {
+    return null;
+  }
+  const newestPerPeer = peerValues
+    .filter(
+      (row) => row.kpiKey === key && row.industrySection === section && row.sizeBand === sizeBand,
+    )
+    .reduce<Map<string, ModelPeerValueRow>>((best, row) => {
+      const current = best.get(row.peerId);
+      if (!current || row.periodYear > current.periodYear) best.set(row.peerId, row);
+      return best;
+    }, new Map());
+  const values = [...newestPerPeer.values()]
+    .map((row) => ({
+      label: row.label,
+      value: row.value,
+      kpiRowId: row.kpiRowId,
+      periodYear: row.periodYear,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+  const n = values.length;
+  if (n < PEER_SET_MIN) return null;
+  const beats = (peerValue: number) =>
+    direction === "lower_is_better" ? peerValue > clientValue : peerValue < clientValue;
+  const worse = values.filter((entry) => beats(entry.value)).length;
+  const equal = values.filter((entry) => entry.value === clientValue).length;
+  const numbers = values.map((entry) => entry.value);
+  return {
+    n,
+    section,
+    sizeBand,
+    values,
+    percentile: roundPercentile((100 * (worse + 0.5 * equal)) / n),
+    min: Math.min(...numbers),
+    max: Math.max(...numbers),
+  };
+}
+
 type CostParts = {
   readonly incidents: number;
   readonly lostDays: number;
@@ -217,6 +292,7 @@ export function computeBenchmark({
   catalogue,
   kpis,
   peers,
+  peerValues = [],
   assumptions,
 }: ModelInput): SnapshotBody {
   const active = catalogue.filter((entry) => entry.key in KPI_CATALOGUE);
@@ -242,8 +318,19 @@ export function computeBenchmark({
     researchRunId: row.researchRunId,
   }));
 
-  // (2) to (4) and (7) per KPI: peer, position, gap, confidence.
+  // (2) to (4) and (7) per KPI: peer, position, gap, confidence; plus the named peer set (spec
+  // 0012), a block on the side that changes no other field and is omitted when absent, so a v2
+  // snapshot without peers is field for field a v1 snapshot (AC-11).
   const results: SnapshotResult[] = inputKpis.map((input) => {
+    const peerSet = peerSetOf(
+      peerValues,
+      input.key,
+      direction(input.key),
+      section,
+      sizeBand,
+      input.value,
+    );
+    const withPeerSet = peerSet ? { peerSet } : {};
     const peer = selectPeer(peers, input.key, section, sizeBand, input.periodYear);
     if (!peer) {
       return {
@@ -253,6 +340,7 @@ export function computeBenchmark({
         gapToMedian: null,
         gapRelative: null,
         confidence: input.confidence,
+        ...withPeerSet,
       };
     }
     const gap = gapOf(input.key, direction(input.key), input.value, peer.median);
@@ -263,6 +351,7 @@ export function computeBenchmark({
       gapToMedian: gap.gapToMedian,
       gapRelative: gap.gapRelative,
       confidence: input.confidence,
+      ...withPeerSet,
     };
   });
   const resultOf = (key: KpiKey) => results.find((result) => result.key === key);

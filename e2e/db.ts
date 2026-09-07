@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { HOUSE_ORGANIZATION_ID } from "../src/features/peers/catalogue";
 import type { Database } from "../src/lib/supabase/database.types";
 
 /**
@@ -101,10 +102,12 @@ export async function sweepTestAccounts() {
   for (const user of stale) {
     await deleteAccount(user.email as string);
   }
+  // The house organization (spec 0012) has no creator and no members by design; it stays.
   const { data: orphans, error: orphanError } = await supabase
     .from("organizations")
     .select("id, organization_members(user_id)")
-    .is("created_by", null);
+    .is("created_by", null)
+    .neq("id", HOUSE_ORGANIZATION_ID);
   if (orphanError) throw orphanError;
   const orphanIds = (orphans ?? [])
     .filter((row) => row.organization_members.length === 0)

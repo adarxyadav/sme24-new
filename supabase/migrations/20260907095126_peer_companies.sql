@@ -305,6 +305,29 @@ REVOKE ALL ON TABLE "public"."peer_companies" FROM "service_role";
 
 GRANT DELETE, INSERT, MAINTAIN, REFERENCES, SELECT, TRIGGER, UPDATE ON TABLE "public"."peer_companies" TO "service_role";
 
+CREATE OR REPLACE FUNCTION private.check_house_run_quota()
+  RETURNS trigger
+  LANGUAGE plpgsql
+  SET search_path TO ''
+  AS $function$
+begin
+  if new.organization_id = private.house_organization_id()
+     and not private.research_run_allowed(new.organization_id) then
+    raise exception 'quota_exceeded' using errcode = 'SM429';
+  end if;
+  return new;
+end;
+$function$;
+
+REVOKE ALL ON FUNCTION "private"."check_house_run_quota"() FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION "private"."check_house_run_quota"() TO "postgres";
+
+CREATE TRIGGER research_runs_check_house_quota
+  BEFORE INSERT ON public.research_runs
+  FOR EACH ROW
+  EXECUTE FUNCTION private.check_house_run_quota();
+
 -- Added by hand (AGENTS.md): Supabase's default privileges grant execute on every new public
 -- function to anon, and the REVOKE ... FROM PUBLIC above does not remove that direct grant.
 REVOKE EXECUTE ON FUNCTION "public"."approve_peer_company"(uuid) FROM "anon";
