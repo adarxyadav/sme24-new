@@ -22,6 +22,7 @@
     "db:diff": "supabase db schema declarative sync --no-apply --name",
     "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
     "user:invite": "node scripts/invite-user.mts",
+    "users:seed": "node scripts/seed-users.mts",
     "trigger:dev": "trigger dev --env-file .env.local",
     "trigger:deploy:staging": "trigger deploy --env staging",
     "trigger:deploy:prod": "trigger deploy --env prod",
