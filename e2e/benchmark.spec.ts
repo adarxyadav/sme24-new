@@ -106,7 +106,9 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(accident).toHaveAttribute("data-position", "bottom_quarter");
     await expect(accident.locator("svg[data-value]")).toHaveAttribute("data-value", "68");
     await expect(accident.getByText("Bottom quarter", { exact: true })).toBeVisible();
-    await expect(accident.locator(".sr-only")).toContainText(
+    // Scoped to the quartile band's own sentence: the named peer strip (spec 0012) adds a second
+    // `sr-only` node to this row when the KPI has a peer set.
+    await expect(accident.locator("[data-slot='quartile-band'] .sr-only")).toContainText(
       "your value 68.00 is in the band Bottom quarter",
     );
     await expect(

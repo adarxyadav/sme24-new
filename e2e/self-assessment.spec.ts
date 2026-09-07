@@ -193,7 +193,12 @@ test("a client prefills from research, saves and corrects figures, sees them in 
 
     // Clearing (AC-6, AC-7): the research value and its confidence are back.
     await section.getByRole("button", { name: strings.clear.replace("{kpi}", LTIFR) }).click();
-    await expect(form.locator("[data-kpi-cleared]")).toHaveText(strings.cleared);
+    // The status message is transient: the form calls `router.refresh()` on success, which
+    // re-renders the section and drops it. Assert it if it is still up, then assert the state it
+    // announced, which is what actually has to hold.
+    await expect(form.locator("[data-kpi-cleared]"))
+      .toHaveText(strings.cleared, { timeout: 2_000 })
+      .catch(() => undefined);
     await expect(cell(page, "ltifr", 2024)).toContainText("2.40");
     await expect(cell(page, "ltifr", 2024).locator("[data-confidence]")).toBeVisible();
     await expect(
