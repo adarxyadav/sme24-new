@@ -28,10 +28,10 @@ The available runtime was Node 25.1.0, rather than the project's Node 22 target.
 
 ## Regression handoff to `/test`
 
-- [ ] **Real persistence and sweep exclusion:** authenticate a seeded client with an owned company, submit the actual checkout UI against local Supabase and Stripe test mode, and assert the order stores the returned Stripe session id before the browser reaches payment. Match Stripe's `client_reference_id` to the order. Advance the sweep clock beyond an hour while the session remains open and assert the order stays pending and is excluded. Preserve direct authenticated UPDATE denial. This must exercise actual grants; mocking every Supabase call as successful would miss the original defect.
-- [ ] **Persistence failure:** let session creation succeed, then make the service UPDATE return a database error. Assert the action returns `unexpected`, exposes no payment URL, and reports the order/session context. Repeat for zero matched rows and a rejected update promise. Verify the UI stays on checkout with its localized error. The previous implementation returned success for a database error.
-- [ ] **Authorization boundary:** forbidden callers and failed RLS inserts never reach the privileged write. An allowed call targets only the order created by that call within its authenticated organization and writes only the Stripe session id.
-- [ ] **Cancel wording:** render/open the pending-order cancel dialog with each real catalog; assert its accessible description requests cancellation, includes the reference, and contains no payment-received wording. Retain the reason field and disabled confirmation while the reason is blank.
+- [x] **Real persistence and sweep exclusion:** authenticate a seeded client with an owned company, submit the actual checkout UI against local Supabase and Stripe test mode, and assert the order stores the returned Stripe session id before the browser reaches payment. Match Stripe's `client_reference_id` to the order. Advance the sweep clock beyond an hour while the session remains open and assert the order stays pending and is excluded. Preserve direct authenticated UPDATE denial. This must exercise actual grants; mocking every Supabase call as successful would miss the original defect.
+- [x] **Persistence failure:** let session creation succeed, then make the service UPDATE return a database error. Assert the action returns `unexpected`, exposes no payment URL, and reports the order/session context. Repeat for zero matched rows and a rejected update promise. Verify the UI stays on checkout with its localized error. The previous implementation returned success for a database error.
+- [x] **Authorization boundary:** forbidden callers and failed RLS inserts never reach the privileged write. An allowed call targets only the order created by that call within its authenticated organization and writes only the Stripe session id.
+- [x] **Cancel wording:** render/open the pending-order cancel dialog with each real catalog; assert its accessible description requests cancellation, includes the reference, and contains no payment-received wording. Retain the reason field and disabled confirmation while the reason is blank.
 
 Reuse local Supabase credentials from `supabase status`; shell overrides must replace the staging URL/keys and `VERCEL_ENV` from `.env.local`. Keep Stripe keys in test mode. The existing settlement concurrency, resumability and invoice-number tests remain the baseline; these fixes do not require changing that implementation.
 
@@ -65,3 +65,38 @@ passes on the fix. `pnpm exec vitest run tests/features/checkout tests/messages.
 files and 126 tests passing; `pnpm typecheck` and a Biome check on the touched files are clean.
 The full `pnpm test` run leaves only the two known `send-email.local` failures, which fail
 identically with the fix stashed.
+
+## Regression suite delivered, 2026-09-08
+
+All four handoff items above now have tests, run on the local stack.
+
+- `tests/features/checkout/actions.test.tsx` covers the persistence failure branches (database
+  error, zero matched rows, rejected promise), the authorization boundary (seven refused claim
+  shapes, a denied RLS insert and a Stripe rejection, none of which reach the privileged write),
+  the exact single write and its filters, and the return URL prefix in both locales.
+- `tests/features/checkout/order-actions.test.tsx` opens the real cancel dialog in both catalogs.
+- `tests/features/checkout/persistence.local.test.ts` drives the real UI against local Supabase
+  and Stripe test mode. It is opt in, skipped unless `CHECKOUT_LOCAL_REGRESSION=1`.
+
+Run the local one with a dev server on port 3111 and shell overrides that beat the staging
+`.env.local` (the URLs must be `localhost`, not `127.0.0.1`: the dev server blocks cross origin
+`/_next/hmr` from a bare IP, React never hydrates, and the form falls back to a plain post that
+never runs the action):
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321 \
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<local> SUPABASE_SECRET_KEY=<local> \
+CHECKOUT_LOCAL_APP_URL=http://localhost:3111 E2E_SEED_PASSWORD=sme24-local-password \
+STRIPE_SECRET_KEY=<sk_test_…> CHECKOUT_LOCAL_REGRESSION=1 \
+pnpm exec vitest run tests/features/checkout/persistence.local.test.ts
+```
+
+It was proven to catch the original defect: with the session write put back on the buyer's RLS
+bound client, it fails on the checkout error banner; with the fix it passes. It cleans up after
+itself (the orders, the company and its Stripe session), leaving `public.orders` empty.
+
+Suite state: Vitest 1285 pass, 1 skipped (the opt in file), and the two known
+`tests/trigger/send-email*.local` failures, which pre-date this branch and come from the staging
+`.env.local` rather than the checkout code. pgTAP 25 files, 553 tests pass after a `pnpm db:reset`
+cleared shared stack drift (two expert migrations were missing and an unknown migration row was
+present). `pnpm lint` and `pnpm typecheck` clean.
