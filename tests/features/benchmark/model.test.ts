@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MODEL_VERSION } from "@/features/benchmark/catalogue";
 import {
   computeBenchmark,
+  exposureCount,
   gapOf,
   type ModelAssumption,
   type ModelCatalogueEntry,
@@ -9,6 +10,7 @@ import {
   type ModelKpiRow,
   type ModelPeerRow,
   positionOf,
+  rateShapeOf,
   roundChf,
   selectPeer,
 } from "@/features/benchmark/model";
@@ -404,6 +406,107 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
     const parsed = parseSnapshotBlocks({ model_version: MODEL_VERSION, ...body });
     expect(parsed.error).toBeNull();
     expect(parsed.blocks?.gaps).toHaveLength(4);
+  });
+});
+
+describe("the derived injury counts (spec 0012)", () => {
+  // fte 420, hours_per_fte 1804 -> exposure 757 680 hours, so a rate of 1.0 is 0.75768 injuries.
+  const exposureHours = (420 * 1804) / 1_000_000;
+
+  it("derives both counts from the rates, headcount and hours assumption (AC-1, AC-2, AC-10)", () => {
+    const derived = compute().derived;
+    expect(derived).not.toBeNull();
+    expect(derived?.fte).toBe(420);
+    expect(derived?.hoursPerFte).toBe(1804);
+    expect(derived?.lostTime?.count).toBeCloseTo(2.4 * exposureHours, 10);
+    expect(derived?.recordable?.count).toBeCloseTo(6.1 * exposureHours, 10);
+  });
+
+  it("copies the provenance of the row each count came from (AC-4, AC-5)", () => {
+    const derived = compute().derived;
+    expect(derived?.lostTime).toMatchObject({
+      fromKey: "ltifr",
+      fromValue: 2.4,
+      fromSource: "research",
+      fromYear: 2025,
+    });
+    expect(derived?.recordable?.fromKey).toBe("trifr");
+    // A derived count never carries a confidence: the type has no such key.
+    expect(derived?.lostTime).not.toHaveProperty("confidence");
+  });
+
+  it("equals the cost line's incidents when both name the same rate (AC-9)", () => {
+    // Drop the Suva rate so the cost line and the derived block both pick LTIFR.
+    const body = compute({
+      kpis: kpis.filter((row) => row.kpiKey !== "accident_rate_per_1000_fte"),
+    });
+    expect(body.cost?.incidentKpi).toBe("ltifr");
+    expect(body.derived?.lostTime?.fromKey).toBe("ltifr");
+    expect(body.derived?.lostTime?.count).toBe(body.cost?.incidents);
+  });
+
+  it("falls back to the Suva accident rate when there is no LTIFR (AC-11)", () => {
+    const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "ltifr") });
+    expect(body.derived?.lostTime?.fromKey).toBe("accident_rate_per_1000_fte");
+    // The per 1000 FTE arm, not the per million hours one.
+    expect(body.derived?.lostTime?.count).toBeCloseTo((68 * 420) / 1000, 10);
+    // The hours assumption still reaches the disclosure, because the recordable count used it.
+    expect(body.assumptions.map((assumption) => assumption.key)).toContain("hours_per_fte");
+  });
+
+  it("drops only the count whose rate is missing (AC-6)", () => {
+    const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "trifr") });
+    expect(body.derived?.lostTime).not.toBeNull();
+    expect(body.derived?.recordable).toBeNull();
+  });
+
+  it("produces no block without a positive headcount (AC-7)", () => {
+    expect(compute({ company: { ...company, employeesCount: null } }).derived).toBeNull();
+    expect(compute({ company: { ...company, employeesCount: 0 } }).derived).toBeNull();
+  });
+
+  it("produces no block, and no NaN, without the hours assumption (AC-16)", () => {
+    const body = compute({
+      assumptions: assumptions.filter((assumption) => assumption.key !== "hours_per_fte"),
+    });
+    expect(body.derived).toBeNull();
+  });
+
+  it("produces no block when no usable rate exists at all (AC-7)", () => {
+    const rates = ["ltifr", "trifr", "accident_rate_per_1000_fte"];
+    const body = compute({ kpis: kpis.filter((row) => !rates.includes(row.kpiKey)) });
+    expect(body.derived).toBeNull();
+  });
+
+  it("keeps a small company's fraction of an injury rather than rounding it away (AC-8)", () => {
+    // 5 people, LTIFR 45: 5 x 1804 = 9020 hours, so 45 x 0.00902 = 0.4059 injuries a year.
+    const body = compute({
+      company: { ...company, employeesCount: 5 },
+      kpis: [kpi("ltifr", 45)],
+    });
+    expect(body.derived?.lostTime?.count).toBeCloseTo(0.4059, 4);
+    expect(body.derived?.lostTime?.count).toBeGreaterThan(0);
+  });
+
+  it("never adds a derived count to the KPI blocks (AC-13)", () => {
+    const body = compute();
+    const keys = [
+      ...body.inputs.kpis.map((input) => input.key),
+      ...body.results.map((result) => result.key),
+      ...body.gaps.map((gap) => gap.key),
+    ];
+    expect(keys).not.toContain("recordable_injuries");
+    expect(keys).not.toContain("lost_time_injuries");
+  });
+});
+
+describe("exposureCount (spec 0012, AC-9)", () => {
+  it("dispatches on the rate shape, with an arm for TRIFR", () => {
+    expect(exposureCount("per_1000_fte", 68, 420, 1804)).toBeCloseTo(28.56, 10);
+    expect(exposureCount("per_million_hours", 2.4, 420, 1804)).toBeCloseTo(1.818432, 10);
+    expect(rateShapeOf("accident_rate_per_1000_fte")).toBe("per_1000_fte");
+    expect(rateShapeOf("ltifr")).toBe("per_million_hours");
+    expect(rateShapeOf("trifr")).toBe("per_million_hours");
   });
 });
 

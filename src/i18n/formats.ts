@@ -7,8 +7,10 @@ export const TIME_ZONE = "Europe/Zurich";
  * The named formats (spec 0004, AC-3). Usage: `format.number(amount, "chf")`,
  * `format.dateTime(date, "dateShort")`, and inside messages `{amount, number, chf}`.
  * `chf` is for prices, invoice lines and VAT; `chfWhole` for benchmark and incident cost estimates
- * so a modelled figure never looks exact. Percentages come from a fraction (0.123), never from a
- * pre multiplied number. Every date format uses explicit parts rather than a `dateStyle`, because
+ * so a modelled figure never looks exact; `oneDecimal` for the derived injury counts, which must
+ * show 0.4 rather than 0 so a small company never reads its expectation as none (spec 0012, AC-8).
+ * Percentages come from a fraction (0.123), never from a pre multiplied number. Every date format
+ * uses explicit parts rather than a `dateStyle`, because
  * `dateStyle: "short"` gives a two digit year in `de-CH` and the other styles abbreviate or change
  * between ICU versions; explicit parts give the same strings on Node 22 (Vercel) and Node 25 (local).
  */
@@ -29,5 +31,6 @@ export const formats = {
     chfWhole: { style: "currency", currency: "CHF", maximumFractionDigits: 0 },
     percent: { style: "percent", maximumFractionDigits: 1 },
     integer: { maximumFractionDigits: 0 },
+    oneDecimal: { minimumFractionDigits: 1, maximumFractionDigits: 1 },
   },
 } as const satisfies Formats;

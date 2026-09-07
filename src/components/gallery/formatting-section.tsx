@@ -12,7 +12,14 @@ import { formats } from "@/i18n/formats";
 
 /** A fixed instant so the section reads the same on every render: 4 September 2026, 13:05 UTC. */
 const SAMPLE_DATE = new Date("2026-09-04T13:05:00Z");
-const NUMBER_SAMPLES = { chf: 4900, chfWhole: 48312.5, percent: 0.1234, integer: 1234567 } as const;
+const NUMBER_SAMPLES = {
+  chf: 4900,
+  chfWhole: 48312.5,
+  percent: 0.1234,
+  integer: 1234567,
+  // Deliberately under one: the derived injury counts must show 0.4, never 0 (spec 0012, AC-8).
+  oneDecimal: 0.42,
+} as const;
 const DATE_FORMATS = Object.keys(formats.dateTime) as ReadonlyArray<keyof typeof formats.dateTime>;
 const NUMBER_FORMATS = Object.keys(formats.number) as ReadonlyArray<keyof typeof formats.number>;
 

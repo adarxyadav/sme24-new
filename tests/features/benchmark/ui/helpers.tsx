@@ -4,8 +4,10 @@ import type { ReactNode } from "react";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
 import type {
   AssumptionUsed,
+  DerivedCount,
   InputKpi,
   SnapshotBlocks,
+  SnapshotDerived,
   SnapshotGap,
   SnapshotPeer,
   SnapshotResult,
@@ -272,6 +274,32 @@ export function parsedSnapshot(
     savingMedianChf: 522_340,
     savingTopChf: 955_340,
     blocks: readyBlocks(blocks),
+    ...overrides,
+  };
+}
+
+/**
+ * A derived block (spec 0012): both counts by default, either one droppable, so a test can model
+ * a partial derivation or a stored version 1 row that carries none at all.
+ */
+export function derivedBlock(overrides: Partial<SnapshotDerived> = {}): SnapshotDerived {
+  return {
+    fte: 420,
+    hoursPerFte: 1800,
+    lostTime: derivedCount(),
+    recordable: derivedCount({ count: 4.6116, fromKey: "trifr", fromValue: 6.1 }),
+    ...overrides,
+  };
+}
+
+/** One derived count, defaulting to the researched LTIFR the block is built from. */
+export function derivedCount(overrides: Partial<DerivedCount> = {}): DerivedCount {
+  return {
+    count: 1.8144,
+    fromKey: "ltifr",
+    fromValue: 2.4,
+    fromSource: "research",
+    fromYear: 2025,
     ...overrides,
   };
 }

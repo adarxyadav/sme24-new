@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon } from "lucide-react";
+import { CalculatorIcon, ChevronDownIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Example } from "@/components/gallery/gallery-section";
@@ -18,8 +18,10 @@ const BANDS = [
 
 /**
  * The benchmark primitives (spec 0008, AC-14): the `QuartileBand` in three shapes, a static
- * opportunity card and the `Collapsible` disclosure, so axe scans them on the gallery. Runs in
- * the browser.
+ * opportunity card carrying the derived counts and their outline "Calculated" badge (spec 0012,
+ * AC-3), and the `Collapsible` disclosure, so axe scans them on the gallery. The badge sits beside
+ * the filled confidence badge here on purpose, so the two read as different kinds of number.
+ * Runs in the browser.
  */
 export function BenchmarkSection() {
   const t = useTranslations("gallery.benchmark");
@@ -54,6 +56,41 @@ export function BenchmarkSection() {
               <CardDescription>{b("card.description")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <p className="eyebrow text-muted-foreground">{b("derived.title")}</p>
+                <dl className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex flex-col gap-0.5">
+                    <dt className="eyebrow text-muted-foreground">{b("derived.lostTime")}</dt>
+                    <dd className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium tabular-nums" data-numeric>
+                        {format.number(0.9, "oneDecimal")}
+                      </span>
+                      <Badge variant="outline">
+                        <CalculatorIcon aria-hidden="true" />
+                        {b("derived.calculated")}
+                      </Badge>
+                    </dd>
+                    <p className="text-muted-foreground text-xs">
+                      {b("derived.fromResearch", { kpi: "LTIFR", year: 2024 })}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <dt className="eyebrow text-muted-foreground">{b("derived.recordable")}</dt>
+                    <dd className="flex flex-wrap items-center gap-2">
+                      <span className="font-medium tabular-nums" data-numeric>
+                        {format.number(2.3, "oneDecimal")}
+                      </span>
+                      <Badge variant="outline">
+                        <CalculatorIcon aria-hidden="true" />
+                        {b("derived.calculated")}
+                      </Badge>
+                    </dd>
+                    <p className="text-muted-foreground text-xs">
+                      {b("derived.fromClient", { kpi: "TRIFR", year: 2024 })}
+                    </p>
+                  </div>
+                </dl>
+              </div>
               <div className="flex flex-col gap-1">
                 <p className="font-semibold text-3xl tabular-nums" data-numeric>
                   {chf(1_961_000)}

@@ -1,4 +1,4 @@
-import { InfoIcon, TriangleAlertIcon } from "lucide-react";
+import { CalculatorIcon, InfoIcon, TriangleAlertIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { BenchmarkState } from "@/features/benchmark/catalogue";
 import { roundChf } from "@/features/benchmark/model";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
-import type { SnapshotGap, SnapshotPeer, SnapshotResult } from "@/features/benchmark/snapshot";
+import type {
+  DerivedCount,
+  SnapshotDerived,
+  SnapshotGap,
+  SnapshotPeer,
+  SnapshotResult,
+} from "@/features/benchmark/snapshot";
 import {
   isKpiKey,
   KPI_CATALOGUE,
@@ -202,6 +208,113 @@ export function confidenceDriver(snapshot: ParsedSnapshot): KpiKey | null {
   return driver?.key ?? null;
 }
 
+/**
+ * One derived injury count (spec 0012): the number, a "Calculated" badge that reads as neither a
+ * confidence badge nor a client "Your figure" badge, and a line naming the rate and year it came
+ * from. Never a confidence score (AC-5). Server component.
+ */
+function DerivedCountRow({
+  count,
+  label,
+  testId,
+  catalogue,
+  locale,
+  t,
+  format,
+}: {
+  readonly count: DerivedCount;
+  readonly label: string;
+  readonly testId: string;
+  readonly catalogue: readonly KpiDefinitionRow[];
+  readonly locale: LocaleCode;
+  readonly t: Translator;
+  readonly format: Formatter;
+}) {
+  // The Suva rate gets its own short phrase: the catalogue name reads as an unreadable sentence
+  // when interpolated ("Calculated from your Accidents per 1000 full time employees for 2024").
+  const suva = count.fromKey === "accident_rate_per_1000_fte";
+  const client = count.fromSource === "client";
+  const provenance = suva
+    ? t(client ? "derived.fromClientSuva" : "derived.fromResearchSuva", { year: count.fromYear })
+    : t(client ? "derived.fromClient" : "derived.fromResearch", {
+        kpi: kpiName(catalogue, locale, count.fromKey),
+        year: count.fromYear,
+      });
+
+  return (
+    <div className="flex flex-col gap-0.5" data-derived-count={testId}>
+      <dt className="eyebrow text-muted-foreground">{label}</dt>
+      <dd className="flex flex-wrap items-center gap-2">
+        <span className="font-medium tabular-nums" data-numeric data-derived-value>
+          {format.number(count.count, "oneDecimal")}
+        </span>
+        <Badge variant="outline">
+          <CalculatorIcon aria-hidden="true" />
+          {t("derived.calculated")}
+        </Badge>
+      </dd>
+      <p className="text-muted-foreground text-xs" data-derived-from={count.fromKey}>
+        {provenance}
+      </p>
+    </div>
+  );
+}
+
+/**
+ * The derived counts inside the opportunity card (spec 0012): lost time first, so the number that
+ * drives the CHF figure sits nearest to it. Absent entirely when nothing could be derived, and each
+ * count independent of the other (AC-6, AC-7). Server component.
+ */
+function DerivedBlock({
+  derived,
+  catalogue,
+  locale,
+  t,
+  format,
+}: {
+  readonly derived: SnapshotDerived;
+  readonly catalogue: readonly KpiDefinitionRow[];
+  readonly locale: LocaleCode;
+  readonly t: Translator;
+  readonly format: Formatter;
+}) {
+  return (
+    <div className="flex flex-col gap-2" data-derived-block>
+      <p className="eyebrow text-muted-foreground">{t("derived.title")}</p>
+      <dl className="grid gap-3 sm:grid-cols-2">
+        {derived.lostTime ? (
+          <DerivedCountRow
+            count={derived.lostTime}
+            label={t("derived.lostTime")}
+            testId="lost-time"
+            catalogue={catalogue}
+            locale={locale}
+            t={t}
+            format={format}
+          />
+        ) : null}
+        {derived.recordable ? (
+          <DerivedCountRow
+            count={derived.recordable}
+            label={t("derived.recordable")}
+            testId="recordable"
+            catalogue={catalogue}
+            locale={locale}
+            t={t}
+            format={format}
+          />
+        ) : null}
+      </dl>
+      <p className="text-muted-foreground text-xs" data-derived-exposure>
+        {t("derived.exposure", {
+          fte: format.number(derived.fte, "integer"),
+          hours: format.number(derived.hoursPerFte, "integer"),
+        })}
+      </p>
+    </div>
+  );
+}
+
 function OpportunityCard({
   snapshot,
   catalogue,
@@ -212,6 +325,9 @@ function OpportunityCard({
 }: BlockProps & { readonly company: FactsFormProps["company"] }) {
   const chf = (value: number) => format.number(roundChf(value), "chfWhole");
   const cost = snapshot.blocks.cost;
+  // Absent on a stored version 1 row and whenever nothing could be derived; the card then renders
+  // exactly as it did before this block existed (spec 0012, AC-7, AC-12).
+  const derived = snapshot.blocks.derived ?? null;
   const driver = confidenceDriver(snapshot);
   const computedOn = format.dateTime(new Date(snapshot.createdAt), "dateShort");
   const activeCount = catalogue.length;
@@ -223,6 +339,15 @@ function OpportunityCard({
         <CardDescription>{t("card.description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
+        {derived ? (
+          <DerivedBlock
+            derived={derived}
+            catalogue={catalogue}
+            locale={locale}
+            t={t}
+            format={format}
+          />
+        ) : null}
         {cost && snapshot.costChf !== null ? (
           <>
             <div className="flex flex-col gap-1">

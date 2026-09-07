@@ -1506,6 +1506,17 @@
       "missingIncidentRate": "We need an accident rate or an LTIFR to estimate the annual cost.",
       "compared": "{compared} of {total} KPIs compared"
     },
+    "derived": {
+      "title": "What that means in injuries",
+      "lostTime": "Lost time injuries a year",
+      "recordable": "Recordable injuries a year",
+      "calculated": "Calculated",
+      "fromClient": "Calculated from your {kpi} for {year}",
+      "fromResearch": "Calculated from the researched {kpi} for {year}",
+      "fromClientSuva": "Calculated from your Suva accident rate for {year}",
+      "fromResearchSuva": "Calculated from the researched Suva accident rate for {year}",
+      "exposure": "Based on {fte} employees and {hours} hours each a year"
+    },
     "gaps": {
       "title": "Priority gaps",
       "description": "What to fix first: ranked by the saving at the peer median, then by the distance to the median.",
