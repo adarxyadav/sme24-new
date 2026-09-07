@@ -1710,5 +1710,39 @@
     "vat": "MWST {rate}",
     "gross": "Gesamtbetrag",
     "paymentNote": "Bitte verwenden Sie den QR-Zahlteil unten für die Zahlung."
+  },
+  "adminOrders": {
+    "title": "Bestellungen",
+    "description": "Zahlungen, Rechnungen und offene Überweisungen.",
+    "emptyTitle": "Noch keine Bestellung",
+    "emptyBody": "Sobald ein Kunde ein Paket kauft, erscheint die Bestellung hier.",
+    "columns": {
+      "reference": "Referenz",
+      "organization": "Kunde",
+      "package": "Paket",
+      "amount": "Betrag",
+      "method": "Zahlungsart",
+      "status": "Status",
+      "invoice": "Rechnung",
+      "date": "Datum",
+      "actions": "Aktionen"
+    },
+    "method": {
+      "card": "Karte",
+      "bank_transfer": "Rechnung"
+    },
+    "markPaid": "Als bezahlt markieren",
+    "markPaidConfirm": "Zahlungseingang für {reference} bestätigen?",
+    "cancel": "Stornieren",
+    "cancelReason": "Grund der Stornierung",
+    "cancelConfirm": "Bestellung stornieren",
+    "retryRender": "Rechnung erneut erstellen",
+    "invoicePending": "In Arbeit",
+    "invoiceFailed": "Fehlgeschlagen",
+    "noInvoice": "Keine",
+    "done": "Erledigt",
+    "filterAll": "Alle",
+    "filterPending": "Offen",
+    "filterPaid": "Bezahlt"
   }
 }

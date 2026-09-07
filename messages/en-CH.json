@@ -1710,5 +1710,39 @@
     "vat": "VAT {rate}",
     "gross": "Total",
     "paymentNote": "Please use the QR payment slip below to pay."
+  },
+  "adminOrders": {
+    "title": "Orders",
+    "description": "Payments, invoices and open bank transfers.",
+    "emptyTitle": "No orders yet",
+    "emptyBody": "Once a client buys a package, the order appears here.",
+    "columns": {
+      "reference": "Reference",
+      "organization": "Client",
+      "package": "Package",
+      "amount": "Amount",
+      "method": "Payment method",
+      "status": "Status",
+      "invoice": "Invoice",
+      "date": "Date",
+      "actions": "Actions"
+    },
+    "method": {
+      "card": "Card",
+      "bank_transfer": "Invoice"
+    },
+    "markPaid": "Mark as paid",
+    "markPaidConfirm": "Confirm the payment for {reference} arrived?",
+    "cancel": "Cancel",
+    "cancelReason": "Reason for cancelling",
+    "cancelConfirm": "Cancel the order",
+    "retryRender": "Create the invoice again",
+    "invoicePending": "In progress",
+    "invoiceFailed": "Failed",
+    "noInvoice": "None",
+    "done": "Done",
+    "filterAll": "All",
+    "filterPending": "Open",
+    "filterPaid": "Paid"
   }
 }

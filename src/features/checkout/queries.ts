@@ -131,3 +131,53 @@ export async function listCompanies(
   if (error) throw queryError(error);
   return data ?? [];
 }
+
+/** One ops row: the order with its client, and whatever invoice it has. */
+export type OpsOrderRow = {
+  readonly order: OrderRow;
+  readonly organizationName: string;
+  readonly invoice: Pick<
+    InvoiceRow,
+    "id" | "number" | "pdf_path" | "pdf_failed_at" | "cancelled_at"
+  > | null;
+};
+
+/**
+ * Every order for ops, newest first (spec 0011, AC-9). Runs under the ops session, where the ops
+ * policy grants full read; the same query as a client would run simply returns their own rows.
+ * Server component, ops only.
+ */
+export async function listAllOrders(
+  supabase: Client,
+  cursor?: string | null,
+): Promise<{ readonly rows: readonly OpsOrderRow[]; readonly nextCursor: string | null }> {
+  let query = supabase
+    .from("orders")
+    .select(
+      "*, organizations:organization_id(name), invoices(id, number, pdf_path, pdf_failed_at, cancelled_at)",
+    )
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(ORDERS_PAGE_SIZE + 1);
+  if (cursor) query = query.lt("created_at", cursor);
+
+  const { data, error } = await query;
+  if (error) throw queryError(error);
+
+  const all = data ?? [];
+  const hasMore = all.length > ORDERS_PAGE_SIZE;
+  const page = hasMore ? all.slice(0, ORDERS_PAGE_SIZE) : all;
+  const rows = page.map((row) => {
+    const { organizations, invoices, ...order } = row as typeof row & {
+      organizations: { name: string } | null;
+      invoices: OpsOrderRow["invoice"][] | OpsOrderRow["invoice"] | null;
+    };
+    return {
+      order: order as unknown as OrderRow,
+      organizationName: organizations?.name ?? "—",
+      invoice: Array.isArray(invoices) ? (invoices[0] ?? null) : invoices,
+    };
+  });
+  const last = rows.at(-1);
+  return { rows, nextCursor: hasMore && last ? last.order.created_at : null };
+}

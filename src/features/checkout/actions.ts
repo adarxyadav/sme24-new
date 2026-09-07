@@ -13,6 +13,7 @@ import { parseWith } from "@/lib/validation";
 import { classifyOrderInsertError } from "./errors";
 import { computeAmounts } from "./money";
 import { checkoutSchema } from "./schema";
+import { invoiceDueDays } from "./seller";
 
 /**
  * The checkout server actions (spec 0011, AC-1, AC-8, AC-11, AC-19). `startCheckout` opens a
@@ -191,7 +192,12 @@ export async function startCheckout(
     .single();
   if (insertError || !order) {
     const classified = classifyOrderInsertError(insertError);
-    log.error("checkout: order insert failed", { error: classified });
+    log.error("checkout: order insert failed", {
+      error: classified,
+      code: insertError?.code,
+      message: insertError?.message,
+      details: insertError?.details,
+    });
     if (classified === "forbidden") return { ok: false, error: "forbidden" };
     return { ok: false, error: "unexpected" };
   }
@@ -297,14 +303,25 @@ export async function requestInvoice(
   const prepared = await prepareOrder(actor, parsed.data, locale, "bank_transfer");
   if (!prepared.ok) return prepared;
 
+  // The due date is written with the order rather than waiting for the issuing task, so the order
+  // page can state when payment is due the moment the client lands on it. The task writes the same
+  // date onto the invoice it issues, from the same INVOICE_DUE_DAYS.
+  const dueDate = new Date();
+  dueDate.setUTCDate(dueDate.getUTCDate() + invoiceDueDays());
+
   const { data: order, error: insertError } = await actor.supabase
     .from("orders")
-    .insert(prepared.data as never)
+    .insert({ ...prepared.data, due_date: dueDate.toISOString().slice(0, 10) } as never)
     .select("id, reference")
     .single();
   if (insertError || !order) {
     const classified = classifyOrderInsertError(insertError);
-    log.error("request invoice: order insert failed", { error: classified });
+    log.error("request invoice: order insert failed", {
+      error: classified,
+      code: insertError?.code,
+      message: insertError?.message,
+      details: insertError?.details,
+    });
     if (classified === "forbidden") return { ok: false, error: "forbidden" };
     return { ok: false, error: "unexpected" };
   }
