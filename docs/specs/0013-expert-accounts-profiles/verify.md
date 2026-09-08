@@ -155,7 +155,13 @@ client side check fires rather than the raised server limit merely being generou
 experts.spec.ts` 6 passed with `pnpm trigger:dev` running. The pre existing `design.spec.ts`
 keyboard failure above is unchanged and untouched.
 
-**Owed to `/test`**: a regression test for the size guard. The natural home is a Vitest test on
+**Owed to `/test`**: ~~a regression test for the size guard.~~ **Delivered on 2026-09-08** in
+`tests/features/experts/ui/photo-field.test.tsx`: a file over `PHOTO_MAX_BYTES` renders the
+`too_large` alert and never calls `uploadExpertPhoto`, a file at or under it does call it, and a
+second oversized pick is answered too (the input is cleared on a refusal, so the change event
+fires again). The original wording follows.
+
+A regression test for the size guard. The natural home is a Vitest test on
 `ExpertPhotoField` proving a file over `PHOTO_MAX_BYTES` renders the `too_large` alert and never
 calls `uploadExpertPhoto`, plus a test that a file under it does call it; the end to end size
 window itself is covered by the table above and does not need a permanent Playwright case.

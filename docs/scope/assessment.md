@@ -16,7 +16,7 @@ Spec: [0013](../specs/0013-expert-accounts-profiles/index.md). One expert owned 
   - [x] The full profile and offboarding: the profile form for the expert and ops, the photo bucket with signed URLs, ops notes, deactivate and reactivate (AC-5, AC-6, AC-8, AC-10)
   - [x] Emails, alert and the closing pass: the three templates and the onboarded alert, both catalogs, axe on every new page, the design gallery, the runbook (AC-14, AC-15)
 - [x] Verify it: `/check verify expert accounts & profiles` — 14 of 15 criteria met in the real app ([verify.md](../specs/0013-expert-accounts-profiles/verify.md)); AC-6 closed by `/debug expert photo upload limit` on 8 Sep 2026, so all 15 are met. The photo upload needed `experimental.serverActions.bodySizeLimit` in `next.config.ts` (Next caps a server action body at 1 MB by default, below the 2 MB the spec and the bucket both promise) plus a client side size check so an oversized file is refused visibly.
-- [ ] Test it: `/test expert accounts & profiles`
+- [x] Test it: `/test expert accounts & profiles` — 91 Vitest tests over six files (schema, form, queries, and the photo field, avatar, checkbox group and account actions components), including the AC-6 size guard regression `/debug` owed; Vitest 1433 passed 1 skipped, pgTAP 556, e2e experts 6 of 6. The suite found and fixed one defect: the invite email schema trimmed after validating, so a pasted address with whitespace was refused.
 - [ ] Review it (fresh model): `/check review expert accounts & profiles`
 - [ ] Document it: `/document expert accounts & profiles`
 
