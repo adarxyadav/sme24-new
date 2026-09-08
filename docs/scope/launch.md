@@ -30,7 +30,7 @@ spec [0015](../specs/0015-legal-privacy-cookie-consent/index.md)
 - [ ] Build it: `/develop legal, privacy & cookie consent`
   - [x] The consent thread end to end: the `sme24_consent` cookie with its version segment, `setConsent`, the bar hidden by default in the root layout with accept and reject at equal weight, the rewritten analytics gate and the withdrawal path, Playwright proving zero PostHog requests before a choice (AC-1, AC-2, AC-3, AC-4, AC-5, AC-5b)
   - [x] The four legal pages: the `PROCESSORS` and `RETENTION` constants with the test tying them to the purge tasks, the routes with German slugs, metadata and social cards, the German and English copy, the consent control on `/cookies`, the footer legal group and the real sign up and enquiry links, the record of processing with its pgTAP check (AC-6, AC-7, AC-8, AC-8b, AC-9, AC-16)
-  - [ ] The terms version and re consent: the `profiles.terms_version` migration with pgTAP, `CURRENT_TERMS_VERSION` at `'1'`, the blocking dialog comparing by equality and the changelog key test (AC-10)
+  - [x] The terms version and re consent: the `profiles.terms_version` migration with pgTAP, `CURRENT_TERMS_VERSION` at `'1'`, the blocking dialog comparing by equality and the changelog key test (AC-10)
   - [ ] Data requests and the ops surface: the `data_requests` migration with RLS and pgTAP, the four actions with the transition map and the refusal note rule, the anonymisation routine including the `auth.users` scrub, the `data_request.received` alert, the client card, `/admin/data-requests` list and detail, and `docs/legal.md` (AC-11, AC-12, AC-13, AC-14, AC-15)
 - [ ] Verify it: `/check verify legal, privacy & cookie consent`
 - [ ] Test it: `/test legal, privacy & cookie consent`
