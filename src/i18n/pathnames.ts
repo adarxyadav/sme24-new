@@ -44,6 +44,8 @@ export const PATHNAMES = {
   "/admin/emails/[id]": "/admin/emails/[id]",
   "/admin/enquiries": "/admin/enquiries",
   "/admin/enquiries/[id]": "/admin/enquiries/[id]",
+  "/admin/data-requests": "/admin/data-requests",
+  "/admin/data-requests/[id]": "/admin/data-requests/[id]",
   "/admin/orders": "/admin/orders",
   "/admin/companies": "/admin/companies",
   "/admin/companies/[companyId]": "/admin/companies/[companyId]",

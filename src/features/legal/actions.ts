@@ -297,3 +297,58 @@ function reportUpdateFailure(what: string, reason: string): UpdateDataRequestRes
   Sentry.captureException(new Error(`${what}: ${reason}`), { tags: { source: "legal" } });
   return { ok: false, error: "unexpected" };
 }
+
+export type MyRequest = {
+  readonly id: string;
+  readonly kind: DataRequestKind;
+  readonly status: DataRequestStatus;
+  readonly dueAt: string;
+  readonly createdAt: string;
+};
+
+export type MyRequestsResult =
+  | { ok: true; data: { signedIn: boolean; rows: readonly MyRequest[] } }
+  | { ok: false; error: "unexpected" };
+
+/**
+ * The caller's own requests, for the card on the statically prerendered `/cookies` page (AC-11).
+ *
+ * An action rather than a server component read, because that page must stay static (AC-5): it
+ * never calls `cookies()` or `headers()` itself, so the card asks for its own state after mount,
+ * exactly as the consent control does. A signed out visitor is not an error, it is
+ * `signedIn: false`, and the card then says nothing about data requests at all.
+ *
+ * RLS is the boundary: the select policy is `auth.uid() = requested_by`, so this cannot return
+ * another person's row however it is called. Server action, any visitor.
+ */
+export async function myDataRequests(): Promise<MyRequestsResult> {
+  const supabase = await createActionClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  if (typeof claimsData?.claims?.sub !== "string") {
+    return { ok: true, data: { signedIn: false, rows: [] } };
+  }
+
+  const { data, error } = await supabase
+    .from("data_requests")
+    .select("id, kind, status, due_at, created_at")
+    .order("created_at", { ascending: false });
+  if (error) {
+    log.error("data request list failed", { reason: error.message });
+    Sentry.captureException(queryError(error), { tags: { source: "legal" } });
+    return { ok: false, error: "unexpected" };
+  }
+
+  return {
+    ok: true,
+    data: {
+      signedIn: true,
+      rows: data.map((row) => ({
+        id: row.id,
+        kind: row.kind as DataRequestKind,
+        status: row.status as DataRequestStatus,
+        dueAt: row.due_at,
+        createdAt: row.created_at,
+      })),
+    },
+  };
+}

@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ConsentControl } from "@/features/legal/ui/consent-control";
+import { DataRequestsCard } from "@/features/legal/ui/data-requests-card";
 import { LegalPage, LegalProse, LegalSection } from "@/features/legal/ui/legal-page";
 import { webPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
@@ -31,12 +32,13 @@ export async function generateMetadata({
 }
 
 /**
- * The cookies page (spec 0015, AC-6, AC-8b): the full list of what is set and why, and the
+ * The cookies page (spec 0015, AC-6, AC-8b, AC-11): the full list of what is set and why, the
  * consent control that re-opens the choice whatever the current cookie says, so someone who
- * rejected can later accept without clearing their browser.
+ * rejected can later accept without clearing their browser, and the data rights card where a
+ * signed in person asks for a copy of their data or its deletion.
  *
- * The control is a client component reading the cookie after mount, so the page stays statically
- * prerendered; the page never reads `cookies()` itself. It gets its strings through a nested
+ * Both the control and the card are client components that read their own state after mount, so
+ * the page stays statically prerendered; the page never reads `cookies()` itself. It gets its strings through a nested
  * provider, because the page copy lives outside the shared namespaces on purpose: the legal text
  * is long, and shipping it to every client bundle would cost the first load budget for nothing.
  * Prerendered in both languages.
@@ -45,9 +47,10 @@ export default async function CookiesPage({ params }: PageProps<"/[locale]/cooki
   const { locale } = await params;
   const resolved = resolveLocale(locale);
   setRequestLocale(resolved);
-  const [t, meta, messages] = await Promise.all([
+  const [t, meta, data, messages] = await Promise.all([
     getTranslations("legalPages.cookiesPage"),
     getTranslations("legalPages.cookiesPage.meta"),
+    getTranslations("legalPages.dataRequests"),
     getMessages(),
   ]);
 
@@ -67,6 +70,12 @@ export default async function CookiesPage({ params }: PageProps<"/[locale]/cooki
         <LegalSection id="choice" title={t("choice.title")}>
           <NextIntlClientProvider messages={clientMessages(messages, ["legalPages"])}>
             <ConsentControl />
+          </NextIntlClientProvider>
+        </LegalSection>
+
+        <LegalSection id="data" title={data("title")}>
+          <NextIntlClientProvider messages={clientMessages(messages, ["legalPages"])}>
+            <DataRequestsCard />
           </NextIntlClientProvider>
         </LegalSection>
 

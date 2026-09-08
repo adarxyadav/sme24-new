@@ -60,7 +60,8 @@
       "enquiries": "Enquiries",
       "orders": "Orders",
       "companies": "Companies",
-      "experts": "Experts"
+      "experts": "Experts",
+      "dataRequests": "Data requests"
     }
   },
   "theme": {
@@ -2298,6 +2299,85 @@
       "notScheduled": "Not scheduled"
     }
   },
+  "adminDataRequests": {
+    "title": "Data requests",
+    "description": "Export and deletion requests, ordered by the 30 day answer deadline.",
+    "listHeading": "Requests",
+    "columns": {
+      "due": "Answer by",
+      "kind": "Right",
+      "subject": "Subject",
+      "organization": "Client",
+      "filed": "Filed",
+      "status": "Status"
+    },
+    "kinds": {
+      "export": "Copy of data",
+      "deletion": "Deletion"
+    },
+    "status": {
+      "new": "New",
+      "in_progress": "In progress",
+      "fulfilled": "Fulfilled",
+      "refused": "Refused"
+    },
+    "overdue": "Overdue",
+    "noName": "No name on file",
+    "noOrganization": "None",
+    "filters": {
+      "label": "Status",
+      "open": "Open",
+      "all": "All",
+      "apply": "Apply"
+    },
+    "pagination": {
+      "first": "First page",
+      "next": "Next page"
+    },
+    "empty": {
+      "title": "No data requests",
+      "description": "When someone asks for a copy of their data or its deletion, it appears here."
+    },
+    "noResults": {
+      "title": "Nothing matches this filter",
+      "description": "Try the open queue or lift the filter."
+    },
+    "detail": {
+      "title": "Data request",
+      "subject": "Subject",
+      "email": "Email",
+      "kind": "Right",
+      "filed": "Filed",
+      "due": "Answer by",
+      "handledBy": "Handled by",
+      "handledAt": "Handled at",
+      "notHandled": "Not yet handled",
+      "organization": "Client"
+    },
+    "form": {
+      "status": "Status",
+      "opsNote": "What was done",
+      "opsNoteHint": "For an export, record what was sent and how. For a refusal, the reason is required and stays on the record.",
+      "submit": "Save",
+      "saving": "Saving…",
+      "saved": "Request updated.",
+      "deletionWarning": "Marking a deletion request as fulfilled anonymises the person immediately: their name, email and profile are cleared and they can no longer sign in. Orders and invoices are kept. This cannot be undone.",
+      "errors": {
+        "noteLong": "Keep the note under 2000 characters.",
+        "validation": "Check the fields and try again.",
+        "forbidden": "You are not allowed to change this request.",
+        "not_found": "This request no longer exists.",
+        "invalid_transition": "That move is not allowed from the current status. Reload the page and try again.",
+        "note_required": "A refusal needs a reason. Write what was refused and why.",
+        "unexpected": "Something went wrong. The request was not changed."
+      },
+      "deletionWarningTitle": "This deletes the person's identity"
+    },
+    "terminal": {
+      "fulfilled": "This request was fulfilled and is closed. A further request is filed as a new one.",
+      "refused": "This request was refused and is closed. A further request is filed as a new one."
+    }
+  },
   "experts": {
     "catalogue": {
       "competencies": {
@@ -3004,6 +3084,50 @@
       "more": {
         "title": "More detail",
         "body": "The privacy policy says what each processor does with the data and how long we keep it. <link>Read the privacy policy</link>."
+      }
+    },
+    "dataRequests": {
+      "title": "Your data",
+      "lead": "You can ask for a copy of the personal data SME24 holds about you, or ask us to delete it. We answer within 30 days.",
+      "signedOut": "Sign in to make a request. If you do not have an account, write to us and we will answer the same way.",
+      "actions": {
+        "export": "Request a copy",
+        "deletion": "Request deletion"
+      },
+      "kinds": {
+        "export": "Copy of my data",
+        "deletion": "Deletion"
+      },
+      "status": {
+        "new": "Received",
+        "in_progress": "Being prepared",
+        "fulfilled": "Answered",
+        "refused": "Refused"
+      },
+      "dueBy": "Answer due by {date}",
+      "filed": {
+        "export": "Request received. We will send your copy within 30 days.",
+        "deletion": "Request received. We will answer within 30 days."
+      },
+      "confirm": {
+        "cancel": "Cancel",
+        "filing": "Sending…",
+        "export": {
+          "title": "Request a copy of your data",
+          "body": "We will assemble what SME24 holds about you and send it to your account address within 30 days.",
+          "submit": "Request a copy"
+        },
+        "deletion": {
+          "title": "Request deletion",
+          "body": "Your name, email address and profile are removed and you can no longer sign in. Invoices and orders are kept for ten years, because Swiss commercial law (Art. 958f CO) requires it. This cannot be undone.",
+          "submit": "Request deletion"
+        }
+      },
+      "errors": {
+        "already_open": "You already have an open request of this kind. We will answer it within 30 days.",
+        "validation": "That request could not be read. Please try again.",
+        "forbidden": "Please sign in again to make a request.",
+        "unexpected": "Something went wrong. Please try again."
       }
     }
   }

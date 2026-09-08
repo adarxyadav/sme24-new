@@ -60,7 +60,8 @@
       "enquiries": "Anfragen",
       "orders": "Bestellungen",
       "companies": "Firmen",
-      "experts": "Expertinnen und Experten"
+      "experts": "Expertinnen und Experten",
+      "dataRequests": "Datenanfragen"
     }
   },
   "theme": {
@@ -2298,6 +2299,85 @@
       "notScheduled": "Nicht geplant"
     }
   },
+  "adminDataRequests": {
+    "title": "Datenanfragen",
+    "description": "Auskunfts- und Löschungsanfragen, sortiert nach der 30-Tage-Frist.",
+    "listHeading": "Anfragen",
+    "columns": {
+      "due": "Antwort bis",
+      "kind": "Recht",
+      "subject": "Betroffene Person",
+      "organization": "Kundin",
+      "filed": "Eingegangen",
+      "status": "Status"
+    },
+    "kinds": {
+      "export": "Datenkopie",
+      "deletion": "Löschung"
+    },
+    "status": {
+      "new": "Neu",
+      "in_progress": "In Bearbeitung",
+      "fulfilled": "Erfüllt",
+      "refused": "Abgelehnt"
+    },
+    "overdue": "Überfällig",
+    "noName": "Kein Name hinterlegt",
+    "noOrganization": "Keine",
+    "filters": {
+      "label": "Status",
+      "open": "Offen",
+      "all": "Alle",
+      "apply": "Anwenden"
+    },
+    "pagination": {
+      "first": "Erste Seite",
+      "next": "Nächste Seite"
+    },
+    "empty": {
+      "title": "Keine Datenanfragen",
+      "description": "Wenn jemand eine Kopie seiner Daten oder deren Löschung verlangt, erscheint die Anfrage hier."
+    },
+    "noResults": {
+      "title": "Nichts entspricht diesem Filter",
+      "description": "Versuchen Sie die offenen Anfragen oder heben Sie den Filter auf."
+    },
+    "detail": {
+      "title": "Datenanfrage",
+      "subject": "Betroffene Person",
+      "email": "E-Mail",
+      "kind": "Recht",
+      "filed": "Eingegangen",
+      "due": "Antwort bis",
+      "handledBy": "Bearbeitet von",
+      "handledAt": "Bearbeitet am",
+      "notHandled": "Noch nicht bearbeitet",
+      "organization": "Kundin"
+    },
+    "form": {
+      "status": "Status",
+      "opsNote": "Was getan wurde",
+      "opsNoteHint": "Bei einer Auskunft festhalten, was wie gesendet wurde. Bei einer Ablehnung ist die Begründung zwingend und bleibt auf dem Datensatz.",
+      "submit": "Speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Anfrage aktualisiert.",
+      "deletionWarning": "Eine Löschungsanfrage als erfüllt zu markieren anonymisiert die Person sofort: Name, E-Mail und Profil werden gelöscht und sie kann sich nicht mehr anmelden. Bestellungen und Rechnungen bleiben erhalten. Dies kann nicht rückgängig gemacht werden.",
+      "errors": {
+        "noteLong": "Halten Sie die Notiz unter 2000 Zeichen.",
+        "validation": "Prüfen Sie die Felder und versuchen Sie es erneut.",
+        "forbidden": "Sie dürfen diese Anfrage nicht ändern.",
+        "not_found": "Diese Anfrage existiert nicht mehr.",
+        "invalid_transition": "Dieser Schritt ist vom aktuellen Status aus nicht erlaubt. Laden Sie die Seite neu und versuchen Sie es erneut.",
+        "note_required": "Eine Ablehnung braucht eine Begründung. Halten Sie fest, was warum abgelehnt wurde.",
+        "unexpected": "Etwas ist schiefgelaufen. Die Anfrage wurde nicht geändert."
+      },
+      "deletionWarningTitle": "Dies löscht die Identität der Person"
+    },
+    "terminal": {
+      "fulfilled": "Diese Anfrage wurde erfüllt und ist abgeschlossen. Eine weitere Anfrage wird neu erfasst.",
+      "refused": "Diese Anfrage wurde abgelehnt und ist abgeschlossen. Eine weitere Anfrage wird neu erfasst."
+    }
+  },
   "experts": {
     "catalogue": {
       "competencies": {
@@ -3004,6 +3084,50 @@
       "more": {
         "title": "Mehr Details",
         "body": "Die Datenschutzerklärung sagt, was jeder Auftragsbearbeiter mit den Daten tut und wie lange wir sie aufbewahren. <link>Datenschutzerklärung lesen</link>."
+      }
+    },
+    "dataRequests": {
+      "title": "Ihre Daten",
+      "lead": "Sie können eine Kopie der Personendaten verlangen, die SME24 über Sie hält, oder deren Löschung verlangen. Wir antworten innert 30 Tagen.",
+      "signedOut": "Melden Sie sich an, um eine Anfrage zu stellen. Ohne Konto schreiben Sie uns, wir antworten gleichermassen.",
+      "actions": {
+        "export": "Kopie verlangen",
+        "deletion": "Löschung verlangen"
+      },
+      "kinds": {
+        "export": "Kopie meiner Daten",
+        "deletion": "Löschung"
+      },
+      "status": {
+        "new": "Eingegangen",
+        "in_progress": "In Bearbeitung",
+        "fulfilled": "Beantwortet",
+        "refused": "Abgelehnt"
+      },
+      "dueBy": "Antwort bis {date}",
+      "filed": {
+        "export": "Anfrage eingegangen. Wir senden Ihre Kopie innert 30 Tagen.",
+        "deletion": "Anfrage eingegangen. Wir antworten innert 30 Tagen."
+      },
+      "confirm": {
+        "cancel": "Abbrechen",
+        "filing": "Wird gesendet…",
+        "export": {
+          "title": "Kopie Ihrer Daten verlangen",
+          "body": "Wir stellen zusammen, was SME24 über Sie hält, und senden es innert 30 Tagen an Ihre Kontoadresse.",
+          "submit": "Kopie verlangen"
+        },
+        "deletion": {
+          "title": "Löschung verlangen",
+          "body": "Ihr Name, Ihre E-Mail-Adresse und Ihr Profil werden entfernt und Sie können sich nicht mehr anmelden. Rechnungen und Bestellungen bleiben zehn Jahre erhalten, weil das Schweizer Obligationenrecht (Art. 958f OR) dies verlangt. Dies kann nicht rückgängig gemacht werden.",
+          "submit": "Löschung verlangen"
+        }
+      },
+      "errors": {
+        "already_open": "Sie haben bereits eine offene Anfrage dieser Art. Wir beantworten sie innert 30 Tagen.",
+        "validation": "Diese Anfrage konnte nicht gelesen werden. Bitte versuchen Sie es erneut.",
+        "forbidden": "Bitte melden Sie sich erneut an, um eine Anfrage zu stellen.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
       }
     }
   }

@@ -33,6 +33,8 @@ describe("the admin emails entry (spec 0006, AC-9)", () => {
       "/admin",
       "/admin/emails",
       "/admin/enquiries",
+      // Spec 0015, AC-13: the data request queue, beside the enquiries it is worked like.
+      "/admin/data-requests",
       // Spec 0011: the minimal orders list; feature 12 folds it into the full ops shell.
       "/admin/orders",
       // Spec 0014, AC-1: the companies list, beside the orders it belongs with.
