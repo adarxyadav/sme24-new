@@ -2660,7 +2660,7 @@
   "legal": {
     "consent": {
       "title": "Cookies and analytics",
-      "body": "We use one analytics tool to understand how the site is used. It loads only if you agree. <link>What we store</link>.",
+      "body": "We use one analytics tool to see how the site is used. It loads only if you agree. <link>What we store</link>.",
       "accept": "Accept",
       "reject": "Reject",
       "current": {

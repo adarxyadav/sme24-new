@@ -49,10 +49,10 @@ export function CookieBar() {
       className="fixed inset-x-0 bottom-0 z-50 border-t bg-background"
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between md:gap-8">
-        <p className="max-w-prose text-sm">
+        <p className="max-w-prose text-pretty text-sm">
           {t.rich("body", {
             link: (chunks) => (
-              <Link href="/cookies" className="underline underline-offset-4">
+              <Link href="/cookies" className="whitespace-nowrap underline underline-offset-4">
                 {chunks}
               </Link>
             ),

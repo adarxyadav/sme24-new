@@ -2660,7 +2660,7 @@
   "legal": {
     "consent": {
       "title": "Cookies und Analyse",
-      "body": "Wir setzen ein Analysewerkzeug ein, um zu verstehen, wie die Website genutzt wird. Es lädt erst, wenn Sie zustimmen. <link>Was wir speichern</link>.",
+      "body": "Wir setzen ein Analysewerkzeug ein, um zu verstehen, wie die Website genutzt wird. Es lädt nur mit Ihrer Zustimmung. <link>Was wir speichern</link>.",
       "accept": "Zustimmen",
       "reject": "Ablehnen",
       "current": {
