@@ -57,7 +57,8 @@
       "design": "Design gallery",
       "emails": "Emails",
       "enquiries": "Enquiries",
-      "orders": "Orders"
+      "orders": "Orders",
+      "experts": "Experts"
     }
   },
   "theme": {
@@ -2034,5 +2035,226 @@
     "filterAll": "All",
     "filterPending": "Open",
     "filterPaid": "Paid"
+  },
+  "experts": {
+    "catalogue": {
+      "competencies": {
+        "compliance": "Compliance review",
+        "management_system": "Management system",
+        "safety_culture": "Safety culture"
+      },
+      "industries": {
+        "A": "Agriculture and forestry",
+        "B": "Mining and quarrying",
+        "C": "Manufacturing",
+        "D": "Energy supply",
+        "E": "Water, waste and remediation",
+        "F": "Construction",
+        "G": "Wholesale and retail trade",
+        "H": "Transport and storage",
+        "I": "Accommodation and food service",
+        "J": "Information and communication",
+        "K": "Financial and insurance services",
+        "L": "Real estate",
+        "M": "Professional and technical services",
+        "N": "Administrative and support services",
+        "O": "Public administration",
+        "P": "Education",
+        "Q": "Health and social work",
+        "R": "Arts and recreation",
+        "S": "Other services",
+        "T": "Household employers",
+        "U": "Extraterritorial organisations"
+      },
+      "standards": {
+        "iso_45001": "ISO 45001 (occupational health and safety)",
+        "iso_14001": "ISO 14001 (environment)",
+        "iso_9001": "ISO 9001 (quality)",
+        "iso_50001": "ISO 50001 (energy)",
+        "ekas_6508": "EKAS 6508 (ASA directive)",
+        "suva_asa": "Suva ASA specialists",
+        "arg_argv": "Labour Act and ordinances",
+        "vuv": "VUV (accident prevention)",
+        "stfv": "StFV (major accidents)",
+        "scc": "SCC / SCP contractor safety",
+        "iso_31000": "ISO 31000 (risk management)",
+        "esti": "ESTI (electrical safety)",
+        "bauav": "BauAV (construction safety)",
+        "psa": "PPE and protective equipment"
+      },
+      "languages": {
+        "de": "German",
+        "fr": "French",
+        "it": "Italian",
+        "en": "English"
+      },
+      "regions": {
+        "AG": "Aargau",
+        "AI": "Appenzell Innerrhoden",
+        "AR": "Appenzell Ausserrhoden",
+        "BE": "Bern",
+        "BL": "Basel-Landschaft",
+        "BS": "Basel-Stadt",
+        "FR": "Fribourg",
+        "GE": "Geneva",
+        "GL": "Glarus",
+        "GR": "Grisons",
+        "JU": "Jura",
+        "LU": "Lucerne",
+        "NE": "Neuchâtel",
+        "NW": "Nidwalden",
+        "OW": "Obwalden",
+        "SG": "St. Gallen",
+        "SH": "Schaffhausen",
+        "SO": "Solothurn",
+        "SZ": "Schwyz",
+        "TG": "Thurgau",
+        "TI": "Ticino",
+        "UR": "Uri",
+        "VD": "Vaud",
+        "VS": "Valais",
+        "ZG": "Zug",
+        "ZH": "Zurich"
+      },
+      "availability": {
+        "available": "Available",
+        "limited": "Limited",
+        "unavailable": "Not available"
+      }
+    },
+    "onboarding": {
+      "title": "Set up your expert profile",
+      "lead": "Tell us what you cover and where you work. Clients see your name and headline once we assign you.",
+      "fullName": "Full name",
+      "headline": "Headline",
+      "headlinePlaceholder": "Safety engineer, construction and manufacturing",
+      "languages": "Languages you work in",
+      "regions": "Cantons you cover",
+      "regionsHint": "Pick every canton you travel to for a site visit.",
+      "consent": "I accept the terms of engagement and the privacy notice.",
+      "submit": "Finish setup",
+      "submitting": "Saving…",
+      "errors": {
+        "validation": "Check the highlighted fields and try again.",
+        "forbidden": "This account cannot complete expert onboarding.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      }
+    },
+    "form": {
+      "errors": {
+        "termsRequired": "Accept the terms to continue.",
+        "fullNameRequired": "Enter your name.",
+        "fullNameLong": "Use 200 characters or fewer.",
+        "headlineRequired": "Describe what you do in one line.",
+        "headlineLong": "Use 120 characters or fewer.",
+        "languagesRequired": "Pick at least one language.",
+        "regionsRequired": "Pick at least one canton.",
+        "competenciesRequired": "Pick at least one competency.",
+        "bioLong": "Use 800 characters or fewer.",
+        "availabilityNoteLong": "Use 300 characters or fewer.",
+        "availableFromInvalid": "Use a valid date.",
+        "availableFromPast": "Pick today or a later date.",
+        "yearsExperienceInvalid": "Enter a whole number of years.",
+        "yearsExperienceRange": "Enter 0 to 60 years.",
+        "phoneLong": "Use 30 characters or fewer.",
+        "phoneInvalid": "Use digits, spaces and + ( ) / - only.",
+        "notesLong": "Use 4000 characters or fewer.",
+        "emailInvalid": "Enter a valid email address.",
+        "emailLong": "Use 320 characters or fewer.",
+        "organizationRequired": "Pick a client organisation."
+      }
+    },
+    "assignments": {
+      "lead": "The clients assigned to you. Open one for the facts and figures before a site visit.",
+      "since": "Assigned since {date}"
+    },
+    "client": {
+      "title": "Client",
+      "lead": "Part of {organization}",
+      "facts": {
+        "heading": "Company",
+        "legalName": "Legal name",
+        "uid": "UID",
+        "canton": "Canton",
+        "industry": "Industry",
+        "employees": "Employees",
+        "website": "Website",
+        "none": "Not recorded"
+      },
+      "kpis": {
+        "heading": "Key figures",
+        "pending": "The research run has not finished yet, so there are no figures to show."
+      },
+      "contacts": {
+        "heading": "Who to contact",
+        "description": "The people on this client's account.",
+        "none": "No contacts on file.",
+        "unnamed": "Unnamed"
+      }
+    },
+    "assigned": {
+      "heading": "{count, plural, one {Your expert} other {Your experts}}",
+      "description": "Who is walking your site and what they cover.",
+      "since": "Assigned since {date}",
+      "unnamed": "Unnamed"
+    },
+    "admin": {
+      "title": "Experts",
+      "detailTitle": "Expert",
+      "description": "Everyone in the expert network, and the clients they hold.",
+      "unnamed": "Not named yet",
+      "assignments": "Client assignments",
+      "assignmentsDescription": "Assign this expert to a client organisation, or end an assignment when the engagement is over.",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "status": "Status",
+        "clients": "Clients",
+        "invited": "Invited",
+        "competencies": "Competencies"
+      },
+      "status": {
+        "invited": "Invited",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "empty": {
+        "title": "No experts yet",
+        "description": "Invited experts appear here once the first invitation goes out."
+      }
+    },
+    "assign": {
+      "organization": "Client organisation",
+      "placeholder": "Pick an organisation",
+      "search": "Search organisations",
+      "noMatches": "No organisation found.",
+      "submit": "Assign",
+      "assigning": "Assigning…",
+      "assigned": "Expert assigned.",
+      "end": "End",
+      "ended": "Assignment ended.",
+      "none": "No assignments yet.",
+      "since": "Since {date}",
+      "endedOn": "Ended {date}",
+      "notAssignable": "Only an active expert can be assigned to a client.",
+      "status": {
+        "active": "Active",
+        "ended": "Ended"
+      },
+      "errors": {
+        "validation": "Pick a client organisation.",
+        "expert_not_active": "This expert is not active, so they cannot take on a client.",
+        "already_assigned": "This expert already holds that client.",
+        "not_found": "That organisation no longer exists.",
+        "forbidden": "You may not assign experts.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      },
+      "endErrors": {
+        "validation": "That assignment is not valid.",
+        "not_found": "That assignment has already ended.",
+        "forbidden": "You may not end assignments.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      }
+    }
   }
 }

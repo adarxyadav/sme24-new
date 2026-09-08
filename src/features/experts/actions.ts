@@ -4,13 +4,20 @@ import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { resolveLocale } from "@/i18n/routing";
+import { captureServerEvent } from "@/lib/analytics/server";
 import { createInviteClient, inviteStaffUser, resendStaffInvite } from "@/lib/auth/invite";
 import { roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
 import { parseWith } from "@/lib/validation";
-import { expertIdSchema, inviteExpertSchema } from "./schema";
+import {
+  assignExpertSchema,
+  endAssignmentSchema,
+  expertIdSchema,
+  inviteExpertSchema,
+  onboardingSchema,
+} from "./schema";
 
 /**
  * The expert actions (spec 0013). Every one authorises the caller here, not only in the proxy: the
@@ -168,4 +175,186 @@ function reportFailure<E extends string>(
   log.error(what, { reason });
   Sentry.captureException(new Error(`${what}: ${reason}`), { tags: { source: "experts" } });
   return { ok: false, error };
+}
+
+export type OnboardingResult =
+  | { ok: true; data: { expertId: string } }
+  | { ok: false; error: "validation" | "forbidden" | "unexpected" };
+
+/** A signed in expert with their own profile row, whatever its status; the action decides on that. */
+async function requireExpert() {
+  const supabase = await createActionClient();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (roleFromClaims(claims) !== "expert" || typeof claims?.sub !== "string") return null;
+  return { supabase, userId: claims.sub };
+}
+
+/**
+ * Records the expert's consent and the few fields that make them assignable, then moves the row to
+ * `active` (AC-4). The order matters: consent, then the name, then the profile fields, then the
+ * status, because the status is what opens the rest of the area and nothing should open before the
+ * row behind it is complete.
+ *
+ * Idempotent by construction, so a double submit is harmless: `accept_terms()` writes only while
+ * the stamp is null and `set_expert_status` treats `active → active` as a no op that returns the
+ * row. Server action, the expert on their own row.
+ */
+export async function completeExpertOnboarding(
+  _previous: OnboardingResult | null,
+  input: unknown,
+): Promise<OnboardingResult> {
+  const locale = resolveLocale(
+    (input as { locale?: unknown } | null)?.locale ?? (await getLocale()),
+  );
+  const actor = await requireExpert();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(onboardingSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { fullName, headline, languages, regions } = parsed.data;
+
+  // The gate never runs for an action post, so the status is re checked here: an inactive expert
+  // must not be able to onboard their way back in.
+  const { data: profile, error: profileError } = await actor.supabase
+    .from("expert_profiles")
+    .select("status")
+    .eq("expert_id", actor.userId)
+    .maybeSingle();
+  if (profileError)
+    return reportFailure("expert onboarding lookup failed", profileError.message, "unexpected");
+  if (profile?.status !== "invited" && profile?.status !== "active")
+    return { ok: false, error: "forbidden" };
+
+  const { error: consentError } = await actor.supabase.rpc("accept_terms");
+  if (consentError)
+    return reportFailure("expert consent failed", consentError.message, "unexpected");
+
+  const { error: nameError } = await actor.supabase
+    .from("profiles")
+    .update({ full_name: fullName })
+    .eq("id", actor.userId);
+  if (nameError) return reportFailure("expert name update failed", nameError.message, "unexpected");
+
+  const { error: fieldsError } = await actor.supabase
+    .from("expert_profiles")
+    .update({ headline, languages: [...languages], regions: [...regions] })
+    .eq("expert_id", actor.userId);
+  if (fieldsError)
+    return reportFailure("expert profile update failed", fieldsError.message, "unexpected");
+
+  const { error: statusError } = await actor.supabase.rpc("set_expert_status", {
+    target: actor.userId,
+    next: "active",
+  });
+  if (statusError)
+    return reportFailure("expert activation failed", statusError.message, "unexpected");
+
+  await captureServerEvent({ distinctId: actor.userId, event: "expert_onboarded" });
+  log.info("expert onboarded", { expertId: actor.userId });
+  revalidatePath("/expert");
+  return { ok: true, data: { expertId: actor.userId } };
+}
+
+export type AssignExpertResult =
+  | { ok: true; data: { assignmentId: string } }
+  | {
+      ok: false;
+      error:
+        | "validation"
+        | "expert_not_active"
+        | "already_assigned"
+        | "not_found"
+        | "forbidden"
+        | "unexpected";
+    };
+
+/** Postgres codes the assign insert can answer with, each a case ops can act on. */
+const UNIQUE_VIOLATION = "23505";
+const FOREIGN_KEY_VIOLATION = "23503";
+const CHECK_VIOLATION = "23514";
+
+/**
+ * Assigns an expert to a client organization (AC-9). Eligibility is not checked here: the
+ * `check_expert_assignable` trigger raises `expert_not_active` inside the insert, so a
+ * deactivation racing this call cannot leave an assignment on an expert who has just left.
+ * Server action, ops only.
+ */
+export async function assignExpert(
+  _previous: AssignExpertResult | null,
+  input: unknown,
+): Promise<AssignExpertResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(assignExpertSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { expertId, organizationId } = parsed.data;
+
+  const { data, error } = await actor.supabase
+    .from("expert_assignments")
+    .insert({
+      expert_id: expertId,
+      organization_id: organizationId,
+      status: "active",
+      assigned_by: actor.userId,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    if (error.code === UNIQUE_VIOLATION) return { ok: false, error: "already_assigned" };
+    if (error.code === FOREIGN_KEY_VIOLATION) return { ok: false, error: "not_found" };
+    // The trigger's own errcode; its message names the expert and the status it found.
+    if (error.code === CHECK_VIOLATION && error.message.includes("expert_not_active"))
+      return { ok: false, error: "expert_not_active" };
+    return reportFailure("expert assign failed", error.message, "unexpected");
+  }
+
+  await captureServerEvent({
+    distinctId: expertId,
+    event: "expert_assigned",
+    properties: { organization_id: organizationId },
+  });
+  log.info("expert assigned", { expertId, organizationId, by: actor.userId });
+  revalidatePath("/admin/experts");
+  return { ok: true, data: { assignmentId: data.id } };
+}
+
+export type EndAssignmentResult =
+  | { ok: true; data: { assignmentId: string; endedAt: string } }
+  | { ok: false; error: "validation" | "not_found" | "forbidden" | "unexpected" };
+
+/**
+ * Ends one assignment (AC-9), which closes the expert's read access to that organization and
+ * removes them from the client's card. `ended_at` is stamped by the transition trigger, not here.
+ * The update names only active rows, so ending an already ended assignment answers `not_found`
+ * rather than raising in the trigger. Server action, ops only.
+ */
+export async function endAssignment(
+  _previous: EndAssignmentResult | null,
+  input: unknown,
+): Promise<EndAssignmentResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(endAssignmentSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { assignmentId } = parsed.data;
+
+  const { data, error } = await actor.supabase
+    .from("expert_assignments")
+    .update({ status: "ended" })
+    .eq("id", assignmentId)
+    .eq("status", "active")
+    .select("id, ended_at")
+    .maybeSingle();
+  if (error) return reportFailure("expert assignment end failed", error.message, "unexpected");
+  if (!data) return { ok: false, error: "not_found" };
+
+  log.info("expert assignment ended", { assignmentId, by: actor.userId });
+  revalidatePath("/admin/experts");
+  return { ok: true, data: { assignmentId: data.id, endedAt: data.ended_at ?? "" } };
 }

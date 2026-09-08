@@ -43,7 +43,10 @@ values
     'authenticated', 'authenticated', 'expert@example.com',
     extensions.crypt('sme24-local-password', extensions.gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"],"role":"expert"}',
-    '{"full_name":"Erik Expert","locale":"de"}', now(), now(), '', '', '', ''
+    -- The consent stamp is seeded like the client accounts': the expert's profile row below is
+    -- already `active`, and the AC-4 gate sends an expert without consent to onboarding, so a
+    -- seeded expert missing it would loop on the onboarding page instead of reaching the area.
+    '{"full_name":"Erik Expert","locale":"de","terms_accepted_at":"2026-09-01T08:00:00Z"}', now(), now(), '', '', '', ''
   ),
   (
     '00000000-0000-0000-0000-000000000000', '33333333-3333-4333-8333-333333333333',

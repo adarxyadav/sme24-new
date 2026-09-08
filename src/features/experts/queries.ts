@@ -1,8 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { type CompanyDashboard, getCompanyDashboard } from "@/features/research/queries";
 import { afterCursorFilter, decodeCursor, encodeCursor, isUuid } from "@/lib/supabase/cursor";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 import { queryError } from "@/lib/supabase/query-error";
-import { EXPERTS_PAGE_SIZE, PHOTO_BUCKET, PHOTO_URL_TTL_SECONDS } from "./catalogue";
+import {
+  EXPERTS_PAGE_SIZE,
+  INDUSTRY_CODES,
+  PHOTO_BUCKET,
+  PHOTO_URL_TTL_SECONDS,
+} from "./catalogue";
 import { ALL_STATUSES, type ExpertFilters } from "./schema";
 
 /**
@@ -219,4 +225,182 @@ export async function listOrganizationsForAssignment(
     const first = [...companies].sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
     return { id: row.id, name: row.name, companyName: first?.name ?? null };
   });
+}
+
+export type AssignmentClient = {
+  readonly assignmentId: string;
+  readonly organizationId: string;
+  readonly organizationName: string;
+  readonly startedAt: string;
+  /** The organization's first company, absent while the client has not run a lookup yet. */
+  readonly companyName: string | null;
+  readonly canton: string | null;
+  /** The NOGA section letter of `companies.industry_code`, the key of an `industries` label. */
+  readonly industrySection: string | null;
+};
+
+/**
+ * The client organizations the calling expert holds now (AC-11), newest assignment first. RLS is
+ * the boundary: the expert's own select policy on `expert_assignments` returns their rows only,
+ * and the organization and company join through the assigned expert read policies. Throws.
+ * Server component.
+ */
+export async function listMyAssignments(supabase: Client): Promise<readonly AssignmentClient[]> {
+  const { data, error } = await supabase
+    .from("expert_assignments")
+    .select(
+      "id, organization_id, started_at, organizations(name, companies(name, canton, industry_code, created_at, archived_at))",
+    )
+    .eq("status", "active")
+    .order("started_at", { ascending: false });
+  if (error) throw queryError(error);
+
+  return (data ?? []).map((row) => {
+    const organization = row.organizations as {
+      name: string;
+      companies: {
+        name: string;
+        canton: string | null;
+        industry_code: string | null;
+        created_at: string;
+        archived_at: string | null;
+      }[];
+    } | null;
+    // One company per organization until feature 22; the oldest live one is the organization's own,
+    // the same rule the ops picker and the client dashboard use.
+    const company = [...(organization?.companies ?? [])]
+      .filter((entry) => entry.archived_at === null)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
+    return {
+      assignmentId: row.id,
+      organizationId: row.organization_id,
+      organizationName: organization?.name ?? "—",
+      startedAt: row.started_at,
+      companyName: company?.name ?? null,
+      canton: company?.canton ?? null,
+      industrySection: industrySection(company?.industry_code ?? null),
+    };
+  });
+}
+
+/**
+ * The NOGA section letter a full `industry_code` belongs to, which is what the expert catalogue
+ * keys its industry labels by; null when the code is absent or does not start with a section
+ * letter. Pure, runs anywhere.
+ */
+export function industrySection(industryCode: string | null): string | null {
+  const first = industryCode?.trim().charAt(0).toUpperCase();
+  return first && (INDUSTRY_CODES as readonly string[]).includes(first) ? first : null;
+}
+
+export type OrganizationContact = {
+  readonly userId: string;
+  readonly fullName: string | null;
+  readonly email: string;
+  readonly role: string;
+};
+
+export type AssignedClient = {
+  readonly organizationId: string;
+  readonly organizationName: string;
+  readonly dashboard: CompanyDashboard;
+  readonly contacts: readonly OrganizationContact[];
+};
+
+/**
+ * Everything the expert's read only client page shows (AC-11): the same dashboard the client sees,
+ * read under the assigned expert policies rather than a copy of the query, plus the organization's
+ * members from `assigned_organization_contacts`.
+ *
+ * Returns null for an organization the caller is not assigned to, whether the policies hid the
+ * organization row or the function raised `not_assigned`: one answer for the one case, which the
+ * page turns into `notFound()`. Throws on anything else. Server component.
+ */
+export async function getAssignedClient(
+  supabase: Client,
+  organizationId: string,
+): Promise<AssignedClient | null> {
+  if (!isUuid(organizationId)) return null;
+
+  const { data: organization, error } = await supabase
+    .from("organizations")
+    .select("id, name")
+    .eq("id", organizationId)
+    .maybeSingle();
+  if (error) throw queryError(error);
+  if (!organization) return null;
+
+  const [dashboard, contacts] = await Promise.all([
+    getCompanyDashboard(supabase, organizationId),
+    supabase.rpc("assigned_organization_contacts", { org: organizationId }),
+  ]);
+
+  // `not_assigned` is the function refusing a caller without an active assignment; every other
+  // error is real and belongs to the caller of this query.
+  if (contacts.error) {
+    if (contacts.error.message.includes("not_assigned")) return null;
+    throw queryError(contacts.error);
+  }
+
+  return {
+    organizationId,
+    organizationName: organization.name,
+    dashboard,
+    contacts: (contacts.data ?? []).map((row) => ({
+      userId: row.user_id,
+      fullName: row.full_name,
+      email: row.email,
+      role: row.role,
+    })),
+  };
+}
+
+export type AssignedExpertSummary = {
+  readonly assignmentId: string;
+  readonly expertId: string;
+  readonly fullName: string | null;
+  readonly headline: string | null;
+  readonly bio: string | null;
+  readonly competencies: readonly string[];
+  readonly industries: readonly string[];
+  readonly standards: readonly string[];
+  readonly languages: readonly string[];
+  readonly startedAt: string;
+  readonly photoUrl: string | null;
+};
+
+/**
+ * The experts currently assigned to one organization, for the client's "Your expert" card (AC-12).
+ * Reads `assigned_expert_summaries`, whose own where clause is the access boundary (the view is a
+ * definer view), so this query adds no filter of its own beyond the organization it was asked for.
+ * Every row's photo becomes a signed URL the caller's own bucket policy allows. Throws.
+ * Server component.
+ */
+export async function listAssignedExperts(
+  supabase: Client,
+  organizationId: string,
+): Promise<readonly AssignedExpertSummary[]> {
+  if (!isUuid(organizationId)) return [];
+  const { data, error } = await supabase
+    .from("assigned_expert_summaries")
+    .select("*")
+    .eq("organization_id", organizationId)
+    .order("started_at", { ascending: false });
+  if (error) throw queryError(error);
+
+  return Promise.all(
+    (data ?? []).map(async (row) => ({
+      assignmentId: row.assignment_id ?? "",
+      expertId: row.expert_id ?? "",
+      fullName: row.full_name,
+      headline: row.headline,
+      bio: row.bio,
+      competencies: row.competencies ?? [],
+      industries: row.industries ?? [],
+      standards: row.standards ?? [],
+      languages: row.languages ?? [],
+      startedAt: row.started_at ?? "",
+      photoUrl: await photoUrl(supabase, row.photo_path),
+    })),
+  );
 }

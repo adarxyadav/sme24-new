@@ -139,8 +139,12 @@ for (const user of SEED_USERS) {
   const userMetadata = {
     full_name: user.fullName,
     locale: user.locale,
-    // Clients consent at sign up; the profiles trigger copies this into terms_accepted_at.
-    ...(user.role === "client" ? { terms_accepted_at: new Date().toISOString() } : {}),
+    // Clients consent at sign up; the profiles trigger copies this into terms_accepted_at. The
+    // expert is stamped too, because the profile row written below is already `active` and the
+    // AC-4 gate sends an expert without consent to onboarding, which is the loop this seed avoids.
+    ...(user.role === "client" || user.role === "expert"
+      ? { terms_accepted_at: new Date().toISOString() }
+      : {}),
   };
 
   if (alreadySeeded.has(user.id)) {

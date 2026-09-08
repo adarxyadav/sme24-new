@@ -14,6 +14,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressList } from "@/components/ui/progress-list";
 import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
+import { listAssignedExperts } from "@/features/experts/queries";
+import { AssignedExperts } from "@/features/experts/ui/assigned-experts";
 import { RUN_LIMIT_PER_DAY, RUN_STEPS } from "@/features/research/catalogue";
 import { type CompanyDashboard, getCompanyDashboard } from "@/features/research/queries";
 import { KpiTable } from "@/features/research/ui/kpi-table";
@@ -58,15 +60,20 @@ export default async function AppPage() {
     );
   }
 
-  const [dashboard, organization] = await Promise.all([
+  const [dashboard, organization, assignedExperts] = await Promise.all([
     getCompanyDashboard(supabase, organizationId),
     supabase.from("organizations").select("name").eq("id", organizationId).maybeSingle(),
+    listAssignedExperts(supabase, organizationId),
   ]);
+  // Spec 0013, AC-12: the card sits immediately after the header in every state of the dashboard,
+  // and renders nothing at all while no expert is assigned.
+  const experts = <AssignedExperts experts={assignedExperts} />;
 
   if (!dashboard.company) {
     return (
       <PageStack>
         <PageHeader title={t("title")} description={t("description")} />
+        {experts}
         <NextIntlClientProvider messages={messages}>
           <div className="grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <Card>
@@ -135,6 +142,7 @@ export default async function AppPage() {
   return (
     <PageStack>
       <PageHeader title={company.name} description={details} />
+      {experts}
       <NextIntlClientProvider messages={messages}>
         <section aria-labelledby="research-heading" className="flex flex-col gap-4">
           <h2 id="research-heading" className="font-semibold text-lg">

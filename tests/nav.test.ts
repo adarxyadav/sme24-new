@@ -35,6 +35,8 @@ describe("the admin emails entry (spec 0006, AC-9)", () => {
       "/admin/enquiries",
       // Spec 0011: the minimal orders list; feature 12 folds it into the full ops shell.
       "/admin/orders",
+      // Spec 0013, AC-7: the expert network, before the design gallery.
+      "/admin/experts",
       "/admin/design",
     ]);
     expect(emails?.labelKey).toBe("admin.emails");

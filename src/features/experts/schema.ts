@@ -69,7 +69,9 @@ const emptyToNull = (value: unknown) =>
  * with no language and no region cannot be matched or assigned sensibly.
  */
 export const onboardingSchema = z.object({
-  termsAccepted: z.literal(true, "termsRequired"),
+  // A boolean with a refinement rather than `z.literal(true)`, so the form's input type is
+  // `boolean` and an unticked box is a value the field can hold; the same shape auth uses.
+  termsAccepted: z.boolean().refine((value) => value === true, "termsRequired"),
   fullName: z.string().trim().min(1, "fullNameRequired").max(200, "fullNameLong"),
   headline: z.string().trim().min(1, "headlineRequired").max(120, "headlineLong"),
   languages: z.array(z.enum(LANGUAGE_CODES)).min(1, "languagesRequired"),
