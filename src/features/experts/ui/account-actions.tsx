@@ -3,10 +3,20 @@
 import { AlertCircleIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   type DeactivateExpertResult,
   deactivateExpert,
@@ -21,6 +31,10 @@ import { useFormAction } from "@/hooks/use-form-action";
 export type ExpertAccountActionsProps = {
   readonly expertId: string;
   readonly status: ExpertStatus;
+  /** The expert's display name, already resolved by the page, so the confirmation names them. */
+  readonly fullName: string;
+  /** Open assignments, so the confirmation says how many the deactivation will end. */
+  readonly activeAssignments: number;
 };
 
 /**
@@ -29,11 +43,21 @@ export type ExpertAccountActionsProps = {
  * each is only meaningful in one state and the actions refuse the rest anyway.
  *
  * Deactivating and reactivating both stay enabled after a failure: each action is idempotent by
- * design, so pressing again is how a half finished offboarding is finished. Browser.
+ * design, so pressing again is how a half finished offboarding is finished.
+ *
+ * Deactivating asks first, unlike the other two: it ends every open assignment and blocks the sign
+ * in, and reactivating restores the sign in but not the assignments, so a misclick here is not
+ * free to reverse. The dialog names the expert and the assignments it will end. Browser.
  */
-export function ExpertAccountActions({ expertId, status }: ExpertAccountActionsProps) {
+export function ExpertAccountActions({
+  expertId,
+  status,
+  fullName,
+  activeAssignments,
+}: ExpertAccountActionsProps) {
   const t = useTranslations("experts.account");
   const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
 
   const resend = useFormAction<ResendInviteResult, { expertId: string }>(resendInvite);
   const deactivate = useFormAction<DeactivateExpertResult, { expertId: string }>(deactivateExpert);
@@ -90,14 +114,39 @@ export function ExpertAccountActions({ expertId, status }: ExpertAccountActionsP
             {reactivate.pending ? t("reactivating") : t("reactivate")}
           </Button>
         ) : (
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={deactivate.pending}
-            onClick={() => deactivate.submit({ expertId })}
-          >
-            {deactivate.pending ? t("deactivating") : t("deactivate")}
-          </Button>
+          <Dialog open={confirming} onOpenChange={setConfirming}>
+            <DialogTrigger asChild>
+              <Button type="button" variant="destructive" disabled={deactivate.pending}>
+                {deactivate.pending ? t("deactivating") : t("deactivate")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("deactivateConfirm", { name: fullName })}</DialogTitle>
+                <DialogDescription>
+                  {t("deactivateConfirmBody", { count: activeAssignments })}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    {t("deactivateCancel")}
+                  </Button>
+                </DialogClose>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={deactivate.pending}
+                  onClick={() => {
+                    deactivate.submit({ expertId });
+                    setConfirming(false);
+                  }}
+                >
+                  {t("deactivate")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
       <p className="text-muted-foreground text-sm">

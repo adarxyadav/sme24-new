@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ExpertAccountActions } from "@/features/experts/ui/account-actions";
@@ -42,8 +42,26 @@ vi.mock("sonner", () => ({ toast: { success: boundary.success, error: vi.fn() } 
 const strings = en.experts.account;
 const EXPERT_ID = "0e000000-0000-4000-8000-00000000000a";
 
-function renderActions(status: "invited" | "active" | "inactive") {
-  return renderWithIntl(<ExpertAccountActions expertId={EXPERT_ID} status={status} />, "en-CH");
+function renderActions(status: "invited" | "active" | "inactive", activeAssignments = 0) {
+  return renderWithIntl(
+    <ExpertAccountActions
+      expertId={EXPERT_ID}
+      status={status}
+      fullName="Nina Keller"
+      activeAssignments={activeAssignments}
+    />,
+    "en-CH",
+  );
+}
+
+/**
+ * Deactivating is two presses now: the trigger opens the confirmation, the dialog's own button
+ * runs it. Both carry the same label, so the second is looked up inside the dialog.
+ */
+async function confirmDeactivate(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: strings.deactivate }));
+  const dialog = await screen.findByRole("dialog");
+  await user.click(within(dialog).getByRole("button", { name: strings.deactivate }));
 }
 
 beforeEach(() => {
@@ -105,12 +123,55 @@ describe("resending the invitation (AC-3)", () => {
   });
 });
 
+describe("the deactivation confirmation (AC-10)", () => {
+  // Deactivating ends every open assignment and blocks the sign in, and reactivating restores the
+  // sign in but not the assignments, so the one press must not be the whole action.
+  it("asks first and runs nothing until the confirmation is pressed", async () => {
+    const user = userEvent.setup();
+    renderActions("active", 3);
+    await user.click(screen.getByRole("button", { name: strings.deactivate }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(boundary.deactivate).not.toHaveBeenCalled();
+    // The dialog names the expert and how many assignments it will end, so ops can see they are
+    // about to offboard the person they meant to.
+    expect(within(dialog).getByText("Deactivate Nina Keller?")).toBeInTheDocument();
+    expect(within(dialog).getByText(/3 open assignments will be ended\./)).toBeInTheDocument();
+
+    await user.click(within(dialog).getByRole("button", { name: strings.deactivate }));
+    await waitFor(() =>
+      expect(boundary.deactivate).toHaveBeenCalledWith(null, { expertId: EXPERT_ID }),
+    );
+  });
+
+  it("says plainly when nothing is open to end", async () => {
+    const user = userEvent.setup();
+    renderActions("active");
+    await user.click(screen.getByRole("button", { name: strings.deactivate }));
+
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(/No assignment is open/)).toBeInTheDocument();
+  });
+
+  it("abandons the offboarding when ops back out", async () => {
+    const user = userEvent.setup();
+    renderActions("active", 1);
+    await user.click(screen.getByRole("button", { name: strings.deactivate }));
+
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: strings.deactivateCancel }));
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(boundary.deactivate).not.toHaveBeenCalled();
+  });
+});
+
 describe("offboarding and restoring (AC-10)", () => {
   it("counts the assignments it ended in the confirmation", async () => {
     boundary.deactivate.mockResolvedValue({ ok: true, data: { endedAssignments: 2 } });
     const user = userEvent.setup();
-    renderActions("active");
-    await user.click(screen.getByRole("button", { name: strings.deactivate }));
+    renderActions("active", 2);
+    await confirmDeactivate(user);
 
     await waitFor(() =>
       expect(boundary.success).toHaveBeenCalledWith(
@@ -123,7 +184,7 @@ describe("offboarding and restoring (AC-10)", () => {
   it("says so plainly when there was nothing open to end", async () => {
     const user = userEvent.setup();
     renderActions("active");
-    await user.click(screen.getByRole("button", { name: strings.deactivate }));
+    await confirmDeactivate(user);
 
     await waitFor(() =>
       expect(boundary.success).toHaveBeenCalledWith(
@@ -150,13 +211,13 @@ describe("offboarding and restoring (AC-10)", () => {
     boundary.deactivate.mockResolvedValue({ ok: false, error: "unexpected" });
     const user = userEvent.setup();
     renderActions("active");
-    await user.click(screen.getByRole("button", { name: strings.deactivate }));
+    await confirmDeactivate(user);
 
     expect(await screen.findByText(strings.deactivateErrors.unexpected)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: strings.deactivate })).toBeEnabled();
 
     boundary.deactivate.mockResolvedValue({ ok: true, data: { endedAssignments: 1 } });
-    await user.click(screen.getByRole("button", { name: strings.deactivate }));
+    await confirmDeactivate(user);
     await waitFor(() => expect(boundary.deactivate).toHaveBeenCalledTimes(2));
   });
 

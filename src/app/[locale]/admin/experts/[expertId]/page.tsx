@@ -162,6 +162,8 @@ export default async function AdminExpertPage({ params }: Props) {
             <ExpertAccountActions
               expertId={profile.expert_id}
               status={profile.status as ExpertStatus}
+              fullName={page.fullName ?? t("unnamed")}
+              activeAssignments={page.assignments.filter((row) => row.status === "active").length}
             />
           </CardContent>
         </Card>
