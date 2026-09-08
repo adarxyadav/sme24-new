@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useLayoutEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { setConsent } from "@/features/legal/actions";
 import type { ConsentChoice } from "@/features/legal/consent";
@@ -19,7 +19,13 @@ import { Link } from "@/i18n/navigation";
  * hydration failure. Because the choice is read client side, the page it sits on stays static.
  *
  * Accept and reject are the same component, the same variant, the same size, side by side, and
- * neither is preselected (AC-2). Browser.
+ * neither is preselected (AC-2).
+ *
+ * While it is showing it publishes its own height as `--consent-bar-height` on the document, and
+ * removes the variable when it goes. The bar is fixed to the bottom of the viewport, and the
+ * signed in sidebar is `h-svh`, so without this the bar sits on top of the sidebar footer and the
+ * user menu underneath it cannot be clicked at all. Anything anchored to the bottom of a signed in
+ * page can reserve the same space. Browser.
  */
 export function CookieBar() {
   const t = useTranslations("legal.consent");
@@ -27,6 +33,32 @@ export function CookieBar() {
   const consent = useConsent();
   const [pending, startTransition] = useTransition();
   const [dismissed, setDismissed] = useState(false);
+  const bar = useRef<HTMLElement>(null);
+
+  const showing = mounted && consent === null && !dismissed;
+
+  // Layout effect rather than an effect: the variable must be set in the same paint the bar
+  // appears in, or the sidebar footer jumps once on every first load.
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    if (!showing) {
+      root.style.removeProperty("--consent-bar-height");
+      return;
+    }
+    const element = bar.current;
+    if (!element) return;
+    const publish = () => {
+      root.style.setProperty("--consent-bar-height", `${element.offsetHeight}px`);
+    };
+    publish();
+    // The bar wraps to two rows on a narrow viewport, so its height is not a constant.
+    const observer = new ResizeObserver(publish);
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--consent-bar-height");
+    };
+  }, [showing]);
 
   const answer = (choice: ConsentChoice) => {
     startTransition(async () => {
@@ -38,10 +70,11 @@ export function CookieBar() {
     });
   };
 
-  if (!mounted || consent !== null || dismissed) return null;
+  if (!showing) return null;
 
   return (
     <section
+      ref={bar}
       // A dialog would trap focus and block the page before anyone has read a word of it; the
       // choice is not modal, so it is a labelled region the keyboard reaches in order.
       aria-label={t("title")}

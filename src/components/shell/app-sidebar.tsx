@@ -108,7 +108,11 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter>
+      {/* The cookie bar is fixed to the bottom of the viewport and the sidebar is `h-svh`, so the
+          footer reserves the bar's height while it is showing (it publishes `--consent-bar-height`
+          and removes it once answered). Without this the user menu sits underneath the bar and
+          cannot be clicked. */}
+      <SidebarFooter className="pb-[calc(var(--spacing)*2+var(--consent-bar-height,0px))]">
         <form ref={signOutForm} action={signOut} className="hidden">
           <input type="hidden" name="locale" value={locale} />
         </form>
