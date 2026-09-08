@@ -264,15 +264,18 @@ test("the expert directory filters the register in the browser without a request
   await expect(page.getByText(/entries$/)).toBeVisible();
 
   // Filtering is pure client work: no navigation, no fetch, and the row count follows the filter.
-  // Only requests that would mean the filter went to the server count. A real deployment also
-  // prefetches the header links (`?_rsc=`) and flushes Sentry envelopes to its own ingest host
-  // once the page has loaded; both are background traffic that has nothing to do with the filter,
-  // and neither happens on the local dev server, so a blanket request count passes locally and
-  // fails against a deployment.
+  // Only a request for this page counts. A real deployment also prefetches the header links and
+  // flushes Sentry envelopes to its own ingest host once the page has loaded; both are background
+  // traffic that has nothing to do with the filter, and neither happens on the local dev server,
+  // so a blanket request count passes locally and fails against a deployment. A prefetch of a
+  // dynamic route is marked `?_rsc=`, but the header's brand link points at the static home page,
+  // whose prefetch is a plain document request for `/` or `/en` with no marker on it -- so the
+  // path, not the marker, is what separates the filter's own traffic from the noise.
+  const ownPath = new URL(page.url()).pathname;
   const fetched: string[] = [];
   page.on("request", (request) => {
     const url = new URL(request.url());
-    const own = url.origin === new URL(page.url()).origin;
+    const own = url.origin === new URL(page.url()).origin && url.pathname === ownPath;
     const kind = request.resourceType();
     if (own && !url.searchParams.has("_rsc") && ["document", "fetch", "xhr"].includes(kind)) {
       fetched.push(request.url());
