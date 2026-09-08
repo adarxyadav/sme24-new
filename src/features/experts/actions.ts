@@ -157,6 +157,10 @@ export async function resendInvite(
   if (expert?.status !== "invited") return { ok: false, error: "not_invited" };
 
   const inviteeLocale = (expert.profiles as { locale: string } | null)?.locale;
+  // The join is the only source of the invitee's language, so a missing one is a guess rather than
+  // a preference: say so in the log, or "why did this invite go out in English" needs a query.
+  if (inviteeLocale !== "de" && inviteeLocale !== "en")
+    log.info("expert invite locale fell back to en", { expertId, found: inviteeLocale ?? null });
   const sent = await resendStaffInvite(actor.service, {
     email: expert.email,
     locale: inviteeLocale === "de" ? "de" : "en",
