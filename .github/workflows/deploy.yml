@@ -57,11 +57,15 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: 2.116.0 # keep in step with the `supabase` dev dependency; `latest` can resolve to a prerelease
+      # --include-all applies migrations whose timestamp sits before the last one already on
+      # the remote. Feature branches merge out of order here, so a slice built on an older
+      # branch lands after newer migrations are live; without the flag the push exits 1 and
+      # the app deploys against a schema missing its tables (expert accounts, 8 Sep 2026).
       - name: supabase db push
         if: steps.check.outputs.configured == 'true'
         env:
           DB_URL: ${{ github.ref_name == 'production' && secrets.PROD_SUPABASE_DB_URL || secrets.STAGING_SUPABASE_DB_URL }}
-        run: supabase db push --db-url "$DB_URL"
+        run: supabase db push --include-all --db-url "$DB_URL"
       # Auth settings (OTP length and expiry, confirmations, password length, site and redirect
       # URLs, email templates, hook, SMTP) come from supabase/config.toml and its [remotes.<name>]
       # block for this project (docs/auth.md). The project ref is the same one as in that block.
