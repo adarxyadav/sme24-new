@@ -42,9 +42,9 @@ create table public.orders (
   package_key text not null references public.packages (key),
   -- SME24-2026-0042, allocated at creation and shown to the client and on the invoice.
   reference text not null unique check (reference ~ '^SME24-[0-9]{4}-[0-9]{4,}$'),
-  -- Payment states only; delivery states (scheduled, in progress, delivered) are feature 12 and
-  -- land as an additive change to this constraint.
-  status text not null default 'pending' check (status in ('pending', 'paid', 'cancelled', 'refunded', 'expired')),
+  -- Payment states and, since spec 0014, the three delivery states that follow paid. One column
+  -- carries both concerns on purpose; splitting them is a Follow-up in that spec.
+  status text not null default 'pending' check (status in ('pending', 'paid', 'cancelled', 'refunded', 'expired', 'scheduled', 'in_progress', 'delivered')),
   payment_method text not null check (payment_method in ('card', 'bank_transfer')),
   -- The three money columns, all whole Rappen. gross = net + vat is a database invariant, not an
   -- application check: a wrong total cannot be persisted at all (AC-2, invariant 1).
@@ -74,6 +74,13 @@ create table public.orders (
   paid_at timestamptz null,
   cancelled_at timestamptz null,
   expires_at timestamptz null,
+  -- Delivery (spec 0014). The order is the delivery record: ops set the agreed date and the
+  -- assessor here, and the three delivery states above ride the same status column. All four are
+  -- nullable, so the migration is inert to code that ignores them.
+  scheduled_at timestamptz null,
+  assigned_expert_id uuid null references public.profiles (id) on delete set null,
+  delivered_at timestamptz null,
+  scheduled_by uuid null references public.profiles (id) on delete set null,
   created_by uuid null references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -85,6 +92,10 @@ comment on column public.orders.gross_rappen is 'net_rappen + vat_rappen, enforc
 comment on column public.orders.reference is 'SME24-<year>-<counter> from public.order_reference_seq, shown to the client; the invoice carries its own separate gapless number.';
 comment on column public.orders.stripe_checkout_session_id is 'Null until the session id is stored, which is what the sweep keys on: a pending card order with a null session id has no session the buyer can reach (either none was created, or one was created and its id could not be stored, in which case the payable URL is withheld and the orphan expires at Stripe) and is expired outright after an hour.';
 comment on column public.orders.billing_uid is 'The buyer''s CHE-###.###.### number, optionally suffixed MWST. Frozen billing data, deliberately independent of companies.uid.';
+comment on column public.orders.scheduled_at is 'The agreed on site date and time. Not null exactly while the status is scheduled, in_progress or delivered; the future date check binds only on the paid -> scheduled edge, so a visit may be recorded after the fact.';
+comment on column public.orders.assigned_expert_id is 'The assessor doing the work. Set together with scheduled_at; the ops action also upserts the matching active expert_assignments row, which is what actually grants the expert access.';
+comment on column public.orders.delivered_at is 'When the assessment was delivered. Required by the in_progress -> delivered edge.';
+comment on column public.orders.scheduled_by is 'The ops actor who scheduled the order, from auth.getClaims() in the action.';
 
 create index orders_organization_id_created_at_idx on public.orders (organization_id, created_at desc);
 create index orders_company_id_created_at_idx on public.orders (company_id, created_at desc);
@@ -92,6 +103,13 @@ create index orders_company_id_created_at_idx on public.orders (company_id, crea
 create index orders_pending_idx on public.orders (status) where status = 'pending';
 create index orders_created_by_idx on public.orders (created_by);
 create index orders_package_key_idx on public.orders (package_key);
+-- The ops overview reads two narrow slices of the table: paid orders still waiting on a date, and
+-- scheduled or running orders whose date has arrived. Partial, because both are a handful of rows
+-- against every order ever placed (spec 0014, AC-11).
+create index orders_paid_unscheduled_idx on public.orders (paid_at) where status = 'paid';
+create index orders_scheduled_at_idx on public.orders (scheduled_at) where status in ('scheduled', 'in_progress');
+-- The dashboard and the correction path both look an order up by its assessor.
+create index orders_assigned_expert_id_idx on public.orders (assigned_expert_id);
 
 alter table public.orders enable row level security;
 
@@ -128,9 +146,13 @@ create policy "orders: ops full access"
   using ((select private.is_ops()))
   with check ((select private.is_ops()));
 
--- The state machine (spec 0011, invariant 9). Fires only when an update names the status column,
--- so the follow up work may still write paid_at, the Stripe ids and the PDF columns on a row
--- whose status did not move.
+-- The state machine (spec 0011 invariant 9, extended by spec 0014 with the delivery edges). Fires
+-- only when an update names the status column, so the follow up work may still write paid_at, the
+-- Stripe ids and the PDF columns on a row whose status did not move.
+--
+-- The future date check binds only on paid -> scheduled: correcting the date on an order already
+-- in_progress or delivered is real work (recording a visit after the fact), which is why it lives
+-- on that edge rather than in a table level constraint (spec 0014, State transitions).
 create or replace function private.check_order_transition()
 returns trigger
 language plpgsql
@@ -141,10 +163,57 @@ begin
     raise exception 'orders status is already %', old.status
       using errcode = 'check_violation';
   end if;
+
+  -- Payment edges (spec 0011).
   if (old.status = 'pending' and new.status in ('paid', 'cancelled', 'expired'))
-     or (old.status = 'paid' and new.status = 'refunded') then
+     or (old.status = 'paid' and new.status = 'refunded')
+     or (old.status = 'delivered' and new.status = 'refunded') then
     return new;
   end if;
+
+  -- Delivery edges (spec 0014). Each one carries the invariant its target state implies, so
+  -- neither a scheduled order without a date nor a delivered one without a delivered_at exists.
+  if old.status = 'paid' and new.status = 'scheduled' then
+    if new.scheduled_at is null or new.assigned_expert_id is null then
+      raise exception 'orders scheduled requires scheduled_at and assigned_expert_id'
+        using errcode = 'check_violation';
+    end if;
+    if new.scheduled_at <= now() then
+      raise exception 'orders scheduled_at must be in the future'
+        using errcode = 'check_violation';
+    end if;
+    return new;
+  end if;
+
+  if old.status = 'scheduled' and new.status = 'in_progress' then
+    if new.scheduled_at is null or new.assigned_expert_id is null then
+      raise exception 'orders in_progress requires scheduled_at and assigned_expert_id'
+        using errcode = 'check_violation';
+    end if;
+    return new;
+  end if;
+
+  -- Unschedule. Both columns must be cleared in the same statement, so paid never carries a date.
+  if old.status = 'scheduled' and new.status = 'paid' then
+    if new.scheduled_at is not null or new.assigned_expert_id is not null then
+      raise exception 'orders unschedule requires scheduled_at and assigned_expert_id to be null'
+        using errcode = 'check_violation';
+    end if;
+    return new;
+  end if;
+
+  if old.status = 'in_progress' and new.status = 'delivered' then
+    if new.scheduled_at is null or new.assigned_expert_id is null then
+      raise exception 'orders delivered requires scheduled_at and assigned_expert_id'
+        using errcode = 'check_violation';
+    end if;
+    if new.delivered_at is null then
+      raise exception 'orders delivered requires delivered_at'
+        using errcode = 'check_violation';
+    end if;
+    return new;
+  end if;
+
   raise exception 'invalid orders transition % -> %', old.status, new.status
     using errcode = 'check_violation';
 end;
@@ -155,6 +224,45 @@ revoke execute on function private.check_order_transition() from public;
 create trigger orders_check_transition
   before update of status on public.orders
   for each row execute function private.check_order_transition();
+
+-- The correction path (spec 0014, AC-7a). orders_check_transition is declared
+-- `before update of status`, so it does not fire at all when ops correct only the date or only the
+-- assessor on an order already scheduled, in_progress or delivered. Without this second trigger
+-- invariant 1 would have no database guard on that path.
+--
+-- It deliberately does not re check the future date: a correction on an in_progress or delivered
+-- order is legitimately in the past.
+--
+-- A statement that also moves the status is left entirely to orders_check_transition, which
+-- asserts the same end state on every edge it allows. Without that guard the unschedule edge
+-- (scheduled -> paid, clearing both columns in one statement) would fire this trigger too and be
+-- refused for landing on paid, so AC-7 could never pass.
+create or replace function private.check_order_delivery_columns()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if old.status is distinct from new.status then
+    return new;
+  end if;
+  if new.status not in ('scheduled', 'in_progress', 'delivered') then
+    raise exception 'orders delivery columns require a scheduled, in_progress or delivered order, not %', new.status
+      using errcode = 'check_violation';
+  end if;
+  if new.scheduled_at is null or new.assigned_expert_id is null then
+    raise exception 'orders % requires scheduled_at and assigned_expert_id', new.status
+      using errcode = 'check_violation';
+  end if;
+  return new;
+end;
+$$;
+
+revoke execute on function private.check_order_delivery_columns() from public;
+
+create trigger orders_check_delivery_columns
+  before update of scheduled_at, assigned_expert_id on public.orders
+  for each row execute function private.check_order_delivery_columns();
 
 create trigger orders_set_updated_at
   before update on public.orders

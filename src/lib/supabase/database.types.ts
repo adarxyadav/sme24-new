@@ -1070,6 +1070,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          assigned_expert_id: string | null
           billing_country: string
           billing_name: string
           billing_postcode: string
@@ -1081,6 +1082,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           currency: string
+          delivered_at: string | null
           due_date: string | null
           expires_at: string | null
           gross_rappen: number
@@ -1093,6 +1095,8 @@ export type Database = {
           paid_at: string | null
           payment_method: string
           reference: string
+          scheduled_at: string | null
+          scheduled_by: string | null
           status: string
           stripe_checkout_session_id: string | null
           stripe_payment_intent_id: string | null
@@ -1101,6 +1105,7 @@ export type Database = {
           vat_rate: number
         }
         Insert: {
+          assigned_expert_id?: string | null
           billing_country?: string
           billing_name: string
           billing_postcode: string
@@ -1112,6 +1117,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string
+          delivered_at?: string | null
           due_date?: string | null
           expires_at?: string | null
           gross_rappen: number
@@ -1124,6 +1130,8 @@ export type Database = {
           paid_at?: string | null
           payment_method: string
           reference: string
+          scheduled_at?: string | null
+          scheduled_by?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
@@ -1132,6 +1140,7 @@ export type Database = {
           vat_rate: number
         }
         Update: {
+          assigned_expert_id?: string | null
           billing_country?: string
           billing_name?: string
           billing_postcode?: string
@@ -1143,6 +1152,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           currency?: string
+          delivered_at?: string | null
           due_date?: string | null
           expires_at?: string | null
           gross_rappen?: number
@@ -1155,6 +1165,8 @@ export type Database = {
           paid_at?: string | null
           payment_method?: string
           reference?: string
+          scheduled_at?: string | null
+          scheduled_by?: string | null
           status?: string
           stripe_checkout_session_id?: string | null
           stripe_payment_intent_id?: string | null
@@ -1163,6 +1175,20 @@ export type Database = {
           vat_rate?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_assigned_expert_id_fkey"
+            columns: ["assigned_expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "orders_assigned_expert_id_fkey"
+            columns: ["assigned_expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_company_id_fkey"
             columns: ["company_id"]
@@ -1197,6 +1223,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "packages"
             referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "orders_scheduled_by_fkey"
+            columns: ["scheduled_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "orders_scheduled_by_fkey"
+            columns: ["scheduled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
