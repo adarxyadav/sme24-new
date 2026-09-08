@@ -20,7 +20,7 @@ Spec: [0011](../specs/0011-package-checkout-swiss-vat/index.md). Cards go throug
 - [x] Review it (fresh model): `/check review package checkout with Swiss VAT` · `docs/reviews/2026-09-08-feat-fix-checkout-session-persistence.md`, Changes requested; the major and both minors closed on the fix branch
 - [x] Document it: `/document package checkout with Swiss VAT` · PR #27
 
-### 12. Ops admin: orders, companies & scheduling · in-progress
+### 12. Ops admin: orders, companies & scheduling · done
 Your team's first screen. Ops sees companies, research runs, orders and payments, records the agreed on site date and the assigned assessor on an order, and the client dashboard reflects that status. The admin shell built here hosts every later ops feature.
 **Done when:** ops can list and open companies and orders, set an assessment date and assessor, and the client sees "scheduled for" with the date; ops only routes are invisible to clients and experts.
 Carried over from earlier specs: `/admin/emails` and `/admin/enquiries` already exist in the same shape and may fold into the shell (specs 0006 and 0009); a read only view of `benchmarks` and `benchmark_assumptions` with the provisional flags plus a per company snapshot list with a recompute action (spec 0008); TOTP enrollment with an `aal2` check in the proxy for `/admin` and an inactivity cutoff for ops sessions (spec 0005), noting that the `[auth.mfa]` block in `supabase/config.toml` is pushed on every deploy, so the switch lives there. From spec 0011: the minimal `/admin/orders` list plus the mark paid, cancel and retry invoice render actions already exist and fold into the shell; delivery states (scheduled, in progress, delivered) are this feature's decision and land as an additive change to the `orders.status` constraint, and the client facing refund path deferred by spec 0011 belongs here too.
@@ -35,7 +35,7 @@ spec [0014](../specs/0014-ops-admin-orders-scheduling/index.md)
 - [x] Verify it: `/check verify ops admin`
 - [x] Test it: `/test ops admin`
 - [x] Review it (fresh model): `/check review ops admin` · `docs/reviews/2026-09-09-feat-ops-admin.md`, Approve with nits; one major (the Combobox `aria-describedby` gap)
-- [ ] Document it: `/document ops admin`
+- [x] Document it: `/document ops admin` · PR [#38](https://github.com/adarxyadav/sme24-new/pull/38)
 
 ## Slice 8: Thicken the accounts
 
