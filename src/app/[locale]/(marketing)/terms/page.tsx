@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { TERMS_UPDATED } from "@/features/legal/dates";
+import { CURRENT_TERMS_VERSION } from "@/features/legal/terms";
 import { LegalPage, LegalProse, LegalSection } from "@/features/legal/ui/legal-page";
 import { webPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
@@ -39,7 +40,7 @@ export async function generateMetadata({
 
 /**
  * The terms of use (spec 0015, AC-6): the parties, what we provide, payment, cancellation,
- * liability and the change process that the version gate in milestone 3 enforces. The parties and
+ * liability and the change process the signed in terms gate enforces. The parties and
  * jurisdiction come from `SITE`, so a move of the registered office is one edit. Prerendered in
  * both languages.
  */
@@ -57,15 +58,14 @@ export default async function TermsPage({ params }: PageProps<"/[locale]/terms">
     month: "long",
     day: "numeric",
   });
-  // Milestone 3 replaces this literal with `CURRENT_TERMS_VERSION`, the constant the re-consent
-  // dialog and the profiles trigger both read. Version 1 is the acceptance that already happened.
-  const version = "1";
   const values = {
     name: SITE.legalName,
     address: postalAddress(),
     city: SITE.city,
     email: SITE.email,
-    version,
+    // The same constant the re consent dialog and the sign up form read, so the version this page
+    // states is always the version being accepted (spec 0015, AC-10).
+    version: CURRENT_TERMS_VERSION,
   };
 
   return (
@@ -87,7 +87,7 @@ export default async function TermsPage({ params }: PageProps<"/[locale]/terms">
         meta={
           <>
             <span>{t("updated", { date: updated })}</span>
-            <span>{t("version", { version })}</span>
+            <span>{t("version", { version: CURRENT_TERMS_VERSION })}</span>
           </>
         }
       >

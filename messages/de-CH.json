@@ -2670,6 +2670,19 @@
       },
       "change": "Auswahl ändern",
       "changed": "Ihre Auswahl wurde gespeichert."
+    },
+    "terms": {
+      "gate": {
+        "title": "Unsere Nutzungsbedingungen haben sich geändert",
+        "body": "Wir haben die Nutzungsbedingungen aktualisiert. Bitte lesen Sie sie und stimmen Sie zu, um SME24 weiter zu nutzen.",
+        "read": "Vollständige Nutzungsbedingungen lesen",
+        "accept": "Zustimmen und fortfahren",
+        "decline": "Stattdessen abmelden",
+        "error": "Ihre Zustimmung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      },
+      "changelog": {
+        "1": "Dies sind die ersten Nutzungsbedingungen für SME24. Sie regeln unsere Leistungen, den Inhalt eines Pakets, die Stornierung und das anwendbare Recht."
+      }
     }
   },
   "legalPages": {

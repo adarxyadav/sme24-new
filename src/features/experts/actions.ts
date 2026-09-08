@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
+import { CURRENT_TERMS_VERSION } from "@/features/legal/terms";
 import { resolveLocale } from "@/i18n/routing";
 import { sendOpsAlert } from "@/lib/alerts/send";
 import { captureServerEvent } from "@/lib/analytics/server";
@@ -249,7 +250,11 @@ export async function completeExpertOnboarding(
   if (profile?.status !== "invited" && profile?.status !== "active")
     return { ok: false, error: "forbidden" };
 
-  const { error: consentError } = await actor.supabase.rpc("accept_terms");
+  // The version is passed explicitly rather than left to the function's default, so a bump of
+  // CURRENT_TERMS_VERSION reaches this path too; the default only exists for backward compatibility.
+  const { error: consentError } = await actor.supabase.rpc("accept_terms", {
+    version: CURRENT_TERMS_VERSION,
+  });
   if (consentError)
     return reportFailure("expert consent failed", consentError.message, "unexpected");
 

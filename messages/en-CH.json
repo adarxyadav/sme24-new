@@ -2670,6 +2670,19 @@
       },
       "change": "Change your choice",
       "changed": "Your choice is saved."
+    },
+    "terms": {
+      "gate": {
+        "title": "Our terms have changed",
+        "body": "We have updated the terms of use. Please read them and accept to carry on using SME24.",
+        "read": "Read the full terms",
+        "accept": "Accept and continue",
+        "decline": "Sign out instead",
+        "error": "We could not record your acceptance. Please try again."
+      },
+      "changelog": {
+        "1": "These are the first terms of use for SME24. They set out what we provide, what a package includes, how cancellation works and which law applies."
+      }
     }
   },
   "legalPages": {

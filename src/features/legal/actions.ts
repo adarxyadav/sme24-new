@@ -1,6 +1,9 @@
 "use server";
 
+import * as Sentry from "@sentry/nextjs";
 import { cookies } from "next/headers";
+import { log } from "@/lib/logger";
+import { createActionClient } from "@/lib/supabase/action";
 import {
   CONSENT_COOKIE,
   CONSENT_MAX_AGE_SECONDS,
@@ -8,11 +11,13 @@ import {
   consentCookieValue,
   isConsentChoice,
 } from "./consent";
+import { CURRENT_TERMS_VERSION } from "./terms";
 
 /**
  * The legal server actions (spec 0015). `setConsent` is the only write path for the consent
  * cookie: a POST writes it with the app's own `cookies()`, never client script, so the value
  * stays out of a third party script's reach and the reject path works without JavaScript.
+ * `acceptTerms` is the only write path for the two consent columns on the profile.
  */
 
 export type SetConsentResult = { ok: true } | { ok: false; error: "validation" };
@@ -45,4 +50,37 @@ export async function clearConsent(): Promise<SetConsentResult> {
   const cookieStore = await cookies();
   cookieStore.delete(CONSENT_COOKIE);
   return { ok: true };
+}
+
+export type AcceptTermsResult =
+  | { ok: true; data: { version: string } }
+  | { ok: false; error: "forbidden" | "unexpected" };
+
+/**
+ * Records the caller's acceptance of the current terms (AC-10), the one way out of the re consent
+ * dialog. The version is `CURRENT_TERMS_VERSION`, never a form field: the client is being asked to
+ * accept what this build shows them, so letting the browser name the version would let it accept a
+ * version it never rendered.
+ *
+ * Writes through `accept_terms()` on the caller's own client, because both columns sit outside the
+ * authenticated column grant and the definer function's `auth.uid()` check is what keeps the write
+ * to the caller's own row. Idempotent: accepting a version already stored changes nothing.
+ *
+ * Returns a typed result and never throws for an expected failure. Server action, any signed in
+ * role.
+ */
+export async function acceptTerms(): Promise<AcceptTermsResult> {
+  const supabase = await createActionClient();
+  const { data } = await supabase.auth.getClaims();
+  if (typeof data?.claims?.sub !== "string") return { ok: false, error: "forbidden" };
+
+  const { error } = await supabase.rpc("accept_terms", { version: CURRENT_TERMS_VERSION });
+  if (error) {
+    log.error("accept_terms failed", { reason: error.message });
+    Sentry.captureException(new Error(`accept_terms failed: ${error.message}`), {
+      tags: { source: "legal" },
+    });
+    return { ok: false, error: "unexpected" };
+  }
+  return { ok: true, data: { version: CURRENT_TERMS_VERSION } };
 }

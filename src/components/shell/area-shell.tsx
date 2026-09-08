@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { readTermsStale } from "@/features/legal/queries";
+import { TermsGate } from "@/features/legal/ui/terms-gate";
 import { clientMessages } from "@/i18n/client-messages";
 import type { Area } from "@/lib/auth/roles";
 import { roleFromClaims } from "@/lib/auth/roles";
@@ -27,6 +29,9 @@ export async function AreaShell({ area, children }: { area: Area; children: Reac
   const email = typeof claims?.email === "string" ? claims.email : "";
   const role = roleFromClaims(claims) ?? "";
   const sidebarOpen = cookieStore.get("sidebar_state")?.value !== "false";
+  // Spec 0015 (AC-10): the terms gate lives here rather than per page, so a page added later
+  // inherits it. It is a render concern only; the column grant is the real boundary.
+  const termsStale = await readTermsStale();
   // The sidebar names the area from `areas`, a feature namespace outside the shared client bundle.
   const messages = clientMessages(await getMessages(), ["areas"]);
 
@@ -47,6 +52,11 @@ export async function AreaShell({ area, children }: { area: Area; children: Reac
           </header>
           {children}
         </SidebarInset>
+        {termsStale && (
+          <NextIntlClientProvider messages={messages}>
+            <TermsGate locale={locale} />
+          </NextIntlClientProvider>
+        )}
         <Toaster />
       </SidebarProvider>
     </TooltipProvider>

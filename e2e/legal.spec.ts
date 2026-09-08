@@ -1,5 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { CURRENT_TERMS_VERSION } from "../src/features/legal/terms";
+import { accountByEmail, dbAvailable, serviceClient } from "./db";
+import { SEED_USERS, seedPassword, signIn } from "./helpers";
 
 /**
  * The four legal pages (spec 0015, milestone 2): every page in both languages and both themes
@@ -164,3 +167,136 @@ test("the legal pages are indexable (AC-6)", async ({ page }) => {
     await expect(page.locator('link[rel="canonical"]')).toHaveCount(1);
   }
 });
+
+/**
+ * The terms version gate (spec 0015, milestone 3, AC-10). These drive the real dialog rather than
+ * asserting on the constant, because the whole feature is "a stale profile cannot use the app":
+ * the version is moved in the database with the service client, the page is loaded as that user,
+ * and the gate is what must appear.
+ *
+ * Serial, because they share one seeded account and each one moves its stored version.
+ */
+test.describe
+  .serial("the terms gate", () => {
+    test.skip(!dbAvailable || !seedPassword, "needs the local stack and the seeded password");
+
+    /** Puts the seeded client on `version`, the one write path the tests are allowed to shortcut. */
+    /** The consent stamp supabase/seed.sql gives the seeded accounts. */
+    const SEEDED_CONSENT = "2026-09-01T08:00:00Z";
+
+    async function setStoredVersion(email: string, version: string) {
+      const account = await accountByEmail(email);
+      const id = account?.profile?.id;
+      expect(id, `no seeded profile for ${email}`).toBeTruthy();
+      const { error } = await serviceClient()
+        .from("profiles")
+        .update({ terms_version: version })
+        .eq("id", id as string);
+      expect(error).toBeNull();
+      return id as string;
+    }
+
+    /**
+     * Puts the seeded client back exactly as supabase/seed.sql left it. Both columns, not just the
+     * version: the accept test moves `terms_accepted_at` to now(), and `accept_terms.test.sql`
+     * asserts the seeded stamp, so leaving it drifted fails pgTAP on the next run and makes the
+     * two suites order dependent.
+     */
+    test.afterAll(async () => {
+      if (!dbAvailable) return;
+      const account = await accountByEmail(SEED_USERS.client);
+      const id = account?.profile?.id;
+      if (!id) return;
+      await serviceClient()
+        .from("profiles")
+        .update({ terms_version: CURRENT_TERMS_VERSION, terms_accepted_at: SEEDED_CONSENT })
+        .eq("id", id);
+    });
+
+    test("a profile on the current version sees no dialog (AC-10)", async ({ page }) => {
+      await setStoredVersion(SEED_USERS.client, CURRENT_TERMS_VERSION);
+      await signIn(page, SEED_USERS.client);
+      await page.goto("/de/app");
+      await expect(page.getByTestId("terms-gate")).toHaveCount(0);
+    });
+
+    test("a stale profile is blocked on every signed in page and cannot dismiss it (AC-10)", async ({
+      page,
+    }) => {
+      await setStoredVersion(SEED_USERS.client, "0");
+      await signIn(page, SEED_USERS.client);
+
+      const gate = page.getByTestId("terms-gate");
+      await expect(gate).toBeVisible();
+
+      // Escape and an outside click are the two ways a dialog normally goes away. Neither may work:
+      // a gate that can be waved away is not a gate.
+      await page.keyboard.press("Escape");
+      await expect(gate).toBeVisible();
+      await page.mouse.click(5, 5);
+      await expect(gate).toBeVisible();
+
+      // It follows the user to another signed in page rather than guarding only the landing one.
+      await page.goto("/de/app/orders");
+      await expect(page.getByTestId("terms-gate")).toBeVisible();
+    });
+
+    test("a profile that never accepted anything is not blocked (AC-10)", async ({ page }) => {
+      // `terms_version` is `not null default '1'`, so a staff account created by the invite path
+      // reads as version 1 while `terms_accepted_at` is still null. Blocking them here would put a
+      // re consent dialog in front of someone who has not consented once; that is onboarding's job.
+      const id = await setStoredVersion(SEED_USERS.ops, CURRENT_TERMS_VERSION);
+      const { error } = await serviceClient()
+        .from("profiles")
+        .update({ terms_accepted_at: null })
+        .eq("id", id);
+      expect(error).toBeNull();
+
+      await signIn(page, SEED_USERS.ops);
+      await page.goto("/de/admin");
+      await expect(page.getByTestId("terms-gate")).toHaveCount(0);
+    });
+
+    test("a version that sorts below the current one is still stale (AC-10)", async ({ page }) => {
+      // The text ordering trap: '10' < '2' as text. Whichever way an ordering comparison ran, one of
+      // these two directions would let a profile through; equality refuses both.
+      await setStoredVersion(SEED_USERS.client, "10");
+      await signIn(page, SEED_USERS.client);
+      await expect(page.getByTestId("terms-gate")).toBeVisible();
+    });
+
+    test("accepting records the current version and lets the user through (AC-10)", async ({
+      page,
+    }) => {
+      const userId = await setStoredVersion(SEED_USERS.client, "0");
+      await signIn(page, SEED_USERS.client);
+      await expect(page.getByTestId("terms-gate")).toBeVisible();
+
+      await page
+        .getByTestId("terms-gate")
+        .getByRole("button", { name: /Zustimmen/ })
+        .click();
+      await expect(page.getByTestId("terms-gate")).toHaveCount(0);
+
+      // The column moved, which is the only thing that actually reopens the app.
+      const { data } = await serviceClient()
+        .from("profiles")
+        .select("terms_version, terms_accepted_at")
+        .eq("id", userId)
+        .single();
+      expect(data?.terms_version).toBe(CURRENT_TERMS_VERSION);
+      expect(data?.terms_accepted_at).toBeTruthy();
+
+      // And it stays gone on the next page, so acceptance is stored rather than only local state.
+      await page.goto("/de/app");
+      await expect(page.getByTestId("terms-gate")).toHaveCount(0);
+    });
+
+    test("the dialog has no WCAG 2.2 AA violations (AC-10)", async ({ page }) => {
+      await setStoredVersion(SEED_USERS.client, "0");
+      await signIn(page, SEED_USERS.client);
+      await expect(page.getByTestId("terms-gate")).toBeVisible();
+      const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+      expect(results.violations).toEqual([]);
+    });
+  });
