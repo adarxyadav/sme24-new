@@ -1,7 +1,7 @@
 # 0015. Legal, privacy and cookie consent
 
 **Date**: 2026-09-09
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
