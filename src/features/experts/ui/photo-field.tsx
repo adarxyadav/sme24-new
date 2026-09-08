@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { type PhotoResult, removeExpertPhoto, uploadExpertPhoto } from "@/features/experts/actions";
-import { PHOTO_TYPES } from "@/features/experts/catalogue";
+import { PHOTO_MAX_BYTES, PHOTO_TYPES } from "@/features/experts/catalogue";
 import { ExpertAvatar } from "./expert-avatar";
 
 export type ExpertPhotoFieldProps = {
@@ -49,6 +49,14 @@ export function ExpertPhotoField({ fullName, photoUrl, hasPhoto }: ExpertPhotoFi
   };
 
   const upload = (file: File) => {
+    // Checked here as well as in the action, because a body over the configured server action limit
+    // is rejected by Next before the action runs, and the expert would see no answer at all. The
+    // string is the action's own `too_large`, so both paths say the same thing.
+    if (file.size > PHOTO_MAX_BYTES) {
+      setFailure(t("errors.too_large"));
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     const body = new FormData();
     body.set("photo", file);
     startTransition(async () => {

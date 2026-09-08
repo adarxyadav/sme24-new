@@ -5,6 +5,9 @@
 real app. **AC-6 is met only up to ~1 MB**: a photo between 1 MB and the specced 2 MB is rejected
 by Next before the action runs, and the expert sees no message at all.
 
+**Closed on 2026-09-08** by `/debug expert photo upload limit`; AC-6 is now met in full. See
+[## The AC-6 finding, closed](#the-ac-6-finding-closed) at the end of this file.
+
 This supersedes the run of 2026-09-07, which was taken on `feat/fix-checkout-session-persistence`
 before milestones 2 to 4 existed and found eleven criteria unbuilt. Every surface it listed as
 missing now exists and was driven.
@@ -108,8 +111,56 @@ key added to both catalogs. All four gallery tests pass.
 - `pnpm db:reset` before `pnpm test:db` is not optional here: three worktrees share the one local
   stack, so the feature migrations can sit unapplied.
 
+## The AC-6 finding, closed
+
+**Closed on 2026-09-08** by `/debug expert photo upload limit`, on branch
+`feat/expert-accounts-profiles`.
+
+**The decision: raise the limit, do not lower `PHOTO_MAX_BYTES`.** The two candidates were not
+equal. AC-6 in the spec promises "up to 2 MB", the `expert-photos` bucket carries its own
+`file_size_limit` of 2097152 in `20260907103500_expert_photo_bucket.sql`, and the hint and error
+strings in both catalogs name 2 MB. Lowering the app constant would have contradicted the spec and
+left the app stricter than the bucket it writes to, for a limit that only exists because of a
+framework default. Raising the Next limit leaves every one of those in agreement.
+
+`next.config.ts` now sets `experimental.serverActions.bodySizeLimit: "3mb"` (still under
+`experimental` in Next 16.3.4, checked against `node_modules/next/dist/docs/`). It is 3 MB rather
+than 2 MB on purpose: that doc states the cap applies to the raw request body, multipart
+boundaries and part headers included, so a limit of exactly `2mb` would still reject a 2 MB file.
+The headroom is what lets `uploadExpertPhoto`'s own `too_large` check be the one that fires.
+
+**The oversized case is now visible.** `ExpertPhotoField` checks `file.size > PHOTO_MAX_BYTES`
+before it builds the `FormData`, so a file over 2 MB never leaves the browser and the expert gets
+the existing `experts.photo.errors.too_large` alert at once. Both paths use the same key, and the
+string the finding called unreachable is now reachable.
+
+**Driven in the real app**, the same four sizes the finding measured, through the real form on
+`/de/expert/profile` as the seeded `expert@example.com`, in a throwaway Playwright spec deleted
+after the run:
+
+| File | Before | After |
+|---|---|---|
+| 900 KB | saved | saved |
+| 1100 KB | nothing at all | **saved** |
+| 1500 KB | nothing at all | **saved** |
+| 2000 KB | not measured | **saved** |
+| 3000 KB | nothing at all | **refused, "Diese Datei ist grösser als 2 MB.", no POST sent** |
+
+The 3000 KB case also asserts that no server action POST is issued, which is what proves the
+client side check fires rather than the raised server limit merely being generous.
+
+**Gates rerun for the fix**: `pnpm typecheck` clean, `pnpm lint` 531 files no fixes, `pnpm test`
+1342 passed 1 skipped, `pnpm db:reset` then `pnpm test:db` 556 tests over 25 files PASS,
+`pnpm build && pnpm budget` all pages under budget, and `TRIGGER_DEV_RUNNING=1 pnpm test:e2e
+experts.spec.ts` 6 passed with `pnpm trigger:dev` running. The pre existing `design.spec.ts`
+keyboard failure above is unchanged and untouched.
+
+**Owed to `/test`**: a regression test for the size guard. The natural home is a Vitest test on
+`ExpertPhotoField` proving a file over `PHOTO_MAX_BYTES` renders the `too_large` alert and never
+calls `uploadExpertPhoto`, plus a test that a file under it does call it; the end to end size
+window itself is covered by the table above and does not need a permanent Playwright case.
+
 ## Next
 
-`/test expert accounts & profiles` for the suite, and `/debug` for the AC-6 upload limit. The
-scope's "Verify it" is ticked for the fourteen criteria met; AC-6 is recorded above as the one
-open item.
+`/test expert accounts & profiles` for the suite, including the regression test named above. All
+fifteen criteria are now met; the scope's "Verify it" covers the feature in full.

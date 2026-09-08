@@ -15,7 +15,7 @@ Spec: [0013](../specs/0013-expert-accounts-profiles/index.md). One expert owned 
   - [x] One expert end to end: onboarding with consent, ops assign and end, the expert home and the read only client page, the client's "Your expert" card (AC-4, AC-9, AC-11, AC-12)
   - [x] The full profile and offboarding: the profile form for the expert and ops, the photo bucket with signed URLs, ops notes, deactivate and reactivate (AC-5, AC-6, AC-8, AC-10)
   - [x] Emails, alert and the closing pass: the three templates and the onboarded alert, both catalogs, axe on every new page, the design gallery, the runbook (AC-14, AC-15)
-- [x] Verify it: `/check verify expert accounts & profiles` — 14 of 15 criteria met in the real app ([verify.md](../specs/0013-expert-accounts-profiles/verify.md)). Open: AC-6, a photo between 1 MB and the specced 2 MB is rejected by Next's default server action body limit before the action runs, with no message to the expert; `/debug` owes the decision.
+- [x] Verify it: `/check verify expert accounts & profiles` — 14 of 15 criteria met in the real app ([verify.md](../specs/0013-expert-accounts-profiles/verify.md)); AC-6 closed by `/debug expert photo upload limit` on 8 Sep 2026, so all 15 are met. The photo upload needed `experimental.serverActions.bodySizeLimit` in `next.config.ts` (Next caps a server action body at 1 MB by default, below the 2 MB the spec and the bucket both promise) plus a client side size check so an oversized file is refused visibly.
 - [ ] Test it: `/test expert accounts & profiles`
 - [ ] Review it (fresh model): `/check review expert accounts & profiles`
 - [ ] Document it: `/document expert accounts & profiles`
