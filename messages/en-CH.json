@@ -1296,6 +1296,34 @@
       "invoiceFollows": "We will send your invoice shortly.",
       "nextStep": "We will be in touch to agree the date for the on site assessment.",
       "button": "View order"
+    },
+    "expert_welcome": {
+      "subject": "Welcome to the SME24 expert network",
+      "preview": "Your expert profile is active. Complete it so we can match you well.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "Your access to the SME24 expert area is set up. As soon as we assign you a client company, you will find its figures, its benchmark and its contacts there, everything you need to prepare the on site visit.",
+      "nextStep": "The next step: complete your profile, in particular competencies, industries, standards and your availability. We then consider you when assigning work.",
+      "button": "Complete your profile"
+    },
+    "assignment_received": {
+      "subject": "New assignment: {organizationName}",
+      "preview": "You have been assigned to {organizationName}. Their file is ready.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "We have assigned you to {organizationName} as their expert.",
+      "nextStep": "The client page holds the company facts, the recorded figures and the benchmark. Please read them before the on site visit.",
+      "button": "Open the client"
+    },
+    "expert_assigned": {
+      "subject": "Your expert: {expertName}",
+      "preview": "{expertName} is now working with you. See the profile in the client area.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "{expertName} is now the expert working with your company at SME24.",
+      "headline": "Focus: {headline}",
+      "nextStep": "The client area shows the full profile with competencies, industries and languages. We will be in touch to agree the date for the on site assessment.",
+      "button": "Open the client area"
     }
   },
   "emails": {

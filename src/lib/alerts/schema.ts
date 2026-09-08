@@ -15,6 +15,7 @@ export const ALERT_KINDS = [
   "payment.received",
   "enquiry.received",
   "invoice.render_failed",
+  "expert.onboarded",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -63,6 +64,16 @@ const alertFields = {
     organizationName: z.string().min(1).max(200),
     errorMessage: z.string().min(1).max(500),
   }),
+  /**
+   * Spec 0013 (AC-14): an invited expert finished onboarding and is now assignable. Ops read it to
+   * start the record check, so the address is the field they need to reach the person; this is the
+   * one alert that carries an email address, and it is a colleague's rather than a client's.
+   */
+  "expert.onboarded": z.object({
+    expertName: z.string().min(1).max(200),
+    email: z.email().max(200),
+    competencies: z.string().max(300),
+  }),
 } as const satisfies Record<AlertKind, z.ZodType>;
 
 /** The typed fields of one kind. */
@@ -92,5 +103,6 @@ export const opsAlertPayloadSchema = z.discriminatedUnion("kind", [
   entry("payment.received"),
   entry("enquiry.received"),
   entry("invoice.render_failed"),
+  entry("expert.onboarded"),
 ]);
 export type OpsAlertPayload = z.infer<typeof opsAlertPayloadSchema>;

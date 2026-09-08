@@ -1296,6 +1296,34 @@
       "invoiceFollows": "Ihre Rechnung stellen wir Ihnen in Kürze zu.",
       "nextStep": "Wir melden uns bei Ihnen, um den Termin für die Begehung vor Ort zu vereinbaren.",
       "button": "Bestellung ansehen"
+    },
+    "expert_welcome": {
+      "subject": "Willkommen im SME24-Expertennetzwerk",
+      "preview": "Ihr Expertenprofil ist aktiv. Vervollständigen Sie es, damit wir Sie passend einsetzen können.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Ihr Zugang zum SME24-Expertenbereich ist eingerichtet. Sobald wir Ihnen ein Kundenunternehmen zuweisen, finden Sie dort dessen Kennzahlen, den Benchmark und die Kontaktangaben, alles was Sie zur Vorbereitung des Vor-Ort-Termins brauchen.",
+      "nextStep": "Der nächste Schritt: Vervollständigen Sie Ihr Profil, insbesondere Kompetenzen, Branchen, Normen und Ihre Verfügbarkeit. Danach berücksichtigen wir Sie bei der Zuteilung.",
+      "button": "Profil vervollständigen"
+    },
+    "assignment_received": {
+      "subject": "Neues Mandat: {organizationName}",
+      "preview": "Sie wurden {organizationName} zugewiesen. Die Unterlagen stehen bereit.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Wir haben Sie {organizationName} als Expertin oder Experte zugewiesen.",
+      "nextStep": "Auf der Kundenseite finden Sie die Unternehmensangaben, die erfassten Kennzahlen und den Benchmark. Bitte sehen Sie sich diese vor dem Vor-Ort-Termin an.",
+      "button": "Kunde ansehen"
+    },
+    "expert_assigned": {
+      "subject": "Ihre Expertin oder Ihr Experte: {expertName}",
+      "preview": "{expertName} begleitet Sie ab sofort. Profil im Kundenbereich ansehen.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "{expertName} begleitet ab sofort Ihr Unternehmen bei SME24.",
+      "headline": "Schwerpunkt: {headline}",
+      "nextStep": "Im Kundenbereich sehen Sie das vollständige Profil mit Kompetenzen, Branchen und Sprachen. Wir melden uns, um den Termin für die Vor-Ort-Beurteilung zu vereinbaren.",
+      "button": "Zum Kundenbereich"
     }
   },
   "emails": {

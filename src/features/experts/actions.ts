@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { resolveLocale } from "@/i18n/routing";
+import { sendOpsAlert } from "@/lib/alerts/send";
 import { captureServerEvent } from "@/lib/analytics/server";
 import {
   banStaffUser,
@@ -13,11 +14,19 @@ import {
   unbanStaffUser,
 } from "@/lib/auth/invite";
 import { roleFromClaims } from "@/lib/auth/roles";
+import { EXPERT_ASSIGNED_EVENT, EXPERT_ONBOARDED_EVENT } from "@/lib/email/schema";
+import { sendEmail } from "@/lib/email/send";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
 import { parseWith } from "@/lib/validation";
-import { isPhotoMimeType, PHOTO_BUCKET, PHOTO_MAX_BYTES, PHOTO_TYPES } from "./catalogue";
+import {
+  type CompetencyCode,
+  isPhotoMimeType,
+  PHOTO_BUCKET,
+  PHOTO_MAX_BYTES,
+  PHOTO_TYPES,
+} from "./catalogue";
 import {
   assignExpertSchema,
   endAssignmentSchema,
@@ -261,9 +270,54 @@ export async function completeExpertOnboarding(
     return reportFailure("expert activation failed", statusError.message, "unexpected");
 
   await captureServerEvent({ distinctId: actor.userId, event: "expert_onboarded" });
+  await announceOnboarding(actor.userId, fullName);
   log.info("expert onboarded", { expertId: actor.userId });
   revalidatePath("/expert");
   return { ok: true, data: { expertId: actor.userId } };
+}
+
+/**
+ * The welcome email to the expert and the `expert.onboarded` alert to ops (AC-14), both keyed per
+ * expert so a double submit sends one of each. The row is already `active` by the time this runs,
+ * so a failed trigger is logged and never turns a completed onboarding into an error the expert
+ * sees: `sendEmail` and `sendOpsAlert` answer a result rather than throwing. The address and the
+ * competencies come from the row the expert cannot write, read with the service client because the
+ * alert needs the address and the expert's own client never exposes it. Server action.
+ */
+async function announceOnboarding(expertId: string, fullName: string): Promise<void> {
+  await sendEmail({
+    template: "expert_welcome",
+    data: {},
+    recipient: { userId: expertId },
+    sourceEvent: EXPERT_ONBOARDED_EVENT,
+    idempotencyKey: `expert-welcome/${expertId}`,
+  });
+
+  const env = serverEnv();
+  const service = createInviteClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY);
+  const { data: profile, error } = await service
+    .from("expert_profiles")
+    .select("email, competencies")
+    .eq("expert_id", expertId)
+    .maybeSingle();
+  if (error || !profile) {
+    log.warn("expert onboarded alert skipped: profile not read", {
+      expertId,
+      reason: error?.message ?? "not found",
+    });
+    return;
+  }
+
+  await sendOpsAlert({
+    kind: "expert.onboarded",
+    fields: {
+      expertName: fullName,
+      email: profile.email,
+      competencies: (profile.competencies as readonly CompetencyCode[]).join(", "),
+    },
+    link: `/admin/experts/${expertId}`,
+    idempotencyKey: `expert-onboarded/${expertId}`,
+  });
 }
 
 export type AssignExpertResult =
@@ -327,9 +381,76 @@ export async function assignExpert(
     event: "expert_assigned",
     properties: { organization_id: organizationId },
   });
+  await announceAssignment(actor.service, {
+    assignmentId: data.id,
+    expertId,
+    organizationId,
+  });
   log.info("expert assigned", { expertId, organizationId, by: actor.userId });
   revalidatePath("/admin/experts");
   return { ok: true, data: { assignmentId: data.id } };
+}
+
+/**
+ * The two assignment emails (AC-9, AC-14): `assignment_received` to the expert, keyed per
+ * assignment, and `expert_assigned` to every member of the client organization, keyed per
+ * assignment and member. The members are read with the service client, after the ops check above,
+ * because `organization_members` is a tenant table the ops role does not read through RLS.
+ *
+ * An organization with no members is not an error: only the expert's email goes out. Ending an
+ * assignment sends nothing. The row is already inserted, so every failure here is logged and never
+ * fails the action; both send functions answer a result rather than throwing. Server action.
+ */
+async function announceAssignment(
+  service: ReturnType<typeof createInviteClient>,
+  ids: {
+    readonly assignmentId: string;
+    readonly expertId: string;
+    readonly organizationId: string;
+  },
+): Promise<void> {
+  const [{ data: organization }, { data: expert }, { data: members }] = await Promise.all([
+    service.from("organizations").select("name").eq("id", ids.organizationId).maybeSingle(),
+    service
+      .from("expert_profiles")
+      .select("headline, profiles!expert_profiles_expert_id_fkey(full_name)")
+      .eq("expert_id", ids.expertId)
+      .maybeSingle(),
+    service
+      .from("organization_members")
+      .select("user_id")
+      .eq("organization_id", ids.organizationId),
+  ]);
+
+  if (organization) {
+    await sendEmail({
+      template: "assignment_received",
+      data: { organizationName: organization.name, organizationId: ids.organizationId },
+      recipient: { userId: ids.expertId },
+      sourceEvent: EXPERT_ASSIGNED_EVENT,
+      organizationId: ids.organizationId,
+      idempotencyKey: `assignment-received/${ids.assignmentId}`,
+    });
+  } else {
+    log.warn("assignment received email skipped: organization not read", ids);
+  }
+
+  const expertName = (expert?.profiles as { full_name: string | null } | null)?.full_name?.trim();
+  if (!expertName) {
+    log.warn("expert assigned emails skipped: the expert has no name", ids);
+    return;
+  }
+  const headline = expert?.headline?.trim();
+  for (const member of members ?? []) {
+    await sendEmail({
+      template: "expert_assigned",
+      data: { expertName, ...(headline ? { headline } : {}) },
+      recipient: { userId: member.user_id },
+      sourceEvent: EXPERT_ASSIGNED_EVENT,
+      organizationId: ids.organizationId,
+      idempotencyKey: `expert-assigned/${ids.assignmentId}/${member.user_id}`,
+    });
+  }
 }
 
 export type EndAssignmentResult =
