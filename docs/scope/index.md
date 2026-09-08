@@ -24,7 +24,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | done |
 | 10 | Self assessment fallback | Slice 2 | done |
 | 11 | Package checkout with Swiss VAT | Slice 3 | done |
-| 12 | Ops admin: orders, companies & scheduling | Slice 3 | planned |
+| 12 | Ops admin: orders, companies & scheduling | Slice 3 | done |
 | 13 | Marketing site & retainer enquiry | Slice 4 | done |
 | 14 | Legal, privacy & cookie consent | Slice 4 | planned |
 | 15 | Analytics & monitoring | Slice 4 | planned |
@@ -47,7 +47,7 @@ Build order is the `#` above. Each epic file holds its features grouped by phase
 
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
 - [Client funnel](client.md) · 6 to 10, 22, 23, 27 · 5 of 8 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
-- [Commerce & ops](commerce.md) · 11, 12, 24 · 1 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
+- [Commerce & ops](commerce.md) · 11, 12, 24 · 2 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
 - [Launch](launch.md) · 13 to 15, 25, 26 · 1 of 5 done · marketing site, legal and consent, analytics and monitoring, the real peer data, the production environment. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 1 of 3 done · experts, the three structured assessments, the generated gap report.
 - [Programs & tracking](programs.md) · 19 to 21 · 0 of 3 done · matching, the improvement program, the embedded progress dashboard.
@@ -75,6 +75,12 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Local stack e2e lane in CI**: run the Mailpit backed Playwright specs (sign up, codes, resets, the welcome and enquiry emails) on every push; the `database` job already starts the stack, so it is one more job in `ci.yml` · from spec 0005
 - **Guard the cost line against a missing assumption row**: `costAt` reads `values.hours_per_fte` unguarded, so an absent `hours_per_fte` row yields `NaN` in the CHF figure instead of a null cost; the derived block guards it, the cost line does not · from spec 0012
 - **Retire an old snapshot version**: `SNAPSHOT_SCHEMAS` grows an entry per formula change with no rule for removing one; the answer is probably "once no live row carries it", which needs a query · from spec 0012
+- **Benchmarks read only view with a recompute action**: `benchmarks` and `benchmark_assumptions` with their provisional flags, plus a per company snapshot list; feature 25 needs it before launch, and it is a read only surface with no state machine · from specs 0008 and 0014
+- **TOTP with an `aal2` check on `/admin`**: enrollment plus the proxy check and an inactivity cutoff for ops sessions; the `[auth.mfa]` block in `supabase/config.toml` is pushed on every deploy, so the switch lives there · from specs 0005 and 0014 · needs a decision
+- **Client facing refund path**: a real refund needs credit note numbering against the gapless invoice sequence and a QR bill reversal; ops refund in Stripe by hand and the `delivered → refunded` edge records it · from specs 0011 and 0014 · needs a decision
+- **Port the click handler success pattern to the other eight `useFormAction` consumers**: `enquiry-status-form.tsx`, `account-actions.tsx`, `assignments-section.tsx`, `invite-form.tsx`, `onboarding-form.tsx`, `ops-notes-editor.tsx` and `profile-form.tsx` still pair a `useEffect` on `<action>.result` with a toast or a `router.refresh`, the pattern that fired one booking's toast four times before spec 0014 moved the work into the click handler; the hook stayed backward compatible, so each is a small independent change · from spec 0014's review
+- **An index on `orders.scheduled_by`**: the column is a nullable FK to `profiles` with no index, unlike `assigned_expert_id`; nothing queries by it today, so it waits for the ops "who scheduled this" audit view that would need it · from spec 0014's review
+- **A dedicated `assessments` table**: split delivery off `orders.status` into its own record once features 17 and 18 define what an assessment holds, or sooner if a delivered order must re open or a refund must coexist with a delivery state · from spec 0014
 
 ## Legend
 

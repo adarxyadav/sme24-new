@@ -16,6 +16,8 @@ import { ProgressList } from "@/components/ui/progress-list";
 import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
 import { listAssignedExperts } from "@/features/experts/queries";
 import { AssignedExperts } from "@/features/experts/ui/assigned-experts";
+import { listScheduledAssessments } from "@/features/ops-admin/queries";
+import { ScheduledAssessments } from "@/features/ops-admin/ui/scheduled-assessments";
 import { RUN_LIMIT_PER_DAY, RUN_STEPS } from "@/features/research/catalogue";
 import { type CompanyDashboard, getCompanyDashboard } from "@/features/research/queries";
 import { KpiTable } from "@/features/research/ui/kpi-table";
@@ -37,6 +39,9 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
  * once a run finished, the "Your figures" card in every run state (spec 0010, AC-1: after the
  * table once a run finished, else after the failed alert, else after the progress section),
  * and the edit and rerun form on the empty and failed states.
+ *
+ * Spec 0014 (AC-10) adds the booked assessments card beside the expert card: one entry per booked
+ * order, each with its own date and its own assessor.
  */
 export default async function AppPage() {
   const t = await getTranslations("research");
@@ -60,14 +65,21 @@ export default async function AppPage() {
     );
   }
 
-  const [dashboard, organization, assignedExperts] = await Promise.all([
+  const [dashboard, organization, assignedExperts, assessments] = await Promise.all([
     getCompanyDashboard(supabase, organizationId),
     supabase.from("organizations").select("name").eq("id", organizationId).maybeSingle(),
     listAssignedExperts(supabase, organizationId),
+    listScheduledAssessments(supabase),
   ]);
-  // Spec 0013, AC-12: the card sits immediately after the header in every state of the dashboard,
-  // and renders nothing at all while no expert is assigned.
-  const experts = <AssignedExperts experts={assignedExperts} />;
+  // Spec 0013, AC-12 and spec 0014, AC-10: both cards sit immediately after the header in every
+  // state of the dashboard, and each renders nothing at all while it has nothing to show. The
+  // booking comes first: a date the client is waiting on outranks the profile of who is coming.
+  const experts = (
+    <>
+      <ScheduledAssessments assessments={assessments} experts={assignedExperts} />
+      <AssignedExperts experts={assignedExperts} />
+    </>
+  );
 
   if (!dashboard.company) {
     return (

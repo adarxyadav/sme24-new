@@ -32,6 +32,8 @@ export type ComboboxProps = {
   readonly name?: string;
   readonly disabled?: boolean;
   readonly invalid?: boolean;
+  /** The id of the FieldDescription that explains this control, so it reaches a screen reader. */
+  readonly describedBy?: string;
   readonly className?: string;
 };
 
@@ -56,6 +58,7 @@ export function Combobox({
   name,
   disabled,
   invalid,
+  describedBy,
   className,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false);
@@ -73,6 +76,7 @@ export function Combobox({
             role="combobox"
             aria-expanded={open}
             aria-invalid={invalid ? true : undefined}
+            aria-describedby={describedBy}
             disabled={disabled}
             className={cn("w-full justify-between font-normal", className)}
           >

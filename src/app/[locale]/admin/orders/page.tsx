@@ -17,6 +17,10 @@ import {
 import { rappenToChf } from "@/features/checkout/money";
 import { listAllOrders } from "@/features/checkout/queries";
 import { OrderActions } from "@/features/checkout/ui/order-actions";
+import { expertNames, listAssignableExperts } from "@/features/ops-admin/queries";
+import { formatZurichWallClock } from "@/features/ops-admin/schema";
+import { DeliveryActions } from "@/features/ops-admin/ui/delivery-actions";
+import { ScheduleDialog } from "@/features/ops-admin/ui/schedule-dialog";
 import { clientMessages } from "@/i18n/client-messages";
 import { Link } from "@/i18n/navigation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -31,18 +35,22 @@ export async function generateMetadata() {
 }
 
 /** The badge variant per status; every badge carries its label, so colour is never alone. */
-const STATUS_VARIANT: Record<string, "warning" | "success" | "secondary" | "outline"> = {
+const STATUS_VARIANT: Record<string, "warning" | "success" | "secondary" | "outline" | "info"> = {
   pending: "warning",
   paid: "success",
   cancelled: "secondary",
   refunded: "secondary",
   expired: "outline",
+  scheduled: "info",
+  in_progress: "info",
+  delivered: "success",
 };
 
 /**
  * The ops orders list (spec 0011, AC-9, AC-10): every order with its client, what it cost, its
  * invoice and the controls to confirm a bank transfer, cancel a stale order or retry a render
- * that gave up. The full ops shell is feature 12; this is the minimal list that spec asks for.
+ * that gave up. Spec 0014 (AC-3) adds the delivery column: a paid order carries the scheduling
+ * dialog, and a booked one shows its date and assessor.
  * Ops only, through the proxy and the ops policy.
  */
 export default async function AdminOrdersPage({ searchParams }: Props) {
@@ -56,6 +64,18 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
     getMessages(),
   ]);
   const page = await listAllOrders(supabase, cursor);
+  // Both reads are for the delivery column: the picker's options, and the names behind the ids
+  // this page of orders already carries. The experts list is fetched whatever the page holds,
+  // because the dialog is rendered per paid row rather than once.
+  const [assignableExperts, scheduledNames] = await Promise.all([
+    listAssignableExperts(supabase),
+    expertNames(
+      supabase,
+      page.rows.flatMap(({ order }) =>
+        order.assigned_expert_id ? [order.assigned_expert_id] : [],
+      ),
+    ),
+  ]);
 
   return (
     <PageStack>
@@ -77,6 +97,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                     <TableHead>{t("columns.status")}</TableHead>
                     <TableHead>{t("columns.invoice")}</TableHead>
                     <TableHead>{t("columns.date")}</TableHead>
+                    <TableHead>{t("columns.delivery")}</TableHead>
                     <TableHead>{t("columns.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -110,13 +131,50 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                         </time>
                       </TableCell>
                       <TableCell>
-                        <OrderActions
-                          orderId={order.id}
-                          reference={order.reference}
-                          status={order.status}
-                          invoiceId={invoice?.id ?? null}
-                          renderFailed={Boolean(invoice?.pdf_failed_at && !invoice.pdf_path)}
-                        />
+                        {order.scheduled_at ? (
+                          <div className="flex flex-col gap-0.5">
+                            <time className="text-sm" dateTime={order.scheduled_at}>
+                              {format.dateTime(new Date(order.scheduled_at), "dateTime")}
+                            </time>
+                            <span className="text-muted-foreground text-xs">
+                              {(order.assigned_expert_id
+                                ? scheduledNames.get(order.assigned_expert_id)
+                                : null) ?? t("schedule.unnamed")}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">{t("notScheduled")}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {order.status === "paid" ? (
+                            <ScheduleDialog
+                              orderId={order.id}
+                              reference={order.reference}
+                              experts={assignableExperts}
+                            />
+                          ) : null}
+                          <DeliveryActions
+                            orderId={order.id}
+                            reference={order.reference}
+                            status={order.status}
+                            scheduledAt={
+                              order.scheduled_at
+                                ? formatZurichWallClock(new Date(order.scheduled_at))
+                                : null
+                            }
+                            assignedExpertId={order.assigned_expert_id}
+                            experts={assignableExperts}
+                          />
+                          <OrderActions
+                            orderId={order.id}
+                            reference={order.reference}
+                            status={order.status}
+                            invoiceId={invoice?.id ?? null}
+                            renderFailed={Boolean(invoice?.pdf_failed_at && !invoice.pdf_path)}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

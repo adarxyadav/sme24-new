@@ -25,6 +25,10 @@ comment on column public.companies.industry_code is 'NOGA industry code.';
 create index companies_organization_id_created_at_idx on public.companies (organization_id, created_at desc);
 create unique index companies_organization_id_uid_idx on public.companies (organization_id, uid) where uid is not null;
 create index companies_created_by_idx on public.companies (created_by);
+-- The ops list at /admin/companies (spec 0014, AC-1) pages across every organization on the
+-- keyset (created_at, id), which the organization scoped index above cannot serve; the same
+-- shape email_deliveries and enquiries already carry for their ops lists.
+create index companies_created_at_id_idx on public.companies (created_at desc, id desc);
 
 alter table public.companies enable row level security;
 

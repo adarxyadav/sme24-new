@@ -37,11 +37,11 @@ test("an expert reaches /expert but not /app or /admin", async ({ page }) => {
   await expect(page).toHaveURL(/\/de\/forbidden$/);
 });
 
-test("ops reaches /admin and sees the scaffold checks", async ({ page }) => {
+test("ops reaches /admin and sees the ops overview", async ({ page }) => {
   await signIn(page, "ops@example.com");
   await expect(page).toHaveURL(/\/de\/admin$/);
   await expect(page.getByRole("heading", { level: 1, name: "Ops Admin" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Grundgerüst prüfen" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aktueller Stand" })).toBeVisible();
   await page.goto("/de/app");
   await expect(page).toHaveURL(/\/de\/forbidden$/);
 });

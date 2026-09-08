@@ -59,6 +59,7 @@
       "emails": "Emails",
       "enquiries": "Enquiries",
       "orders": "Orders",
+      "companies": "Companies",
       "experts": "Experts"
     }
   },
@@ -1325,6 +1326,17 @@
       "headline": "Focus: {headline}",
       "nextStep": "The client area shows the full profile with competencies, industries and languages. We will be in touch to agree the date for the on site assessment.",
       "button": "Open the client area"
+    },
+    "assessment_scheduled": {
+      "subject": "Your on site assessment is booked",
+      "preview": "The date and your assessor are confirmed. See the details in the client area.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "The on site assessment for {packageName} is booked.",
+      "appointment": "Date: {scheduledAt}. Your assessor: {expertName}.",
+      "prepare": "Please make sure the people responsible for safety and health are available, and have your existing documentation to hand.",
+      "nextStep": "The client area shows the date and your assessor at any time. If the date does not suit you, simply reply to this email.",
+      "button": "Open the client area"
     }
   },
   "emails": {
@@ -1991,7 +2003,10 @@
       "refunded": "Refunded",
       "expired": "Expired",
       "confirming": "Confirming payment",
-      "awaitingTransfer": "Awaiting payment"
+      "awaitingTransfer": "Awaiting payment",
+      "scheduled": "Scheduled",
+      "in_progress": "In progress",
+      "delivered": "Delivered"
     },
     "confirmingTitle": "We are confirming your payment",
     "confirmingBody": "This usually takes a few seconds. You can leave this page open.",
@@ -2016,7 +2031,14 @@
     "invoicePending": "Your invoice is being prepared and will be ready shortly.",
     "invoiceFailed": "We could not create the invoice. We are on it and will be in touch.",
     "historyTitle": "History",
-    "more": "Show more"
+    "more": "Show more",
+    "assessment": {
+      "heading": "{count, plural, one {Your assessment} other {Your assessments}}",
+      "description": "The agreed date and who is coming.",
+      "with": "With {name}",
+      "expertPending": "The assessor is being confirmed.",
+      "unnamed": "Your assessor"
+    }
   },
   "invoice": {
     "title": "Invoice",
@@ -2032,6 +2054,35 @@
     "gross": "Total",
     "paymentNote": "Please use the QR payment slip below to pay."
   },
+  "adminOverview": {
+    "lead": "The work waiting on you, and where everything stands.",
+    "queue": "Needs you",
+    "queueEmptyTitle": "Nothing waiting",
+    "queueEmptyBody": "No order, enquiry, email or research run needs ops attention right now.",
+    "counts": "Where things stand",
+    "viewAll": "See all",
+    "sections": {
+      "unscheduledOrders": "Paid, not yet booked",
+      "overdueOrders": "Booked date has passed",
+      "newEnquiries": "New enquiries",
+      "failedDeliveries": "Emails that failed",
+      "failedRuns": "Research that failed"
+    },
+    "tiles": {
+      "companies": "Companies",
+      "openResearchRuns": "Research running",
+      "activeExperts": "Active experts",
+      "orders": "Orders"
+    },
+    "ordersByStatus": "By status",
+    "noOrders": "No orders yet",
+    "unnamed": "Unnamed",
+    "paidOn": "Paid {date}",
+    "neverPaid": "No payment date",
+    "dueOn": "Due {date}",
+    "receivedOn": "Received {date}",
+    "noErrorCode": "No error code"
+  },
   "adminOrders": {
     "title": "Orders",
     "description": "Payments, invoices and open bank transfers.",
@@ -2046,7 +2097,8 @@
       "status": "Status",
       "invoice": "Invoice",
       "date": "Date",
-      "actions": "Actions"
+      "actions": "Actions",
+      "delivery": "Assessment"
     },
     "method": {
       "card": "Card",
@@ -2064,7 +2116,187 @@
     "done": "Done",
     "filterAll": "All",
     "filterPending": "Open",
-    "filterPaid": "Paid"
+    "filterPaid": "Paid",
+    "notScheduled": "Not scheduled",
+    "schedule": {
+      "open": "Schedule",
+      "title": "Schedule the assessment",
+      "description": "Set the agreed date and the assessor for order {reference}.",
+      "date": "Date and time",
+      "dateHint": "Swiss time (Europe/Zurich). The date must be in the future.",
+      "expert": "Assessor",
+      "expertPlaceholder": "Choose an assessor",
+      "expertHint": "The assessor gets access to this client's file and is named in the client's confirmation email.",
+      "expertSearch": "Search by name",
+      "noExperts": "No active assessor matches.",
+      "unnamed": "Unnamed assessor",
+      "submit": "Schedule",
+      "scheduling": "Scheduling…",
+      "scheduled": "The assessment is scheduled.",
+      "errors": {
+        "forbidden": "You are not allowed to schedule this order.",
+        "validation": "Check the date and the assessor.",
+        "not_found": "This order no longer exists.",
+        "not_paid": "Only a paid order can be scheduled.",
+        "expert_not_assignable": "That assessor is no longer active. Choose another.",
+        "date_not_future": "The date must be in the future.",
+        "invalid_transition": "Someone else changed this order. Reload the list and try again.",
+        "unexpected": "The assessment could not be scheduled. Try again."
+      }
+    },
+    "delivery": {
+      "advance": {
+        "in_progress": "Start",
+        "delivered": "Mark delivered"
+      },
+      "advancing": "Saving…",
+      "advanced": "The order has moved on.",
+      "correct": {
+        "open": "Change",
+        "title": "Change the date or the assessor",
+        "description": "Correct the agreed date and the assessor on order {reference}. The status does not change.",
+        "date": "Date and time",
+        "dateHintFuture": "Swiss time (Europe/Zurich). The date must be in the future.",
+        "dateHintPast": "Swiss time (Europe/Zurich). A past date is allowed here, so a visit can be recorded after the fact.",
+        "expert": "Assessor",
+        "expertPlaceholder": "Choose an assessor",
+        "expertSearch": "Search by name",
+        "noExperts": "No active assessor matches.",
+        "unnamed": "Unnamed assessor",
+        "expertHint": "A different assessor gets access to this client, and the previous one loses it unless another booking still names them.",
+        "submit": "Save the change",
+        "saving": "Saving…"
+      },
+      "corrected": "The booking is updated.",
+      "release": {
+        "open": "Unschedule",
+        "title": "Unschedule the assessment",
+        "description": "Release order {reference} back to paid? The date and the assessor are cleared.",
+        "note": "The assessor keeps access to this client until you end the assignment yourself.",
+        "confirm": "Unschedule",
+        "releasing": "Unscheduling…"
+      },
+      "released": "The order is back to paid.",
+      "errors": {
+        "forbidden": "You are not allowed to change this order.",
+        "validation": "Check the date and the assessor.",
+        "not_found": "This order no longer exists.",
+        "not_scheduled": "This order is not booked, so there is nothing to change.",
+        "expert_not_assignable": "That assessor is no longer active. Choose another.",
+        "invalid_transition": "Someone else changed this order. Reload the list and try again.",
+        "unexpected": "The change could not be saved. Try again."
+      }
+    }
+  },
+  "adminCompanies": {
+    "title": "Companies",
+    "description": "Every assessed company, its research and its orders.",
+    "detailTitle": "Company",
+    "emptyTitle": "No companies yet",
+    "emptyBody": "A company appears here once a client adds one.",
+    "more": "Show more",
+    "none": "None",
+    "unnamed": "Unnamed",
+    "archived": "Archived",
+    "columns": {
+      "name": "Company",
+      "organization": "Client",
+      "canton": "Canton",
+      "employees": "Employees",
+      "research": "Research",
+      "created": "Added"
+    },
+    "noRun": "No research yet",
+    "sections": {
+      "facts": "Company facts",
+      "organization": "Client",
+      "members": "People",
+      "research": "Research runs",
+      "kpis": "Figures",
+      "benchmark": "Benchmark",
+      "orders": "Orders"
+    },
+    "facts": {
+      "name": "Name",
+      "legalName": "Legal name",
+      "uid": "UID",
+      "website": "Website",
+      "industry": "Industry code",
+      "employees": "Employees",
+      "canton": "Canton",
+      "country": "Country",
+      "created": "Added",
+      "updated": "Last change",
+      "archived": "Archived",
+      "id": "ID"
+    },
+    "organization": {
+      "name": "Name",
+      "language": "Language",
+      "created": "Created",
+      "archived": "Archived",
+      "id": "ID"
+    },
+    "members": {
+      "name": "Name",
+      "role": "Role",
+      "language": "Language",
+      "empty": "This client has no members."
+    },
+    "roles": {
+      "owner": "Owner",
+      "member": "Member"
+    },
+    "research": {
+      "status": "Status",
+      "started": "Started",
+      "finished": "Finished",
+      "providerRunId": "Provider run",
+      "error": "Error",
+      "empty": "This company has never been researched."
+    },
+    "kpis": {
+      "key": "Figure",
+      "year": "Year",
+      "value": "Value",
+      "source": "Source",
+      "confidence": "Confidence",
+      "empty": "No figures yet.",
+      "note": "The effective value per figure and year: the client's own entry when there is one, otherwise the newest research value.",
+      "against": "From research run {reference}, finished {date}."
+    },
+    "sources": {
+      "research": "Research",
+      "client": "Client"
+    },
+    "benchmark": {
+      "empty": "No benchmark has been computed for this company yet.",
+      "computed": "Computed",
+      "modelVersion": "Model version",
+      "trigger": "Triggered by",
+      "kpisCompared": "Figures compared",
+      "provisional": "Provisional peer data",
+      "cost": "Estimated annual cost",
+      "savingMedian": "Saving at the median",
+      "savingTop": "Saving at the top quarter",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "triggers": {
+      "research": "Research",
+      "client_edit": "Client edit",
+      "recompute": "Recompute"
+    },
+    "orders": {
+      "reference": "Reference",
+      "package": "Package",
+      "amount": "Amount",
+      "status": "Status",
+      "scheduled": "Assessment",
+      "created": "Placed",
+      "empty": "This client has not placed an order yet.",
+      "notScheduled": "Not scheduled"
+    }
   },
   "experts": {
     "catalogue": {
@@ -2270,6 +2502,7 @@
     "assign": {
       "organization": "Client organisation",
       "placeholder": "Pick an organisation",
+      "hint": "The expert gets access to this organisation's file, its research and its figures.",
       "search": "Search organisations",
       "noMatches": "No organisation found.",
       "submit": "Assign",
