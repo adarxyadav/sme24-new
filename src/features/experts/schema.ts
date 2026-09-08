@@ -28,7 +28,10 @@ export type ExpertFilters = z.infer<typeof expertFiltersSchema>;
 
 /** The invite form on `/admin/experts/new`. The role is never here: the action hard codes it. */
 export const inviteExpertSchema = z.object({
-  email: z.email("emailInvalid").trim().toLowerCase().max(320, "emailLong"),
+  // Trimmed and lowercased before the address is checked, not after: `.trim()` on a `z.email()`
+  // is a transform that runs once validation has already passed, so a pasted address with a
+  // trailing space was refused as invalid. The same shape auth and marketing use.
+  email: z.string().trim().toLowerCase().pipe(z.email("emailInvalid").max(320, "emailLong")),
   fullName: z.string().trim().min(1, "fullNameRequired").max(200, "fullNameLong"),
   locale: z.enum(["de", "en"]),
 });
