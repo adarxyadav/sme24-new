@@ -2,7 +2,7 @@ import { render } from "@react-email/render";
 import { createElement, type ReactElement } from "react";
 import { localeFromCode } from "@/i18n/routing";
 import { createTranslatorFor } from "@/i18n/standalone";
-import { isEmailTemplateName, templateEntry } from "./registry";
+import { isEmailTemplateName, templateEntry, templateLink } from "./registry";
 import type { EmailTemplateName } from "./schema";
 import type { TemplateProps } from "./templates/props";
 
@@ -25,7 +25,8 @@ export type RenderInput = {
 /**
  * Renders a registered template in one language (spec 0006, AC-4, AC-14): the subject from
  * `email.<template>.subject`, the HTML and the plain text from the component, the button link
- * from the app URL plus the locale prefix plus the entry's `link`. Throws on invalid data or a
+ * from the app URL plus the locale prefix plus the entry's path, which may be derived from the
+ * data itself (spec 0013, AC-14). Throws on invalid data or a
  * missing message key (development and test, spec 0004), which the task maps to `failed`. Runs in
  * the send-email task, the ops preview (server component) and the Vitest render test.
  */
@@ -33,8 +34,9 @@ export async function renderEmail(input: RenderInput): Promise<RenderedEmail> {
   const entry = templateEntry(input.template);
   const data = entry.schema.parse(input.data);
   const t = await createTranslatorFor(localeFromCode(input.locale));
+  const path = templateLink(entry, data);
   // The root link (`/`) gives the bare locale prefix, so the button never carries a trailing slash.
-  const href = `${input.appUrl.replace(/\/$/, "")}/${input.locale}${entry.link === "/" ? "" : entry.link}`;
+  const href = `${input.appUrl.replace(/\/$/, "")}/${input.locale}${path === "/" ? "" : path}`;
   const subject = t(`email.${input.template}.subject`, messageValues(data));
   // The registry maps each name to its own data type; the entry's schema just parsed `data`, so
   // the component receives what it expects even though the union hides that from TypeScript.

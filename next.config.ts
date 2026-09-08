@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
   cacheComponents: false,
   typedRoutes: false,
   poweredByHeader: false,
+  experimental: {
+    serverActions: {
+      // Spec 0013 AC-6 promises a 2 MB expert photo, but Next caps a server action body at 1 MB by
+      // default and rejects the request before the action runs, so `uploadExpertPhoto` never sees
+      // it and cannot answer `too_large`. The cap counts the raw body, multipart boundaries and
+      // part headers included, so the headroom above 2 MB is what lets the action's own check fire.
+      bodySizeLimit: "3mb",
+    },
+  },
 };
 
 export default withSentryConfig(withNextIntl(nextConfig), {

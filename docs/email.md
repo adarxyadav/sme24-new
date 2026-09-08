@@ -10,7 +10,7 @@ _How SME24 sends product email and team alerts, and what each environment needs 
 4. Resend reports the outcome to `POST /api/webhooks/resend`; the handler verifies the signature and moves the status forward (`sent` to `delivered`, `bounced` or `complained`), never backwards.
 5. Ops watch it all on `/admin/emails`: filters, search, live status, a preview per row and a retry button on failed rows. Rows older than 90 days are purged weekly by `purge-email-deliveries`.
 
-Alerts take a smaller rail: `sendOpsAlert(...)` from `src/lib/alerts/send.ts` (or `raiseAlertFromTask` inside a task) triggers `ops-alert`, which renders Block Kit in English with Swiss formats and posts it to the Slack incoming webhook. Live kinds: `client.signed_up`, `email.failed`, `ops.test`. Reserved for later features: `research.run_failed`, `payment.received`, `enquiry.received`. A recipient's email address never reaches Slack.
+Alerts take a smaller rail: `sendOpsAlert(...)` from `src/lib/alerts/send.ts` (or `raiseAlertFromTask` inside a task) triggers `ops-alert`, which renders Block Kit in English with Swiss formats and posts it to the Slack incoming webhook. Live kinds: `client.signed_up`, `email.failed`, `ops.test`, `research.run_failed`, `benchmark.failed`, `enquiry.received`, `invoice.render_failed` and `expert.onboarded`. Reserved for a later feature: `payment.received`. A client's email address never reaches Slack; `expert.onboarded` carries a colleague's, which ops need to start the record check (spec 0013).
 
 ## Adding a template or an alert kind
 

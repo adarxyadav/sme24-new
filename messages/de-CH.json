@@ -50,14 +50,16 @@
       "orders": "Bestellungen"
     },
     "expert": {
-      "overview": "Übersicht"
+      "overview": "Übersicht",
+      "profile": "Profil"
     },
     "admin": {
       "overview": "Übersicht",
       "design": "Design Galerie",
       "emails": "E-Mails",
       "enquiries": "Anfragen",
-      "orders": "Bestellungen"
+      "orders": "Bestellungen",
+      "experts": "Expertinnen und Experten"
     }
   },
   "theme": {
@@ -897,6 +899,10 @@
       "marketing": {
         "title": "Marketing",
         "description": "Die Grundelemente der öffentlichen Website: die Paketkarte mit Fixpreis und auf Anfrage, das FAQ-Akkordeon und das Anfrageformular leer und mit allen Fehlern."
+      },
+      "experts": {
+        "title": "Experten",
+        "description": "Die Auswahl und das Bild, die die Expertenseiten verwenden (Spec 0012)."
       }
     },
     "tokens": {
@@ -1228,7 +1234,16 @@
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
       "heroBenchmark": "Hero-Objekt der Startseite: der Beispiel-Benchmark",
       "registerDirectory": "Expertenverzeichnis"
-    }
+    },
+    "expertAvatar": "Expertenbild",
+    "avatarInitials": "Mit Initialen",
+    "avatarTwoWords": "Mehrere Wörter",
+    "avatarUnnamed": "Noch ohne Namen",
+    "combobox": "Suchbare Auswahl",
+    "comboboxLabel": "Kundenorganisation",
+    "comboboxPlaceholder": "Organisation wählen",
+    "comboboxSearch": "Organisationen suchen",
+    "comboboxEmpty": "Keine Organisation gefunden."
   },
   "email": {
     "layout": {
@@ -1282,6 +1297,34 @@
       "invoiceFollows": "Ihre Rechnung stellen wir Ihnen in Kürze zu.",
       "nextStep": "Wir melden uns bei Ihnen, um den Termin für die Begehung vor Ort zu vereinbaren.",
       "button": "Bestellung ansehen"
+    },
+    "expert_welcome": {
+      "subject": "Willkommen im SME24-Expertennetzwerk",
+      "preview": "Ihr Expertenprofil ist aktiv. Vervollständigen Sie es, damit wir Sie passend einsetzen können.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Ihr Zugang zum SME24-Expertenbereich ist eingerichtet. Sobald wir Ihnen ein Kundenunternehmen zuweisen, finden Sie dort dessen Kennzahlen, den Benchmark und die Kontaktangaben, alles was Sie zur Vorbereitung des Vor-Ort-Termins brauchen.",
+      "nextStep": "Der nächste Schritt: Vervollständigen Sie Ihr Profil, insbesondere Kompetenzen, Branchen, Normen und Ihre Verfügbarkeit. Danach berücksichtigen wir Sie bei der Zuteilung.",
+      "button": "Profil vervollständigen"
+    },
+    "assignment_received": {
+      "subject": "Neues Mandat: {organizationName}",
+      "preview": "Sie wurden {organizationName} zugewiesen. Die Unterlagen stehen bereit.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Wir haben Sie {organizationName} als Expertin oder Experte zugewiesen.",
+      "nextStep": "Auf der Kundenseite finden Sie die Unternehmensangaben, die erfassten Kennzahlen und den Benchmark. Bitte sehen Sie sich diese vor dem Vor-Ort-Termin an.",
+      "button": "Kunde ansehen"
+    },
+    "expert_assigned": {
+      "subject": "Ihre Expertin oder Ihr Experte: {expertName}",
+      "preview": "{expertName} begleitet Sie ab sofort. Profil im Kundenbereich ansehen.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "{expertName} begleitet ab sofort Ihr Unternehmen bei SME24.",
+      "headline": "Schwerpunkt: {headline}",
+      "nextStep": "Im Kundenbereich sehen Sie das vollständige Profil mit Kompetenzen, Branchen und Sprachen. Wir melden uns, um den Termin für die Vor-Ort-Beurteilung zu vereinbaren.",
+      "button": "Zum Kundenbereich"
     }
   },
   "emails": {
@@ -2022,5 +2065,363 @@
     "filterAll": "Alle",
     "filterPending": "Offen",
     "filterPaid": "Bezahlt"
+  },
+  "experts": {
+    "catalogue": {
+      "competencies": {
+        "compliance": "Compliance-Prüfung",
+        "management_system": "Managementsystem",
+        "safety_culture": "Sicherheitskultur"
+      },
+      "industries": {
+        "A": "Land- und Forstwirtschaft",
+        "B": "Bergbau und Gewinnung von Steinen",
+        "C": "Verarbeitendes Gewerbe",
+        "D": "Energieversorgung",
+        "E": "Wasser, Abfall und Sanierung",
+        "F": "Baugewerbe",
+        "G": "Handel",
+        "H": "Verkehr und Lagerei",
+        "I": "Gastgewerbe",
+        "J": "Information und Kommunikation",
+        "K": "Finanz- und Versicherungsdienstleistungen",
+        "L": "Grundstücks- und Wohnungswesen",
+        "M": "Freiberufliche und technische Dienstleistungen",
+        "N": "Sonstige wirtschaftliche Dienstleistungen",
+        "O": "Öffentliche Verwaltung",
+        "P": "Erziehung und Unterricht",
+        "Q": "Gesundheits- und Sozialwesen",
+        "R": "Kunst, Unterhaltung und Erholung",
+        "S": "Sonstige Dienstleistungen",
+        "T": "Private Haushalte als Arbeitgeber",
+        "U": "Exterritoriale Organisationen"
+      },
+      "standards": {
+        "iso_45001": "ISO 45001 (Arbeitssicherheit)",
+        "iso_14001": "ISO 14001 (Umwelt)",
+        "iso_9001": "ISO 9001 (Qualität)",
+        "iso_50001": "ISO 50001 (Energie)",
+        "ekas_6508": "EKAS 6508 (ASA-Richtlinie)",
+        "suva_asa": "Suva ASA-Spezialisten",
+        "arg_argv": "Arbeitsgesetz und Verordnungen",
+        "vuv": "VUV (Unfallverhütung)",
+        "stfv": "StFV (Störfallvorsorge)",
+        "scc": "SCC / SCP Kontraktorensicherheit",
+        "iso_31000": "ISO 31000 (Risikomanagement)",
+        "esti": "ESTI (Elektrosicherheit)",
+        "bauav": "BauAV (Bauarbeiten)",
+        "psa": "PSA und Schutzausrüstung"
+      },
+      "languages": {
+        "de": "Deutsch",
+        "fr": "Französisch",
+        "it": "Italienisch",
+        "en": "Englisch"
+      },
+      "regions": {
+        "AG": "Aargau",
+        "AI": "Appenzell Innerrhoden",
+        "AR": "Appenzell Ausserrhoden",
+        "BE": "Bern",
+        "BL": "Basel-Landschaft",
+        "BS": "Basel-Stadt",
+        "FR": "Freiburg",
+        "GE": "Genf",
+        "GL": "Glarus",
+        "GR": "Graubünden",
+        "JU": "Jura",
+        "LU": "Luzern",
+        "NE": "Neuenburg",
+        "NW": "Nidwalden",
+        "OW": "Obwalden",
+        "SG": "St. Gallen",
+        "SH": "Schaffhausen",
+        "SO": "Solothurn",
+        "SZ": "Schwyz",
+        "TG": "Thurgau",
+        "TI": "Tessin",
+        "UR": "Uri",
+        "VD": "Waadt",
+        "VS": "Wallis",
+        "ZG": "Zug",
+        "ZH": "Zürich"
+      },
+      "availability": {
+        "available": "Verfügbar",
+        "limited": "Begrenzt",
+        "unavailable": "Nicht verfügbar"
+      }
+    },
+    "onboarding": {
+      "title": "Expertenprofil einrichten",
+      "lead": "Sagen Sie uns, was Sie abdecken und wo Sie arbeiten. Kunden sehen Ihren Namen und Ihre Kurzbeschreibung, sobald wir Sie zuteilen.",
+      "fullName": "Vollständiger Name",
+      "headline": "Kurzbeschreibung",
+      "headlinePlaceholder": "Sicherheitsingenieur, Bau und Industrie",
+      "languages": "Arbeitssprachen",
+      "regions": "Abgedeckte Kantone",
+      "regionsHint": "Wählen Sie jeden Kanton, in den Sie für einen Besuch reisen.",
+      "consent": "Ich akzeptiere die Einsatzbedingungen und die Datenschutzerklärung.",
+      "submit": "Einrichtung abschliessen",
+      "submitting": "Wird gespeichert…",
+      "errors": {
+        "validation": "Prüfen Sie die markierten Felder und versuchen Sie es erneut.",
+        "forbidden": "Dieses Konto kann das Experten-Onboarding nicht abschliessen.",
+        "unexpected": "Etwas ist schiefgelaufen. Versuchen Sie es gleich noch einmal."
+      }
+    },
+    "form": {
+      "errors": {
+        "termsRequired": "Akzeptieren Sie die Bedingungen.",
+        "fullNameRequired": "Geben Sie Ihren Namen ein.",
+        "fullNameLong": "Höchstens 200 Zeichen.",
+        "headlineRequired": "Beschreiben Sie Ihre Tätigkeit in einer Zeile.",
+        "headlineLong": "Höchstens 120 Zeichen.",
+        "languagesRequired": "Wählen Sie mindestens eine Sprache.",
+        "regionsRequired": "Wählen Sie mindestens einen Kanton.",
+        "competenciesRequired": "Wählen Sie mindestens eine Kompetenz.",
+        "bioLong": "Höchstens 800 Zeichen.",
+        "availabilityNoteLong": "Höchstens 300 Zeichen.",
+        "availableFromInvalid": "Verwenden Sie ein gültiges Datum.",
+        "availableFromPast": "Wählen Sie heute oder später.",
+        "yearsExperienceInvalid": "Geben Sie ganze Jahre ein.",
+        "yearsExperienceRange": "Geben Sie 0 bis 60 Jahre ein.",
+        "phoneLong": "Höchstens 30 Zeichen.",
+        "phoneInvalid": "Nur Ziffern, Leerzeichen und + ( ) / -.",
+        "notesLong": "Höchstens 4000 Zeichen.",
+        "emailInvalid": "Geben Sie eine gültige E-Mail-Adresse ein.",
+        "emailLong": "Höchstens 320 Zeichen.",
+        "organizationRequired": "Wählen Sie eine Kundenorganisation."
+      }
+    },
+    "assignments": {
+      "lead": "Die Ihnen zugeteilten Kunden. Öffnen Sie einen für Fakten und Kennzahlen vor dem Besuch.",
+      "since": "Zugeteilt seit {date}"
+    },
+    "client": {
+      "title": "Kunde",
+      "lead": "Teil von {organization}",
+      "facts": {
+        "heading": "Unternehmen",
+        "legalName": "Firmenname",
+        "uid": "UID",
+        "canton": "Kanton",
+        "industry": "Branche",
+        "employees": "Mitarbeitende",
+        "website": "Website",
+        "none": "Nicht erfasst"
+      },
+      "kpis": {
+        "heading": "Kennzahlen",
+        "pending": "Die Recherche ist noch nicht abgeschlossen, daher gibt es noch keine Kennzahlen."
+      },
+      "contacts": {
+        "heading": "Ansprechpersonen",
+        "description": "Die Personen im Konto dieses Kunden.",
+        "none": "Keine Ansprechpersonen hinterlegt.",
+        "unnamed": "Ohne Namen"
+      }
+    },
+    "assigned": {
+      "heading": "{count, plural, one {Ihre Fachperson} other {Ihre Fachpersonen}}",
+      "description": "Wer Ihren Betrieb begeht und was diese Person abdeckt.",
+      "since": "Zugeteilt seit {date}",
+      "unnamed": "Ohne Namen"
+    },
+    "admin": {
+      "title": "Expertinnen und Experten",
+      "detailTitle": "Expertin oder Experte",
+      "description": "Alle im Expertennetzwerk und die Kunden, die sie betreuen.",
+      "unnamed": "Noch ohne Namen",
+      "assignments": "Kundenzuteilungen",
+      "assignmentsDescription": "Teilen Sie diese Person einer Kundenorganisation zu oder beenden Sie eine Zuteilung.",
+      "columns": {
+        "name": "Name",
+        "email": "E-Mail",
+        "status": "Status",
+        "clients": "Kunden",
+        "invited": "Eingeladen",
+        "competencies": "Kompetenzen",
+        "availability": "Verfügbarkeit",
+        "onboarded": "Onboarding"
+      },
+      "status": {
+        "invited": "Eingeladen",
+        "active": "Aktiv",
+        "inactive": "Inaktiv"
+      },
+      "empty": {
+        "title": "Noch keine Expertinnen und Experten",
+        "description": "Eingeladene Personen erscheinen hier, sobald die erste Einladung verschickt ist."
+      },
+      "invite": "Fachperson einladen",
+      "more": "Mehr anzeigen",
+      "none": "—",
+      "filters": {
+        "legend": "Filter",
+        "status": "Status",
+        "all": "Alle",
+        "apply": "Anwenden",
+        "reset": "Zurücksetzen"
+      },
+      "profileHeading": "Profil",
+      "profileDescription": "Dieselben Felder, die die Fachperson bearbeitet. Änderungen hier sind für sie sofort sichtbar."
+    },
+    "assign": {
+      "organization": "Kundenorganisation",
+      "placeholder": "Organisation wählen",
+      "search": "Organisationen suchen",
+      "noMatches": "Keine Organisation gefunden.",
+      "submit": "Zuteilen",
+      "assigning": "Wird zugeteilt…",
+      "assigned": "Person zugeteilt.",
+      "end": "Beenden",
+      "ended": "Zuteilung beendet.",
+      "none": "Noch keine Zuteilungen.",
+      "since": "Seit {date}",
+      "endedOn": "Beendet {date}",
+      "notAssignable": "Nur eine aktive Person kann einem Kunden zugeteilt werden.",
+      "status": {
+        "active": "Aktiv",
+        "ended": "Beendet"
+      },
+      "errors": {
+        "validation": "Wählen Sie eine Kundenorganisation.",
+        "expert_not_active": "Diese Person ist nicht aktiv und kann keinen Kunden übernehmen.",
+        "already_assigned": "Diese Person betreut diesen Kunden bereits.",
+        "not_found": "Diese Organisation existiert nicht mehr.",
+        "forbidden": "Sie dürfen keine Zuteilungen vornehmen.",
+        "unexpected": "Etwas ist schiefgelaufen. Versuchen Sie es gleich noch einmal."
+      },
+      "endErrors": {
+        "validation": "Diese Zuteilung ist ungültig.",
+        "not_found": "Diese Zuteilung wurde bereits beendet.",
+        "forbidden": "Sie dürfen keine Zuteilungen beenden.",
+        "unexpected": "Etwas ist schiefgelaufen. Versuchen Sie es gleich noch einmal."
+      }
+    },
+    "invite": {
+      "title": "Expertin oder Experten einladen",
+      "lead": "Senden Sie eine Einladung an eine geprüfte EHS-Fachperson. Sie setzt ihr Passwort selbst und beschreibt ihr Fachgebiet.",
+      "breadcrumb": "Expertinnen und Experten",
+      "email": "E-Mail-Adresse",
+      "emailHint": "An diese Adresse geht die Einladung. Sie wird zur Anmeldung.",
+      "fullName": "Vollständiger Name",
+      "language": "Sprache",
+      "languageHint": "Alle E-Mails an diese Person werden in dieser Sprache verfasst.",
+      "languages": {
+        "de": "Deutsch",
+        "en": "Englisch"
+      },
+      "submit": "Einladung senden",
+      "sending": "Wird gesendet…",
+      "sent": "Einladung gesendet.",
+      "errors": {
+        "validation": "Bitte prüfen Sie die Felder oben.",
+        "email_taken": "Diese Adresse wird bereits von einem Konto verwendet.",
+        "already_invited": "Diese Fachperson wurde bereits eingeladen.",
+        "invite_failed": "Die Einladung konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+        "forbidden": "Sie dürfen keine Fachpersonen einladen.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "profile": {
+      "title": "Profil",
+      "lead": "Was das Team und Ihre Kundinnen und Kunden über Sie sehen. Halten Sie es aktuell, damit wir Sie passend einsetzen.",
+      "heading": "Ihr Profil",
+      "description": "Kurzbeschrieb und Zusammenfassung erscheinen im Dashboard Ihrer Kundschaft; der Rest dient dem Matching.",
+      "photoHeading": "Foto",
+      "photoDescription": "Ein Porträt, das Kundinnen und Kunden neben Ihrem Namen sehen. Optional.",
+      "headline": "Kurzbeschrieb",
+      "bio": "Zusammenfassung",
+      "bioHint": "Bis zu 800 Zeichen.",
+      "lists": {
+        "competencies": "Assessment-Kompetenzen",
+        "industries": "Branchen",
+        "standards": "Normen und Vorschriften",
+        "languages": "Arbeitssprachen",
+        "regions": "Kantone"
+      },
+      "availability": "Verfügbarkeit",
+      "availableFrom": "Verfügbar ab",
+      "availabilityNote": "Hinweis zur Verfügbarkeit",
+      "yearsExperience": "Jahre Berufserfahrung",
+      "phone": "Telefon",
+      "submit": "Profil speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Profil gespeichert.",
+      "errors": {
+        "validation": "Bitte prüfen Sie die Felder oben.",
+        "forbidden": "Sie dürfen dieses Profil nicht ändern.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "photo": {
+      "label": "Foto auswählen",
+      "hint": "JPEG, PNG oder WebP, bis 2 MB.",
+      "remove": "Foto entfernen",
+      "uploaded": "Foto gespeichert.",
+      "removed": "Foto entfernt.",
+      "errors": {
+        "validation": "Bitte wählen Sie eine Datei.",
+        "too_large": "Diese Datei ist grösser als 2 MB.",
+        "unsupported_type": "Bitte wählen Sie eine JPEG-, PNG- oder WebP-Datei.",
+        "forbidden": "Sie dürfen dieses Foto nicht ändern.",
+        "unexpected": "Das Foto konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      }
+    },
+    "notes": {
+      "heading": "Notizen zur Prüfung",
+      "description": "Nur intern. Die Fachperson sieht diese Notizen nie.",
+      "label": "Notizen",
+      "hint": "Bis zu 4000 Zeichen.",
+      "submit": "Notizen speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Notizen gespeichert.",
+      "errors": {
+        "validation": "Bitte kürzen Sie die Notizen.",
+        "forbidden": "Sie dürfen diese Notizen nicht bearbeiten.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "account": {
+      "heading": "Konto",
+      "description": "Einladung erneut senden oder den Zugang dieser Fachperson beenden und wiederherstellen.",
+      "resend": "Einladung erneut senden",
+      "resending": "Wird gesendet…",
+      "resent": "Einladung erneut gesendet.",
+      "deactivate": "Fachperson deaktivieren",
+      "deactivating": "Wird deaktiviert…",
+      "deactivateConfirm": "{name} deaktivieren?",
+      "deactivateConfirmBody": "{count, plural, =0 {Es ist kein Auftrag offen, es wird also nichts beendet.} one {Ein offener Auftrag wird beendet.} other {# offene Aufträge werden beendet.}} Die Anmeldung bleibt gesperrt, bis die Fachperson reaktiviert wird. Das Reaktivieren stellt die Anmeldung wieder her, die beendeten Aufträge jedoch nicht.",
+      "deactivateCancel": "Fachperson behalten",
+      "deactivated": "Fachperson deaktiviert. {count, plural, =0 {Es war kein Auftrag offen.} one {Ein Auftrag wurde beendet.} other {# Aufträge wurden beendet.}}",
+      "reactivate": "Fachperson reaktivieren",
+      "reactivating": "Wird reaktiviert…",
+      "reactivated": "Fachperson reaktiviert.",
+      "activeHint": "Das Deaktivieren beendet jeden offenen Auftrag und sperrt die Anmeldung.",
+      "inactiveHint": "Das Reaktivieren stellt die Anmeldung wieder her. Beendete Aufträge bleiben beendet.",
+      "resendErrors": {
+        "validation": "Diese Fachperson wurde nicht gefunden.",
+        "not_invited": "Diese Fachperson hat sich bereits angemeldet.",
+        "rate_limited": "Zu kurz nach der letzten Einladung. Bitte warten Sie einen Moment.",
+        "invite_failed": "Die Einladung konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+        "forbidden": "Sie dürfen das nicht tun.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      },
+      "deactivateErrors": {
+        "validation": "Diese Fachperson wurde nicht gefunden.",
+        "not_found": "Diese Fachperson wurde nicht gefunden.",
+        "forbidden": "Sie dürfen das nicht tun.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      },
+      "reactivateErrors": {
+        "validation": "Diese Fachperson wurde nicht gefunden.",
+        "already_active": "Diese Fachperson ist nicht deaktiviert.",
+        "not_found": "Diese Fachperson wurde nicht gefunden.",
+        "forbidden": "Sie dürfen das nicht tun.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    }
   }
 }

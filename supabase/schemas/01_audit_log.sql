@@ -80,6 +80,7 @@ declare
   row_new jsonb;
   subject jsonb;
   changed text[];
+  key_column text;
 begin
   if tg_op in ('UPDATE', 'DELETE') then
     row_old := to_jsonb(old);
@@ -95,6 +96,24 @@ begin
   end if;
   subject := coalesce(row_new, row_old);
 
+  -- Most audited tables are keyed on `id`. A table keyed on something else (expert_profiles and
+  -- expert_ops_notes are keyed on expert_id, spec 0012) would otherwise write a null row_id and
+  -- fail the not null constraint, which is why the tables keyed on `key` or `event_id` are simply
+  -- not audited. An access control table has to be audited, so the key column is read from the
+  -- catalog instead: single column primary keys only, which every audited table has.
+  if subject ? 'id' then
+    key_column := 'id';
+  else
+    select a.attname into key_column
+    from pg_index i
+    join pg_attribute a on a.attrelid = i.indrelid and a.attnum = any(i.indkey)
+    where i.indrelid = tg_relid and i.indisprimary and i.indnatts = 1;
+  end if;
+
+  if key_column is null then
+    raise exception 'private.audit_row cannot audit %: no id column and no single column primary key', tg_table_name;
+  end if;
+
   insert into public.audit_log (
     actor_id, actor_role, organization_id, table_name, row_id, action, old_data, new_data, changed_columns
   )
@@ -107,7 +126,7 @@ begin
     end,
     case when subject ? 'organization_id' then (subject ->> 'organization_id')::uuid end,
     tg_table_name,
-    subject ->> 'id',
+    subject ->> key_column,
     lower(tg_op),
     row_old,
     row_new,

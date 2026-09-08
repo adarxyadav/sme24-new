@@ -28,6 +28,12 @@ export const PATHNAMES = {
   "/app/orders": { "de-CH": "/app/bestellungen", "en-CH": "/app/orders" },
   "/app/orders/[id]": { "de-CH": "/app/bestellungen/[id]", "en-CH": "/app/orders/[id]" },
   "/expert": "/expert",
+  "/expert/onboarding": "/expert/onboarding",
+  "/expert/profile": { "de-CH": "/expert/profil", "en-CH": "/expert/profile" },
+  "/expert/clients/[organizationId]": {
+    "de-CH": "/expert/kunden/[organizationId]",
+    "en-CH": "/expert/clients/[organizationId]",
+  },
   "/admin": "/admin",
   "/admin/design": "/admin/design",
   "/admin/emails": "/admin/emails",
@@ -35,6 +41,9 @@ export const PATHNAMES = {
   "/admin/enquiries": "/admin/enquiries",
   "/admin/enquiries/[id]": "/admin/enquiries/[id]",
   "/admin/orders": "/admin/orders",
+  "/admin/experts": "/admin/experts",
+  "/admin/experts/new": "/admin/experts/new",
+  "/admin/experts/[expertId]": "/admin/experts/[expertId]",
 } as const;
 
 /** A route key of the typed map: what `Link` and `redirect` accept as `href`. */

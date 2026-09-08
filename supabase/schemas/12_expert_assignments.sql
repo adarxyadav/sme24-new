@@ -72,6 +72,56 @@ create trigger expert_assignments_check_transition
   before update of status on public.expert_assignments
   for each row execute function private.check_expert_assignment_transition();
 
+-- Only an `active` expert can be assigned (spec 0013, AC-9). The rule lives here rather than in
+-- the ops action so a deactivation racing an assign cannot leave an assignment on an expert who
+-- has just left the network, and so feature 19 (matching) inherits it for free. The function is
+-- declared in this file because it reads expert_profiles, which 13_expert_profiles.sql creates;
+-- plpgsql resolves the body at call time, so the ordering between the two files does not matter.
+-- Definer, like the other helpers that read a table: RLS on expert_profiles hides every row from
+-- a client, so an invoker function would read no row and report "not active" for a perfectly
+-- active expert. Reading the status is safe to do as the owner: the trigger only ever compares it
+-- and never returns it.
+--
+-- The guard at the top is not authorization, RLS is: it is there because Postgres runs a
+-- `before insert` trigger ahead of the policy's `with check`, so without it a client's insert
+-- (which RLS refuses a moment later) would first raise expert_not_active and tell an unauthorized
+-- caller whether that expert exists and is active. Skipping the check for a caller who cannot
+-- insert anyway hands the refusal back to RLS, which answers 42501 and says nothing. Ops and the
+-- service role (the two that can actually insert, plus the seed and migrations, which carry no
+-- claims at all) always go through the check, so the invariant still holds for every real write.
+-- When feature 19 lets another caller assign, this guard widens with the insert policy it mirrors.
+create or replace function private.check_expert_assignable()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  expert_status text;
+begin
+  if private.jwt_app_role() in ('client', 'expert') then
+    return new;
+  end if;
+
+  select e.status into expert_status
+  from public.expert_profiles e
+  where e.expert_id = new.expert_id;
+
+  if expert_status is distinct from 'active' then
+    raise exception 'expert_not_active: % is %', new.expert_id, coalesce(expert_status, 'without a profile')
+      using errcode = 'check_violation';
+  end if;
+
+  return new;
+end;
+$$;
+
+revoke execute on function private.check_expert_assignable() from public;
+
+create trigger expert_assignments_check_assignable
+  before insert on public.expert_assignments
+  for each row execute function private.check_expert_assignable();
+
 create trigger expert_assignments_set_updated_at
   before update on public.expert_assignments
   for each row execute function public.set_updated_at();

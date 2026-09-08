@@ -5,6 +5,8 @@ import {
   MailIcon,
   PaletteIcon,
   ReceiptIcon,
+  UserIcon,
+  UsersIcon,
 } from "lucide-react";
 import type { Messages } from "next-intl";
 import type { StaticPathname } from "@/i18n/pathnames";
@@ -32,12 +34,16 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
     { href: "/app", labelKey: "app.overview", icon: LayoutDashboardIcon },
     { href: "/app/orders", labelKey: "app.orders", icon: ReceiptIcon },
   ],
-  expert: [{ href: "/expert", labelKey: "expert.overview", icon: LayoutDashboardIcon }],
+  expert: [
+    { href: "/expert", labelKey: "expert.overview", icon: LayoutDashboardIcon },
+    { href: "/expert/profile", labelKey: "expert.profile", icon: UserIcon },
+  ],
   admin: [
     { href: "/admin", labelKey: "admin.overview", icon: LayoutDashboardIcon },
     { href: "/admin/emails", labelKey: "admin.emails", icon: MailIcon },
     { href: "/admin/enquiries", labelKey: "admin.enquiries", icon: InboxIcon },
     { href: "/admin/orders", labelKey: "admin.orders", icon: ReceiptIcon },
+    { href: "/admin/experts", labelKey: "admin.experts", icon: UsersIcon },
     { href: "/admin/design", labelKey: "admin.design", icon: PaletteIcon },
   ],
 };

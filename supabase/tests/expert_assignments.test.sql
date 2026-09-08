@@ -81,6 +81,13 @@ select pg_temp.make_user('e0000000-0000-4000-8000-000000000001', 'expert@test.lo
 select pg_temp.make_user('e0000000-0000-4000-8000-000000000002', 'expert2@test.local', 'expert');
 select pg_temp.make_user('c0000000-0000-4000-8000-000000000001', 'ops@test.local', 'ops');
 
+-- Both experts need an `active` profile row: the check_expert_assignable trigger (spec 0013)
+-- refuses to assign an expert who is not active, so without these every insert below would fail
+-- for the wrong reason. The trigger's own cases are proved in expert_assignable.test.sql.
+insert into public.expert_profiles (expert_id, email, status, onboarded_at) values
+  ('e0000000-0000-4000-8000-000000000001', 'expert@test.local', 'active', now()),
+  ('e0000000-0000-4000-8000-000000000002', 'expert2@test.local', 'active', now());
+
 insert into public.organizations (id, name, created_by) values
   ('0a000000-0000-4000-8000-000000000000', 'Org A', 'a0000000-0000-4000-8000-000000000001'),
   ('0b000000-0000-4000-8000-000000000000', 'Org B', 'b0000000-0000-4000-8000-000000000001');

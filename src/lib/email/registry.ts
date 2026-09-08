@@ -1,23 +1,35 @@
 import type { ReactElement } from "react";
 import type { z } from "zod";
 import {
+  assignmentReceivedDataSchema,
   benchmarkReadyDataSchema,
   type EmailTemplateName,
   enquiryReceivedDataSchema,
+  expertAssignedDataSchema,
+  expertWelcomeDataSchema,
   orderConfirmedDataSchema,
   welcomeDataSchema,
 } from "./schema";
+import { AssignmentReceivedEmail } from "./templates/assignment-received";
 import { BenchmarkReadyEmail } from "./templates/benchmark-ready";
 import { EnquiryReceivedEmail } from "./templates/enquiry-received";
+import { ExpertAssignedEmail } from "./templates/expert-assigned";
+import { ExpertWelcomeEmail } from "./templates/expert-welcome";
 import { OrderConfirmedEmail } from "./templates/order-confirmed";
 import type { TemplateProps } from "./templates/props";
 import { WelcomeEmail } from "./templates/welcome";
 
+/** The bare app path without a locale prefix (`/app`); the renderer prefixes it. */
+export type EmailLink = `/${string}`;
+
 /** One template: its data schema, the app path its button and notification point at, and whether a known recipient gets a notification row. */
 export type EmailTemplateEntry<TData> = {
   readonly schema: z.ZodType<TData>;
-  /** The bare app path without a locale prefix (`/app`); the renderer prefixes it. */
-  readonly link: `/${string}`;
+  /**
+   * The path the button and the notification row point at: a constant for most templates, a
+   * function of the already validated data when the target is one row (spec 0013, AC-14).
+   */
+  readonly link: EmailLink | ((data: TData) => EmailLink);
   /** False for emails that are not worth a feed entry; `ops.*` source events never notify anyway. */
   readonly notify: boolean;
   readonly Component: (props: TemplateProps<TData>) => ReactElement;
@@ -59,7 +71,35 @@ export const EMAIL_TEMPLATES = {
     notify: true,
     Component: OrderConfirmedEmail,
   }),
+  expert_welcome: defineTemplate({
+    schema: expertWelcomeDataSchema,
+    link: "/expert/profile",
+    notify: true,
+    Component: ExpertWelcomeEmail,
+  }),
+  // The one link that depends on its data: the expert is sent to the client they were just given,
+  // not to the list, and the notification row carries the same path (spec 0013, AC-14).
+  assignment_received: defineTemplate({
+    schema: assignmentReceivedDataSchema,
+    link: (data) => `/expert/clients/${data.organizationId}`,
+    notify: true,
+    Component: AssignmentReceivedEmail,
+  }),
+  expert_assigned: defineTemplate({
+    schema: expertAssignedDataSchema,
+    link: "/app",
+    notify: true,
+    Component: ExpertAssignedEmail,
+  }),
 } as const satisfies Record<EmailTemplateName, unknown>;
+
+/**
+ * The path one entry points at for the given data: the constant, or the function applied to the
+ * data the entry's own schema has already validated. Pure; the renderer and the send-email task.
+ */
+export function templateLink<TData>(entry: EmailTemplateEntry<TData>, data: TData): EmailLink {
+  return typeof entry.link === "function" ? entry.link(data) : entry.link;
+}
 
 /** Keeps the data schema and the component of one entry on the same type. */
 function defineTemplate<TData>(entry: EmailTemplateEntry<TData>): EmailTemplateEntry<TData> {

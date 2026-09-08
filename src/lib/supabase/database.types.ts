@@ -306,6 +306,13 @@ export type Database = {
             foreignKeyName: "companies_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "companies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -374,6 +381,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_kpis_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
           },
           {
             foreignKeyName: "company_kpis_created_by_fkey"
@@ -487,6 +501,13 @@ export type Database = {
             foreignKeyName: "email_deliveries_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "email_deliveries_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -558,6 +579,13 @@ export type Database = {
             foreignKeyName: "enquiries_handled_by_fkey"
             columns: ["handled_by"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "enquiries_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -567,6 +595,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enquiries_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
           },
           {
             foreignKeyName: "enquiries_submitted_by_fkey"
@@ -616,8 +651,22 @@ export type Database = {
             foreignKeyName: "expert_assignments_assigned_by_fkey"
             columns: ["assigned_by"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "expert_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expert_assignments_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
           },
           {
             foreignKeyName: "expert_assignments_expert_id_fkey"
@@ -631,6 +680,163 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expert_ops_notes: {
+        Row: {
+          created_at: string
+          expert_id: string
+          notes: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          expert_id: string
+          notes?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          expert_id?: string
+          notes?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expert_ops_notes_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: true
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "expert_ops_notes_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expert_ops_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "expert_ops_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expert_profiles: {
+        Row: {
+          availability: string
+          availability_note: string | null
+          available_from: string | null
+          bio: string | null
+          competencies: string[]
+          created_at: string
+          deactivated_at: string | null
+          email: string
+          expert_id: string
+          headline: string | null
+          industries: string[]
+          invited_at: string
+          invited_by: string | null
+          languages: string[]
+          onboarded_at: string | null
+          phone: string | null
+          photo_path: string | null
+          regions: string[]
+          standards: string[]
+          status: string
+          updated_at: string
+          years_experience: number | null
+        }
+        Insert: {
+          availability?: string
+          availability_note?: string | null
+          available_from?: string | null
+          bio?: string | null
+          competencies?: string[]
+          created_at?: string
+          deactivated_at?: string | null
+          email: string
+          expert_id: string
+          headline?: string | null
+          industries?: string[]
+          invited_at?: string
+          invited_by?: string | null
+          languages?: string[]
+          onboarded_at?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          regions?: string[]
+          standards?: string[]
+          status?: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Update: {
+          availability?: string
+          availability_note?: string | null
+          available_from?: string | null
+          bio?: string | null
+          competencies?: string[]
+          created_at?: string
+          deactivated_at?: string | null
+          email?: string
+          expert_id?: string
+          headline?: string | null
+          industries?: string[]
+          invited_at?: string
+          invited_by?: string | null
+          languages?: string[]
+          onboarded_at?: string | null
+          phone?: string | null
+          photo_path?: string | null
+          regions?: string[]
+          standards?: string[]
+          status?: string
+          updated_at?: string
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expert_profiles_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: true
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "expert_profiles_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expert_profiles_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "expert_profiles_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -799,6 +1005,13 @@ export type Database = {
             foreignKeyName: "notifications_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -961,6 +1174,13 @@ export type Database = {
             foreignKeyName: "orders_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "orders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1017,6 +1237,13 @@ export type Database = {
             foreignKeyName: "organization_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "organization_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1051,6 +1278,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "organizations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
           {
             foreignKeyName: "organizations_created_by_fkey"
             columns: ["created_by"]
@@ -1199,6 +1433,13 @@ export type Database = {
             foreignKeyName: "research_runs_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "research_runs_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -1260,6 +1501,31 @@ export type Database = {
       }
     }
     Views: {
+      assigned_expert_summaries: {
+        Row: {
+          assignment_id: string | null
+          bio: string | null
+          competencies: string[] | null
+          expert_id: string | null
+          full_name: string | null
+          headline: string | null
+          industries: string[] | null
+          languages: string[] | null
+          organization_id: string | null
+          photo_path: string | null
+          standards: string[] | null
+          started_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expert_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_kpi_current: {
         Row: {
           company_id: string | null
@@ -1284,6 +1550,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_kpis_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
           },
           {
             foreignKeyName: "company_kpis_created_by_fkey"
@@ -1322,6 +1595,15 @@ export type Database = {
         Args: { organization_id: string; role?: string; user_id: string }
         Returns: string
       }
+      assigned_organization_contacts: {
+        Args: { org: string }
+        Returns: {
+          email: string
+          full_name: string
+          role: string
+          user_id: string
+        }[]
+      }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       issue_invoice: {
@@ -1341,6 +1623,72 @@ export type Database = {
       }
       next_order_reference: { Args: never; Returns: string }
       scor_reference: { Args: { body: string }; Returns: string }
+      set_expert_photo: {
+        Args: { path: string }
+        Returns: {
+          availability: string
+          availability_note: string | null
+          available_from: string | null
+          bio: string | null
+          competencies: string[]
+          created_at: string
+          deactivated_at: string | null
+          email: string
+          expert_id: string
+          headline: string | null
+          industries: string[]
+          invited_at: string
+          invited_by: string | null
+          languages: string[]
+          onboarded_at: string | null
+          phone: string | null
+          photo_path: string | null
+          regions: string[]
+          standards: string[]
+          status: string
+          updated_at: string
+          years_experience: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "expert_profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      set_expert_status: {
+        Args: { next: string; target: string }
+        Returns: {
+          availability: string
+          availability_note: string | null
+          available_from: string | null
+          bio: string | null
+          competencies: string[]
+          created_at: string
+          deactivated_at: string | null
+          email: string
+          expert_id: string
+          headline: string | null
+          industries: string[]
+          invited_at: string
+          invited_by: string | null
+          languages: string[]
+          onboarded_at: string | null
+          phone: string | null
+          photo_path: string | null
+          regions: string[]
+          standards: string[]
+          status: string
+          updated_at: string
+          years_experience: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "expert_profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       settle_order: {
         Args: {
           actor_id: string

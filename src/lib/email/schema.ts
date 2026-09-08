@@ -12,6 +12,9 @@ export const EMAIL_TEMPLATE_NAMES = [
   "benchmark_ready",
   "enquiry_received",
   "order_confirmed",
+  "expert_welcome",
+  "assignment_received",
+  "expert_assigned",
 ] as const;
 export type EmailTemplateName = (typeof EMAIL_TEMPLATE_NAMES)[number];
 
@@ -65,6 +68,36 @@ export const orderConfirmedDataSchema = templateDataBaseSchema.extend({
   invoiceAttached: z.boolean(),
 });
 export type OrderConfirmedData = z.infer<typeof orderConfirmedDataSchema>;
+
+/**
+ * `expert_welcome` (spec 0013, AC-14): sent to an expert the moment onboarding completes. It
+ * carries nothing but the greeting, because everything the expert needs next is on the profile
+ * page the button points at.
+ */
+export const expertWelcomeDataSchema = templateDataBaseSchema;
+export type ExpertWelcomeData = z.infer<typeof expertWelcomeDataSchema>;
+
+/**
+ * `assignment_received` (spec 0013, AC-14): sent to the expert when ops assign them a client. The
+ * organization id is data rather than a static registry link, because the button and the
+ * notification both point at that one client's page.
+ */
+export const assignmentReceivedDataSchema = templateDataBaseSchema.extend({
+  organizationName: z.string().trim().min(1).max(200),
+  organizationId: z.uuid(),
+});
+export type AssignmentReceivedData = z.infer<typeof assignmentReceivedDataSchema>;
+
+/**
+ * `expert_assigned` (spec 0013, AC-14): sent to every member of the client organization when an
+ * expert is assigned to them. The headline is optional because an expert may be assignable before
+ * they have written one.
+ */
+export const expertAssignedDataSchema = templateDataBaseSchema.extend({
+  expertName: z.string().trim().min(1).max(200),
+  headline: z.string().trim().min(1).max(300).optional(),
+});
+export type ExpertAssignedData = z.infer<typeof expertAssignedDataSchema>;
 
 /** A known user (address and language resolved by the task) or a raw address with its language. */
 export const emailRecipientSchema = z.union([
@@ -121,3 +154,9 @@ export const ORGANIZATION_CREATED_EVENT = "auth.organization_created";
 export const BENCHMARK_SNAPSHOT_CREATED_EVENT = "benchmark.snapshot_created";
 /** The source event of the enquiry acknowledgement, the same string as the alert kind so ops can correlate the two (spec 0009, AC-9). */
 export const ENQUIRY_RECEIVED_EVENT = "enquiry.received";
+
+/** The source event of the expert welcome email and the onboarded alert (spec 0013, AC-14). */
+export const EXPERT_ONBOARDED_EVENT = "expert.onboarded";
+
+/** The source event of both assignment emails, so ops see the pair on one filter (spec 0013, AC-14). */
+export const EXPERT_ASSIGNED_EVENT = "expert.assigned";

@@ -4,7 +4,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger, schemaTask } from "@trigger.dev/sdk";
 import { localeForUser } from "@/features/localization/queries";
 import { LOCALE_CODE } from "@/i18n/routing";
-import { EMAIL_TEMPLATES, isEmailTemplateName } from "@/lib/email/registry";
+import {
+  EMAIL_TEMPLATES,
+  isEmailTemplateName,
+  templateEntry,
+  templateLink,
+} from "@/lib/email/registry";
 import { renderEmail } from "@/lib/email/render";
 import {
   type DeliveryStatus,
@@ -166,8 +171,14 @@ async function prepareNewDelivery(
 async function ensureNotification(supabase: Service, row: DeliveryRow): Promise<boolean> {
   if (row.recipient_id === null || row.source_event.startsWith("ops.")) return false;
   if (!isEmailTemplateName(row.template)) return false;
-  const entry = EMAIL_TEMPLATES[row.template];
+  // Widened to unknown data, the way the renderer takes it: the entry's own schema parses the row
+  // below, so the widening is safe and the link function receives what it expects.
+  const entry = templateEntry(row.template);
   if (!entry.notify) return false;
+  // The link may be derived from the data, so it is parsed here first; data the template would
+  // reject gets no notification rather than a row pointing at a path built from nothing.
+  const parsed = entry.schema.safeParse(row.data);
+  if (!parsed.success) return false;
 
   const { data: existing, error: lookupError } = await supabase
     .from("notifications")
@@ -182,7 +193,7 @@ async function ensureNotification(supabase: Service, row: DeliveryRow): Promise<
     organization_id: row.organization_id,
     kind: row.template,
     data: row.data,
-    link: entry.link,
+    link: templateLink(entry, parsed.data),
     delivery_id: row.id,
   });
   if (error) throw queryError(error);

@@ -39,6 +39,12 @@ export type BenchmarkSegmentProps = {
   /** The company facts the form edits (AC-11). */
   readonly company: FactsFormProps["company"];
   readonly locale: LocaleCode;
+  /**
+   * Hides every "correct these facts" form (spec 0013, AC-11). An assigned expert reads the same
+   * benchmark the client sees, but `updateCompanyFacts` is a client action they may not call, so
+   * showing them the form would offer an edit that can only ever fail.
+   */
+  readonly readOnly?: boolean;
 };
 
 type Formatter = Awaited<ReturnType<typeof getFormatter>>;
@@ -70,6 +76,7 @@ export async function BenchmarkSegment({
   assumptions,
   company,
   locale,
+  readOnly = false,
 }: BenchmarkSegmentProps) {
   const t = await getTranslations("benchmark");
   const research = await getTranslations("research.table");
@@ -101,15 +108,17 @@ export async function BenchmarkSegment({
             <InfoIcon aria-hidden="true" />
             <AlertTitle>{t("state.noData")}</AlertTitle>
           </Alert>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("disclosure.correctTitle")}</CardTitle>
-              <CardDescription>{t("disclosure.correctDescription")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FactsForm company={company} />
-            </CardContent>
-          </Card>
+          {readOnly ? null : (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t("disclosure.correctTitle")}</CardTitle>
+                <CardDescription>{t("disclosure.correctDescription")}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <FactsForm company={company} />
+              </CardContent>
+            </Card>
+          )}
         </>
       ) : null}
       {state === "ready" && snapshot ? (
@@ -130,6 +139,7 @@ export async function BenchmarkSegment({
             t={t}
             format={format}
             company={company}
+            readOnly={readOnly}
           />
           <CalculationDisclosure title={t("disclosure.title")}>
             <CalculationContent
@@ -138,13 +148,15 @@ export async function BenchmarkSegment({
               assumptions={assumptions}
               locale={locale}
             />
-            <section className="flex flex-col gap-2" data-correct-facts>
-              <h4 className="font-semibold text-sm">{t("disclosure.correctTitle")}</h4>
-              <p className="max-w-prose text-muted-foreground text-sm">
-                {t("disclosure.correctDescription")}
-              </p>
-              <FactsForm company={company} />
-            </section>
+            {readOnly ? null : (
+              <section className="flex flex-col gap-2" data-correct-facts>
+                <h4 className="font-semibold text-sm">{t("disclosure.correctTitle")}</h4>
+                <p className="max-w-prose text-muted-foreground text-sm">
+                  {t("disclosure.correctDescription")}
+                </p>
+                <FactsForm company={company} />
+              </section>
+            )}
           </CalculationDisclosure>
           <GapList
             snapshot={snapshot}
@@ -339,7 +351,11 @@ function OpportunityCard({
   t,
   format,
   company,
-}: BlockProps & { readonly company: FactsFormProps["company"] }) {
+  readOnly,
+}: BlockProps & {
+  readonly company: FactsFormProps["company"];
+  readonly readOnly: boolean;
+}) {
   const chf = (value: number) => format.number(roundChf(value), "chfWhole");
   const cost = snapshot.blocks.cost;
   // Absent on a stored version 1 row and whenever nothing could be derived; the card then renders
@@ -425,7 +441,7 @@ function OpportunityCard({
                 <p data-computed-on>{t("card.computedOn", { date: computedOn })}</p>
               </AlertDescription>
             </Alert>
-            <FactsForm company={company} />
+            {readOnly ? null : <FactsForm company={company} />}
           </>
         )}
         <p className="text-muted-foreground text-sm" data-compared={snapshot.kpisCompared}>

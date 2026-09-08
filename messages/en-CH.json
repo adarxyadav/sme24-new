@@ -50,14 +50,16 @@
       "orders": "Orders"
     },
     "expert": {
-      "overview": "Overview"
+      "overview": "Overview",
+      "profile": "Profile"
     },
     "admin": {
       "overview": "Overview",
       "design": "Design gallery",
       "emails": "Emails",
       "enquiries": "Enquiries",
-      "orders": "Orders"
+      "orders": "Orders",
+      "experts": "Experts"
     }
   },
   "theme": {
@@ -897,6 +899,10 @@
       "marketing": {
         "title": "Marketing",
         "description": "The public site's primitives: the package card with a fixed price and on request, the FAQ accordion, and the enquiry form empty and with every error shown."
+      },
+      "experts": {
+        "title": "Experts",
+        "description": "The picker and the avatar the expert pages use (spec 0012)."
       }
     },
     "tokens": {
@@ -1228,7 +1234,16 @@
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
       "heroBenchmark": "Landing hero object: the example benchmark",
       "registerDirectory": "Expert directory"
-    }
+    },
+    "expertAvatar": "Expert avatar",
+    "avatarInitials": "With initials",
+    "avatarTwoWords": "Several words",
+    "avatarUnnamed": "No name yet",
+    "combobox": "Searchable select",
+    "comboboxLabel": "Client organisation",
+    "comboboxPlaceholder": "Choose an organization",
+    "comboboxSearch": "Search organizations",
+    "comboboxEmpty": "No organization found."
   },
   "email": {
     "layout": {
@@ -1282,6 +1297,34 @@
       "invoiceFollows": "We will send your invoice shortly.",
       "nextStep": "We will be in touch to agree the date for the on site assessment.",
       "button": "View order"
+    },
+    "expert_welcome": {
+      "subject": "Welcome to the SME24 expert network",
+      "preview": "Your expert profile is active. Complete it so we can match you well.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "Your access to the SME24 expert area is set up. As soon as we assign you a client company, you will find its figures, its benchmark and its contacts there, everything you need to prepare the on site visit.",
+      "nextStep": "The next step: complete your profile, in particular competencies, industries, standards and your availability. We then consider you when assigning work.",
+      "button": "Complete your profile"
+    },
+    "assignment_received": {
+      "subject": "New assignment: {organizationName}",
+      "preview": "You have been assigned to {organizationName}. Their file is ready.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "We have assigned you to {organizationName} as their expert.",
+      "nextStep": "The client page holds the company facts, the recorded figures and the benchmark. Please read them before the on site visit.",
+      "button": "Open the client"
+    },
+    "expert_assigned": {
+      "subject": "Your expert: {expertName}",
+      "preview": "{expertName} is now working with you. See the profile in the client area.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "{expertName} is now the expert working with your company at SME24.",
+      "headline": "Focus: {headline}",
+      "nextStep": "The client area shows the full profile with competencies, industries and languages. We will be in touch to agree the date for the on site assessment.",
+      "button": "Open the client area"
     }
   },
   "emails": {
@@ -2022,5 +2065,363 @@
     "filterAll": "All",
     "filterPending": "Open",
     "filterPaid": "Paid"
+  },
+  "experts": {
+    "catalogue": {
+      "competencies": {
+        "compliance": "Compliance review",
+        "management_system": "Management system",
+        "safety_culture": "Safety culture"
+      },
+      "industries": {
+        "A": "Agriculture and forestry",
+        "B": "Mining and quarrying",
+        "C": "Manufacturing",
+        "D": "Energy supply",
+        "E": "Water, waste and remediation",
+        "F": "Construction",
+        "G": "Wholesale and retail trade",
+        "H": "Transport and storage",
+        "I": "Accommodation and food service",
+        "J": "Information and communication",
+        "K": "Financial and insurance services",
+        "L": "Real estate",
+        "M": "Professional and technical services",
+        "N": "Administrative and support services",
+        "O": "Public administration",
+        "P": "Education",
+        "Q": "Health and social work",
+        "R": "Arts and recreation",
+        "S": "Other services",
+        "T": "Household employers",
+        "U": "Extraterritorial organisations"
+      },
+      "standards": {
+        "iso_45001": "ISO 45001 (occupational health and safety)",
+        "iso_14001": "ISO 14001 (environment)",
+        "iso_9001": "ISO 9001 (quality)",
+        "iso_50001": "ISO 50001 (energy)",
+        "ekas_6508": "EKAS 6508 (ASA directive)",
+        "suva_asa": "Suva ASA specialists",
+        "arg_argv": "Labour Act and ordinances",
+        "vuv": "VUV (accident prevention)",
+        "stfv": "StFV (major accidents)",
+        "scc": "SCC / SCP contractor safety",
+        "iso_31000": "ISO 31000 (risk management)",
+        "esti": "ESTI (electrical safety)",
+        "bauav": "BauAV (construction safety)",
+        "psa": "PPE and protective equipment"
+      },
+      "languages": {
+        "de": "German",
+        "fr": "French",
+        "it": "Italian",
+        "en": "English"
+      },
+      "regions": {
+        "AG": "Aargau",
+        "AI": "Appenzell Innerrhoden",
+        "AR": "Appenzell Ausserrhoden",
+        "BE": "Bern",
+        "BL": "Basel-Landschaft",
+        "BS": "Basel-Stadt",
+        "FR": "Fribourg",
+        "GE": "Geneva",
+        "GL": "Glarus",
+        "GR": "Grisons",
+        "JU": "Jura",
+        "LU": "Lucerne",
+        "NE": "Neuchâtel",
+        "NW": "Nidwalden",
+        "OW": "Obwalden",
+        "SG": "St. Gallen",
+        "SH": "Schaffhausen",
+        "SO": "Solothurn",
+        "SZ": "Schwyz",
+        "TG": "Thurgau",
+        "TI": "Ticino",
+        "UR": "Uri",
+        "VD": "Vaud",
+        "VS": "Valais",
+        "ZG": "Zug",
+        "ZH": "Zurich"
+      },
+      "availability": {
+        "available": "Available",
+        "limited": "Limited",
+        "unavailable": "Not available"
+      }
+    },
+    "onboarding": {
+      "title": "Set up your expert profile",
+      "lead": "Tell us what you cover and where you work. Clients see your name and headline once we assign you.",
+      "fullName": "Full name",
+      "headline": "Headline",
+      "headlinePlaceholder": "Safety engineer, construction and manufacturing",
+      "languages": "Languages you work in",
+      "regions": "Cantons you cover",
+      "regionsHint": "Pick every canton you travel to for a site visit.",
+      "consent": "I accept the terms of engagement and the privacy notice.",
+      "submit": "Finish setup",
+      "submitting": "Saving…",
+      "errors": {
+        "validation": "Check the highlighted fields and try again.",
+        "forbidden": "This account cannot complete expert onboarding.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      }
+    },
+    "form": {
+      "errors": {
+        "termsRequired": "Accept the terms to continue.",
+        "fullNameRequired": "Enter your name.",
+        "fullNameLong": "Use 200 characters or fewer.",
+        "headlineRequired": "Describe what you do in one line.",
+        "headlineLong": "Use 120 characters or fewer.",
+        "languagesRequired": "Pick at least one language.",
+        "regionsRequired": "Pick at least one canton.",
+        "competenciesRequired": "Pick at least one competency.",
+        "bioLong": "Use 800 characters or fewer.",
+        "availabilityNoteLong": "Use 300 characters or fewer.",
+        "availableFromInvalid": "Use a valid date.",
+        "availableFromPast": "Pick today or a later date.",
+        "yearsExperienceInvalid": "Enter a whole number of years.",
+        "yearsExperienceRange": "Enter 0 to 60 years.",
+        "phoneLong": "Use 30 characters or fewer.",
+        "phoneInvalid": "Use digits, spaces and + ( ) / - only.",
+        "notesLong": "Use 4000 characters or fewer.",
+        "emailInvalid": "Enter a valid email address.",
+        "emailLong": "Use 320 characters or fewer.",
+        "organizationRequired": "Pick a client organisation."
+      }
+    },
+    "assignments": {
+      "lead": "The clients assigned to you. Open one for the facts and figures before a site visit.",
+      "since": "Assigned since {date}"
+    },
+    "client": {
+      "title": "Client",
+      "lead": "Part of {organization}",
+      "facts": {
+        "heading": "Company",
+        "legalName": "Legal name",
+        "uid": "UID",
+        "canton": "Canton",
+        "industry": "Industry",
+        "employees": "Employees",
+        "website": "Website",
+        "none": "Not recorded"
+      },
+      "kpis": {
+        "heading": "Key figures",
+        "pending": "The research run has not finished yet, so there are no figures to show."
+      },
+      "contacts": {
+        "heading": "Who to contact",
+        "description": "The people on this client's account.",
+        "none": "No contacts on file.",
+        "unnamed": "Unnamed"
+      }
+    },
+    "assigned": {
+      "heading": "{count, plural, one {Your expert} other {Your experts}}",
+      "description": "Who is walking your site and what they cover.",
+      "since": "Assigned since {date}",
+      "unnamed": "Unnamed"
+    },
+    "admin": {
+      "title": "Experts",
+      "detailTitle": "Expert",
+      "description": "Everyone in the expert network, and the clients they hold.",
+      "unnamed": "Not named yet",
+      "assignments": "Client assignments",
+      "assignmentsDescription": "Assign this expert to a client organisation, or end an assignment when the engagement is over.",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "status": "Status",
+        "clients": "Clients",
+        "invited": "Invited",
+        "competencies": "Competencies",
+        "availability": "Availability",
+        "onboarded": "Onboarded"
+      },
+      "status": {
+        "invited": "Invited",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "empty": {
+        "title": "No experts yet",
+        "description": "Invited experts appear here once the first invitation goes out."
+      },
+      "invite": "Invite an expert",
+      "more": "Show more",
+      "none": "—",
+      "filters": {
+        "legend": "Filter",
+        "status": "Status",
+        "all": "All",
+        "apply": "Apply",
+        "reset": "Reset"
+      },
+      "profileHeading": "Profile",
+      "profileDescription": "The same fields the expert edits. Changes here are visible to them at once."
+    },
+    "assign": {
+      "organization": "Client organisation",
+      "placeholder": "Pick an organisation",
+      "search": "Search organisations",
+      "noMatches": "No organisation found.",
+      "submit": "Assign",
+      "assigning": "Assigning…",
+      "assigned": "Expert assigned.",
+      "end": "End",
+      "ended": "Assignment ended.",
+      "none": "No assignments yet.",
+      "since": "Since {date}",
+      "endedOn": "Ended {date}",
+      "notAssignable": "Only an active expert can be assigned to a client.",
+      "status": {
+        "active": "Active",
+        "ended": "Ended"
+      },
+      "errors": {
+        "validation": "Pick a client organisation.",
+        "expert_not_active": "This expert is not active, so they cannot take on a client.",
+        "already_assigned": "This expert already holds that client.",
+        "not_found": "That organisation no longer exists.",
+        "forbidden": "You may not assign experts.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      },
+      "endErrors": {
+        "validation": "That assignment is not valid.",
+        "not_found": "That assignment has already ended.",
+        "forbidden": "You may not end assignments.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      }
+    },
+    "invite": {
+      "title": "Invite an expert",
+      "lead": "Send an invitation to a senior EHS expert we have checked. They set their own password and describe what they cover.",
+      "breadcrumb": "Experts",
+      "email": "Email address",
+      "emailHint": "The address the invitation goes to. It becomes their sign in.",
+      "fullName": "Full name",
+      "language": "Language",
+      "languageHint": "Every email we send them is written in this language.",
+      "languages": {
+        "de": "German",
+        "en": "English"
+      },
+      "submit": "Send invitation",
+      "sending": "Sending…",
+      "sent": "Invitation sent.",
+      "errors": {
+        "validation": "Please check the fields above.",
+        "email_taken": "An account already uses this address.",
+        "already_invited": "This expert has already been invited.",
+        "invite_failed": "The invitation could not be sent. Please try again.",
+        "forbidden": "You are not allowed to invite experts.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "profile": {
+      "title": "Profile",
+      "lead": "What ops and your clients see about you. Keep it current so we match you to the right work.",
+      "heading": "Your profile",
+      "description": "The headline and summary appear on your clients' dashboard; the rest is used to match you.",
+      "photoHeading": "Photo",
+      "photoDescription": "A portrait clients see beside your name. Optional.",
+      "headline": "Headline",
+      "bio": "Summary",
+      "bioHint": "Up to 800 characters.",
+      "lists": {
+        "competencies": "Assessment competencies",
+        "industries": "Industries",
+        "standards": "Standards and regulations",
+        "languages": "Working languages",
+        "regions": "Cantons"
+      },
+      "availability": "Availability",
+      "availableFrom": "Available from",
+      "availabilityNote": "Availability note",
+      "yearsExperience": "Years of experience",
+      "phone": "Phone",
+      "submit": "Save profile",
+      "saving": "Saving…",
+      "saved": "Profile saved.",
+      "errors": {
+        "validation": "Please check the fields above.",
+        "forbidden": "You are not allowed to change this profile.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "photo": {
+      "label": "Choose a photo",
+      "hint": "JPEG, PNG or WebP, up to 2 MB.",
+      "remove": "Remove photo",
+      "uploaded": "Photo saved.",
+      "removed": "Photo removed.",
+      "errors": {
+        "validation": "Please choose a file.",
+        "too_large": "That file is larger than 2 MB.",
+        "unsupported_type": "Please choose a JPEG, PNG or WebP file.",
+        "forbidden": "You are not allowed to change this photo.",
+        "unexpected": "The photo could not be saved. Please try again."
+      }
+    },
+    "notes": {
+      "heading": "Record check notes",
+      "description": "Internal only. The expert never sees these notes.",
+      "label": "Notes",
+      "hint": "Up to 4000 characters.",
+      "submit": "Save notes",
+      "saving": "Saving…",
+      "saved": "Notes saved.",
+      "errors": {
+        "validation": "Please shorten the notes.",
+        "forbidden": "You are not allowed to edit these notes.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "account": {
+      "heading": "Account",
+      "description": "Resend the invitation, or end and restore this expert's access.",
+      "resend": "Resend invitation",
+      "resending": "Sending…",
+      "resent": "Invitation sent again.",
+      "deactivate": "Deactivate expert",
+      "deactivating": "Deactivating…",
+      "deactivateConfirm": "Deactivate {name}?",
+      "deactivateConfirmBody": "{count, plural, =0 {No assignment is open, so nothing will be ended.} one {One open assignment will be ended.} other {# open assignments will be ended.}} Their sign in is blocked until they are reactivated. Reactivating restores the sign in, but does not restore the ended assignments.",
+      "deactivateCancel": "Keep this expert",
+      "deactivated": "Expert deactivated. {count, plural, =0 {No assignments were open.} one {One assignment was ended.} other {# assignments were ended.}}",
+      "reactivate": "Reactivate expert",
+      "reactivating": "Reactivating…",
+      "reactivated": "Expert reactivated.",
+      "activeHint": "Deactivating ends every open assignment and blocks their sign in.",
+      "inactiveHint": "Reactivating restores their sign in. Past assignments stay ended.",
+      "resendErrors": {
+        "validation": "That expert could not be found.",
+        "not_invited": "This expert has already signed in.",
+        "rate_limited": "Too soon after the last one. Please wait a moment.",
+        "invite_failed": "The invitation could not be sent. Please try again.",
+        "forbidden": "You are not allowed to do this.",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "deactivateErrors": {
+        "validation": "That expert could not be found.",
+        "not_found": "That expert could not be found.",
+        "forbidden": "You are not allowed to do this.",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "reactivateErrors": {
+        "validation": "That expert could not be found.",
+        "already_active": "This expert is not deactivated.",
+        "not_found": "That expert could not be found.",
+        "forbidden": "You are not allowed to do this.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    }
   }
 }

@@ -5,6 +5,7 @@ import { BrandSection } from "@/components/gallery/brand-section";
 import { ButtonsSection } from "@/components/gallery/buttons-section";
 import { CampaignSection } from "@/components/gallery/campaign-section";
 import { ChartsSection } from "@/components/gallery/charts-section";
+import { ExpertsSection } from "@/components/gallery/experts-section";
 import { FeedbackSection } from "@/components/gallery/feedback-section";
 import { FormattingSection } from "@/components/gallery/formatting-section";
 import { FormsSection } from "@/components/gallery/forms-section";
@@ -37,6 +38,7 @@ const SECTIONS = [
   ["benchmark", BenchmarkSection],
   ["marketing", MarketingSection],
   ["charts", ChartsSection],
+  ["experts", ExpertsSection],
 ] as const;
 
 /**
