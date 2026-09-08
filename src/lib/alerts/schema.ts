@@ -16,6 +16,7 @@ export const ALERT_KINDS = [
   "enquiry.received",
   "invoice.render_failed",
   "expert.onboarded",
+  "data_request.received",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -66,13 +67,26 @@ const alertFields = {
   }),
   /**
    * Spec 0013 (AC-14): an invited expert finished onboarding and is now assignable. Ops read it to
-   * start the record check, so the address is the field they need to reach the person; this is the
-   * one alert that carries an email address, and it is a colleague's rather than a client's.
+   * start the record check, so the address is the field they need to reach the person. One of the
+   * two alerts carrying an email address, and this one is a colleague's rather than a client's;
+   * `data_request.received` is the other.
    */
   "expert.onboarded": z.object({
     expertName: z.string().min(1).max(200),
     email: z.email().max(200),
     competencies: z.string().max(300),
+  }),
+  /**
+   * Spec 0015 (AC-13): someone exercised a data subject right and the thirty day answer window
+   * has started. This alert carries the subject's email on purpose, and it is the second to do so
+   * after `expert.onboarded`: ops answer a data request by contacting the person, and an alert
+   * that named only an id would send them back to the admin to find the address anyway. The due
+   * date is a formatted Swiss date, so the deadline is legible in the channel itself.
+   */
+  "data_request.received": z.object({
+    kind: z.enum(["export", "deletion"]),
+    email: z.email().max(320),
+    dueOn: z.string().min(1).max(40),
   }),
 } as const satisfies Record<AlertKind, z.ZodType>;
 
@@ -104,5 +118,6 @@ export const opsAlertPayloadSchema = z.discriminatedUnion("kind", [
   entry("enquiry.received"),
   entry("invoice.render_failed"),
   entry("expert.onboarded"),
+  entry("data_request.received"),
 ]);
 export type OpsAlertPayload = z.infer<typeof opsAlertPayloadSchema>;
