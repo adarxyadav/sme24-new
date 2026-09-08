@@ -9,7 +9,7 @@ import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Combobox } from "@/components/ui/combobox";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import {
   type AssignExpertResult,
   assignExpert,
@@ -103,7 +103,9 @@ export function AssignmentsSection({
             searchPlaceholder={t("search")}
             emptyLabel={t("noMatches")}
             disabled={!assignable || assign.pending}
+            describedBy="assign-organization-hint"
           />
+          <FieldDescription id="assign-organization-hint">{t("hint")}</FieldDescription>
         </Field>
         <Button
           type="button"

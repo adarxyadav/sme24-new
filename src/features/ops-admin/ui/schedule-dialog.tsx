@@ -123,7 +123,11 @@ export function ScheduleDialog({ orderId, reference, experts }: ScheduleDialogPr
               placeholder={t("expertPlaceholder")}
               searchPlaceholder={t("expertSearch")}
               emptyLabel={t("noExperts")}
+              describedBy={`schedule-expert-hint-${orderId}`}
             />
+            <FieldDescription id={`schedule-expert-hint-${orderId}`}>
+              {t("expertHint")}
+            </FieldDescription>
           </Field>
         </div>
 

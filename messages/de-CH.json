@@ -2126,6 +2126,7 @@
       "dateHint": "Schweizer Zeit (Europe/Zurich). Der Termin muss in der Zukunft liegen.",
       "expert": "Begutachtende Person",
       "expertPlaceholder": "Person auswählen",
+      "expertHint": "Die begutachtende Person erhält Zugriff auf die Kundenakte und wird in der Bestätigungs-E-Mail genannt.",
       "expertSearch": "Nach Namen suchen",
       "noExperts": "Keine aktive Person gefunden.",
       "unnamed": "Ohne Namen",
@@ -2501,6 +2502,7 @@
     "assign": {
       "organization": "Kundenorganisation",
       "placeholder": "Organisation wählen",
+      "hint": "Die Fachperson erhält Zugriff auf die Akte dieser Organisation, ihre Recherche und ihre Kennzahlen.",
       "search": "Organisationen suchen",
       "noMatches": "Keine Organisation gefunden.",
       "submit": "Zuteilen",

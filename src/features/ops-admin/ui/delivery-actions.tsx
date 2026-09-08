@@ -269,8 +269,11 @@ function RescheduleDialog({
               placeholder={t("correct.expertPlaceholder")}
               searchPlaceholder={t("correct.expertSearch")}
               emptyLabel={t("correct.noExperts")}
+              describedBy={`correct-expert-hint-${orderId}`}
             />
-            <FieldDescription>{t("correct.expertHint")}</FieldDescription>
+            <FieldDescription id={`correct-expert-hint-${orderId}`}>
+              {t("correct.expertHint")}
+            </FieldDescription>
           </Field>
         </div>
 

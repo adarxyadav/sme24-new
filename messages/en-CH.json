@@ -2126,6 +2126,7 @@
       "dateHint": "Swiss time (Europe/Zurich). The date must be in the future.",
       "expert": "Assessor",
       "expertPlaceholder": "Choose an assessor",
+      "expertHint": "The assessor gets access to this client's file and is named in the client's confirmation email.",
       "expertSearch": "Search by name",
       "noExperts": "No active assessor matches.",
       "unnamed": "Unnamed assessor",
@@ -2501,6 +2502,7 @@
     "assign": {
       "organization": "Client organisation",
       "placeholder": "Pick an organisation",
+      "hint": "The expert gets access to this organisation's file, its research and its figures.",
       "search": "Search organisations",
       "noMatches": "No organisation found.",
       "submit": "Assign",
