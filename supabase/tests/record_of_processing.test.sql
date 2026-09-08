@@ -21,6 +21,7 @@ returns table (name text) language sql as $$
     ('benchmarks'),
     ('companies'),
     ('company_kpis'),
+    ('data_requests'),
     ('email_deliveries'),
     ('enquiries'),
     ('expert_assignments'),

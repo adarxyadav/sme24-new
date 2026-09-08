@@ -419,6 +419,84 @@ export type Database = {
           },
         ]
       }
+      data_requests: {
+        Row: {
+          created_at: string
+          due_at: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          kind: string
+          ops_note: string | null
+          organization_id: string | null
+          requested_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          due_at: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          kind: string
+          ops_note?: string | null
+          organization_id?: string | null
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          due_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          kind?: string
+          ops_note?: string | null
+          organization_id?: string | null
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_requests_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "data_requests_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "data_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "data_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_deliveries: {
         Row: {
           attempts: number

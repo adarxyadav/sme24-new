@@ -58,15 +58,18 @@ select is_empty(
          and g.tgname = t || '_audit'
          and pn.nspname = 'private' and p.proname = 'audit_row') $$,
   'every audited table has a <table>_audit trigger calling private.audit_row()');
--- tgtype 29 = for each row (1) after insert (4), delete (8) and update (16). enquiries (spec 0009,
--- kind I) is the recorded exception: after insert or update of status, ops_note only (tgtype 21),
--- because the purge's ip_hash null out and its deletes are logged by the task, not audited.
+-- tgtype 29 = for each row (1) after insert (4), delete (8) and update (16). Two recorded
+-- exceptions, both kind I ops queues auditing the decision rather than the row: enquiries (spec
+-- 0009) and data_requests (spec 0015) fire after insert or update of status, ops_note only
+-- (tgtype 21). For enquiries because the purge's ip_hash null out and its deletes are logged by
+-- the task; for data_requests because it is never purged or deleted at all, so insert and the two
+-- ops decision columns are the whole trail there is to keep.
 select is_empty(
   $$ select g.tgname from pg_trigger g
      join pg_proc p on p.oid = g.tgfoid
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
-       and g.tgtype <> 29 and g.tgname <> 'enquiries_audit' $$,
+       and g.tgtype <> 29 and g.tgname not in ('enquiries_audit', 'data_requests_audit') $$,
   'every audit trigger fires after insert, update and delete for each row');
 select is(
   (select g.tgtype from pg_trigger g where g.tgname = 'enquiries_audit' and not g.tgisinternal),
@@ -99,7 +102,10 @@ select is_empty(
 -- email_deliveries (kind I, spec 0006: the organization is a nullable reference for the ops view),
 -- notifications (kind U, spec 0006: owned by recipient_id, the organization is a reference) and
 -- enquiries (kind I, spec 0009: a signed in client's enquiry references their organization for the
--- ops view, set null on delete).
+-- ops view, set null on delete) and data_requests (kind I, spec 0015: the request belongs to the
+-- person, never the tenant — a colleague in the same organization must not read it — so the
+-- organization is a nullable reference for the ops view, set null on delete, and the RLS predicate
+-- is auth.uid() = requested_by).
 create function pg_temp.tenant_tables()
 returns setof name language sql stable as $$
   select c.relname
@@ -108,7 +114,8 @@ returns setof name language sql stable as $$
   join pg_namespace n on n.oid = c.relnamespace
   where n.nspname = 'public' and c.relkind in ('r', 'p')
     and a.attname = 'organization_id' and not a.attisdropped
-    and c.relname not in ('profiles', 'audit_log', 'email_deliveries', 'notifications', 'enquiries')
+    and c.relname not in ('profiles', 'audit_log', 'email_deliveries', 'notifications', 'enquiries',
+                          'data_requests')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.tenant_tables()), '>=', 5::bigint,
@@ -223,9 +230,11 @@ select results_eq(
 -- The two expert tables of spec 0012 are out for the same kind of reason: a profile edit and an
 -- ops assignment are both slow, deliberate acts whose reader is already reloading the page, and
 -- expert_ops_notes carries record check notes that must never reach a channel a client could join.
+-- data_requests (spec 0015) is out too: a request is answered by ops over thirty days, so nothing
+-- on either side is watching for a live change, and the row names a person exercising a right.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
-  values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('enquiries'), ('expert_assignments'),
+  values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('data_requests'), ('enquiries'), ('expert_assignments'),
          ('expert_ops_notes'), ('expert_profiles'), ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'),
          ('organization_members'), ('organizations'), ('packages'), ('profiles'), ('stripe_events')
 $$;
