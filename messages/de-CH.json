@@ -2054,6 +2054,35 @@
     "gross": "Gesamtbetrag",
     "paymentNote": "Bitte verwenden Sie den QR-Zahlteil unten für die Zahlung."
   },
+  "adminOverview": {
+    "lead": "Die Arbeit, die auf Sie wartet, und der aktuelle Stand.",
+    "queue": "Zu erledigen",
+    "queueEmptyTitle": "Nichts offen",
+    "queueEmptyBody": "Zurzeit erfordert keine Bestellung, Anfrage, E-Mail oder Recherche Ihre Aufmerksamkeit.",
+    "counts": "Aktueller Stand",
+    "viewAll": "Alle ansehen",
+    "sections": {
+      "unscheduledOrders": "Bezahlt, noch nicht terminiert",
+      "overdueOrders": "Termin ist verstrichen",
+      "newEnquiries": "Neue Anfragen",
+      "failedDeliveries": "Fehlgeschlagene E-Mails",
+      "failedRuns": "Fehlgeschlagene Recherchen"
+    },
+    "tiles": {
+      "companies": "Unternehmen",
+      "openResearchRuns": "Laufende Recherchen",
+      "activeExperts": "Aktive Fachpersonen",
+      "orders": "Bestellungen"
+    },
+    "ordersByStatus": "Nach Status",
+    "noOrders": "Noch keine Bestellungen",
+    "unnamed": "Ohne Namen",
+    "paidOn": "Bezahlt am {date}",
+    "neverPaid": "Kein Zahlungsdatum",
+    "dueOn": "Termin {date}",
+    "receivedOn": "Eingegangen am {date}",
+    "noErrorCode": "Kein Fehlercode"
+  },
   "adminOrders": {
     "title": "Bestellungen",
     "description": "Zahlungen, Rechnungen und offene Überweisungen.",

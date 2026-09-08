@@ -2054,6 +2054,35 @@
     "gross": "Total",
     "paymentNote": "Please use the QR payment slip below to pay."
   },
+  "adminOverview": {
+    "lead": "The work waiting on you, and where everything stands.",
+    "queue": "Needs you",
+    "queueEmptyTitle": "Nothing waiting",
+    "queueEmptyBody": "No order, enquiry, email or research run needs ops attention right now.",
+    "counts": "Where things stand",
+    "viewAll": "See all",
+    "sections": {
+      "unscheduledOrders": "Paid, not yet booked",
+      "overdueOrders": "Booked date has passed",
+      "newEnquiries": "New enquiries",
+      "failedDeliveries": "Emails that failed",
+      "failedRuns": "Research that failed"
+    },
+    "tiles": {
+      "companies": "Companies",
+      "openResearchRuns": "Research running",
+      "activeExperts": "Active experts",
+      "orders": "Orders"
+    },
+    "ordersByStatus": "By status",
+    "noOrders": "No orders yet",
+    "unnamed": "Unnamed",
+    "paidOn": "Paid {date}",
+    "neverPaid": "No payment date",
+    "dueOn": "Due {date}",
+    "receivedOn": "Received {date}",
+    "noErrorCode": "No error code"
+  },
   "adminOrders": {
     "title": "Orders",
     "description": "Payments, invoices and open bank transfers.",

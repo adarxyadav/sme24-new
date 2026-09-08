@@ -372,3 +372,211 @@ async function currentKpis(
   if (error) throw queryError(error);
   return data ?? [];
 }
+
+/** How many rows each queue section holds; a longer queue is worked from that section's own list. */
+const QUEUE_SECTION_LIMIT = 10;
+
+/** One paid order still waiting for a date and an assessor (AC-11). */
+export type UnscheduledOrder = {
+  readonly id: string;
+  readonly reference: string;
+  readonly packageName: string;
+  readonly organizationName: string;
+  readonly paidAt: string | null;
+};
+
+/** One booked order whose date has arrived or passed while its status still says it is open. */
+export type OverdueOrder = {
+  readonly id: string;
+  readonly reference: string;
+  readonly packageName: string;
+  readonly organizationName: string;
+  readonly status: string;
+  readonly scheduledAt: string;
+};
+
+/** One enquiry nobody has picked up yet. */
+export type NewEnquiry = {
+  readonly id: string;
+  readonly companyName: string | null;
+  readonly createdAt: string;
+};
+
+/** One product email that never reached its recipient. */
+export type FailedDelivery = {
+  readonly id: string;
+  readonly template: string;
+  readonly status: string;
+  readonly createdAt: string;
+};
+
+/** One research run that gave up, with the code that says why. */
+export type FailedRun = {
+  readonly id: string;
+  readonly companyId: string;
+  readonly companyName: string;
+  readonly errorCode: string | null;
+  readonly createdAt: string;
+};
+
+/** The five things that can be waiting on ops when they sign in (AC-11). */
+export type OpsQueue = {
+  readonly unscheduledOrders: readonly UnscheduledOrder[];
+  readonly overdueOrders: readonly OverdueOrder[];
+  readonly newEnquiries: readonly NewEnquiry[];
+  readonly failedDeliveries: readonly FailedDelivery[];
+  readonly failedRuns: readonly FailedRun[];
+};
+
+/**
+ * The work waiting on ops (AC-11): paid orders with no date, booked orders whose date has come and
+ * gone, new enquiries, failed email deliveries and failed research runs, each capped at ten with
+ * its own list behind it.
+ *
+ * The five reads are independent, so they run together. "Overdue" is `scheduled_at <= now()` with
+ * a status still `scheduled` or `in_progress`; the comparison is made in the database, whose clock
+ * is the one the transition trigger already uses, and the instant is absolute, so no zone
+ * conversion happens here — the rendering is what carries `Europe/Zurich`.
+ *
+ * Both order reads ride the partial indexes milestone 1 added (`orders_paid_unscheduled_idx` and
+ * `orders_scheduled_at_idx`), so neither scans the table as orders accumulate.
+ * Throws. Server component, ops.
+ */
+export async function listOpsQueue(supabase: Client): Promise<OpsQueue> {
+  const nowIso = new Date().toISOString();
+  const [unscheduled, overdue, enquiries, deliveries, runs] = await Promise.all([
+    supabase
+      .from("orders")
+      .select("id, reference, package_name_snapshot, paid_at, organizations(name)")
+      .eq("status", "paid")
+      .order("paid_at", { ascending: true })
+      .limit(QUEUE_SECTION_LIMIT),
+    supabase
+      .from("orders")
+      .select("id, reference, package_name_snapshot, status, scheduled_at, organizations(name)")
+      .in("status", ["scheduled", "in_progress"])
+      .lte("scheduled_at", nowIso)
+      .order("scheduled_at", { ascending: true })
+      .limit(QUEUE_SECTION_LIMIT),
+    supabase
+      .from("enquiries")
+      .select("id, company_name, created_at")
+      .eq("status", "new")
+      .order("created_at", { ascending: false })
+      .limit(QUEUE_SECTION_LIMIT),
+    supabase
+      .from("email_deliveries")
+      .select("id, template, status, created_at")
+      .in("status", ["failed", "bounced"])
+      .order("created_at", { ascending: false })
+      .limit(QUEUE_SECTION_LIMIT),
+    supabase
+      .from("research_runs")
+      .select("id, company_id, error_code, created_at, companies(name)")
+      .eq("status", "failed")
+      .order("created_at", { ascending: false })
+      .limit(QUEUE_SECTION_LIMIT),
+  ]);
+
+  if (unscheduled.error) throw queryError(unscheduled.error);
+  if (overdue.error) throw queryError(overdue.error);
+  if (enquiries.error) throw queryError(enquiries.error);
+  if (deliveries.error) throw queryError(deliveries.error);
+  if (runs.error) throw queryError(runs.error);
+
+  return {
+    unscheduledOrders: (unscheduled.data ?? []).map((row) => {
+      const { organizations } = row as typeof row & { organizations: { name: string } | null };
+      return {
+        id: row.id,
+        reference: row.reference,
+        packageName: row.package_name_snapshot,
+        organizationName: organizations?.name ?? "—",
+        paidAt: row.paid_at,
+      };
+    }),
+    overdueOrders: (overdue.data ?? []).flatMap((row) => {
+      const { organizations } = row as typeof row & { organizations: { name: string } | null };
+      // `scheduled_at` is not null in both states by invariant 1, and the filter above already
+      // compared it; the guard is only what narrows the nullable column type.
+      return row.scheduled_at
+        ? [
+            {
+              id: row.id,
+              reference: row.reference,
+              packageName: row.package_name_snapshot,
+              organizationName: organizations?.name ?? "—",
+              status: row.status,
+              scheduledAt: row.scheduled_at,
+            },
+          ]
+        : [];
+    }),
+    newEnquiries: (enquiries.data ?? []).map((row) => ({
+      id: row.id,
+      companyName: row.company_name,
+      createdAt: row.created_at,
+    })),
+    failedDeliveries: (deliveries.data ?? []).map((row) => ({
+      id: row.id,
+      template: row.template,
+      status: row.status,
+      createdAt: row.created_at,
+    })),
+    failedRuns: (runs.data ?? []).map((row) => {
+      const { companies } = row as typeof row & { companies: { name: string } | null };
+      return {
+        id: row.id,
+        companyId: row.company_id,
+        companyName: companies?.name ?? "—",
+        errorCode: row.error_code,
+        createdAt: row.created_at,
+      };
+    }),
+  };
+}
+
+/** The tallies the overview tiles show (AC-11); an order status with no rows is simply absent. */
+export type OpsCounts = {
+  readonly companies: number;
+  readonly openResearchRuns: number;
+  readonly activeExperts: number;
+  /** One entry per `orders.status` that has at least one row, keyed by the status. */
+  readonly ordersByStatus: ReadonlyMap<string, number>;
+};
+
+/**
+ * The overview counts (AC-11). Each is a `head: true` count, so Postgres answers with the number
+ * and never ships the rows; the orders tally is one grouped read of the status column rather than
+ * one count per status, because the eight statuses would otherwise be eight round trips.
+ * Throws. Server component, ops.
+ */
+export async function listOpsCounts(supabase: Client): Promise<OpsCounts> {
+  const [companies, openRuns, experts, orderStatuses] = await Promise.all([
+    supabase.from("companies").select("id", { count: "exact", head: true }),
+    supabase
+      .from("research_runs")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["queued", "running"]),
+    supabase
+      .from("expert_profiles")
+      .select("expert_id", { count: "exact", head: true })
+      .eq("status", "active"),
+    supabase.from("orders").select("status"),
+  ]);
+
+  if (companies.error) throw queryError(companies.error);
+  if (openRuns.error) throw queryError(openRuns.error);
+  if (experts.error) throw queryError(experts.error);
+  if (orderStatuses.error) throw queryError(orderStatuses.error);
+
+  return {
+    companies: companies.count ?? 0,
+    openResearchRuns: openRuns.count ?? 0,
+    activeExperts: experts.count ?? 0,
+    ordersByStatus: (orderStatuses.data ?? []).reduce(
+      (counts, row) => counts.set(row.status, (counts.get(row.status) ?? 0) + 1),
+      new Map<string, number>(),
+    ),
+  };
+}
