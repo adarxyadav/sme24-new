@@ -1991,7 +1991,10 @@
       "refunded": "Rückerstattet",
       "expired": "Abgelaufen",
       "confirming": "Zahlung wird bestätigt",
-      "awaitingTransfer": "Warten auf Zahlungseingang"
+      "awaitingTransfer": "Warten auf Zahlungseingang",
+      "scheduled": "Terminiert",
+      "in_progress": "In Arbeit",
+      "delivered": "Abgeschlossen"
     },
     "confirmingTitle": "Wir bestätigen Ihre Zahlung",
     "confirmingBody": "Das dauert meist nur wenige Sekunden. Sie können diese Seite offen lassen.",
@@ -2016,7 +2019,14 @@
     "invoicePending": "Die Rechnung wird gerade erstellt und steht in Kürze bereit.",
     "invoiceFailed": "Die Rechnung konnte nicht erstellt werden. Wir kümmern uns darum und melden uns.",
     "historyTitle": "Verlauf",
-    "more": "Weitere anzeigen"
+    "more": "Weitere anzeigen",
+    "assessment": {
+      "heading": "{count, plural, one {Ihr Termin} other {Ihre Termine}}",
+      "description": "Der vereinbarte Termin und wer kommt.",
+      "with": "Mit {name}",
+      "expertPending": "Die begutachtende Person wird bestätigt.",
+      "unnamed": "Ihre begutachtende Person"
+    }
   },
   "invoice": {
     "title": "Rechnung",
@@ -2046,7 +2056,8 @@
       "status": "Status",
       "invoice": "Rechnung",
       "date": "Datum",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "delivery": "Termin"
     },
     "method": {
       "card": "Karte",
@@ -2064,7 +2075,33 @@
     "done": "Erledigt",
     "filterAll": "Alle",
     "filterPending": "Offen",
-    "filterPaid": "Bezahlt"
+    "filterPaid": "Bezahlt",
+    "notScheduled": "Nicht terminiert",
+    "schedule": {
+      "open": "Terminieren",
+      "title": "Termin festlegen",
+      "description": "Vereinbarten Termin und begutachtende Person für Bestellung {reference} festlegen.",
+      "date": "Datum und Uhrzeit",
+      "dateHint": "Schweizer Zeit (Europe/Zurich). Der Termin muss in der Zukunft liegen.",
+      "expert": "Begutachtende Person",
+      "expertPlaceholder": "Person auswählen",
+      "expertSearch": "Nach Namen suchen",
+      "noExperts": "Keine aktive Person gefunden.",
+      "unnamed": "Ohne Namen",
+      "submit": "Terminieren",
+      "scheduling": "Wird terminiert…",
+      "scheduled": "Der Termin ist festgelegt.",
+      "errors": {
+        "forbidden": "Sie dürfen diese Bestellung nicht terminieren.",
+        "validation": "Prüfen Sie Datum und begutachtende Person.",
+        "not_found": "Diese Bestellung existiert nicht mehr.",
+        "not_paid": "Nur eine bezahlte Bestellung kann terminiert werden.",
+        "expert_not_assignable": "Diese Person ist nicht mehr aktiv. Wählen Sie eine andere.",
+        "date_not_future": "Der Termin muss in der Zukunft liegen.",
+        "invalid_transition": "Jemand hat diese Bestellung geändert. Laden Sie die Liste neu.",
+        "unexpected": "Der Termin konnte nicht festgelegt werden. Versuchen Sie es erneut."
+      }
+    }
   },
   "experts": {
     "catalogue": {

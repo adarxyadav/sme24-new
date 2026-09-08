@@ -1991,7 +1991,10 @@
       "refunded": "Refunded",
       "expired": "Expired",
       "confirming": "Confirming payment",
-      "awaitingTransfer": "Awaiting payment"
+      "awaitingTransfer": "Awaiting payment",
+      "scheduled": "Scheduled",
+      "in_progress": "In progress",
+      "delivered": "Delivered"
     },
     "confirmingTitle": "We are confirming your payment",
     "confirmingBody": "This usually takes a few seconds. You can leave this page open.",
@@ -2016,7 +2019,14 @@
     "invoicePending": "Your invoice is being prepared and will be ready shortly.",
     "invoiceFailed": "We could not create the invoice. We are on it and will be in touch.",
     "historyTitle": "History",
-    "more": "Show more"
+    "more": "Show more",
+    "assessment": {
+      "heading": "{count, plural, one {Your assessment} other {Your assessments}}",
+      "description": "The agreed date and who is coming.",
+      "with": "With {name}",
+      "expertPending": "The assessor is being confirmed.",
+      "unnamed": "Your assessor"
+    }
   },
   "invoice": {
     "title": "Invoice",
@@ -2046,7 +2056,8 @@
       "status": "Status",
       "invoice": "Invoice",
       "date": "Date",
-      "actions": "Actions"
+      "actions": "Actions",
+      "delivery": "Assessment"
     },
     "method": {
       "card": "Card",
@@ -2064,7 +2075,33 @@
     "done": "Done",
     "filterAll": "All",
     "filterPending": "Open",
-    "filterPaid": "Paid"
+    "filterPaid": "Paid",
+    "notScheduled": "Not scheduled",
+    "schedule": {
+      "open": "Schedule",
+      "title": "Schedule the assessment",
+      "description": "Set the agreed date and the assessor for order {reference}.",
+      "date": "Date and time",
+      "dateHint": "Swiss time (Europe/Zurich). The date must be in the future.",
+      "expert": "Assessor",
+      "expertPlaceholder": "Choose an assessor",
+      "expertSearch": "Search by name",
+      "noExperts": "No active assessor matches.",
+      "unnamed": "Unnamed assessor",
+      "submit": "Schedule",
+      "scheduling": "Scheduling…",
+      "scheduled": "The assessment is scheduled.",
+      "errors": {
+        "forbidden": "You are not allowed to schedule this order.",
+        "validation": "Check the date and the assessor.",
+        "not_found": "This order no longer exists.",
+        "not_paid": "Only a paid order can be scheduled.",
+        "expert_not_assignable": "That assessor is no longer active. Choose another.",
+        "date_not_future": "The date must be in the future.",
+        "invalid_transition": "Someone else changed this order. Reload the list and try again.",
+        "unexpected": "The assessment could not be scheduled. Try again."
+      }
+    }
   },
   "experts": {
     "catalogue": {
