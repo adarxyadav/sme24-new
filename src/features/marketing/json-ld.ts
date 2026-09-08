@@ -9,6 +9,7 @@ import type {
   Organization,
   Product,
   Thing,
+  WebPage,
   WebSite,
   WithContext,
 } from "schema-dts";
@@ -120,6 +121,25 @@ export function contactPageJsonLd(input: PageInput): WithContext<ContactPage> {
     url: input.url,
     description: input.description,
     inLanguage: input.inLanguage,
+  };
+}
+
+/**
+ * `WebPage` for a page that describes neither the company nor a group: the four legal pages
+ * (spec 0015, AC-6). `dateModified` lets a search engine show how current the text is, which for
+ * a privacy policy is the fact a reader most wants. Pure.
+ */
+export function webPageJsonLd(
+  input: PageInput & { readonly dateModified: string },
+): WithContext<WebPage> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: input.name,
+    url: input.url,
+    description: input.description,
+    inLanguage: input.inLanguage,
+    dateModified: input.dateModified,
   };
 }
 

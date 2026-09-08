@@ -63,7 +63,9 @@ test("the header links carry the German slugs and mark the current page (AC-7)",
   const footer = page.getByRole("contentinfo");
   await expect(footer.getByRole("navigation", { name: "Produkt" })).toBeVisible();
   await expect(footer.getByRole("navigation", { name: "Unternehmen" })).toBeVisible();
-  await expect(footer.getByRole("navigation", { name: "Rechtliches" })).toHaveCount(0);
+  // The legal group was empty until feature 14 shipped the pages (spec 0015, AC-9); e2e/legal.spec.ts
+  // asserts its four links and their German slugs.
+  await expect(footer.getByRole("navigation", { name: "Rechtliches" })).toBeVisible();
   // About and contact left the header with the nav of 2026-09-07; the footer is now the only
   // place they are linked, so their German slugs are asserted there.
   const company = footer.getByRole("navigation", { name: "Unternehmen" });

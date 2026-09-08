@@ -696,7 +696,7 @@
       "email": "Work email",
       "password": "Password",
       "passwordHint": "At least 8 characters.",
-      "consent": "I accept the terms of use and the privacy policy.",
+      "consent": "I accept the <terms>terms of use</terms> and the <privacy>privacy policy</privacy>.",
       "submit": "Create account",
       "codeInstead": "Email me a code instead",
       "hasAccount": "Already have an account?",
@@ -737,7 +737,7 @@
       "title": "Your company",
       "lead": "One more step: tell us your company and you are in.",
       "organizationName": "Company",
-      "consent": "I accept the terms of use and the privacy policy.",
+      "consent": "I accept the <terms>terms of use</terms> and the <privacy>privacy policy</privacy>.",
       "submit": "Continue"
     },
     "providers": {
@@ -2670,6 +2670,328 @@
       },
       "change": "Change your choice",
       "changed": "Your choice is saved."
+    }
+  },
+  "legalPages": {
+    "privacy": {
+      "meta": {
+        "title": "Privacy policy",
+        "description": "What SME24 collects, why, who processes it and how long it is kept."
+      },
+      "og": {
+        "statement": "What we know about you. In plain words."
+      },
+      "eyebrow": "Privacy",
+      "title": "Privacy policy.",
+      "lead": "This page says what SME24 collects, why we collect it, who processes it on our behalf and how long we keep it. It is written from the system itself, so it describes what the code actually does.",
+      "updated": "Last updated {date}",
+      "controller": {
+        "title": "Who is responsible",
+        "body": "{name}, {address}, is the controller for the processing described here. Write to {email} with any question about your data, including a request to access, correct or delete it.",
+        "law": "SME24 is a Swiss company, so the revised Federal Act on Data Protection (revDSG, in force since 1 September 2023) governs this processing. Where a client or a visitor is in the EU, we apply the GDPR standard as well."
+      },
+      "collected": {
+        "title": "What we collect",
+        "lead": "Three kinds of data, and nothing else.",
+        "account": {
+          "title": "What you give us",
+          "body": "Your name, email address, language and the company you work for, from signing up and from your profile. Experts also give a biography, qualifications and a photograph."
+        },
+        "work": {
+          "title": "What the service produces",
+          "body": "The company facts and safety figures you enter or confirm, the research we run about your company from public sources, the benchmark we compute from them, and the orders, invoices and appointments that follow. This is the service; without it there is nothing to deliver."
+        },
+        "technical": {
+          "title": "What the system records",
+          "body": "Server logs, error reports and, only with your consent, product analytics. Enquiry forms store a one way hash of your IP address as a flood guard, never the address itself."
+        }
+      },
+      "purposes": {
+        "title": "Why we process it",
+        "lead": "Each purpose, and the legal basis it rests on.",
+        "service": {
+          "title": "To deliver the service",
+          "body": "Performance of the contract you entered when you ordered, or steps taken at your request before it."
+        },
+        "legal": {
+          "title": "To meet legal duties",
+          "body": "Swiss commercial and tax law requires that accounting records be kept for ten years (Art. 958f CO). This is a legal obligation, not a choice."
+        },
+        "improve": {
+          "title": "To keep the service working and honest",
+          "body": "Error reports, security logs and, with consent, analytics. Our legitimate interest in a service that works, balanced against processing that is minimal and never used to profile you."
+        },
+        "consent": {
+          "title": "Where you said yes",
+          "body": "Product analytics loads only after you accept it, and you can withdraw at any time on the cookie page without losing anything else."
+        }
+      },
+      "processors": {
+        "title": "Who processes it for us",
+        "lead": "Every third party that touches personal data on our behalf, what it does and where it stores it. A change to this list is a change to the code.",
+        "columnName": "Processor",
+        "columnPurpose": "What it does",
+        "columnRegion": "Where it stores",
+        "regions": {
+          "ch": "Switzerland",
+          "eu": "European Union",
+          "us": "United States"
+        },
+        "usNote": "The two United States processors receive company research inputs and prompts, not your account data, and are covered by the standard contractual clauses. No processor sells or reuses your data.",
+        "supabase": {
+          "purpose": "The database, sign in and file storage. Our instance runs in Zurich."
+        },
+        "vercel": {
+          "purpose": "Hosting and delivery of the application. Our functions run in Frankfurt."
+        },
+        "trigger": {
+          "purpose": "Runs the background work: research, benchmarks, invoices and email."
+        },
+        "resend": {
+          "purpose": "Delivers the product email we send you."
+        },
+        "stripe": {
+          "purpose": "Takes card payment at checkout. We never see your card number."
+        },
+        "anthropic": {
+          "purpose": "Turns public research findings into structured facts. It receives the research text, never your account data, and does not train on it."
+        },
+        "parallel": {
+          "purpose": "Searches public sources for facts about your company."
+        },
+        "posthog": {
+          "purpose": "Product analytics, and only after you accept it. Our instance runs in Frankfurt."
+        },
+        "sentry": {
+          "purpose": "Collects error reports so faults are found. Our instance runs in Frankfurt."
+        }
+      },
+      "retention": {
+        "title": "How long we keep it",
+        "lead": "Every table holding personal data, and its period. Three honest answers: a scheduled task deletes it, it lives as long as your account, or it is kept without an end date for a reason we name.",
+        "columnData": "What",
+        "columnPeriod": "How long",
+        "kinds": {
+          "purged": "{days} days, then deleted automatically",
+          "account": "As long as your account exists",
+          "indefinite": "Kept indefinitely"
+        },
+        "profiles": {
+          "purpose": "Your name, language and role"
+        },
+        "organization_members": {
+          "purpose": "Who belongs to which company"
+        },
+        "expert_profiles": {
+          "purpose": "An expert's biography, qualifications and photograph"
+        },
+        "companies": {
+          "purpose": "The company facts a benchmark is built from"
+        },
+        "company_kpis": {
+          "purpose": "The safety figures you entered or we found"
+        },
+        "notifications": {
+          "purpose": "What we showed you in the app"
+        },
+        "email_deliveries": {
+          "purpose": "The record that an email was sent to you"
+        },
+        "enquiries": {
+          "purpose": "A closed enquiry from the contact form, after it was answered"
+        },
+        "enquiries_ip_hash": {
+          "purpose": "The hashed address behind an enquiry, a flood guard only"
+        },
+        "orders": {
+          "purpose": "What you ordered and what it cost"
+        },
+        "invoices": {
+          "purpose": "The invoice itself"
+        },
+        "order_events": {
+          "purpose": "What happened to an order and when"
+        },
+        "research_runs": {
+          "purpose": "A research run and its result"
+        },
+        "benchmark_snapshots": {
+          "purpose": "A benchmark exactly as it was computed"
+        },
+        "audit_log": {
+          "purpose": "Who changed what, the record that makes the rest verifiable"
+        },
+        "accountingNote": "Orders, invoices and order events are kept for ten years because Art. 958f CO requires it. Research runs and benchmark snapshots are kept without an end date: a snapshot is immutable by design, so that a figure you were shown can always be explained, and comparing runs over time is how the service stays accurate. If you would rather they were not, ask us to delete them and we will."
+      },
+      "rights": {
+        "title": "Your rights",
+        "lead": "You can ask for a copy of your data, ask us to correct it, or ask us to delete it. Signed in, the request is a button in your account; otherwise write to {email}. We answer within thirty days.",
+        "access": "A copy of the data we hold about you.",
+        "correct": "Correction of anything wrong. Most of it you can edit yourself.",
+        "delete": "Deletion, with the one exception below.",
+        "object": "Objection to processing that rests on our legitimate interest, and withdrawal of analytics consent at any time.",
+        "complain": "A complaint to the Federal Data Protection and Information Commissioner (FDPIC) in Bern, or to your local supervisory authority in the EU."
+      },
+      "deletion": {
+        "title": "What deletion actually does",
+        "body": "When we fulfil a deletion request we remove your name from your profile, scrub your email address and sign in details so the account can no longer be used, and for an expert also remove the biography, photograph and contact address.",
+        "exception": "Orders, invoices and their event history are deliberately not touched. They belong to the company rather than to you personally, and Swiss commercial law requires them to be kept for ten years. After deletion those records no longer name you.",
+        "note": "This is a fixed list executed in one step, not a case by case judgement, and it is recorded in our audit log."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "body": "We set one cookie to remember your analytics answer, and the ones sign in needs to keep you signed in. Nothing else is set unless you accept analytics. <link>The full cookie list</link>."
+      },
+      "security": {
+        "title": "How it is protected",
+        "body": "Every table enforces row level security in the database, so access is checked on each read rather than trusted from the application. Traffic is encrypted in transit, secrets are held by the hosting platform, and changes to sensitive rows are written to an audit log."
+      },
+      "changes": {
+        "title": "Changes to this policy",
+        "body": "If we change how we process your data we update this page and, where the change is substantive, tell you in the app. The date at the top is always the date of the last change."
+      }
+    },
+    "terms": {
+      "meta": {
+        "title": "Terms of use",
+        "description": "The terms under which SME24 provides the benchmark, the packages and the expert work."
+      },
+      "og": {
+        "statement": "The deal. In writing."
+      },
+      "eyebrow": "Terms",
+      "title": "Terms of use.",
+      "lead": "These terms govern your use of SME24 and everything you order through it. Accepting them at sign up is what makes them binding.",
+      "updated": "Last updated {date}",
+      "version": "Version {version}",
+      "parties": {
+        "title": "Who the agreement is with",
+        "body": "SME24 is operated by {name}, {address}. Where you sign up on behalf of a company, you confirm you may bind that company, and the agreement is with it."
+      },
+      "service": {
+        "title": "What we provide",
+        "body": "A benchmark of your company's safety and health position against Swiss peer data, and, where you buy one, a fixed price package delivered by a qualified expert. The benchmark is free and is computed from public research and the figures you supply.",
+        "expert": "Experts are qualified professionals engaged by us. We select and assign them; you do not contract with them directly."
+      },
+      "account": {
+        "title": "Your account",
+        "body": "Keep your credentials to yourself and tell us if you think someone else has them. You are responsible for what happens under your account. One person, one account: do not share a login across a team.",
+        "accuracy": "The figures you enter drive the benchmark. Enter them honestly, because a benchmark built on wrong numbers is worse than none."
+      },
+      "packages": {
+        "title": "Packages, prices and payment",
+        "body": "Prices are shown in Swiss francs and include Swiss VAT at the rate in force. Payment is due at checkout by card, or on the invoice terms stated on it. You get an invoice for every order.",
+        "delivery": "We schedule the assessment with you after payment. If we cannot deliver within a reasonable period we will say so and refund you."
+      },
+      "cancellation": {
+        "title": "Changing or cancelling",
+        "body": "Tell us at least five working days before a scheduled assessment and we will move it at no cost. Later than that, or a no show, and we may charge for the expert's reserved time.",
+        "refund": "If we have not started work you can cancel and be refunded in full."
+      },
+      "obligations": {
+        "title": "What we need from you",
+        "body": "Access to the site, the documents and the people the assessment needs, at the time agreed. An expert who cannot see the workplace cannot assess it.",
+        "safety": "You remain responsible for safety at your workplace. Our advice supports your duties under Swiss law; it does not take them over."
+      },
+      "ip": {
+        "title": "What belongs to whom",
+        "body": "The reports, benchmarks and documents we deliver are yours to use inside your company. The platform, the methodology and the peer data behind them stay ours.",
+        "aggregate": "We may use figures from your company in anonymous aggregate form to improve the peer data. Nothing published this way identifies you or your company."
+      },
+      "liability": {
+        "title": "Liability",
+        "body": "We are liable for damage we cause intentionally or through gross negligence, and for injury to life, body or health, without limit. For anything else our liability is limited to the amount you paid us in the twelve months before the event.",
+        "benchmark": "The free benchmark is an indication built from public data and your own figures. It is not a legal audit and not a substitute for an assessment. Decisions you make from it alone are yours."
+      },
+      "termination": {
+        "title": "Ending the agreement",
+        "body": "You can close your account at any time from the app or by writing to us. Orders already placed are completed and paid for as agreed. We can suspend or close an account that breaches these terms, and will say why."
+      },
+      "changes": {
+        "title": "Changes to these terms",
+        "body": "We may change these terms. If a change is substantive we raise the version and ask you to accept the new one when you next sign in, showing you what changed. Continuing to use the service after that means the new terms apply.",
+        "current": "The current version is {version}."
+      },
+      "law": {
+        "title": "Law and jurisdiction",
+        "body": "Swiss law applies, without its conflict of law rules. The courts of {city} have jurisdiction, unless mandatory law gives you a different forum."
+      }
+    },
+    "imprint": {
+      "meta": {
+        "title": "Imprint",
+        "description": "Who operates SME24: the legal name, the registered address and how to reach a person."
+      },
+      "og": {
+        "statement": "Who we are. Where we are."
+      },
+      "eyebrow": "Imprint",
+      "title": "Imprint.",
+      "lead": "Who is behind this site, as Art. 3 UCA requires.",
+      "operator": "Operator",
+      "address": "Registered address",
+      "email": "Email",
+      "phone": "Telephone",
+      "responsible": "Responsible for the content",
+      "disclaimer": {
+        "title": "Liability for content and links",
+        "body": "We take care that what is published here is accurate and current, and we accept no liability for it being either. Where we link to another site we do not control it and take no responsibility for what it contains."
+      },
+      "copyright": {
+        "title": "Copyright",
+        "body": "The text, images and layout of this site belong to {name} unless another owner is named. Reuse beyond ordinary reading needs our written agreement."
+      }
+    },
+    "cookiesPage": {
+      "meta": {
+        "title": "Cookies",
+        "description": "Every cookie SME24 sets, what it is for, and how to change your analytics answer."
+      },
+      "og": {
+        "statement": "Two cookies. One is your choice."
+      },
+      "eyebrow": "Cookies",
+      "title": "Cookies.",
+      "lead": "We set as few as the service can work with. Analytics loads only if you accept it, and you can change that answer here at any time.",
+      "table": {
+        "title": "What we set",
+        "columnName": "Cookie",
+        "columnPurpose": "What it is for",
+        "columnLife": "How long"
+      },
+      "items": {
+        "consent": {
+          "name": "sme24_consent",
+          "purpose": "Remembers whether you accepted or rejected analytics, so you are not asked again.",
+          "life": "One year"
+        },
+        "auth": {
+          "name": "sb-*-auth-token",
+          "purpose": "Keeps you signed in. Set only after you sign in, and removed when you sign out.",
+          "life": "Until you sign out"
+        },
+        "posthog": {
+          "name": "ph_*",
+          "purpose": "Product analytics: which pages are used and where people get stuck. Set only after you accept.",
+          "life": "One year"
+        }
+      },
+      "necessary": {
+        "title": "The ones we cannot ask about",
+        "body": "The sign in cookie and the one holding your analytics answer are strictly necessary: without the first you cannot stay signed in, and without the second we would have to ask you on every page. Neither is used to track you across other sites."
+      },
+      "choice": {
+        "title": "Your choice",
+        "lead": "This is what you answered, and where you change it.",
+        "reopen": "Change your choice",
+        "reopened": "Answer the bar at the bottom of the page.",
+        "accept": "Accept analytics",
+        "reject": "Reject analytics"
+      },
+      "more": {
+        "title": "More detail",
+        "body": "The privacy policy says what each processor does with the data and how long we keep it. <link>Read the privacy policy</link>."
+      }
     }
   }
 }

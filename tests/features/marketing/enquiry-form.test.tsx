@@ -269,19 +269,14 @@ describe("EnquiryForm (AC-8)", () => {
     expect(boundary.submitEnquiry).not.toHaveBeenCalled();
   });
 
-  it("links the privacy note when the page exists and renders plain text until then", () => {
-    const { rerender } = renderIn(<EnquiryForm defaultTopic="general" />);
-    expect(screen.queryByRole("link", { name: "Privacy policy" })).toBeNull();
-    expect(screen.getByText("Privacy policy")).toBeInTheDocument();
-    rerender(
-      <NextIntlClientProvider locale="en-CH" messages={en} formats={formats} timeZone={TIME_ZONE}>
-        <EnquiryForm defaultTopic="general" privacyHref="/en/privacy" />
-      </NextIntlClientProvider>,
-    );
-    expect(screen.getByRole("link", { name: "Privacy policy" })).toHaveAttribute(
-      "href",
-      "/en/privacy",
-    );
+  it("links the privacy note at the real page, opening in a new tab (spec 0015, AC-9)", () => {
+    renderIn(<EnquiryForm defaultTopic="general" />);
+    const link = screen.getByRole("link", { name: "Privacy policy" });
+    // The note used to render a bare span until feature 14 shipped the page; it exists now.
+    expect(link).toHaveAttribute("href", "/en/privacy");
+    // A new tab so a half filled enquiry is not lost to reading the policy, and no opener handle.
+    expect(link).toHaveAttribute("target", "_blank");
+    expect(link).toHaveAttribute("rel", "noreferrer");
   });
 });
 

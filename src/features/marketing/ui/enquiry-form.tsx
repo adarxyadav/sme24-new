@@ -38,6 +38,7 @@ import {
 } from "@/features/marketing/schema";
 import { SITE } from "@/features/marketing/site";
 import { useFormAction } from "@/hooks/use-form-action";
+import { Link } from "@/i18n/navigation";
 import { LOCALE_CODE } from "@/i18n/routing";
 import { issueMessage, zodLocaleError } from "@/lib/validation";
 import { EnquiryConfirmation } from "./enquiry-confirmation";
@@ -45,8 +46,6 @@ import { EnquiryConfirmation } from "./enquiry-confirmation";
 export type EnquiryFormProps = {
   /** The preselected topic: `retainer` from the pricing page's link, else `general`. */
   readonly defaultTopic: EnquiryTopic;
-  /** The privacy page once feature 14 ships it; until then the note renders without a link. */
-  readonly privacyHref?: string;
   /** Shows every field error and the summary right after mount, without moving focus (the gallery's error state). */
   readonly validateOnMount?: boolean;
 };
@@ -68,11 +67,7 @@ type FieldName = (typeof FIELD_ORDER)[number];
  * and the mount time the server checks, and the confirmation panel after a successful submit.
  * Browser; the page hands it the `marketing` messages through a nested provider.
  */
-export function EnquiryForm({
-  defaultTopic,
-  privacyHref,
-  validateOnMount = false,
-}: EnquiryFormProps) {
+export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFormProps) {
   const t = useTranslations("marketing.contact.form");
   const e = useTranslations("marketing.contact.form.errors");
   const locale = useLocale();
@@ -313,14 +308,19 @@ export function EnquiryForm({
 
       <p className="max-w-prose text-muted-foreground text-sm">
         {t.rich("privacyNote", {
-          link: (chunks) =>
-            privacyHref ? (
-              <a href={privacyHref} className="underline underline-offset-4">
-                {chunks}
-              </a>
-            ) : (
-              <span>{chunks}</span>
-            ),
+          // The privacy page exists now (spec 0015, AC-9), so the note is always a real link and
+          // never the bare span the `privacyHref` fallback used to render. It opens in a new tab
+          // so a half filled enquiry is not lost to reading the policy.
+          link: (chunks) => (
+            <Link
+              href="/privacy"
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
+            >
+              {chunks}
+            </Link>
+          ),
         })}
       </p>
 

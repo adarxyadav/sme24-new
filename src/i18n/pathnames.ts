@@ -75,4 +75,11 @@ export const MARKETING_ROUTES: readonly StaticPathname[] = [
   "/pricing",
   "/about",
   "/contact",
+  // The four legal pages (spec 0015, AC-6). They joined this list only once their pages existed:
+  // a route here is a URL in the sitemap, and a sitemap that points at a 404 is worse than one
+  // that is a page short.
+  "/privacy",
+  "/terms",
+  "/imprint",
+  "/cookies",
 ];

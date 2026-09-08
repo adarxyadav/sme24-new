@@ -130,6 +130,11 @@ describe("typed route map (spec 0004, AC-13)", () => {
     expect(PATHNAMES["/pricing"]).toEqual({ "de-CH": "/preise", "en-CH": "/pricing" });
     expect(PATHNAMES["/about"]).toEqual({ "de-CH": "/ueber-uns", "en-CH": "/about" });
     expect(PATHNAMES["/contact"]).toEqual({ "de-CH": "/kontakt", "en-CH": "/contact" });
+    expect(PATHNAMES["/privacy"]).toEqual({ "de-CH": "/datenschutz", "en-CH": "/privacy" });
+    expect(PATHNAMES["/terms"]).toEqual({ "de-CH": "/agb", "en-CH": "/terms" });
+    expect(PATHNAMES["/imprint"]).toEqual({ "de-CH": "/impressum", "en-CH": "/imprint" });
+    expect(PATHNAMES["/cookies"]).toEqual({ "de-CH": "/cookies", "en-CH": "/cookies" });
+    // The four legal pages joined the sitemap only once their pages existed (spec 0015, AC-6).
     expect([...MARKETING_ROUTES]).toEqual([
       "/",
       "/how-it-works",
@@ -138,6 +143,10 @@ describe("typed route map (spec 0004, AC-13)", () => {
       "/pricing",
       "/about",
       "/contact",
+      "/privacy",
+      "/terms",
+      "/imprint",
+      "/cookies",
     ]);
     expect(PATHNAMES["/admin/enquiries"]).toBe("/admin/enquiries");
     expect(PATHNAMES["/admin/enquiries/[id]"]).toBe("/admin/enquiries/[id]");

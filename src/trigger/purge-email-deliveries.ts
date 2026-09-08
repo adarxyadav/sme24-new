@@ -1,13 +1,18 @@
 import "./instrumentation";
 
 import { logger, schedules } from "@trigger.dev/sdk";
+import { EMAIL_DELIVERY_RETENTION_DAYS } from "@/features/legal/retention-periods";
 import { TIME_ZONE } from "@/i18n/formats";
 import { taskEnv } from "@/lib/env";
 import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 
-/** Deliveries older than this are gone (spec 0006, AC-12); notifications keep their own life. */
-export const RETENTION_DAYS = 90;
+/**
+ * Deliveries older than this are gone (spec 0006, AC-12); notifications keep their own life.
+ * Re-exported from the pure module the privacy page also reads (spec 0015, AC-8), so the page and
+ * the task can never claim different numbers.
+ */
+export const RETENTION_DAYS = EMAIL_DELIVERY_RETENTION_DAYS;
 
 /**
  * Weekly retention of the outbox (spec 0006, AC-12): deletes `email_deliveries` rows older than

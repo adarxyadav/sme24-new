@@ -4,7 +4,7 @@ import { ImageResponse } from "next/og";
 import { getTranslations } from "next-intl/server";
 import { MARK_PATH, MARK_VIEWBOX } from "@/components/brand/brand-mark";
 import { splitSentences } from "@/components/brand/statement";
-import type { MarketingPage } from "@/features/marketing/metadata";
+import { type MarketingPage, pageNamespace } from "@/features/marketing/metadata";
 import { resolveLocale } from "@/i18n/routing";
 
 /**
@@ -36,7 +36,7 @@ type Params = { readonly locale: string };
 async function statementOf(page: MarketingPage, locale: string): Promise<string> {
   const resolved = resolveLocale(locale);
   const [t, common] = await Promise.all([
-    getTranslations({ locale: resolved, namespace: `marketing.${page}.og` }),
+    getTranslations({ locale: resolved, namespace: `${pageNamespace(page)}.og` }),
     getTranslations({ locale: resolved, namespace: "common" }),
   ]);
   return t.has("statement") ? t("statement") : common("appName");
