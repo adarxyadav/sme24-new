@@ -20,11 +20,22 @@ Spec: [0011](../specs/0011-package-checkout-swiss-vat/index.md). Cards go throug
 - [x] Review it (fresh model): `/check review package checkout with Swiss VAT` · `docs/reviews/2026-09-08-feat-fix-checkout-session-persistence.md`, Changes requested; the major and both minors closed on the fix branch
 - [x] Document it: `/document package checkout with Swiss VAT` · PR #27
 
-### 12. Ops admin: orders, companies & scheduling · needs a decision
+### 12. Ops admin: orders, companies & scheduling · in-progress
 Your team's first screen. Ops sees companies, research runs, orders and payments, records the agreed on site date and the assigned assessor on an order, and the client dashboard reflects that status. The admin shell built here hosts every later ops feature.
 **Done when:** ops can list and open companies and orders, set an assessment date and assessor, and the client sees "scheduled for" with the date; ops only routes are invisible to clients and experts.
 Carried over from earlier specs: `/admin/emails` and `/admin/enquiries` already exist in the same shape and may fold into the shell (specs 0006 and 0009); a read only view of `benchmarks` and `benchmark_assumptions` with the provisional flags plus a per company snapshot list with a recompute action (spec 0008); TOTP enrollment with an `aal2` check in the proxy for `/admin` and an inactivity cutoff for ops sessions (spec 0005), noting that the `[auth.mfa]` block in `supabase/config.toml` is pushed on every deploy, so the switch lives there. From spec 0011: the minimal `/admin/orders` list plus the mark paid, cancel and retry invoice render actions already exist and fold into the shell; delivery states (scheduled, in progress, delivered) are this feature's decision and land as an additive change to the `orders.status` constraint, and the client facing refund path deferred by spec 0011 belongs here too.
-- [ ] Design it (spec): `/architect ops admin`
+spec [0014](../specs/0014-ops-admin-orders-scheduling/index.md)
+- [x] Design it (spec): `/architect ops admin`
+- [ ] Build it: `/develop ops admin`
+  - [ ] Delivery schema: the four `orders` columns, the extended status check, the two partial indexes, the new transition edges and the second `orders_check_delivery_columns` trigger that guards a date correction, with pgTAP over every edge, both guards and the revoke (AC-3 to AC-8, AC-12)
+  - [ ] The scheduling thread end to end: `src/features/ops-admin/`, `scheduleOrder` writing the order and upserting the assignment through the service client, the trigger error mapping, the scheduling dialog on `/admin/orders`, and the per order date and expert card on the client dashboard (AC-3, AC-4, AC-5, AC-10)
+  - [ ] Delivery states and corrections: `setOrderDeliveryState`, `unscheduleOrder` and `rescheduleOrder` with the superseded assignment rule, their controls, and the status badge extended in both catalogs (AC-6, AC-7, AC-7a, AC-13)
+  - [ ] The `assessment_scheduled` email on the existing rail: schema entry, component, registry entry, keys in both catalogs and a preview (AC-9)
+  - [ ] Ops surfaces: `/admin/companies` with keyset paging and `/admin/companies/[companyId]` with the research, KPI, snapshot, organization and order blocks, plus the real `/admin` overview replacing the scaffold demo, then Vitest, the Playwright ops thread and axe (AC-1, AC-2, AC-11, AC-13)
+- [ ] Verify it: `/check verify ops admin`
+- [ ] Test it: `/test ops admin`
+- [ ] Review it (fresh model): `/check review ops admin`
+- [ ] Document it: `/document ops admin`
 
 ## Slice 8: Thicken the accounts
 

@@ -24,7 +24,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 9 | Peer benchmark & CHF opportunity | Slice 2 | done |
 | 10 | Self assessment fallback | Slice 2 | done |
 | 11 | Package checkout with Swiss VAT | Slice 3 | done |
-| 12 | Ops admin: orders, companies & scheduling | Slice 3 | planned |
+| 12 | Ops admin: orders, companies & scheduling | Slice 3 | in-progress |
 | 13 | Marketing site & retainer enquiry | Slice 4 | done |
 | 14 | Legal, privacy & cookie consent | Slice 4 | planned |
 | 15 | Analytics & monitoring | Slice 4 | planned |
@@ -75,6 +75,10 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Local stack e2e lane in CI**: run the Mailpit backed Playwright specs (sign up, codes, resets, the welcome and enquiry emails) on every push; the `database` job already starts the stack, so it is one more job in `ci.yml` · from spec 0005
 - **Guard the cost line against a missing assumption row**: `costAt` reads `values.hours_per_fte` unguarded, so an absent `hours_per_fte` row yields `NaN` in the CHF figure instead of a null cost; the derived block guards it, the cost line does not · from spec 0012
 - **Retire an old snapshot version**: `SNAPSHOT_SCHEMAS` grows an entry per formula change with no rule for removing one; the answer is probably "once no live row carries it", which needs a query · from spec 0012
+- **Benchmarks read only view with a recompute action**: `benchmarks` and `benchmark_assumptions` with their provisional flags, plus a per company snapshot list; feature 25 needs it before launch, and it is a read only surface with no state machine · from specs 0008 and 0014
+- **TOTP with an `aal2` check on `/admin`**: enrollment plus the proxy check and an inactivity cutoff for ops sessions; the `[auth.mfa]` block in `supabase/config.toml` is pushed on every deploy, so the switch lives there · from specs 0005 and 0014 · needs a decision
+- **Client facing refund path**: a real refund needs credit note numbering against the gapless invoice sequence and a QR bill reversal; ops refund in Stripe by hand and the `delivered → refunded` edge records it · from specs 0011 and 0014 · needs a decision
+- **A dedicated `assessments` table**: split delivery off `orders.status` into its own record once features 17 and 18 define what an assessment holds, or sooner if a delivered order must re open or a refund must coexist with a delivery state · from spec 0014
 
 ## Legend
 
