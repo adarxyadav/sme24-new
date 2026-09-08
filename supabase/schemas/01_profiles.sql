@@ -16,6 +16,12 @@ create table public.profiles (
   -- the sign up metadata or by accept_terms() for provider sign ups; never by a direct update
   -- (the column grant below leaves it out).
   terms_accepted_at timestamptz null,
+  -- Spec 0015 (AC-10): which version of the terms that acceptance was for. Text, not a number,
+  -- because a version is a label; every comparison against CURRENT_TERMS_VERSION is equality, and
+  -- ordering it would read '10' as older than '2'. Default '1' matches the constant the app ships
+  -- with, so nobody becomes stale on the day this deploys. Written only by handle_new_user and
+  -- accept_terms(), like terms_accepted_at: the column grant below leaves it out.
+  terms_version text not null default '1',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -23,6 +29,7 @@ create table public.profiles (
 comment on table public.profiles is 'App profile per auth user: role, current organization, display name and locale.';
 comment on column public.profiles.organization_id is 'The user''s current organization, kept in step with organization_members by a trigger (foreign key declared in 10_organizations.sql).';
 comment on column public.profiles.terms_accepted_at is 'When the user accepted the terms (spec 0005). Set once by handle_new_user or accept_terms(); not writable through the API.';
+comment on column public.profiles.terms_version is 'Which terms version the user accepted (spec 0015). Compared with equality only; set by handle_new_user or accept_terms(), not writable through the API.';
 
 alter table public.profiles enable row level security;
 
@@ -116,7 +123,7 @@ begin
     consent := null;
   end;
 
-  insert into public.profiles (id, role, full_name, locale, terms_accepted_at)
+  insert into public.profiles (id, role, full_name, locale, terms_accepted_at, terms_version)
   values (
     new.id,
     case
@@ -128,18 +135,48 @@ begin
       nullif(new.raw_user_meta_data ->> 'name', '')
     ),
     case when requested_locale in ('de', 'en') then requested_locale else 'en' end,
-    consent
+    consent,
+    -- Spec 0015 (AC-10): the version the sign up form showed, when it carries one and it looks
+    -- like a version; anything else falls back to the column default. A sign up without consent
+    -- still gets the default, which is correct: the version only means something once
+    -- terms_accepted_at is set, and the two are read together everywhere.
+    coalesce(
+      nullif(
+        case
+          when new.raw_user_meta_data ->> 'terms_version' ~ '^[A-Za-z0-9._-]{1,16}$'
+            then new.raw_user_meta_data ->> 'terms_version'
+        end,
+        ''
+      ),
+      '1'
+    )
   );
   return new;
 end;
 $$;
 
--- Records the caller's consent (spec 0005, AC-11): the only write path for terms_accepted_at
--- besides handle_new_user. Writes now() only when the column is still null and returns the
--- stored value either way, so a double submit is harmless and the result is never null for a
--- signed in caller. Definer because the column is outside the authenticated update grant; the
--- auth.uid() check is what keeps it safe. Runs as the signed in user (PostgREST rpc).
-create or replace function public.accept_terms()
+-- Spec 0015: the zero argument accept_terms() is replaced by the one argument form below. A
+-- defaulted argument makes a new signature rather than replacing the old one, so leaving the old
+-- function in place would make a bare `accept_terms()` call ambiguous and fail at run time. The
+-- drop is safe because the two callers reach it through PostgREST by name, not by oid.
+drop function if exists public.accept_terms();
+
+-- Records the caller's consent (spec 0005 AC-11, spec 0015 AC-10): the only write path for
+-- terms_accepted_at and terms_version besides handle_new_user. Both columns move together, so a
+-- profile never carries a version it did not accept.
+--
+-- The version is an argument rather than a constant in the body because CURRENT_TERMS_VERSION
+-- lives in TypeScript, and the database cannot read it; the check constraint on the argument's
+-- shape is what stops a caller stamping arbitrary text into a compliance column. The default
+-- keeps the two existing zero argument callers (the sign in finalizer and expert onboarding)
+-- working unchanged, and they accept version 1, which is the version they were written for.
+--
+-- Write semantics changed with spec 0015: it no longer writes only while the stamp is null, but
+-- whenever the stored version differs from the one being accepted. That is what makes re consent
+-- possible; a repeat call for a version already accepted still changes nothing, so a double
+-- submit stays harmless. Definer because both columns sit outside the authenticated update
+-- grant; the auth.uid() check is what keeps it safe. Runs as the signed in user (PostgREST rpc).
+create or replace function public.accept_terms(version text default '1')
 returns timestamptz
 language plpgsql
 security definer
@@ -153,9 +190,15 @@ begin
     raise exception 'not_signed_in';
   end if;
 
+  if version is null or version !~ '^[A-Za-z0-9._-]{1,16}$' then
+    raise exception 'invalid_terms_version';
+  end if;
+
+  -- Equality, never ordering: the column is text, so '10' < '2' and a comparison would treat a
+  -- tenth version as older than a second one (spec 0015, AC-10).
   update public.profiles
-  set terms_accepted_at = now()
-  where id = caller and terms_accepted_at is null;
+  set terms_accepted_at = now(), terms_version = version
+  where id = caller and (terms_accepted_at is null or terms_version is distinct from version);
 
   select p.terms_accepted_at into accepted_at
   from public.profiles p
@@ -169,10 +212,10 @@ begin
 end;
 $$;
 
-comment on function public.accept_terms() is 'Records the caller''s consent once and returns when it was given. The only API write path for profiles.terms_accepted_at.';
+comment on function public.accept_terms(text) is 'Records the caller''s acceptance of a terms version and returns when it was given. The only API write path for profiles.terms_accepted_at and terms_version.';
 
-revoke execute on function public.accept_terms() from anon, public;
-grant execute on function public.accept_terms() to authenticated;
+revoke execute on function public.accept_terms(text) from anon, public;
+grant execute on function public.accept_terms(text) to authenticated;
 
 create trigger on_auth_user_created
   after insert on auth.users
