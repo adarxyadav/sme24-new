@@ -50,7 +50,8 @@
       "orders": "Bestellungen"
     },
     "expert": {
-      "overview": "Übersicht"
+      "overview": "Übersicht",
+      "profile": "Profil"
     },
     "admin": {
       "overview": "Übersicht",
@@ -2211,7 +2212,9 @@
         "status": "Status",
         "clients": "Kunden",
         "invited": "Eingeladen",
-        "competencies": "Kompetenzen"
+        "competencies": "Kompetenzen",
+        "availability": "Verfügbarkeit",
+        "onboarded": "Onboarding"
       },
       "status": {
         "invited": "Eingeladen",
@@ -2221,7 +2224,19 @@
       "empty": {
         "title": "Noch keine Expertinnen und Experten",
         "description": "Eingeladene Personen erscheinen hier, sobald die erste Einladung verschickt ist."
-      }
+      },
+      "invite": "Fachperson einladen",
+      "more": "Mehr anzeigen",
+      "none": "—",
+      "filters": {
+        "legend": "Filter",
+        "status": "Status",
+        "all": "Alle",
+        "apply": "Anwenden",
+        "reset": "Zurücksetzen"
+      },
+      "profileHeading": "Profil",
+      "profileDescription": "Dieselben Felder, die die Fachperson bearbeitet. Änderungen hier sind für sie sofort sichtbar."
     },
     "assign": {
       "organization": "Kundenorganisation",
@@ -2254,6 +2269,126 @@
         "not_found": "Diese Zuteilung wurde bereits beendet.",
         "forbidden": "Sie dürfen keine Zuteilungen beenden.",
         "unexpected": "Etwas ist schiefgelaufen. Versuchen Sie es gleich noch einmal."
+      }
+    },
+    "invite": {
+      "title": "Expertin oder Experten einladen",
+      "lead": "Senden Sie eine Einladung an eine geprüfte EHS-Fachperson. Sie setzt ihr Passwort selbst und beschreibt ihr Fachgebiet.",
+      "breadcrumb": "Expertinnen und Experten",
+      "email": "E-Mail-Adresse",
+      "emailHint": "An diese Adresse geht die Einladung. Sie wird zur Anmeldung.",
+      "fullName": "Vollständiger Name",
+      "language": "Sprache",
+      "languageHint": "Alle E-Mails an diese Person werden in dieser Sprache verfasst.",
+      "languages": {
+        "de": "Deutsch",
+        "en": "Englisch"
+      },
+      "submit": "Einladung senden",
+      "sending": "Wird gesendet…",
+      "sent": "Einladung gesendet.",
+      "errors": {
+        "validation": "Bitte prüfen Sie die Felder oben.",
+        "email_taken": "Diese Adresse wird bereits von einem Konto verwendet.",
+        "already_invited": "Diese Fachperson wurde bereits eingeladen.",
+        "invite_failed": "Die Einladung konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+        "forbidden": "Sie dürfen keine Fachpersonen einladen.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "profile": {
+      "title": "Profil",
+      "lead": "Was das Team und Ihre Kundinnen und Kunden über Sie sehen. Halten Sie es aktuell, damit wir Sie passend einsetzen.",
+      "heading": "Ihr Profil",
+      "description": "Kurzbeschrieb und Zusammenfassung erscheinen im Dashboard Ihrer Kundschaft; der Rest dient dem Matching.",
+      "photoHeading": "Foto",
+      "photoDescription": "Ein Porträt, das Kundinnen und Kunden neben Ihrem Namen sehen. Optional.",
+      "headline": "Kurzbeschrieb",
+      "bio": "Zusammenfassung",
+      "bioHint": "Bis zu 800 Zeichen.",
+      "lists": {
+        "competencies": "Assessment-Kompetenzen",
+        "industries": "Branchen",
+        "standards": "Normen und Vorschriften",
+        "languages": "Arbeitssprachen",
+        "regions": "Kantone"
+      },
+      "availability": "Verfügbarkeit",
+      "availableFrom": "Verfügbar ab",
+      "availabilityNote": "Hinweis zur Verfügbarkeit",
+      "yearsExperience": "Jahre Berufserfahrung",
+      "phone": "Telefon",
+      "submit": "Profil speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Profil gespeichert.",
+      "errors": {
+        "validation": "Bitte prüfen Sie die Felder oben.",
+        "forbidden": "Sie dürfen dieses Profil nicht ändern.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "photo": {
+      "label": "Foto auswählen",
+      "hint": "JPEG, PNG oder WebP, bis 2 MB.",
+      "remove": "Foto entfernen",
+      "uploaded": "Foto gespeichert.",
+      "removed": "Foto entfernt.",
+      "errors": {
+        "validation": "Bitte wählen Sie eine Datei.",
+        "too_large": "Diese Datei ist grösser als 2 MB.",
+        "unsupported_type": "Bitte wählen Sie eine JPEG-, PNG- oder WebP-Datei.",
+        "forbidden": "Sie dürfen dieses Foto nicht ändern.",
+        "unexpected": "Das Foto konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      }
+    },
+    "notes": {
+      "heading": "Notizen zur Prüfung",
+      "description": "Nur intern. Die Fachperson sieht diese Notizen nie.",
+      "label": "Notizen",
+      "hint": "Bis zu 4000 Zeichen.",
+      "submit": "Notizen speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Notizen gespeichert.",
+      "errors": {
+        "validation": "Bitte kürzen Sie die Notizen.",
+        "forbidden": "Sie dürfen diese Notizen nicht bearbeiten.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "account": {
+      "heading": "Konto",
+      "description": "Einladung erneut senden oder den Zugang dieser Fachperson beenden und wiederherstellen.",
+      "resend": "Einladung erneut senden",
+      "resending": "Wird gesendet…",
+      "resent": "Einladung erneut gesendet.",
+      "deactivate": "Fachperson deaktivieren",
+      "deactivating": "Wird deaktiviert…",
+      "deactivated": "Fachperson deaktiviert. {count, plural, =0 {Es war kein Auftrag offen.} one {Ein Auftrag wurde beendet.} other {# Aufträge wurden beendet.}}",
+      "reactivate": "Fachperson reaktivieren",
+      "reactivating": "Wird reaktiviert…",
+      "reactivated": "Fachperson reaktiviert.",
+      "activeHint": "Das Deaktivieren beendet jeden offenen Auftrag und sperrt die Anmeldung.",
+      "inactiveHint": "Das Reaktivieren stellt die Anmeldung wieder her. Beendete Aufträge bleiben beendet.",
+      "resendErrors": {
+        "validation": "Diese Fachperson wurde nicht gefunden.",
+        "not_invited": "Diese Fachperson hat sich bereits angemeldet.",
+        "rate_limited": "Zu kurz nach der letzten Einladung. Bitte warten Sie einen Moment.",
+        "invite_failed": "Die Einladung konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+        "forbidden": "Sie dürfen das nicht tun.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      },
+      "deactivateErrors": {
+        "validation": "Diese Fachperson wurde nicht gefunden.",
+        "not_found": "Diese Fachperson wurde nicht gefunden.",
+        "forbidden": "Sie dürfen das nicht tun.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      },
+      "reactivateErrors": {
+        "validation": "Diese Fachperson wurde nicht gefunden.",
+        "already_active": "Diese Fachperson ist nicht deaktiviert.",
+        "not_found": "Diese Fachperson wurde nicht gefunden.",
+        "forbidden": "Sie dürfen das nicht tun.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
       }
     }
   }

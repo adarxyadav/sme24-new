@@ -26,6 +26,8 @@ export type ExpertProfile = Tables<"expert_profiles">;
 export type ExpertListRow = ExpertProfile & {
   readonly fullName: string | null;
   readonly activeAssignments: number;
+  /** A signed URL for the row's photo, or null when there is none. */
+  readonly photoUrl: string | null;
 };
 
 export type ExpertPage = {
@@ -82,16 +84,22 @@ export async function listExperts(supabase: Client, filters: ExpertFilters): Pro
   const ids = page.map((row) => row.expert_id);
   const counts = await activeAssignmentCounts(supabase, ids);
 
-  const rows = page.map((row) => {
-    const { profiles, ...profile } = row as typeof row & {
-      profiles: { full_name: string | null } | null;
-    };
-    return {
-      ...(profile as ExpertProfile),
-      fullName: profiles?.full_name ?? null,
-      activeAssignments: counts.get(profile.expert_id) ?? 0,
-    };
-  });
+  const rows = await Promise.all(
+    page.map(async (row) => {
+      const { profiles, ...profile } = row as typeof row & {
+        profiles: { full_name: string | null } | null;
+      };
+      const expert = profile as ExpertProfile;
+      return {
+        ...expert,
+        fullName: profiles?.full_name ?? null,
+        activeAssignments: counts.get(expert.expert_id) ?? 0,
+        // Signed per row rather than once for the page: the bucket policy is what decides each
+        // object, and a row without a photo costs nothing because `photoUrl` returns on the null.
+        photoUrl: await photoUrl(supabase, expert.photo_path),
+      };
+    }),
+  );
   const last = rows.at(-1);
   return {
     rows,

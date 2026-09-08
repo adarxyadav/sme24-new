@@ -5,6 +5,7 @@ import {
   MailIcon,
   PaletteIcon,
   ReceiptIcon,
+  UserIcon,
   UsersIcon,
 } from "lucide-react";
 import type { Messages } from "next-intl";
@@ -33,7 +34,10 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
     { href: "/app", labelKey: "app.overview", icon: LayoutDashboardIcon },
     { href: "/app/orders", labelKey: "app.orders", icon: ReceiptIcon },
   ],
-  expert: [{ href: "/expert", labelKey: "expert.overview", icon: LayoutDashboardIcon }],
+  expert: [
+    { href: "/expert", labelKey: "expert.overview", icon: LayoutDashboardIcon },
+    { href: "/expert/profile", labelKey: "expert.profile", icon: UserIcon },
+  ],
   admin: [
     { href: "/admin", labelKey: "admin.overview", icon: LayoutDashboardIcon },
     { href: "/admin/emails", labelKey: "admin.emails", icon: MailIcon },

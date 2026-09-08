@@ -5,9 +5,15 @@ import { PageHeader } from "@/components/page-header";
 import { PageStack } from "@/components/page-stack";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ExpertStatus } from "@/features/experts/catalogue";
+import { profileFormDefaults } from "@/features/experts/form";
 import { getExpertAdminPage, listOrganizationsForAssignment } from "@/features/experts/queries";
+import { todayInZurich } from "@/features/experts/schema";
+import { ExpertAccountActions } from "@/features/experts/ui/account-actions";
 import { AssignmentsSection } from "@/features/experts/ui/assignments-section";
 import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
+import { OpsNotesEditor } from "@/features/experts/ui/ops-notes-editor";
+import { ExpertProfileForm } from "@/features/experts/ui/profile-form";
 import { clientMessages } from "@/i18n/client-messages";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -21,15 +27,21 @@ export async function generateMetadata() {
 }
 
 /**
- * One expert's admin page (spec 0013, AC-7, AC-9). Milestone 2 builds the summary and the
- * assignment controls, which is what ops need to put an expert in front of a client; the profile
- * form, the ops notes and the offboarding buttons join it in the milestones after.
+ * One expert's admin page (spec 0013, AC-3, AC-5, AC-7, AC-8, AC-9, AC-10): the summary, the same
+ * profile form the expert fills in, the record check notes the expert never sees, the assignment
+ * controls and the account buttons.
+ *
+ * The profile form is the expert's own component with an `expertId`, not a second form: the fields
+ * and the rules would otherwise drift between the two callers, and the action is the one place
+ * that decides whether this caller may write that row. Ops only, through the proxy and RLS.
  */
 export default async function AdminExpertPage({ params }: Props) {
   const { expertId } = await params;
-  const [t, catalogue, format, supabase, messages] = await Promise.all([
+  const [t, catalogue, notes, account, format, supabase, messages] = await Promise.all([
     getTranslations("experts.admin"),
     getTranslations("experts.catalogue"),
+    getTranslations("experts.notes"),
+    getTranslations("experts.account"),
     getFormatter(),
     createServerSupabaseClient(),
     getMessages(),
@@ -115,6 +127,45 @@ export default async function AdminExpertPage({ params }: Props) {
           </NextIntlClientProvider>
         </CardContent>
       </Card>
+
+      <NextIntlClientProvider messages={clientMessages(messages, ["experts"])}>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("profileHeading")}</CardTitle>
+            <CardDescription>{t("profileDescription")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ExpertProfileForm
+              defaults={profileFormDefaults(profile)}
+              today={todayInZurich()}
+              expertId={profile.expert_id}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{notes("heading")}</CardTitle>
+            <CardDescription>{notes("description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <OpsNotesEditor expertId={profile.expert_id} notes={page.notes} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{account("heading")}</CardTitle>
+            <CardDescription>{account("description")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ExpertAccountActions
+              expertId={profile.expert_id}
+              status={profile.status as ExpertStatus}
+            />
+          </CardContent>
+        </Card>
+      </NextIntlClientProvider>
     </PageStack>
   );
 }

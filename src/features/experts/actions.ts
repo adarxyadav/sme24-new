@@ -5,18 +5,28 @@ import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { resolveLocale } from "@/i18n/routing";
 import { captureServerEvent } from "@/lib/analytics/server";
-import { createInviteClient, inviteStaffUser, resendStaffInvite } from "@/lib/auth/invite";
+import {
+  banStaffUser,
+  createInviteClient,
+  inviteStaffUser,
+  resendStaffInvite,
+  unbanStaffUser,
+} from "@/lib/auth/invite";
 import { roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
 import { parseWith } from "@/lib/validation";
+import { isPhotoMimeType, PHOTO_BUCKET, PHOTO_MAX_BYTES, PHOTO_TYPES } from "./catalogue";
 import {
   assignExpertSchema,
   endAssignmentSchema,
   expertIdSchema,
+  expertProfileSchema,
   inviteExpertSchema,
   onboardingSchema,
+  opsNotesSchema,
+  todayInZurich,
 } from "./schema";
 
 /**
@@ -357,4 +367,317 @@ export async function endAssignment(
   log.info("expert assignment ended", { assignmentId, by: actor.userId });
   revalidatePath("/admin/experts");
   return { ok: true, data: { assignmentId: data.id, endedAt: data.ended_at ?? "" } };
+}
+
+export type ExpertProfileResult =
+  | { ok: true; data: { expertId: string; updatedAt: string } }
+  | { ok: false; error: "validation" | "forbidden" | "unexpected" };
+
+/**
+ * Saves the full profile (AC-5), for the expert on their own row and for ops on any row. The
+ * column grant is what limits the write to the profile fields: `email`, `status`, `invited_*`,
+ * `onboarded_at`, `deactivated_at` and `photo_path` are outside it for both roles, so a caller
+ * cannot reach them through this action whatever they send.
+ *
+ * `expertId` is the only thing that separates the two callers: an expert may not send one, and a
+ * caller who does without the ops role is refused rather than quietly writing their own row.
+ * Server action, the expert on their own row or ops on any.
+ */
+export async function updateExpertProfile(
+  _previous: ExpertProfileResult | null,
+  input: unknown,
+): Promise<ExpertProfileResult> {
+  const locale = resolveLocale(
+    (input as { locale?: unknown } | null)?.locale ?? (await getLocale()),
+  );
+  const supabase = await createActionClient();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  const role = roleFromClaims(claims);
+  if (typeof claims?.sub !== "string") return { ok: false, error: "forbidden" };
+  if (role !== "expert" && role !== "ops") return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(expertProfileSchema(todayInZurich()), input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { expertId: target, locale: _ignored, ...fields } = parsed.data;
+
+  // Only ops write someone else's row. An expert sending an id is refused outright rather than
+  // silently redirected onto their own: a form that sends the wrong id is a bug worth surfacing.
+  if (target && role !== "ops") return { ok: false, error: "forbidden" };
+  const expertId = target ?? claims.sub;
+
+  const { data: row, error } = await supabase
+    .from("expert_profiles")
+    .update({
+      headline: fields.headline,
+      bio: fields.bio,
+      competencies: [...fields.competencies],
+      industries: [...fields.industries],
+      standards: [...fields.standards],
+      languages: [...fields.languages],
+      regions: [...fields.regions],
+      availability: fields.availability,
+      available_from: fields.availableFrom,
+      availability_note: fields.availabilityNote,
+      years_experience: fields.yearsExperience,
+      phone: fields.phone,
+    })
+    .eq("expert_id", expertId)
+    .select("expert_id, updated_at")
+    .maybeSingle();
+
+  if (error) return reportFailure("expert profile save failed", error.message, "unexpected");
+  // RLS hid the row rather than raising: an expert aiming at a row that is not theirs, or ops at
+  // an id that does not exist.
+  if (!row) return { ok: false, error: "forbidden" };
+
+  log.info("expert profile saved", { expertId, by: claims.sub });
+  revalidatePath("/expert/profile");
+  revalidatePath("/admin/experts");
+  return { ok: true, data: { expertId: row.expert_id, updatedAt: row.updated_at } };
+}
+
+export type OpsNotesResult =
+  | { ok: true; data: { expertId: string } }
+  | { ok: false; error: "validation" | "forbidden" | "unexpected" };
+
+/**
+ * Saves the ops record check notes on an expert (AC-8). One row per expert, so this upserts on the
+ * primary key; an empty string is a real value, the way ops clear a note. The expert never reads
+ * this table: its policies are ops only and a pgTAP file proves it. Server action, ops only.
+ */
+export async function saveExpertOpsNotes(
+  _previous: OpsNotesResult | null,
+  input: unknown,
+): Promise<OpsNotesResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(opsNotesSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { expertId, notes } = parsed.data;
+
+  const { error } = await actor.supabase
+    .from("expert_ops_notes")
+    .upsert({ expert_id: expertId, notes, updated_by: actor.userId }, { onConflict: "expert_id" });
+  if (error) return reportFailure("expert ops notes save failed", error.message, "unexpected");
+
+  log.info("expert ops notes saved", { expertId, by: actor.userId });
+  revalidatePath("/admin/experts");
+  return { ok: true, data: { expertId } };
+}
+
+export type DeactivateExpertResult =
+  | { ok: true; data: { expertId: string; endedAssignments: number } }
+  | { ok: false; error: "validation" | "not_found" | "forbidden" | "unexpected" };
+
+/**
+ * Offboards an expert (AC-10). The order is what makes it safe: the status moves first, which the
+ * `check_expert_assignable` trigger reads, so from that moment no new assignment can land while
+ * the sweep below is still running; then the open assignments end; then the sign in is banned.
+ *
+ * Idempotent on purpose: an already `inactive` expert re runs the sweep and the ban and answers
+ * `ok`, so a failure part way through is fixed by pressing the button again rather than by hand.
+ * Server action, ops only.
+ */
+export async function deactivateExpert(
+  _previous: DeactivateExpertResult | null,
+  input: unknown,
+): Promise<DeactivateExpertResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(expertIdSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { expertId } = parsed.data;
+
+  const { error: statusError } = await actor.supabase.rpc("set_expert_status", {
+    target: expertId,
+    next: "inactive",
+  });
+  if (statusError) {
+    if (statusError.message.includes("not_found")) return { ok: false, error: "not_found" };
+    return reportFailure("expert deactivation failed", statusError.message, "unexpected");
+  }
+
+  const { data: ended, error: sweepError } = await actor.supabase
+    .from("expert_assignments")
+    .update({ status: "ended" })
+    .eq("expert_id", expertId)
+    .eq("status", "active")
+    .select("id");
+  if (sweepError)
+    return reportFailure("expert assignment sweep failed", sweepError.message, "unexpected");
+
+  const banned = await banStaffUser(actor.service, expertId);
+  // The status is already `inactive` and the gate already turns the expert away, so a failed ban
+  // is a gap that closes on the next press rather than a reason to report the whole action failed.
+  if (!banned) log.warn("expert sign in not banned", { expertId });
+
+  log.info("expert deactivated", {
+    expertId,
+    by: actor.userId,
+    endedAssignments: ended?.length ?? 0,
+  });
+  revalidatePath("/admin/experts");
+  return { ok: true, data: { expertId, endedAssignments: ended?.length ?? 0 } };
+}
+
+export type ReactivateExpertResult =
+  | { ok: true; data: { expertId: string; status: "invited" | "active" } }
+  | {
+      ok: false;
+      error: "validation" | "already_active" | "not_found" | "forbidden" | "unexpected";
+    };
+
+/**
+ * Brings an expert back (AC-10). The target status comes from `onboarded_at`, not from a guess:
+ * an expert who never finished onboarding returns to `invited` and meets the onboarding screen
+ * again, one who did returns to `active` and is assignable at once. Server action, ops only.
+ */
+export async function reactivateExpert(
+  _previous: ReactivateExpertResult | null,
+  input: unknown,
+): Promise<ReactivateExpertResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(expertIdSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { expertId } = parsed.data;
+
+  const { data: profile, error: readError } = await actor.supabase
+    .from("expert_profiles")
+    .select("status, onboarded_at")
+    .eq("expert_id", expertId)
+    .maybeSingle();
+  if (readError)
+    return reportFailure("expert reactivate lookup failed", readError.message, "unexpected");
+  if (!profile) return { ok: false, error: "not_found" };
+  if (profile.status !== "inactive") return { ok: false, error: "already_active" };
+
+  const next = profile.onboarded_at ? "active" : "invited";
+  const { error: statusError } = await actor.supabase.rpc("set_expert_status", {
+    target: expertId,
+    next,
+  });
+  if (statusError)
+    return reportFailure("expert reactivation failed", statusError.message, "unexpected");
+
+  const lifted = await unbanStaffUser(actor.service, expertId);
+  // Unlike the ban, a failed lift leaves the expert unable to sign in while their row says they
+  // may, so it is worth a warning ops can act on; pressing the button again retries it.
+  if (!lifted) log.warn("expert ban not lifted", { expertId });
+
+  log.info("expert reactivated", { expertId, by: actor.userId, status: next });
+  revalidatePath("/admin/experts");
+  return { ok: true, data: { expertId, status: next } };
+}
+
+export type PhotoResult =
+  | { ok: true; data: { photoPath: string | null } }
+  | {
+      ok: false;
+      error: "validation" | "too_large" | "unsupported_type" | "forbidden" | "unexpected";
+    };
+
+/**
+ * Replaces the calling expert's profile photo (AC-6). The order matters: the object goes up first,
+ * then `set_expert_photo` records it, and the previous object is removed only after both have
+ * succeeded, so the row never points at an object that is not there.
+ *
+ * The path is deterministic per extension (`<expert_id>/photo.<ext>`), which is why the cleanup is
+ * best effort: an orphan left by a failed delete is overwritten by the next upload of that type,
+ * and the bucket policies keep it unreadable by anyone but the expert, ops and their clients.
+ * Server action, the expert on their own row.
+ */
+export async function uploadExpertPhoto(formData: FormData): Promise<PhotoResult> {
+  const actor = await requireExpert();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const file = formData.get("photo");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "validation" };
+  if (file.size > PHOTO_MAX_BYTES) return { ok: false, error: "too_large" };
+  if (!isPhotoMimeType(file.type)) return { ok: false, error: "unsupported_type" };
+
+  const path = `${actor.userId}/photo.${PHOTO_TYPES[file.type]}`;
+  const { data: current } = await actor.supabase
+    .from("expert_profiles")
+    .select("photo_path")
+    .eq("expert_id", actor.userId)
+    .maybeSingle();
+
+  const { error: uploadError } = await actor.supabase.storage
+    .from(PHOTO_BUCKET)
+    .upload(path, file, { upsert: true, contentType: file.type });
+  if (uploadError)
+    return reportFailure("expert photo upload failed", uploadError.message, "unexpected");
+
+  const { error: pathError } = await actor.supabase.rpc("set_expert_photo", { path });
+  if (pathError) {
+    // The row was never told about this object, so leaving it would be an unreferenced upload.
+    await actor.supabase.storage.from(PHOTO_BUCKET).remove([path]);
+    return reportFailure("expert photo path write failed", pathError.message, "unexpected");
+  }
+
+  const previous = current?.photo_path;
+  if (previous && previous !== path) {
+    const { error: cleanupError } = await actor.supabase.storage
+      .from(PHOTO_BUCKET)
+      .remove([previous]);
+    if (cleanupError)
+      log.warn("expert photo previous object not removed", {
+        expertId: actor.userId,
+        reason: cleanupError.message,
+      });
+  }
+
+  log.info("expert photo uploaded", { expertId: actor.userId });
+  revalidatePath("/expert/profile");
+  return { ok: true, data: { photoPath: path } };
+}
+
+/**
+ * Removes the calling expert's photo (AC-6). The row is cleared first, so a failed object delete
+ * leaves an unreferenced object rather than a row pointing at nothing; the next upload of the same
+ * type overwrites it. Server action, the expert on their own row.
+ */
+export async function removeExpertPhoto(
+  _previous: PhotoResult | null,
+  _input: unknown,
+): Promise<PhotoResult> {
+  const actor = await requireExpert();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const { data: current } = await actor.supabase
+    .from("expert_profiles")
+    .select("photo_path")
+    .eq("expert_id", actor.userId)
+    .maybeSingle();
+
+  // `set_expert_photo` takes a nullable text and clearing the photo is what null means, but the
+  // type generator cannot express a nullable function argument, so the cast is the one place the
+  // contract in the SQL body outruns the generated signature.
+  const { error } = await actor.supabase.rpc("set_expert_photo", {
+    path: null as unknown as string,
+  });
+  if (error) return reportFailure("expert photo clear failed", error.message, "unexpected");
+
+  if (current?.photo_path) {
+    const { error: removeError } = await actor.supabase.storage
+      .from(PHOTO_BUCKET)
+      .remove([current.photo_path]);
+    if (removeError)
+      log.warn("expert photo object not removed", {
+        expertId: actor.userId,
+        reason: removeError.message,
+      });
+  }
+
+  log.info("expert photo removed", { expertId: actor.userId });
+  revalidatePath("/expert/profile");
+  return { ok: true, data: { photoPath: null } };
 }

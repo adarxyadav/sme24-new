@@ -50,7 +50,8 @@
       "orders": "Orders"
     },
     "expert": {
-      "overview": "Overview"
+      "overview": "Overview",
+      "profile": "Profile"
     },
     "admin": {
       "overview": "Overview",
@@ -2211,7 +2212,9 @@
         "status": "Status",
         "clients": "Clients",
         "invited": "Invited",
-        "competencies": "Competencies"
+        "competencies": "Competencies",
+        "availability": "Availability",
+        "onboarded": "Onboarded"
       },
       "status": {
         "invited": "Invited",
@@ -2221,7 +2224,19 @@
       "empty": {
         "title": "No experts yet",
         "description": "Invited experts appear here once the first invitation goes out."
-      }
+      },
+      "invite": "Invite an expert",
+      "more": "Show more",
+      "none": "—",
+      "filters": {
+        "legend": "Filter",
+        "status": "Status",
+        "all": "All",
+        "apply": "Apply",
+        "reset": "Reset"
+      },
+      "profileHeading": "Profile",
+      "profileDescription": "The same fields the expert edits. Changes here are visible to them at once."
     },
     "assign": {
       "organization": "Client organisation",
@@ -2254,6 +2269,126 @@
         "not_found": "That assignment has already ended.",
         "forbidden": "You may not end assignments.",
         "unexpected": "Something went wrong. Try again in a moment."
+      }
+    },
+    "invite": {
+      "title": "Invite an expert",
+      "lead": "Send an invitation to a senior EHS expert we have checked. They set their own password and describe what they cover.",
+      "breadcrumb": "Experts",
+      "email": "Email address",
+      "emailHint": "The address the invitation goes to. It becomes their sign in.",
+      "fullName": "Full name",
+      "language": "Language",
+      "languageHint": "Every email we send them is written in this language.",
+      "languages": {
+        "de": "German",
+        "en": "English"
+      },
+      "submit": "Send invitation",
+      "sending": "Sending…",
+      "sent": "Invitation sent.",
+      "errors": {
+        "validation": "Please check the fields above.",
+        "email_taken": "An account already uses this address.",
+        "already_invited": "This expert has already been invited.",
+        "invite_failed": "The invitation could not be sent. Please try again.",
+        "forbidden": "You are not allowed to invite experts.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "profile": {
+      "title": "Profile",
+      "lead": "What ops and your clients see about you. Keep it current so we match you to the right work.",
+      "heading": "Your profile",
+      "description": "The headline and summary appear on your clients' dashboard; the rest is used to match you.",
+      "photoHeading": "Photo",
+      "photoDescription": "A portrait clients see beside your name. Optional.",
+      "headline": "Headline",
+      "bio": "Summary",
+      "bioHint": "Up to 800 characters.",
+      "lists": {
+        "competencies": "Assessment competencies",
+        "industries": "Industries",
+        "standards": "Standards and regulations",
+        "languages": "Working languages",
+        "regions": "Cantons"
+      },
+      "availability": "Availability",
+      "availableFrom": "Available from",
+      "availabilityNote": "Availability note",
+      "yearsExperience": "Years of experience",
+      "phone": "Phone",
+      "submit": "Save profile",
+      "saving": "Saving…",
+      "saved": "Profile saved.",
+      "errors": {
+        "validation": "Please check the fields above.",
+        "forbidden": "You are not allowed to change this profile.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "photo": {
+      "label": "Choose a photo",
+      "hint": "JPEG, PNG or WebP, up to 2 MB.",
+      "remove": "Remove photo",
+      "uploaded": "Photo saved.",
+      "removed": "Photo removed.",
+      "errors": {
+        "validation": "Please choose a file.",
+        "too_large": "That file is larger than 2 MB.",
+        "unsupported_type": "Please choose a JPEG, PNG or WebP file.",
+        "forbidden": "You are not allowed to change this photo.",
+        "unexpected": "The photo could not be saved. Please try again."
+      }
+    },
+    "notes": {
+      "heading": "Record check notes",
+      "description": "Internal only. The expert never sees these notes.",
+      "label": "Notes",
+      "hint": "Up to 4000 characters.",
+      "submit": "Save notes",
+      "saving": "Saving…",
+      "saved": "Notes saved.",
+      "errors": {
+        "validation": "Please shorten the notes.",
+        "forbidden": "You are not allowed to edit these notes.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "account": {
+      "heading": "Account",
+      "description": "Resend the invitation, or end and restore this expert's access.",
+      "resend": "Resend invitation",
+      "resending": "Sending…",
+      "resent": "Invitation sent again.",
+      "deactivate": "Deactivate expert",
+      "deactivating": "Deactivating…",
+      "deactivated": "Expert deactivated. {count, plural, =0 {No assignments were open.} one {One assignment was ended.} other {# assignments were ended.}}",
+      "reactivate": "Reactivate expert",
+      "reactivating": "Reactivating…",
+      "reactivated": "Expert reactivated.",
+      "activeHint": "Deactivating ends every open assignment and blocks their sign in.",
+      "inactiveHint": "Reactivating restores their sign in. Past assignments stay ended.",
+      "resendErrors": {
+        "validation": "That expert could not be found.",
+        "not_invited": "This expert has already signed in.",
+        "rate_limited": "Too soon after the last one. Please wait a moment.",
+        "invite_failed": "The invitation could not be sent. Please try again.",
+        "forbidden": "You are not allowed to do this.",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "deactivateErrors": {
+        "validation": "That expert could not be found.",
+        "not_found": "That expert could not be found.",
+        "forbidden": "You are not allowed to do this.",
+        "unexpected": "Something went wrong. Please try again."
+      },
+      "reactivateErrors": {
+        "validation": "That expert could not be found.",
+        "already_active": "This expert is not deactivated.",
+        "not_found": "That expert could not be found.",
+        "forbidden": "You are not allowed to do this.",
+        "unexpected": "Something went wrong. Please try again."
       }
     }
   }

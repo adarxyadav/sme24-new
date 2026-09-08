@@ -29,6 +29,7 @@ export const PATHNAMES = {
   "/app/orders/[id]": { "de-CH": "/app/bestellungen/[id]", "en-CH": "/app/orders/[id]" },
   "/expert": "/expert",
   "/expert/onboarding": "/expert/onboarding",
+  "/expert/profile": { "de-CH": "/expert/profil", "en-CH": "/expert/profile" },
   "/expert/clients/[organizationId]": {
     "de-CH": "/expert/kunden/[organizationId]",
     "en-CH": "/expert/clients/[organizationId]",
@@ -41,6 +42,7 @@ export const PATHNAMES = {
   "/admin/enquiries/[id]": "/admin/enquiries/[id]",
   "/admin/orders": "/admin/orders",
   "/admin/experts": "/admin/experts",
+  "/admin/experts/new": "/admin/experts/new",
   "/admin/experts/[expertId]": "/admin/experts/[expertId]",
 } as const;
 
