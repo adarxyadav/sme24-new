@@ -83,7 +83,7 @@ comment on table public.orders is 'One package purchase. Amounts are whole Rappe
 comment on column public.orders.net_rappen is 'Net price excluding VAT in whole Rappen, copied from packages.price_rappen at purchase.';
 comment on column public.orders.gross_rappen is 'net_rappen + vat_rappen, enforced by the check constraint. What Stripe charges and what the invoice totals.';
 comment on column public.orders.reference is 'SME24-<year>-<counter> from public.order_reference_seq, shown to the client; the invoice carries its own separate gapless number.';
-comment on column public.orders.stripe_checkout_session_id is 'Null until the session is created, which is what the sweep keys on: a pending card order with a null session id never reached Stripe and is expired outright after an hour.';
+comment on column public.orders.stripe_checkout_session_id is 'Null until the session id is stored, which is what the sweep keys on: a pending card order with a null session id has no session the buyer can reach (either none was created, or one was created and its id could not be stored, in which case the payable URL is withheld and the orphan expires at Stripe) and is expired outright after an hour.';
 comment on column public.orders.billing_uid is 'The buyer''s CHE-###.###.### number, optionally suffixed MWST. Frozen billing data, deliberately independent of companies.uid.';
 
 create index orders_organization_id_created_at_idx on public.orders (organization_id, created_at desc);

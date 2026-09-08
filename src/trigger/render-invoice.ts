@@ -42,7 +42,7 @@ export const renderInvoiceTask = schemaTask({
   id: "render-invoice",
   schema: renderInvoicePayloadSchema,
   retry: { maxAttempts: 3 },
-  catchError: async ({ payload, error }) => {
+  onFailure: async ({ payload, error }) => {
     // Retries are exhausted: record it so ops can retry by hand and the client sees an honest
     // message, then let the confirmation email go out without the attachment.
     const env = taskEnv();

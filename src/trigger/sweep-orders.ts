@@ -12,9 +12,11 @@ import { createServiceClient } from "@/lib/supabase/service";
  * It distinguishes two cases by the Stripe session id, which is why the insert ordering in
  * `startCheckout` is fixed:
  *
- * - a `pending` **card** order with a **null** `stripe_checkout_session_id` older than an hour
- *   never reached Stripe (the action crashed between the insert and the session creation), so it
- *   is expired outright: nobody can pay it, because no session exists;
+ * - a `pending` **card** order with a **null** `stripe_checkout_session_id` older than an hour has
+ *   no session the buyer can reach, so it is expired outright. Usually the action crashed before
+ *   the session was created; it may also have created one and failed to store its id, in which
+ *   case `startCheckout` withholds the payable URL and the orphaned session expires at Stripe on
+ *   its own. Either way nobody holds a link to this order, so expiring it races nothing;
  * - one **with** a session id is left alone. Stripe's own session lifetime governs it and
  *   `checkout.session.expired` is what closes it, so expiring it here would race a payment that
  *   is still legitimately in flight.
@@ -23,7 +25,7 @@ import { createServiceClient } from "@/lib/supabase/service";
  * it will not be paid.
  */
 
-/** A pending card order with no Stripe session older than this never reached Stripe (AC-6). */
+/** A pending card order with no stored session older than this has no reachable session (AC-6). */
 export const STALE_UNSTARTED_MINUTES = 60;
 
 export const sweepOrdersTask = schedules.task({
@@ -49,8 +51,8 @@ export const sweepOrdersTask = schedules.task({
 
     let expired = 0;
     for (const order of stale) {
-      // Guarded on the current status and the null session, so an order that reached Stripe
-      // between the read and the write is left alone.
+      // Guarded on the current status and the null session, so an order whose session id was
+      // stored between the read and the write is left alone.
       const { data, error: updateError } = await supabase
         .from("orders")
         .update({ status: "expired", expires_at: new Date().toISOString() })
@@ -74,7 +76,7 @@ export const sweepOrdersTask = schedules.task({
         from_status: "pending",
         to_status: "expired",
         actor_role: "service",
-        reason: "The checkout never reached Stripe and was expired by the sweep.",
+        reason: "The checkout had no reachable Stripe session and was expired by the sweep.",
       });
       expired += 1;
     }
