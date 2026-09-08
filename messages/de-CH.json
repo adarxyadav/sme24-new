@@ -2656,5 +2656,20 @@
         "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
       }
     }
+  },
+  "legal": {
+    "consent": {
+      "title": "Cookies und Analyse",
+      "body": "Wir setzen ein Analysewerkzeug ein, um zu verstehen, wie die Website genutzt wird. Es lädt erst, wenn Sie zustimmen. <link>Was wir speichern</link>.",
+      "accept": "Zustimmen",
+      "reject": "Ablehnen",
+      "current": {
+        "granted": "Sie haben der Analyse zugestimmt.",
+        "denied": "Sie haben die Analyse abgelehnt.",
+        "none": "Sie haben noch nicht geantwortet."
+      },
+      "change": "Auswahl ändern",
+      "changed": "Ihre Auswahl wurde gespeichert."
+    }
   }
 }

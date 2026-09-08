@@ -2656,5 +2656,20 @@
         "unexpected": "Something went wrong. Please try again."
       }
     }
+  },
+  "legal": {
+    "consent": {
+      "title": "Cookies and analytics",
+      "body": "We use one analytics tool to understand how the site is used. It loads only if you agree. <link>What we store</link>.",
+      "accept": "Accept",
+      "reject": "Reject",
+      "current": {
+        "granted": "You accepted analytics.",
+        "denied": "You rejected analytics.",
+        "none": "You have not answered yet."
+      },
+      "change": "Change your choice",
+      "changed": "Your choice is saved."
+    }
   }
 }
