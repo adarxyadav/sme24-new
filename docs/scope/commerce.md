@@ -33,8 +33,8 @@ spec [0014](../specs/0014-ops-admin-orders-scheduling/index.md)
   - [x] The `assessment_scheduled` email on the existing rail: schema entry, component, registry entry, keys in both catalogs and a preview (AC-9)
   - [x] Ops surfaces: `/admin/companies` with keyset paging and `/admin/companies/[companyId]` with the research, KPI, snapshot, organization and order blocks, plus the real `/admin` overview replacing the scaffold demo, then Vitest, the Playwright ops thread and axe (AC-1, AC-2, AC-11, AC-13)
 - [x] Verify it: `/check verify ops admin`
-- [ ] Test it: `/test ops admin`
-- [ ] Review it (fresh model): `/check review ops admin`
+- [x] Test it: `/test ops admin`
+- [x] Review it (fresh model): `/check review ops admin` · `docs/reviews/2026-09-09-feat-ops-admin.md`, Approve with nits; one major (the Combobox `aria-describedby` gap)
 - [ ] Document it: `/document ops admin`
 
 ## Slice 8: Thicken the accounts
