@@ -2101,6 +2101,49 @@
         "invalid_transition": "Someone else changed this order. Reload the list and try again.",
         "unexpected": "The assessment could not be scheduled. Try again."
       }
+    },
+    "delivery": {
+      "advance": {
+        "in_progress": "Start",
+        "delivered": "Mark delivered"
+      },
+      "advancing": "Saving…",
+      "advanced": "The order has moved on.",
+      "correct": {
+        "open": "Change",
+        "title": "Change the date or the assessor",
+        "description": "Correct the agreed date and the assessor on order {reference}. The status does not change.",
+        "date": "Date and time",
+        "dateHintFuture": "Swiss time (Europe/Zurich). The date must be in the future.",
+        "dateHintPast": "Swiss time (Europe/Zurich). A past date is allowed here, so a visit can be recorded after the fact.",
+        "expert": "Assessor",
+        "expertPlaceholder": "Choose an assessor",
+        "expertSearch": "Search by name",
+        "noExperts": "No active assessor matches.",
+        "unnamed": "Unnamed assessor",
+        "expertHint": "A different assessor gets access to this client, and the previous one loses it unless another booking still names them.",
+        "submit": "Save the change",
+        "saving": "Saving…"
+      },
+      "corrected": "The booking is updated.",
+      "release": {
+        "open": "Unschedule",
+        "title": "Unschedule the assessment",
+        "description": "Release order {reference} back to paid? The date and the assessor are cleared.",
+        "note": "The assessor keeps access to this client until you end the assignment yourself.",
+        "confirm": "Unschedule",
+        "releasing": "Unscheduling…"
+      },
+      "released": "The order is back to paid.",
+      "errors": {
+        "forbidden": "You are not allowed to change this order.",
+        "validation": "Check the date and the assessor.",
+        "not_found": "This order no longer exists.",
+        "not_scheduled": "This order is not booked, so there is nothing to change.",
+        "expert_not_assignable": "That assessor is no longer active. Choose another.",
+        "invalid_transition": "Someone else changed this order. Reload the list and try again.",
+        "unexpected": "The change could not be saved. Try again."
+      }
     }
   },
   "experts": {

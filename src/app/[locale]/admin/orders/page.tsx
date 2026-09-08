@@ -18,6 +18,8 @@ import { rappenToChf } from "@/features/checkout/money";
 import { listAllOrders } from "@/features/checkout/queries";
 import { OrderActions } from "@/features/checkout/ui/order-actions";
 import { expertNames, listAssignableExperts } from "@/features/ops-admin/queries";
+import { formatZurichWallClock } from "@/features/ops-admin/schema";
+import { DeliveryActions } from "@/features/ops-admin/ui/delivery-actions";
 import { ScheduleDialog } from "@/features/ops-admin/ui/schedule-dialog";
 import { clientMessages } from "@/i18n/client-messages";
 import { Link } from "@/i18n/navigation";
@@ -153,6 +155,18 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                               experts={assignableExperts}
                             />
                           ) : null}
+                          <DeliveryActions
+                            orderId={order.id}
+                            reference={order.reference}
+                            status={order.status}
+                            scheduledAt={
+                              order.scheduled_at
+                                ? formatZurichWallClock(new Date(order.scheduled_at))
+                                : null
+                            }
+                            assignedExpertId={order.assigned_expert_id}
+                            experts={assignableExperts}
+                          />
                           <OrderActions
                             orderId={order.id}
                             reference={order.reference}

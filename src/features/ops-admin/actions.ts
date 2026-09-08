@@ -11,7 +11,12 @@ import { createActionClient } from "@/lib/supabase/action";
 import { createServiceClient } from "@/lib/supabase/service";
 import { parseWith } from "@/lib/validation";
 import { classifyScheduleError } from "./errors";
-import { scheduleOrderSchema } from "./schema";
+import {
+  orderDeliveryStateSchema,
+  rescheduleOrderSchema,
+  scheduleOrderSchema,
+  unscheduleOrderSchema,
+} from "./schema";
 
 /**
  * The ops admin actions (spec 0014). Every one authorises the caller here, not only in the proxy:
@@ -150,7 +155,7 @@ async function ensureAssignment(
   actor: { readonly userId: string; readonly service: ReturnType<typeof createServiceClient> },
   organizationId: string,
   expertId: string,
-): Promise<{ ok: true } | { ok: false; error: ScheduleOrderError }> {
+): Promise<{ ok: true } | { ok: false; error: "expert_not_assignable" | "unexpected" }> {
   const { data: existing, error: readError } = await actor.service
     .from("expert_assignments")
     .select("id")
@@ -180,7 +185,11 @@ async function ensureAssignment(
   // Another ops user inserting the same pair a moment earlier hits the active unique index; the
   // access exists either way, which is all this step was for.
   if (error.code === "23505") return { ok: true };
-  const classified = classifyScheduleError(error);
+  // Only `expert_not_active` is expected here; the order's own edges cannot raise on this insert.
+  const classified =
+    classifyScheduleError(error) === "expert_not_assignable"
+      ? "expert_not_assignable"
+      : "unexpected";
   if (classified === "unexpected") {
     Sentry.captureException(error);
     log.error("schedule order: the assignment could not be written", {
@@ -190,4 +199,320 @@ async function ensureAssignment(
     });
   }
   return { ok: false, error: classified };
+}
+
+/** The states a booked order can be corrected in, and the ones that keep an expert's access. */
+const LIVE_DELIVERY_STATES = ["scheduled", "in_progress", "delivered"] as const;
+
+export type RescheduleOrderError =
+  | "forbidden"
+  | "validation"
+  | "not_found"
+  | "not_scheduled"
+  | "expert_not_assignable"
+  | "invalid_transition"
+  | "unexpected";
+
+export type RescheduleOrderResult = { ok: true } | { ok: false; error: RescheduleOrderError };
+
+/**
+ * Ops correct the date or the assessor on an order already booked (AC-7a), without moving its
+ * status. The status is deliberately untouched, so `orders_check_transition` never fires and the
+ * second trigger, `orders_check_delivery_columns`, is the guard: it keeps invariant 1 on this path
+ * and drops the future date check, because a visit recorded after the fact is legitimately past.
+ *
+ * A correction naming a different expert grants the new one access and then ends the superseded
+ * one's, unless another live order of the same organization still names them (invariant 4), so
+ * access neither accumulates silently nor is pulled from under an expert with work left to do.
+ * The new grant is written first, for the reason `scheduleOrder` writes it first.
+ * Server action, ops only.
+ */
+export async function rescheduleOrder(
+  _previous: RescheduleOrderResult | null,
+  input: unknown,
+): Promise<RescheduleOrderResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(rescheduleOrderSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { orderId, scheduledAt, expertId } = parsed.data;
+
+  const { data: order, error: readError } = await actor.service
+    .from("orders")
+    .select("id, status, organization_id, assigned_expert_id")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (readError) {
+    Sentry.captureException(readError);
+    log.error("reschedule order: the order could not be read", {
+      orderId,
+      message: readError.message,
+    });
+    return { ok: false, error: "unexpected" };
+  }
+  if (!order) return { ok: false, error: "not_found" };
+  if (!isLiveDeliveryState(order.status)) return { ok: false, error: "not_scheduled" };
+
+  const previousExpertId = order.assigned_expert_id;
+  if (previousExpertId !== expertId) {
+    const assigned = await ensureAssignment(actor, order.organization_id, expertId);
+    if (!assigned.ok) return { ok: false, error: assigned.error };
+  }
+
+  const { data: updated, error: writeError } = await actor.service
+    .from("orders")
+    .update({
+      scheduled_at: scheduledAt.toISOString(),
+      assigned_expert_id: expertId,
+      scheduled_by: actor.userId,
+    })
+    .eq("id", orderId)
+    // Guarded on the states the read saw, so a concurrent unschedule or delivery is not overwritten.
+    .in("status", [...LIVE_DELIVERY_STATES])
+    .select("id")
+    .maybeSingle();
+  if (writeError) {
+    const classified = classifyScheduleError(writeError);
+    if (classified === "unexpected") {
+      Sentry.captureException(writeError);
+      log.error("reschedule order failed", { orderId, message: writeError.message });
+    }
+    return {
+      ok: false,
+      error:
+        classified === "invalid_transition" || classified === "expert_not_assignable"
+          ? classified
+          : "unexpected",
+    };
+  }
+  if (!updated) return { ok: false, error: "invalid_transition" };
+
+  if (previousExpertId && previousExpertId !== expertId) {
+    await endSupersededAssignment(actor, order.organization_id, previousExpertId);
+  }
+
+  log.info("ops rescheduled an order", {
+    orderId,
+    expertId,
+    previousExpertId,
+    scheduledAt: scheduledAt.toISOString(),
+    actorId: actor.userId,
+  });
+  revalidatePath("/admin/orders");
+  revalidatePath("/app");
+  return { ok: true };
+}
+
+export type UnscheduleOrderError =
+  | "forbidden"
+  | "validation"
+  | "not_found"
+  | "not_scheduled"
+  | "invalid_transition"
+  | "unexpected";
+
+export type UnscheduleOrderResult = { ok: true } | { ok: false; error: UnscheduleOrderError };
+
+/**
+ * Ops release a booked order back to `paid` (AC-7): the date and the assessor are cleared in the
+ * same statement the status moves, which is what the unschedule edge requires so a `paid` order
+ * never carries a stale date.
+ *
+ * The `expert_assignments` row is deliberately left active. The expert may still legitimately hold
+ * access to that organization, and spec 0014 calls that standing grant the safer default; ending
+ * it is ops work, not a side effect of freeing a date. Server action, ops only.
+ */
+export async function unscheduleOrder(
+  _previous: UnscheduleOrderResult | null,
+  input: unknown,
+): Promise<UnscheduleOrderResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(unscheduleOrderSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { orderId } = parsed.data;
+
+  const { data: order, error: readError } = await actor.service
+    .from("orders")
+    .select("id, status")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (readError) {
+    Sentry.captureException(readError);
+    log.error("unschedule order: the order could not be read", {
+      orderId,
+      message: readError.message,
+    });
+    return { ok: false, error: "unexpected" };
+  }
+  if (!order) return { ok: false, error: "not_found" };
+  // Only a scheduled order can be released: an in_progress or delivered one has work behind it.
+  if (order.status !== "scheduled") return { ok: false, error: "not_scheduled" };
+
+  const { data: updated, error: writeError } = await actor.service
+    .from("orders")
+    .update({ status: "paid", scheduled_at: null, assigned_expert_id: null })
+    .eq("id", orderId)
+    .eq("status", "scheduled")
+    .select("id")
+    .maybeSingle();
+  if (writeError) {
+    const classified = classifyScheduleError(writeError);
+    if (classified === "unexpected") {
+      Sentry.captureException(writeError);
+      log.error("unschedule order failed", { orderId, message: writeError.message });
+    }
+    return { ok: false, error: classified === "invalid_transition" ? classified : "unexpected" };
+  }
+  if (!updated) return { ok: false, error: "invalid_transition" };
+
+  log.info("ops unscheduled an order", { orderId, actorId: actor.userId });
+  revalidatePath("/admin/orders");
+  revalidatePath("/app");
+  return { ok: true };
+}
+
+export type OrderDeliveryStateError =
+  | "forbidden"
+  | "validation"
+  | "not_found"
+  | "invalid_transition"
+  | "unexpected";
+
+export type OrderDeliveryStateResult = { ok: true } | { ok: false; error: OrderDeliveryStateError };
+
+/**
+ * Ops move a booked order along the delivery states (AC-6): `scheduled -> in_progress`, and
+ * `in_progress -> delivered`, which stamps `delivered_at`. Every other transition raises in the
+ * transition trigger and is reported as `invalid_transition`, so the app never decides which edges
+ * exist; it only offers the two the row is standing on.
+ *
+ * `delivered_at` is taken in the action rather than the trigger, because the trigger only asserts
+ * the column is set, per the Value sourcing table. Server action, ops only.
+ */
+export async function setOrderDeliveryState(
+  _previous: OrderDeliveryStateResult | null,
+  input: unknown,
+): Promise<OrderDeliveryStateResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(orderDeliveryStateSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { orderId, next } = parsed.data;
+  const from = next === "in_progress" ? "scheduled" : "in_progress";
+
+  const { data: order, error: readError } = await actor.service
+    .from("orders")
+    .select("id, status")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (readError) {
+    Sentry.captureException(readError);
+    log.error("order delivery state: the order could not be read", {
+      orderId,
+      message: readError.message,
+    });
+    return { ok: false, error: "unexpected" };
+  }
+  if (!order) return { ok: false, error: "not_found" };
+  if (order.status !== from) return { ok: false, error: "invalid_transition" };
+
+  const { data: updated, error: writeError } = await actor.service
+    .from("orders")
+    .update(
+      next === "delivered"
+        ? { status: next, delivered_at: new Date().toISOString() }
+        : { status: next },
+    )
+    .eq("id", orderId)
+    // Guarded on the state the read saw, so two ops advancing at once give one success and one
+    // invalid_transition rather than a silent double move.
+    .eq("status", from)
+    .select("id")
+    .maybeSingle();
+  if (writeError) {
+    const classified = classifyScheduleError(writeError);
+    if (classified === "unexpected") {
+      Sentry.captureException(writeError);
+      log.error("order delivery state failed", { orderId, next, message: writeError.message });
+    }
+    return {
+      ok: false,
+      error: classified === "invalid_transition" ? classified : "unexpected",
+    };
+  }
+  if (!updated) return { ok: false, error: "invalid_transition" };
+
+  log.info("ops moved an order's delivery state", { orderId, next, actorId: actor.userId });
+  revalidatePath("/admin/orders");
+  revalidatePath("/app");
+  return { ok: true };
+}
+
+/** Whether a status is one of the three states a booked order can be corrected in. Pure. */
+function isLiveDeliveryState(status: string): boolean {
+  return (LIVE_DELIVERY_STATES as readonly string[]).includes(status);
+}
+
+/**
+ * Ends the superseded expert's access to this organization after a re assignment, unless another
+ * order of the same organization in a live delivery state still names them (invariant 4). A read
+ * then a write, rather than one statement, because the deciding fact lives in `orders` and the
+ * write lands in `expert_assignments`.
+ *
+ * A failure here is logged rather than returned: the correction itself is already committed and
+ * the caller has nothing to undo, so reporting it as a failed reschedule would be a lie. The
+ * standing grant it leaves behind is the same one unscheduling leaves on purpose.
+ * Server action helper.
+ */
+async function endSupersededAssignment(
+  actor: { readonly userId: string; readonly service: ReturnType<typeof createServiceClient> },
+  organizationId: string,
+  expertId: string,
+): Promise<void> {
+  const { data: stillBooked, error: readError } = await actor.service
+    .from("orders")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .eq("assigned_expert_id", expertId)
+    .in("status", [...LIVE_DELIVERY_STATES])
+    .limit(1)
+    .maybeSingle();
+  if (readError) {
+    Sentry.captureException(readError);
+    log.error("reschedule order: the superseded expert's other orders could not be read", {
+      organizationId,
+      expertId,
+      message: readError.message,
+    });
+    return;
+  }
+  if (stillBooked) return;
+
+  const { error } = await actor.service
+    .from("expert_assignments")
+    .update({ status: "ended" })
+    .eq("organization_id", organizationId)
+    .eq("expert_id", expertId)
+    .eq("status", "active");
+  if (error) {
+    Sentry.captureException(error);
+    log.error("reschedule order: the superseded assignment could not be ended", {
+      organizationId,
+      expertId,
+      message: error.message,
+    });
+    return;
+  }
+  log.info("ops ended a superseded expert assignment", {
+    organizationId,
+    expertId,
+    actorId: actor.userId,
+  });
 }
