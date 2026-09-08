@@ -59,6 +59,7 @@
       "emails": "E-Mails",
       "enquiries": "Anfragen",
       "orders": "Bestellungen",
+      "companies": "Firmen",
       "experts": "Expertinnen und Experten"
     }
   },
@@ -2155,6 +2156,116 @@
         "invalid_transition": "Jemand hat diese Bestellung geändert. Laden Sie die Liste neu.",
         "unexpected": "Die Änderung konnte nicht gespeichert werden. Versuchen Sie es erneut."
       }
+    }
+  },
+  "adminCompanies": {
+    "title": "Firmen",
+    "description": "Jede beurteilte Firma, ihre Recherche und ihre Bestellungen.",
+    "detailTitle": "Firma",
+    "emptyTitle": "Noch keine Firmen",
+    "emptyBody": "Eine Firma erscheint hier, sobald eine Kundin oder ein Kunde eine erfasst.",
+    "more": "Mehr anzeigen",
+    "none": "Keine",
+    "unnamed": "Ohne Namen",
+    "archived": "Archiviert",
+    "columns": {
+      "name": "Firma",
+      "organization": "Kundschaft",
+      "canton": "Kanton",
+      "employees": "Mitarbeitende",
+      "research": "Recherche",
+      "created": "Erfasst"
+    },
+    "noRun": "Noch keine Recherche",
+    "sections": {
+      "facts": "Firmenangaben",
+      "organization": "Kundschaft",
+      "members": "Personen",
+      "research": "Rechercheläufe",
+      "kpis": "Kennzahlen",
+      "benchmark": "Benchmark",
+      "orders": "Bestellungen"
+    },
+    "facts": {
+      "name": "Name",
+      "legalName": "Rechtlicher Name",
+      "uid": "UID",
+      "website": "Website",
+      "industry": "Branchencode",
+      "employees": "Mitarbeitende",
+      "canton": "Kanton",
+      "country": "Land",
+      "created": "Erfasst",
+      "updated": "Letzte Änderung",
+      "archived": "Archiviert",
+      "id": "ID"
+    },
+    "organization": {
+      "name": "Name",
+      "language": "Sprache",
+      "created": "Erstellt",
+      "archived": "Archiviert",
+      "id": "ID"
+    },
+    "members": {
+      "name": "Name",
+      "role": "Rolle",
+      "language": "Sprache",
+      "empty": "Diese Kundschaft hat keine Mitglieder."
+    },
+    "roles": {
+      "owner": "Inhaberin oder Inhaber",
+      "member": "Mitglied"
+    },
+    "research": {
+      "status": "Status",
+      "started": "Gestartet",
+      "finished": "Beendet",
+      "providerRunId": "Anbieterlauf",
+      "error": "Fehler",
+      "empty": "Für diese Firma wurde noch nie recherchiert."
+    },
+    "kpis": {
+      "key": "Kennzahl",
+      "year": "Jahr",
+      "value": "Wert",
+      "source": "Quelle",
+      "confidence": "Zuverlässigkeit",
+      "empty": "Noch keine Kennzahlen.",
+      "note": "Der massgebende Wert pro Kennzahl und Jahr: die eigene Eingabe der Kundschaft, sonst der neueste Recherchewert.",
+      "against": "Aus Recherchelauf {reference}, beendet am {date}."
+    },
+    "sources": {
+      "research": "Recherche",
+      "client": "Kundschaft"
+    },
+    "benchmark": {
+      "empty": "Für diese Firma wurde noch kein Benchmark berechnet.",
+      "computed": "Berechnet",
+      "modelVersion": "Modellversion",
+      "trigger": "Ausgelöst durch",
+      "kpisCompared": "Verglichene Kennzahlen",
+      "provisional": "Provisorische Vergleichsdaten",
+      "cost": "Geschätzte Jahreskosten",
+      "savingMedian": "Einsparung beim Median",
+      "savingTop": "Einsparung beim obersten Viertel",
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "triggers": {
+      "research": "Recherche",
+      "client_edit": "Änderung Kundschaft",
+      "recompute": "Neuberechnung"
+    },
+    "orders": {
+      "reference": "Referenz",
+      "package": "Paket",
+      "amount": "Betrag",
+      "status": "Status",
+      "scheduled": "Beurteilung",
+      "created": "Bestellt",
+      "empty": "Diese Kundschaft hat noch nichts bestellt.",
+      "notScheduled": "Nicht geplant"
     }
   },
   "experts": {

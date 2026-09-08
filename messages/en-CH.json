@@ -59,6 +59,7 @@
       "emails": "Emails",
       "enquiries": "Enquiries",
       "orders": "Orders",
+      "companies": "Companies",
       "experts": "Experts"
     }
   },
@@ -2155,6 +2156,116 @@
         "invalid_transition": "Someone else changed this order. Reload the list and try again.",
         "unexpected": "The change could not be saved. Try again."
       }
+    }
+  },
+  "adminCompanies": {
+    "title": "Companies",
+    "description": "Every assessed company, its research and its orders.",
+    "detailTitle": "Company",
+    "emptyTitle": "No companies yet",
+    "emptyBody": "A company appears here once a client adds one.",
+    "more": "Show more",
+    "none": "None",
+    "unnamed": "Unnamed",
+    "archived": "Archived",
+    "columns": {
+      "name": "Company",
+      "organization": "Client",
+      "canton": "Canton",
+      "employees": "Employees",
+      "research": "Research",
+      "created": "Added"
+    },
+    "noRun": "No research yet",
+    "sections": {
+      "facts": "Company facts",
+      "organization": "Client",
+      "members": "People",
+      "research": "Research runs",
+      "kpis": "Figures",
+      "benchmark": "Benchmark",
+      "orders": "Orders"
+    },
+    "facts": {
+      "name": "Name",
+      "legalName": "Legal name",
+      "uid": "UID",
+      "website": "Website",
+      "industry": "Industry code",
+      "employees": "Employees",
+      "canton": "Canton",
+      "country": "Country",
+      "created": "Added",
+      "updated": "Last change",
+      "archived": "Archived",
+      "id": "ID"
+    },
+    "organization": {
+      "name": "Name",
+      "language": "Language",
+      "created": "Created",
+      "archived": "Archived",
+      "id": "ID"
+    },
+    "members": {
+      "name": "Name",
+      "role": "Role",
+      "language": "Language",
+      "empty": "This client has no members."
+    },
+    "roles": {
+      "owner": "Owner",
+      "member": "Member"
+    },
+    "research": {
+      "status": "Status",
+      "started": "Started",
+      "finished": "Finished",
+      "providerRunId": "Provider run",
+      "error": "Error",
+      "empty": "This company has never been researched."
+    },
+    "kpis": {
+      "key": "Figure",
+      "year": "Year",
+      "value": "Value",
+      "source": "Source",
+      "confidence": "Confidence",
+      "empty": "No figures yet.",
+      "note": "The effective value per figure and year: the client's own entry when there is one, otherwise the newest research value.",
+      "against": "From research run {reference}, finished {date}."
+    },
+    "sources": {
+      "research": "Research",
+      "client": "Client"
+    },
+    "benchmark": {
+      "empty": "No benchmark has been computed for this company yet.",
+      "computed": "Computed",
+      "modelVersion": "Model version",
+      "trigger": "Triggered by",
+      "kpisCompared": "Figures compared",
+      "provisional": "Provisional peer data",
+      "cost": "Estimated annual cost",
+      "savingMedian": "Saving at the median",
+      "savingTop": "Saving at the top quarter",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "triggers": {
+      "research": "Research",
+      "client_edit": "Client edit",
+      "recompute": "Recompute"
+    },
+    "orders": {
+      "reference": "Reference",
+      "package": "Package",
+      "amount": "Amount",
+      "status": "Status",
+      "scheduled": "Assessment",
+      "created": "Placed",
+      "empty": "This client has not placed an order yet.",
+      "notScheduled": "Not scheduled"
     }
   },
   "experts": {

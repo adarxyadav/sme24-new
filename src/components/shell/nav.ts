@@ -1,4 +1,5 @@
 import {
+  Building2Icon,
   InboxIcon,
   LayoutDashboardIcon,
   type LucideIcon,
@@ -43,6 +44,7 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
     { href: "/admin/emails", labelKey: "admin.emails", icon: MailIcon },
     { href: "/admin/enquiries", labelKey: "admin.enquiries", icon: InboxIcon },
     { href: "/admin/orders", labelKey: "admin.orders", icon: ReceiptIcon },
+    { href: "/admin/companies", labelKey: "admin.companies", icon: Building2Icon },
     { href: "/admin/experts", labelKey: "admin.experts", icon: UsersIcon },
     { href: "/admin/design", labelKey: "admin.design", icon: PaletteIcon },
   ],
