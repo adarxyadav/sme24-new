@@ -1325,6 +1325,17 @@
       "headline": "Schwerpunkt: {headline}",
       "nextStep": "Im Kundenbereich sehen Sie das vollständige Profil mit Kompetenzen, Branchen und Sprachen. Wir melden uns, um den Termin für die Vor-Ort-Beurteilung zu vereinbaren.",
       "button": "Zum Kundenbereich"
+    },
+    "assessment_scheduled": {
+      "subject": "Ihre Vor-Ort-Beurteilung ist terminiert",
+      "preview": "Termin und beurteilende Person stehen fest. Details im Kundenbereich.",
+      "greeting": "Guten Tag {firstName}",
+      "greetingNeutral": "Guten Tag",
+      "intro": "Die Vor-Ort-Beurteilung für {packageName} ist terminiert.",
+      "appointment": "Termin: {scheduledAt}. Ihre Beurteilerin oder Ihr Beurteiler: {expertName}.",
+      "prepare": "Bitte stellen Sie sicher, dass die für Sicherheit und Gesundheit verantwortlichen Personen verfügbar sind, und halten Sie Ihre bestehende Dokumentation bereit.",
+      "nextStep": "Im Kundenbereich sehen Sie Termin und zuständige Person jederzeit. Passt der Termin nicht, antworten Sie einfach auf diese E-Mail.",
+      "button": "Zum Kundenbereich"
     }
   },
   "emails": {

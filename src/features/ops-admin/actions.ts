@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { resolveLocale } from "@/i18n/routing";
 import { roleFromClaims } from "@/lib/auth/roles";
+import { ORDER_SCHEDULED_EVENT } from "@/lib/email/schema";
+import { sendEmail } from "@/lib/email/send";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
@@ -68,8 +70,9 @@ async function requireOps() {
  * The order write is guarded on `status = 'paid'`, so a race with another ops user changes
  * nothing: one succeeds and the other reads no row and is told `invalid_transition`.
  *
- * The `assessment_scheduled` email is milestone 4 of the build plan and is not sent here yet.
- * Server action, ops only.
+ * The `assessment_scheduled` email goes to every member of the client organization once the order
+ * has moved, never before: an email announcing a date that a refused write never wrote would be
+ * the one failure the client cannot undo. Server action, ops only.
  */
 export async function scheduleOrder(
   _previous: ScheduleOrderResult | null,
@@ -90,7 +93,7 @@ export async function scheduleOrder(
 
   const { data: order, error: readError } = await actor.service
     .from("orders")
-    .select("id, status, organization_id")
+    .select("id, status, organization_id, package_name_snapshot")
     .eq("id", orderId)
     .maybeSingle();
   if (readError) {
@@ -130,6 +133,14 @@ export async function scheduleOrder(
   }
   // No row came back: another ops user moved the order between the read and the write.
   if (!updated) return { ok: false, error: "invalid_transition" };
+
+  await announceSchedule(actor.service, {
+    orderId,
+    organizationId: order.organization_id,
+    packageName: order.package_name_snapshot,
+    expertId,
+    scheduledAt,
+  });
 
   log.info("ops scheduled an order", {
     orderId,
@@ -199,6 +210,63 @@ async function ensureAssignment(
     });
   }
   return { ok: false, error: classified };
+}
+
+/**
+ * The `assessment_scheduled` email to every member of the client organization (AC-9). The members
+ * and the expert's name are read with the service client, after the ops check in the caller,
+ * because `organization_members` is a tenant table the ops role does not read through RLS.
+ *
+ * The date travels as the stored instant, not as a formatted string: `sendEmail` renders one
+ * delivery per recipient in that recipient's own stored language, and the template is the single
+ * place that turns the instant into Swiss local time (spec 0014, Value sourcing).
+ *
+ * The order is already booked by the time this runs, so nothing here fails the action: a missing
+ * expert name or an unreachable Trigger.dev is logged and the schedule stands. The key carries the
+ * order and the member, so rescheduling the same order later is a new send rather than a
+ * deduplicated one. Server action helper.
+ */
+async function announceSchedule(
+  service: ReturnType<typeof createServiceClient>,
+  booking: {
+    readonly orderId: string;
+    readonly organizationId: string;
+    readonly packageName: string;
+    readonly expertId: string;
+    readonly scheduledAt: Date;
+  },
+): Promise<void> {
+  const [{ data: expert }, { data: members }] = await Promise.all([
+    service.from("profiles").select("full_name").eq("id", booking.expertId).maybeSingle(),
+    service
+      .from("organization_members")
+      .select("user_id")
+      .eq("organization_id", booking.organizationId),
+  ]);
+
+  const expertName = expert?.full_name?.trim();
+  if (!expertName) {
+    log.warn("assessment scheduled emails skipped: the expert has no name", {
+      orderId: booking.orderId,
+      expertId: booking.expertId,
+    });
+    return;
+  }
+
+  for (const member of members ?? []) {
+    await sendEmail({
+      template: "assessment_scheduled",
+      data: {
+        scheduledAt: booking.scheduledAt.toISOString(),
+        expertName,
+        packageName: booking.packageName,
+      },
+      recipient: { userId: member.user_id },
+      sourceEvent: ORDER_SCHEDULED_EVENT,
+      organizationId: booking.organizationId,
+      idempotencyKey: `assessment-scheduled/${booking.orderId}/${member.user_id}`,
+    });
+  }
 }
 
 /** The states a booked order can be corrected in, and the ones that keep an expert's access. */

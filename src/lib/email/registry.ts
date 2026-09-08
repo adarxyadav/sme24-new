@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import type { z } from "zod";
 import {
+  assessmentScheduledDataSchema,
   assignmentReceivedDataSchema,
   benchmarkReadyDataSchema,
   type EmailTemplateName,
@@ -10,6 +11,7 @@ import {
   orderConfirmedDataSchema,
   welcomeDataSchema,
 } from "./schema";
+import { AssessmentScheduledEmail } from "./templates/assessment-scheduled";
 import { AssignmentReceivedEmail } from "./templates/assignment-received";
 import { BenchmarkReadyEmail } from "./templates/benchmark-ready";
 import { EnquiryReceivedEmail } from "./templates/enquiry-received";
@@ -90,6 +92,14 @@ export const EMAIL_TEMPLATES = {
     link: "/app",
     notify: true,
     Component: ExpertAssignedEmail,
+  }),
+  // The dashboard is where the same date and expert card shows, so the button points there rather
+  // than at the order list; the body already carries what the client needs to read (spec 0014).
+  assessment_scheduled: defineTemplate({
+    schema: assessmentScheduledDataSchema,
+    link: "/app",
+    notify: true,
+    Component: AssessmentScheduledEmail,
   }),
 } as const satisfies Record<EmailTemplateName, unknown>;
 

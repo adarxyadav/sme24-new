@@ -15,6 +15,7 @@ export const EMAIL_TEMPLATE_NAMES = [
   "expert_welcome",
   "assignment_received",
   "expert_assigned",
+  "assessment_scheduled",
 ] as const;
 export type EmailTemplateName = (typeof EMAIL_TEMPLATE_NAMES)[number];
 
@@ -99,6 +100,19 @@ export const expertAssignedDataSchema = templateDataBaseSchema.extend({
 });
 export type ExpertAssignedData = z.infer<typeof expertAssignedDataSchema>;
 
+/**
+ * `assessment_scheduled` (spec 0014, AC-9): sent to every member of the client organization when
+ * ops book the on site assessment. `scheduledAt` is the stored instant as ISO 8601, never a
+ * pre formatted string, because the same payload is rendered once per recipient language and the
+ * template is the one place that turns it into Swiss local time.
+ */
+export const assessmentScheduledDataSchema = templateDataBaseSchema.extend({
+  scheduledAt: z.iso.datetime({ offset: true }),
+  expertName: z.string().trim().min(1).max(200),
+  packageName: z.string().trim().min(1).max(200),
+});
+export type AssessmentScheduledData = z.infer<typeof assessmentScheduledDataSchema>;
+
 /** A known user (address and language resolved by the task) or a raw address with its language. */
 export const emailRecipientSchema = z.union([
   z.object({ userId: z.uuid() }),
@@ -160,3 +174,6 @@ export const EXPERT_ONBOARDED_EVENT = "expert.onboarded";
 
 /** The source event of both assignment emails, so ops see the pair on one filter (spec 0013, AC-14). */
 export const EXPERT_ASSIGNED_EVENT = "expert.assigned";
+
+/** The source event of the assessment scheduled email (spec 0014, AC-9). */
+export const ORDER_SCHEDULED_EVENT = "order.scheduled";

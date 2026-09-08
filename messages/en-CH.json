@@ -1325,6 +1325,17 @@
       "headline": "Focus: {headline}",
       "nextStep": "The client area shows the full profile with competencies, industries and languages. We will be in touch to agree the date for the on site assessment.",
       "button": "Open the client area"
+    },
+    "assessment_scheduled": {
+      "subject": "Your on site assessment is booked",
+      "preview": "The date and your assessor are confirmed. See the details in the client area.",
+      "greeting": "Hello {firstName}",
+      "greetingNeutral": "Hello",
+      "intro": "The on site assessment for {packageName} is booked.",
+      "appointment": "Date: {scheduledAt}. Your assessor: {expertName}.",
+      "prepare": "Please make sure the people responsible for safety and health are available, and have your existing documentation to hand.",
+      "nextStep": "The client area shows the date and your assessor at any time. If the date does not suit you, simply reply to this email.",
+      "button": "Open the client area"
     }
   },
   "emails": {
