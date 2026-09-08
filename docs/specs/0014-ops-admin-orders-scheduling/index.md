@@ -1,7 +1,7 @@
 # 0014. Ops admin: orders, companies and scheduling
 
 **Date**: 2026-09-08
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
