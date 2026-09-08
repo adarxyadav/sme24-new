@@ -1240,6 +1240,7 @@
     "avatarTwoWords": "Several words",
     "avatarUnnamed": "No name yet",
     "combobox": "Searchable select",
+    "comboboxLabel": "Client organisation",
     "comboboxPlaceholder": "Choose an organization",
     "comboboxSearch": "Search organizations",
     "comboboxEmpty": "No organization found."

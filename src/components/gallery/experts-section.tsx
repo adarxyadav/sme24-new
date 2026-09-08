@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Example } from "@/components/gallery/gallery-section";
 import { Combobox } from "@/components/ui/combobox";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
 
 /**
@@ -39,7 +40,10 @@ export function ExpertsSection() {
       </Example>
 
       <Example label={t("combobox")}>
-        <div className="w-full max-w-sm">
+        {/* Labelled the way the ops picker labels it: a Combobox renders a button, so without an
+            associated label it reaches axe with no accessible name. */}
+        <Field className="w-full max-w-sm">
+          <FieldLabel htmlFor="gallery-combobox">{t("comboboxLabel")}</FieldLabel>
           <Combobox
             id="gallery-combobox"
             options={[
@@ -53,7 +57,7 @@ export function ExpertsSection() {
             searchPlaceholder={t("comboboxSearch")}
             emptyLabel={t("comboboxEmpty")}
           />
-        </div>
+        </Field>
       </Example>
     </>
   );

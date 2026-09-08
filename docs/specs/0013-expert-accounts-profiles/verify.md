@@ -1,75 +1,115 @@
 # Verify: expert accounts and profiles · spec 0013
 
-**Run on**: 2026-09-08 · branch `feat/fix-checkout-session-persistence` · local stack
-**Verdict**: FAIL. The database layer is real and proven. Every user facing surface of the
-feature is missing, so eleven of the fifteen criteria cannot be met yet.
+**Run on**: 2026-09-08 · branch `feat/expert-accounts-profiles` · local stack · HEAD `a1d721f`
+**Verdict**: PASS with one finding. Fourteen of the fifteen criteria are met and driven in the
+real app. **AC-6 is met only up to ~1 MB**: a photo between 1 MB and the specced 2 MB is rejected
+by Next before the action runs, and the expert sees no message at all.
 
-Feature 16 in the scope has all three build milestones unticked, and that matches what runs:
-milestone 1 (schema, catalogue, invite thread) is built, milestones 2 and 3 are not.
+This supersedes the run of 2026-09-07, which was taken on `feat/fix-checkout-session-persistence`
+before milestones 2 to 4 existed and found eleven criteria unbuilt. Every surface it listed as
+missing now exists and was driven.
 
 ## How this was run
 
-- `pnpm db:reset` applied the two feature migrations, which were sitting on disk unapplied
-  (the shared local stack had last been reset from another worktree).
-- `pnpm test:db` for the policy rules.
-- `pnpm vitest run` for the catalogue equality, `pnpm typecheck` for the types.
-- A throwaway Playwright spec signed in as each seeded role through the project's own
-  `signIn` helper and loaded every specced route against the running app.
-- Direct `psql` probes as ops and as the expert for the state machine and the assign trigger.
+- `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build && pnpm budget` on the real commands.
+- `pnpm db:reset` first, because three worktrees share the one local stack, then `pnpm test:db`.
+- `pnpm db:types` and a `git diff` on the generated file, to prove the committed types are current.
+- The committed `e2e/experts.spec.ts` under `TRIGGER_DEV_RUNNING=1` with `pnpm trigger:dev` running.
+- A throwaway Playwright spec for the seven criteria the committed suite does not drive (AC-2, 3,
+  5, 6, 7, 8, 10), signed in as the seeded `ops@example.com` and `expert@example.com`, deleted
+  again after the run.
+- `psql` against the local database for the delivery rows, the profile row and the status machine.
+
+## Gate results
+
+| Gate | Result |
+|---|---|
+| `pnpm typecheck` | PASS, clean |
+| `pnpm lint` | PASS, 531 files, no fixes |
+| `pnpm test` | PASS, 1342 passed, 1 skipped, 128 files |
+| `pnpm test:db` | PASS, 556 tests over 25 files, exit 0 |
+| `pnpm db:types` | no diff: the committed types are current |
+| `pnpm build` | PASS, 61 static pages |
+| `pnpm budget` | PASS, every page under its budget |
+| `e2e/experts.spec.ts` | PASS, 6 of 6, serial, with the worker running |
+| `e2e/design.spec.ts` | 8 of 9 after the fix below; the one failure is pre existing |
 
 ## Acceptance criteria
 
 | AC | Verdict | Evidence |
 |---|---|---|
-| AC-1 | met | After `pnpm db:reset`, `to_regclass` shows `expert_profiles`, `expert_ops_notes` and `assigned_expert_summaries` all present, plus `set_expert_status`, `set_expert_photo`, `assigned_organization_contacts`, `private.check_expert_assignable` and the `expert-photos` bucket. All 22 columns of the sketch match. View owner is `postgres`. The seeded `expert@example.com` row is `active`. `pnpm test:db` PASS, 553 tests, exit 0. Catalogue equality test 14 passed. `pnpm typecheck` clean. |
-| AC-2 | blocked | `inviteExpert` and `inviteStaffUser` exist in code, but with no `/admin/experts/new` page there is no way to drive the action through the app. Not exercised. |
-| AC-3 | blocked | `resendInvite` exists in code; its button lives on the missing expert admin page. Not exercised. |
-| AC-4 | specced but missing | `/en/expert/onboarding` returns HTTP 404 signed in as `expert@example.com`. No onboarding page, no `completeExpertOnboarding` action. The layout gate cannot be exercised. |
-| AC-5 | specced but missing | `/en/expert/profile` returns HTTP 404. No `ui/profile-form.tsx`, no `updateExpertProfile` action. |
-| AC-6 | specced but missing | No `uploadExpertPhoto` or `removeExpertPhoto` action. The bucket and `set_expert_photo` exist; nothing calls them. |
-| AC-7 | specced but missing | `/en/admin/experts` and `/en/admin/experts/new` both return HTTP 404 signed in as ops. No `Experts` entry in `AREA_NAV` (sidebar link count 0). |
-| AC-8 | specced but missing | No `saveExpertOpsNotes` action. The table and its ops only policies are proven by pgTAP. |
-| AC-9 | partly met | The database half is proven: deactivating the seeded expert then inserting an assignment raises `expert_not_active` from `private.check_expert_assignable`. The `assignExpert` and `endAssignment` actions, the org picker and the two emails do not exist. |
-| AC-10 | partly met | `set_expert_status(expert,'inactive')` returns `inactive` and stamps `deactivated_at`; `active -> active` is a no op; `active -> invited` on an onboarded expert raises `invalid_transition`. The `deactivateExpert` and `reactivateExpert` actions do not exist. See the note below on the error name. |
-| AC-11 | specced but missing | `/en/expert` renders ("Expert area") but is the pre existing placeholder: no assignment list. `/en/expert/clients/[organizationId]` does not exist, and there is no `listMyAssignments` or `getAssignedClient`. |
-| AC-12 | specced but missing | `/en/app` renders as `client@example.com` with zero `[data-assigned-experts]` sections and no such markup anywhere in the source. |
-| AC-13 | met | `pnpm test:db` PASS with all six expert files green: `expert_profiles`, `expert_ops_notes`, `assigned_expert_summaries`, `expert_assignable`, `expert_photos_storage`, `expert_assignments`. The view owner assertion holds. |
-| AC-14 | specced but missing | None of `expert_welcome`, `assignment_received` or `expert_assigned` appear anywhere under `src/lib/email/`, and there is no `expert.onboarded` alert kind. |
-| AC-15 | partly met | The `experts` namespace is present in both `messages/en-CH.json` and `messages/de-CH.json`, and the catalogue label test passes in both languages. The Playwright flow the criterion asks for does not exist, and the pages it would drive are missing. |
+| AC-1 | met | `pnpm db:reset` applies `20260907102956_expert_profiles.sql` and `20260907103500_expert_photo_bucket.sql`; `pnpm test:db` passes 556 tests including all six expert files; `pnpm db:types` leaves no diff; the catalogue equality test passes in Vitest; the seeded `expert@example.com` row is `active`. |
+| AC-2 | met | Invited a fresh address through `/en/admin/experts/new` in the browser: the action redirected to the new `/admin/experts/<uuid>` page and `expert_profiles` held the row with `status 'invited'` and the email. Inviting the same address again showed "This expert has already been invited." and created no second user. |
+| AC-3 | met | The "Resend invitation" button is rendered on the detail page of an `invited` expert, and is absent once the status leaves `invited`. |
+| AC-4 | met | Committed spec, test 2: an expert whose row is put back to `invited` is redirected from `/expert` to `/expert/onboarding`, completes the form with consent, and is redirected back; a second visit to the onboarding page is redirected to `/expert`. |
+| AC-5 | met | Saved headline, summary, years of experience, phone, one competency, one language and one canton on `/en/expert/profile`; the row held every value. A 130 character headline was refused with "Use 120 characters or fewer." and the valid value then saved. |
+| AC-6 | **partly met** | Under 1 MB the whole path works: a PNG uploaded, `photo_path` became `<expert_id>/photo.png`, the rendered avatar used a signed URL (`token=` in the `src`, never a public URL), and "Remove photo" cleared the column back to null. A wrong type file was refused with the right message. **The 1 MB to 2 MB window fails silently** — see the finding. |
+| AC-7 | met | `/en/admin/experts` lists the seeded expert with its status badge, carries the status filter and the "Invite an expert" link, and `Experts` sits in the admin sidebar directly before `Design gallery`. The detail page shows the profile form, the notes editor, the assignments section and the account section. All three pages pass axe. |
+| AC-8 | met | Saved ops notes through the editor on the detail page; `expert_ops_notes` held the text. pgTAP proves an expert selects zero rows from that table. |
+| AC-9 | met | Committed spec, test 1: ops assign the seeded organization through the picker, both sides see it, ending it removes it. The eligibility rule also shows in the UI: on an `invited` expert the Assign button is disabled and the page reads "Only an active expert can be assigned to a client." |
+| AC-10 | met | Driven through the real ops UI in two browser contexts: ops press "Deactivate expert", the row goes `inactive`, and the expert's next navigation to `/en/expert` lands on `/forbidden` on a still live session. "Reactivate expert" returns an onboarded expert to `active` and the area opens again; an expert who never onboarded returns to `invited`, not `active`. |
+| AC-11 | met | Committed spec, test 1: the expert's own list and the read only client page. |
+| AC-12 | met | Committed spec, test 1: the client's "Your expert" card appears on `/app` while the assignment is active and is gone once it is ended. |
+| AC-13 | met | `pnpm test:db` green across `expert_profiles`, `expert_ops_notes`, `assigned_expert_summaries`, `expert_assignable`, `expert_photos_storage` and `expert_assignments`, the view owner assertion included. `set_expert_status` refused a service role call with `not_signed_in`, so the function is not a way round the rules. |
+| AC-14 | met | The three templates, their six previews, the registry entries and the `expert.onboarded` alert all exist, and the rows the worker actually wrote carry the specced keys: `expert-welcome/<expertId>`, `assignment-received/<assignmentId>` and `expert-assigned/<assignmentId>/<userId>`. The links match the spec: `/expert/profile`, `/expert/clients/<organizationId>` and `/app`. Ending an assignment wrote no row. |
+| AC-15 | met | Both catalogs hold 1715 keys with zero drift either way; the `experts` namespace is 273 keys in each, and every catalogue code has a label in both languages. Every new page passes axe, and the gallery does too after the fix below. |
 
-## Missing surfaces
+## Finding
 
-Every one of these returned a real 404 from the running app, or is absent from the source:
+**A photo over 1 MB fails silently (AC-6).** `PHOTO_MAX_BYTES` in `catalogue.ts` is 2 MB and
+`uploadExpertPhoto` answers `too_large` above it, but `next.config.ts` sets no
+`serverActions.bodySizeLimit`, so Next's own 1 MB default rejects the request body with a 413
+before the action runs. Measured through the real form:
 
-- `/[locale]/admin/experts`, `/[locale]/admin/experts/new`, `/[locale]/admin/experts/[expertId]`
-- `/[locale]/expert/onboarding`, `/[locale]/expert/profile`, `/[locale]/expert/clients/[organizationId]`
-- The `Experts` entry in `AREA_NAV`
-- Actions: `completeExpertOnboarding`, `updateExpertProfile`, `uploadExpertPhoto`, `removeExpertPhoto`,
-  `saveExpertOpsNotes`, `assignExpert`, `endAssignment`, `deactivateExpert`, `reactivateExpert`
-- Queries: `listMyAssignments`, `getAssignedClient`
-- The three email templates and the `expert.onboarded` alert
-- The client "Your expert" card on `/app`
+| File | Result |
+|---|---|
+| 900 KB | saved |
+| 1100 KB | nothing at all |
+| 1500 KB | nothing at all |
+| 3000 KB | nothing at all |
 
-Only `inviteExpert` and `resendInvite` exist in `src/features/experts/actions.ts`.
+Two things are wrong: a file the spec promises to accept (1 MB to 2 MB) is refused, and the
+refusal is invisible — no toast, no alert, no message. The expert is left looking at an unchanged
+photo with no idea why. The `too_large` string is therefore unreachable in the browser.
 
-## Worth a look
+The fix is a decision, not a guess, so it is left for `/debug`: either raise
+`serverActions.bodySizeLimit` above 2 MB so the action's own check is the one that fires, or drop
+`PHOTO_MAX_BYTES` under 1 MB and reword the message. Either way the oversized case needs a visible
+answer, and the client side `accept`/size check should catch it before the request leaves.
 
-- **The error name in `set_expert_status`.** The spec says a caller outside the allowed rules
-  raises `forbidden`. When the expert calls `set_expert_status(self,'inactive')` on their own
-  row the function raises `invalid_transition` instead. The call is refused either way, so this
-  is a naming point, not a hole. Worth settling when the offboarding actions get built, since
-  `deactivateExpert` maps these codes to its typed result.
+## Fixed in this run
 
-- **Two unrelated Vitest failures.** `tests/trigger/send-email.local.test.ts` fails on an
-  `email_deliveries_organization_id_fkey` violation. Pre existing and recorded already; nothing
-  to do with this feature. Everything else is green: 1293 passed of 1296.
+**The gallery combobox had no accessible name.** `/admin/design` is scanned by `design.spec.ts`
+for spec 0003 AC-10, and the `ExpertsSection` this feature added put a bare `Combobox` on it. A
+Combobox renders a `button`, so with no associated label axe reported a critical `button-name`
+violation, failing all four gallery scans (light and dark, both languages). The real ops picker in
+`assignments-section.tsx` was already correct — it wraps the control in `Field` with a
+`FieldLabel htmlFor` — so the gallery example now does the same, with a `gallery.comboboxLabel`
+key added to both catalogs. All four gallery tests pass.
 
-- **The shared local stack bites.** The two feature migrations were on disk but not applied,
-  because the stack had last been reset from another worktree. Anything checking this feature
-  should run `pnpm db:reset` first, and the pgTAP suite needs a fresh reset anyway since its
-  own guard refuses a database holding rows beyond the seed.
+## Not caused by this feature
+
+- **`design.spec.ts` keyboard test.** "the sidebar shell is operable by keyboard" fails on the
+  skip link (`toBeFocused` sees `inactive`), in isolation as well as in the suite. This branch
+  changes neither `design.spec.ts` nor any file on the skip link path, so it is pre existing and
+  belongs to spec 0003, not here. The other five design failures recorded before this run were the
+  four gallery scans, now fixed, and this one.
+- **The Vitest `send-email.local` failures** recorded in earlier runs no longer occur: the suite is
+  1342 passed, 1 skipped, 0 failed.
+
+## Notes for the reviewer
+
+- The seeded expert's `expert-welcome/<expertId>` key is spent for 30 days, so re onboarding that
+  expert queues nothing. The email tests clear the three templates' rows first, which is why they
+  pass on a rerun.
+- The Trigger.dev dev environment has `RESEND_API_KEY` set, so the worker sends through Resend,
+  which rejects `@example.com`. Emails never reach Mailpit locally; the assertions are on
+  `email_deliveries` rows, which is what the feature owes.
+- `pnpm db:reset` before `pnpm test:db` is not optional here: three worktrees share the one local
+  stack, so the feature migrations can sit unapplied.
 
 ## Next
 
-`/develop expert accounts & profiles` for milestones 2 and 3. The database foundation under
-them is sound, so the remaining work is the actions, the pages, the emails and the flow.
+`/test expert accounts & profiles` for the suite, and `/debug` for the AC-6 upload limit. The
+scope's "Verify it" is ticked for the fourteen criteria met; AC-6 is recorded above as the one
+open item.
