@@ -58,14 +58,18 @@ export function ScheduleDialog({ orderId, reference, experts }: ScheduleDialogPr
   // cannot know, and rendering it during SSR would be a hydration mismatch.
   useEffect(() => setMinimum(formatZurichWallClock(new Date())), []);
 
-  useEffect(() => {
-    if (!schedule.result?.ok) return;
+  // The success work hangs off the click that caused it, not off an effect watching the result:
+  // `useActionState` keeps its last value, so an effect would fire again on every later render and
+  // shut the dialog on ops the next time they opened it.
+  async function book(expert: string) {
+    const outcome = await schedule.submit({ orderId, scheduledAt, expertId: expert });
+    if (!outcome.ok) return;
     toast.success(t("scheduled"));
     setOpen(false);
     setScheduledAt("");
     setExpertId(null);
     router.refresh();
-  }, [schedule.result, router, t]);
+  }
 
   const failure = schedule.result?.ok === false ? schedule.result.error : null;
   const complete = scheduledAt !== "" && expertId !== null;
@@ -99,9 +103,10 @@ export function ScheduleDialog({ orderId, reference, experts }: ScheduleDialogPr
               type="datetime-local"
               value={scheduledAt}
               min={minimum}
+              aria-describedby={`schedule-at-hint-${orderId}`}
               onChange={(event) => setScheduledAt(event.target.value)}
             />
-            <FieldDescription>{t("dateHint")}</FieldDescription>
+            <FieldDescription id={`schedule-at-hint-${orderId}`}>{t("dateHint")}</FieldDescription>
           </Field>
 
           <Field>
@@ -126,7 +131,7 @@ export function ScheduleDialog({ orderId, reference, experts }: ScheduleDialogPr
           <Button
             type="button"
             disabled={!complete || schedule.pending}
-            onClick={() => expertId && schedule.submit({ orderId, scheduledAt, expertId })}
+            onClick={() => expertId && book(expertId)}
           >
             {schedule.pending ? t("scheduling") : t("submit")}
           </Button>

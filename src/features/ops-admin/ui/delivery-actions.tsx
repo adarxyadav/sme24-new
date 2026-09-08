@@ -72,18 +72,23 @@ export function DeliveryActions({
 
   // Every successful write refreshes the row rather than patching it locally: the status, the date
   // and the assessor all come from the server, and a stale row here would offer the wrong edge.
-  useEffect(() => {
-    if (!advance.result?.ok) return;
+  // The work hangs off the click, not off an effect watching the result: `useActionState` keeps
+  // its last value, so an effect would fire again on every later render — several toasts and
+  // refreshes for one write, and a release dialog that shut itself the next time ops opened it.
+  async function moveOn(next: "in_progress" | "delivered") {
+    const outcome = await advance.submit({ orderId, next });
+    if (!outcome.ok) return;
     toast.success(t("advanced"));
     router.refresh();
-  }, [advance.result, router, t]);
+  }
 
-  useEffect(() => {
-    if (!release.result?.ok) return;
+  async function releaseOrder() {
+    const outcome = await release.submit({ orderId });
+    if (!outcome.ok) return;
     toast.success(t("released"));
     setReleaseOpen(false);
     router.refresh();
-  }, [release.result, router, t]);
+  }
 
   if (status !== "scheduled" && status !== "in_progress" && status !== "delivered") return null;
 
@@ -95,12 +100,7 @@ export function DeliveryActions({
   return (
     <div className="flex flex-wrap items-center gap-2">
       {next ? (
-        <Button
-          type="button"
-          size="sm"
-          disabled={advance.pending}
-          onClick={() => advance.submit({ orderId, next })}
-        >
+        <Button type="button" size="sm" disabled={advance.pending} onClick={() => moveOn(next)}>
           {next === "in_progress" ? (
             <PlayIcon data-icon="inline-start" aria-hidden="true" />
           ) : (
@@ -144,7 +144,7 @@ export function DeliveryActions({
                 type="button"
                 variant="destructive"
                 disabled={release.pending}
-                onClick={() => release.submit({ orderId })}
+                onClick={() => releaseOrder()}
               >
                 {release.pending ? t("release.releasing") : t("release.confirm")}
               </Button>
@@ -205,12 +205,15 @@ function RescheduleDialog({
   // cannot know, and rendering it during SSR would be a hydration mismatch.
   useEffect(() => setMinimum(formatZurichWallClock(new Date())), []);
 
-  useEffect(() => {
-    if (!correct.result?.ok) return;
+  // Same reason as the two above: the toast and the close belong to the click, not to a result
+  // that stays `{ ok: true }` for the life of the row.
+  async function save(expert: string) {
+    const outcome = await correct.submit({ orderId, scheduledAt: when, expertId: expert });
+    if (!outcome.ok) return;
     toast.success(t("corrected"));
     setOpen(false);
     router.refresh();
-  }, [correct.result, router, t]);
+  }
 
   const failure = correct.result?.ok === false ? correct.result.error : null;
   const complete = when !== "" && expertId !== null;
@@ -244,9 +247,10 @@ function RescheduleDialog({
               type="datetime-local"
               value={when}
               min={futureOnly ? minimum : undefined}
+              aria-describedby={`correct-at-hint-${orderId}`}
               onChange={(event) => setWhen(event.target.value)}
             />
-            <FieldDescription>
+            <FieldDescription id={`correct-at-hint-${orderId}`}>
               {futureOnly ? t("correct.dateHintFuture") : t("correct.dateHintPast")}
             </FieldDescription>
           </Field>
@@ -274,7 +278,7 @@ function RescheduleDialog({
           <Button
             type="button"
             disabled={!complete || correct.pending}
-            onClick={() => expertId && correct.submit({ orderId, scheduledAt: when, expertId })}
+            onClick={() => expertId && save(expertId)}
           >
             {correct.pending ? t("correct.saving") : t("correct.submit")}
           </Button>

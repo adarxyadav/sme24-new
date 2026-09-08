@@ -91,15 +91,17 @@ describe("opening the dialog", () => {
     ).toBeInTheDocument();
   });
 
-  // The hint is shown but not tied to the input: this `Field` does no id wiring, and unlike the
-  // facts and lookup forms the dialog sets no `aria-describedby`, so a screen reader never hears
-  // it. Asserted as it stands, with the gap recorded rather than pretended away.
+  // `Field` does no id wiring of its own, so the hint is tied to the input by hand, the way the
+  // facts and lookup forms do it. Without that the zone the time is read in is on screen but
+  // never announced, and an ops user on a screen reader books an hour out.
   it("says the date is read as Swiss time, because ops elsewhere must not book an hour out", async () => {
     const user = userEvent.setup();
     const dialog = await openDialog(user);
 
     expect(within(dialog).getByText(strings.dateHint)).toBeInTheDocument();
-    expect(within(dialog).getByLabelText(strings.date)).not.toHaveAccessibleDescription();
+    expect(within(dialog).getByLabelText(strings.date)).toHaveAccessibleDescription(
+      strings.dateHint,
+    );
   });
 
   // The picker is a hint, not the guard: `check_expert_assignable` refuses an expert deactivated

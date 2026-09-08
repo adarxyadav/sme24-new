@@ -269,7 +269,9 @@ describe("correcting the date or the assessor (AC-7a)", () => {
     await waitFor(() =>
       expect(within(dialog).getByLabelText(strings.correct.date)).toHaveAttribute("min"),
     );
-    expect(within(dialog).getByText(strings.correct.dateHintFuture)).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(strings.correct.date)).toHaveAccessibleDescription(
+      strings.correct.dateHintFuture,
+    );
   });
 
   it("lets a running visit be recorded at a past date, with no floor on the field", async () => {
@@ -278,7 +280,9 @@ describe("correcting the date or the assessor (AC-7a)", () => {
     const dialog = await openCorrection(user);
 
     expect(within(dialog).getByLabelText(strings.correct.date)).not.toHaveAttribute("min");
-    expect(within(dialog).getByText(strings.correct.dateHintPast)).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(strings.correct.date)).toHaveAccessibleDescription(
+      strings.correct.dateHintPast,
+    );
   });
 
   it("lets a delivered order be corrected to a past date too", async () => {
