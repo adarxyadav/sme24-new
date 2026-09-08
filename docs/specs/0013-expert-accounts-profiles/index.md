@@ -1,4 +1,4 @@
-# 0012. Expert accounts and profiles
+# 0013. Expert accounts and profiles
 
 **Date**: 2026-09-07
 **Status**: Proposed

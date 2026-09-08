@@ -12,7 +12,7 @@ import {
 } from "@/features/experts/catalogue";
 
 /**
- * The catalogue equality test (spec 0012, AC-1). Every coded list lives in three places: this
+ * The catalogue equality test (spec 0013, AC-1). Every coded list lives in three places: this
  * catalogue, the `<@` check constraints in the schema file, and the label keys in both message
  * catalogs. Nothing stops those drifting except a test, and a drift is not a cosmetic problem: a
  * code the database rejects but the form offers is a save the expert cannot explain, and a code
@@ -46,7 +46,7 @@ function inListCodes(column: string): readonly string[] {
   return [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1] as string);
 }
 
-describe("the expert catalogue (spec 0012, AC-1)", () => {
+describe("the expert catalogue (spec 0013, AC-1)", () => {
   it.each(EXPERT_LIST_NAMES)(
     "holds exactly the codes the %s check constraint allows",
     (list: ExpertListName) => {
@@ -84,7 +84,7 @@ describe("the expert catalogue (spec 0012, AC-1)", () => {
   });
 });
 
-describe("the photo rules (spec 0012, AC-6)", () => {
+describe("the photo rules (spec 0013, AC-6)", () => {
   it("caps an upload at the same 2 MB the bucket does", () => {
     expect(PHOTO_MAX_BYTES).toBe(2 * 1024 * 1024);
   });

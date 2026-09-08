@@ -1,7 +1,7 @@
 -- expert_profiles: an expert reads and updates only their own row and only the granted columns;
 -- ops read and write every row; a client sees none of the table at all. status and photo_path
 -- move only through their definer functions, and the state machine in set_expert_status admits
--- exactly the transitions of spec 0012, from exactly the callers allowed to make them.
+-- exactly the transitions of spec 0013, from exactly the callers allowed to make them.
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(43);

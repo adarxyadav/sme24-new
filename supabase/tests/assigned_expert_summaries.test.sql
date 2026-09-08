@@ -1,4 +1,4 @@
--- assigned_expert_summaries: the one definer view in public (spec 0012). It bypasses the RLS that
+-- assigned_expert_summaries: the one definer view in public (spec 0013). It bypasses the RLS that
 -- hides expert_profiles from a client, so its where clause is the entire access boundary and every
 -- rule in it is proved here: a client sees an expert only while an active assignment to their own
 -- organization exists, and only the public half of the profile.

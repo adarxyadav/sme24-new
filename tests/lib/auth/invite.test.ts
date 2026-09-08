@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { inviteStaffUser, resendStaffInvite } from "@/lib/auth/invite";
 
 /**
- * `inviteStaffUser` (spec 0012, AC-2). The point of the module is its ordering, and the ordering
+ * `inviteStaffUser` (spec 0013, AC-2). The point of the module is its ordering, and the ordering
  * only shows itself when a step fails, so these tests are mostly about failure: what is left behind
  * when the profile insert collides, when the role write fails, when the email will not send.
  *
@@ -112,7 +112,7 @@ const INPUT = {
   appUrl: "https://sme24.example.com/",
 };
 
-describe("inviteStaffUser: the happy path (spec 0012, AC-2)", () => {
+describe("inviteStaffUser: the happy path (spec 0013, AC-2)", () => {
   it("creates the user, fixes the role, writes the profile row, then sends the email", async () => {
     const fake = fakeClient();
     const result = await inviteStaffUser(fake.client as never, INPUT);
@@ -242,7 +242,7 @@ describe("inviteStaffUser: the ops role", () => {
   });
 });
 
-describe("resendStaffInvite (spec 0012, AC-3)", () => {
+describe("resendStaffInvite (spec 0013, AC-3)", () => {
   it("sends to the same set password link", async () => {
     const fake = fakeClient();
     const result = await resendStaffInvite(fake.client as never, {

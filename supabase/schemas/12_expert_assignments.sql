@@ -72,7 +72,7 @@ create trigger expert_assignments_check_transition
   before update of status on public.expert_assignments
   for each row execute function private.check_expert_assignment_transition();
 
--- Only an `active` expert can be assigned (spec 0012, AC-9). The rule lives here rather than in
+-- Only an `active` expert can be assigned (spec 0013, AC-9). The rule lives here rather than in
 -- the ops action so a deactivation racing an assign cannot leave an assignment on an expert who
 -- has just left the network, and so feature 19 (matching) inherits it for free. The function is
 -- declared in this file because it reads expert_profiles, which 13_expert_profiles.sql creates;

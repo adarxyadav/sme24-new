@@ -1,4 +1,4 @@
--- Expert profiles (spec 0012, kind E): one row per expert account, created by the invite path
+-- Expert profiles (spec 0013, kind E): one row per expert account, created by the invite path
 -- before the expert ever signs in, so the ops list is one query and no admin API call.
 --
 -- Two columns are authorization data the expert can never write: `status` (the sign in gate the
@@ -13,7 +13,7 @@
 create table public.expert_profiles (
   expert_id uuid primary key references public.profiles (id) on delete cascade,
   -- Copied at invite so /admin/experts needs no admin API call per row. The sign in address stays
-  -- in auth.users; an email change there does not propagate (spec 0012, Follow-up).
+  -- in auth.users; an email change there does not propagate (spec 0013, Follow-up).
   email text not null unique check (email = lower(email)),
   status text not null default 'invited' check (status in ('invited', 'active', 'inactive')),
   headline text null check (char_length(headline) between 1 and 120),
@@ -60,7 +60,7 @@ create table public.expert_profiles (
   updated_at timestamptz not null default now()
 );
 
-comment on table public.expert_profiles is 'One row per expert account (spec 0012). status and photo_path move only through set_expert_status and set_expert_photo.';
+comment on table public.expert_profiles is 'One row per expert account (spec 0013). status and photo_path move only through set_expert_status and set_expert_photo.';
 comment on column public.expert_profiles.email is 'Copied from the invite so the ops list is one query. Not kept in step with auth.users automatically.';
 comment on column public.expert_profiles.status is 'invited → active → inactive. Written only by public.set_expert_status.';
 comment on column public.expert_profiles.photo_path is 'Object path in the private expert-photos bucket. Written only by public.set_expert_photo.';
@@ -134,7 +134,7 @@ grant update (
   phone
 ) on public.expert_profiles to authenticated;
 
--- The whole status state machine in one place (spec 0012). Ops may run invited → active,
+-- The whole status state machine in one place (spec 0013). Ops may run invited → active,
 -- invited → inactive, active → inactive, inactive → invited (only before onboarding) and
 -- inactive → active (only after it); the expert may run invited → active on their own row, which
 -- is what onboarding does. A same state call is a no op that returns the row, so a double submit
@@ -205,7 +205,7 @@ begin
 end;
 $$;
 
-comment on function public.set_expert_status(uuid, text) is 'The only write path for expert_profiles.status (spec 0012). Enforces the state machine and stamps onboarded_at and deactivated_at.';
+comment on function public.set_expert_status(uuid, text) is 'The only write path for expert_profiles.status (spec 0013). Enforces the state machine and stamps onboarded_at and deactivated_at.';
 
 revoke execute on function public.set_expert_status(uuid, text) from anon, public;
 grant execute on function public.set_expert_status(uuid, text) to authenticated;
@@ -244,7 +244,7 @@ begin
 end;
 $$;
 
-comment on function public.set_expert_photo(text) is 'The only write path for expert_profiles.photo_path (spec 0012). Writes the caller''s own row and pins the path to their folder.';
+comment on function public.set_expert_photo(text) is 'The only write path for expert_profiles.photo_path (spec 0013). Writes the caller''s own row and pins the path to their folder.';
 
 revoke execute on function public.set_expert_photo(text) from anon, public;
 grant execute on function public.set_expert_photo(text) to authenticated;
@@ -279,7 +279,7 @@ begin
 end;
 $$;
 
-comment on function public.assigned_organization_contacts(uuid) is 'Members of an organization for an assigned expert or ops (spec 0012). Raises not_assigned for anyone else.';
+comment on function public.assigned_organization_contacts(uuid) is 'Members of an organization for an assigned expert or ops (spec 0013). Raises not_assigned for anyone else.';
 
 revoke execute on function public.assigned_organization_contacts(uuid) from anon, public;
 grant execute on function public.assigned_organization_contacts(uuid) to authenticated;

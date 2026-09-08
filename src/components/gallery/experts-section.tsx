@@ -7,7 +7,7 @@ import { Combobox } from "@/components/ui/combobox";
 import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
 
 /**
- * The two primitives spec 0012 added (AC-6, AC-9): the searchable Combobox behind the ops
+ * The two primitives spec 0013 added (AC-6, AC-9): the searchable Combobox behind the ops
  * organization picker, and the avatar that falls back to initials when an expert has no photo.
  * Both appear here so axe scans them on every run, which is the point of the gallery.
  *

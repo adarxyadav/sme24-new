@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * The command list primitive (shadcn, on `cmdk`): a filtered, keyboard driven list. Used here as
- * the inside of the searchable Combobox that picks an organization (spec 0012, AC-9). `cmdk`
+ * the inside of the searchable Combobox that picks an organization (spec 0013, AC-9). `cmdk`
  * handles the roving focus and the `aria-activedescendant` wiring, which is the part that is easy
  * to get wrong by hand. Browser.
  */

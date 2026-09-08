@@ -1,4 +1,4 @@
--- Ops notes on an expert (spec 0012, kind I): the record check trail, kept apart from
+-- Ops notes on an expert (spec 0013, kind I): the record check trail, kept apart from
 -- expert_profiles precisely so no policy mistake on that table can ever show an expert what ops
 -- wrote about them. One policy, ops only, for every command; the expert pages never query it.
 
@@ -10,7 +10,7 @@ create table public.expert_ops_notes (
   updated_at timestamptz not null default now()
 );
 
-comment on table public.expert_ops_notes is 'Ops only notes about an expert (spec 0012). Never readable by the expert.';
+comment on table public.expert_ops_notes is 'Ops only notes about an expert (spec 0013). Never readable by the expert.';
 
 create index expert_ops_notes_updated_by_idx on public.expert_ops_notes (updated_by);
 

@@ -1,4 +1,4 @@
--- What a client may see of the experts assigned to them (spec 0012, AC-12): the public half of
+-- What a client may see of the experts assigned to them (spec 0013, AC-12): the public half of
 -- the profile, and only while an active assignment to their organization exists.
 --
 -- The view is `security_invoker = false`, so it runs as its owner and bypasses the table RLS that
@@ -38,7 +38,7 @@ where a.status = 'active'
     or a.expert_id = (select auth.uid())
   );
 
-comment on view public.assigned_expert_summaries is 'The client visible half of an assigned expert''s profile (spec 0012). Definer view: the where clause is the access boundary.';
+comment on view public.assigned_expert_summaries is 'The client visible half of an assigned expert''s profile (spec 0013). Definer view: the where clause is the access boundary.';
 
 -- Availability, phone, years of experience and the ops notes are deliberately absent: a client
 -- sees who is coming and what they cover, never when else the expert is free.

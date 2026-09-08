@@ -1,4 +1,4 @@
--- The private expert photo bucket (spec 0012, AC-6). A data migration rather than a schema file,
+-- The private expert photo bucket (spec 0013, AC-6). A data migration rather than a schema file,
 -- because storage.buckets is a managed table and the declarative engine refuses data statements
 -- in schemas/. The policies on storage.objects live in supabase/schemas/16_expert_photo_storage.sql.
 --

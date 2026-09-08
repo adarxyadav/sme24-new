@@ -1,5 +1,5 @@
 /**
- * The staff invite path (spec 0012, AC-2). One implementation shared by the ops action
+ * The staff invite path (spec 0013, AC-2). One implementation shared by the ops action
  * (`inviteExpert`) and the `pnpm user:invite` script, so a fix to the ordering lands in both.
  *
  * Not marked with the `server-only` package: the script is plain Node and would throw on it. What
@@ -63,7 +63,7 @@ export function createInviteClient(url: string, secretKey: string): ServiceClien
 
 /**
  * Invites a staff user with their role fixed, creating the expert profile row for an expert
- * (spec 0012, AC-2). Answers a typed result and never throws for an expected failure. Called by
+ * (spec 0013, AC-2). Answers a typed result and never throws for an expected failure. Called by
  * the ops action after its role check and by `pnpm user:invite`; needs the service client.
  */
 export async function inviteStaffUser(
@@ -173,7 +173,7 @@ export type ResendInviteResult =
     };
 
 /**
- * Sends the invite email again to an already invited, still unconfirmed user (spec 0012, AC-3).
+ * Sends the invite email again to an already invited, still unconfirmed user (spec 0013, AC-3).
  * Supabase resends rather than erroring for an unconfirmed user; a confirmed one would answer
  * `email_exists`, which cannot happen here because confirming moves the status to `active`.
  * Server only, service client.
@@ -196,7 +196,7 @@ export async function resendStaffInvite(
 const BAN_FOREVER = "876000h";
 
 /**
- * Bans a staff user's sign in (spec 0012, AC-10). The session already issued stays valid until its
+ * Bans a staff user's sign in (spec 0013, AC-10). The session already issued stays valid until its
  * next refresh, which is why the expert layout also redirects an `inactive` expert. Server only.
  */
 export async function banStaffUser(supabase: ServiceClient, userId: string): Promise<boolean> {
@@ -206,7 +206,7 @@ export async function banStaffUser(supabase: ServiceClient, userId: string): Pro
   return !error;
 }
 
-/** Lifts the ban of a staff user (spec 0012, AC-10). Server only. */
+/** Lifts the ban of a staff user (spec 0013, AC-10). Server only. */
 export async function unbanStaffUser(supabase: ServiceClient, userId: string): Promise<boolean> {
   const { error } = await supabase.auth.admin.updateUserById(userId, { ban_duration: "none" });
   return !error;

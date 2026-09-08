@@ -10,7 +10,7 @@ import {
 } from "./catalogue";
 
 /**
- * The boundary schemas of the expert feature (spec 0012). Every action parses its input with one
+ * The boundary schemas of the expert feature (spec 0013). Every action parses its input with one
  * of these and the profile form is typed from `expertProfileSchema`, so the browser and the server
  * agree on the rules and the database check constraints are the third net rather than the first.
  * Message strings are keys of `experts.form.errors`, resolved by `issueMessage`. Pure, runs anywhere.

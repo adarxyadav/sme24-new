@@ -1,4 +1,4 @@
--- check_expert_assignable: an assignment is only ever created for an `active` expert (spec 0012,
+-- check_expert_assignable: an assignment is only ever created for an `active` expert (spec 0013,
 -- AC-9). The rule lives in the database rather than the ops action so a deactivation racing an
 -- assign cannot leave an assignment on an expert who has just left the network, and so feature 19
 -- inherits it without repeating it.

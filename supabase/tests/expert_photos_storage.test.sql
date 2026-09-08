@@ -1,4 +1,4 @@
--- expert-photos bucket (spec 0012, AC-6): the photo is personal data of a contractor, so the
+-- expert-photos bucket (spec 0013, AC-6): the photo is personal data of a contractor, so the
 -- bucket is private and every render mints a signed URL with the viewer's own client. That makes
 -- these policies the boundary for each viewer rather than a decision taken once in app code, and
 -- the rule they have to match is the view's: a client sees the photo of an expert exactly while

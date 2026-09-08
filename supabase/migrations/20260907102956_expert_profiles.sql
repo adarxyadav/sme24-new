@@ -1,4 +1,4 @@
--- private.audit_row() gains a primary key fallback for row_id (spec 0012). expert_profiles
+-- private.audit_row() gains a primary key fallback for row_id (spec 0013). expert_profiles
 -- and expert_ops_notes are keyed on expert_id rather than id, and an access control table has
 -- to be audited, so the trigger reads the key column from the catalog when there is no `id`.
 -- Replacing the function is backward compatible: every existing audited table has an `id` and
@@ -33,7 +33,7 @@ begin
   subject := coalesce(row_new, row_old);
 
   -- Most audited tables are keyed on `id`. A table keyed on something else (expert_profiles and
-  -- expert_ops_notes are keyed on expert_id, spec 0012) would otherwise write a null row_id and
+  -- expert_ops_notes are keyed on expert_id, spec 0013) would otherwise write a null row_id and
   -- fail the not null constraint, which is why the tables keyed on `key` or `event_id` are simply
   -- not audited. An access control table has to be audited, so the key column is read from the
   -- catalog instead: single column primary keys only, which every audited table has.
@@ -441,17 +441,17 @@ COMMENT ON COLUMN "public"."expert_profiles"."photo_path" IS 'Object path in the
 
 COMMENT ON COLUMN "public"."expert_profiles"."status" IS 'invited → active → inactive. Written only by public.set_expert_status.';
 
-COMMENT ON FUNCTION "public"."assigned_organization_contacts"(uuid) IS 'Members of an organization for an assigned expert or ops (spec 0012). Raises not_assigned for anyone else.';
+COMMENT ON FUNCTION "public"."assigned_organization_contacts"(uuid) IS 'Members of an organization for an assigned expert or ops (spec 0013). Raises not_assigned for anyone else.';
 
-COMMENT ON FUNCTION "public"."set_expert_photo"(text) IS 'The only write path for expert_profiles.photo_path (spec 0012). Writes the caller''s own row and pins the path to their folder.';
+COMMENT ON FUNCTION "public"."set_expert_photo"(text) IS 'The only write path for expert_profiles.photo_path (spec 0013). Writes the caller''s own row and pins the path to their folder.';
 
-COMMENT ON FUNCTION "public"."set_expert_status"(uuid, text) IS 'The only write path for expert_profiles.status (spec 0012). Enforces the state machine and stamps onboarded_at and deactivated_at.';
+COMMENT ON FUNCTION "public"."set_expert_status"(uuid, text) IS 'The only write path for expert_profiles.status (spec 0013). Enforces the state machine and stamps onboarded_at and deactivated_at.';
 
-COMMENT ON TABLE "public"."expert_ops_notes" IS 'Ops only notes about an expert (spec 0012). Never readable by the expert.';
+COMMENT ON TABLE "public"."expert_ops_notes" IS 'Ops only notes about an expert (spec 0013). Never readable by the expert.';
 
-COMMENT ON TABLE "public"."expert_profiles" IS 'One row per expert account (spec 0012). status and photo_path move only through set_expert_status and set_expert_photo.';
+COMMENT ON TABLE "public"."expert_profiles" IS 'One row per expert account (spec 0013). status and photo_path move only through set_expert_status and set_expert_photo.';
 
-COMMENT ON VIEW "public"."assigned_expert_summaries" IS 'The client visible half of an assigned expert''s profile (spec 0012). Definer view: the where clause is the access boundary.';
+COMMENT ON VIEW "public"."assigned_expert_summaries" IS 'The client visible half of an assigned expert''s profile (spec 0013). Definer view: the where clause is the access boundary.';
 
 REVOKE ALL ON FUNCTION "private"."check_expert_assignable"() FROM PUBLIC;
 

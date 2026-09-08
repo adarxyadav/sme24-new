@@ -13,7 +13,7 @@ import { parseWith } from "@/lib/validation";
 import { expertIdSchema, inviteExpertSchema } from "./schema";
 
 /**
- * The expert actions (spec 0012). Every one authorises the caller here, not only in the proxy: the
+ * The expert actions (spec 0013). Every one authorises the caller here, not only in the proxy: the
  * area gate never runs for a server action post, so an action that trusted it would be reachable by
  * anyone with a session. Each answers a typed result and never throws for an expected failure.
  */

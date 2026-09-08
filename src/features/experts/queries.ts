@@ -6,7 +6,7 @@ import { EXPERTS_PAGE_SIZE, PHOTO_BUCKET, PHOTO_URL_TTL_SECONDS } from "./catalo
 import { ALL_STATUSES, type ExpertFilters } from "./schema";
 
 /**
- * The reads of the expert feature (spec 0012). Queries throw on a database error, per the project's
+ * The reads of the expert feature (spec 0013). Queries throw on a database error, per the project's
  * one error handling rule; the typed result shape belongs to the actions. RLS is what limits every
  * one of these to the rows the caller may see, so each runs with the caller's own client and none
  * of them takes a role as an argument.

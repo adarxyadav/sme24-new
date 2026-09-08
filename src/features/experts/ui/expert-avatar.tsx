@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 /**
- * An expert's photo, or their initials when there is none (spec 0012, AC-6). The photo URL is a
+ * An expert's photo, or their initials when there is none (spec 0013, AC-6). The photo URL is a
  * short lived signed one minted per render by `photoUrl`, so this component never sees an object
  * path and cannot leak one into the markup.
  *

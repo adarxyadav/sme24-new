@@ -36,7 +36,7 @@ export type ComboboxProps = {
 };
 
 /**
- * A searchable single select (spec 0012, AC-9): a button showing the current choice, opening a
+ * A searchable single select (spec 0013, AC-9): a button showing the current choice, opening a
  * filtered list. Composed from Popover and Command rather than a native select because the ops
  * organization picker has to be searchable, and a select with a hundred names is not usable.
  *

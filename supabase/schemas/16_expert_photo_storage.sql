@@ -1,4 +1,4 @@
--- The expert photo bucket policies (spec 0012, AC-6). Private: an expert's photo is personal data
+-- The expert photo bucket policies (spec 0013, AC-6). Private: an expert's photo is personal data
 -- of a contractor, so it is never served from a public URL. Every render mints a signed URL on the
 -- server with the viewer's own client, which means these policies are the boundary for each viewer
 -- rather than a decision taken once in application code.

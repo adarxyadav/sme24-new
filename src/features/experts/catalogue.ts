@@ -1,5 +1,5 @@
 /**
- * The expert catalogue (spec 0012, AC-1): every coded list an expert profile holds, in the order
+ * The expert catalogue (spec 0013, AC-1): every coded list an expert profile holds, in the order
  * the forms render them. The codes are the contract between three places: this file, the `<@`
  * check constraints in `supabase/schemas/13_expert_profiles.sql`, and the
  * `experts.catalogue.<list>.<code>` label keys in both message catalogs. Two Vitest tests keep the
