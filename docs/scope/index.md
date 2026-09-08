@@ -26,7 +26,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 11 | Package checkout with Swiss VAT | Slice 3 | done |
 | 12 | Ops admin: orders, companies & scheduling | Slice 3 | done |
 | 13 | Marketing site & retainer enquiry | Slice 4 | done |
-| 14 | Legal, privacy & cookie consent | Slice 4 | planned |
+| 14 | Legal, privacy & cookie consent | Slice 4 | in-progress |
 | 15 | Analytics & monitoring | Slice 4 | planned |
 | 16 | Expert accounts & profiles | Slice 5 | done |
 | 17 | Structured assessment forms | Slice 5 | planned |
@@ -81,6 +81,8 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Port the click handler success pattern to the other eight `useFormAction` consumers**: `enquiry-status-form.tsx`, `account-actions.tsx`, `assignments-section.tsx`, `invite-form.tsx`, `onboarding-form.tsx`, `ops-notes-editor.tsx` and `profile-form.tsx` still pair a `useEffect` on `<action>.result` with a toast or a `router.refresh`, the pattern that fired one booking's toast four times before spec 0014 moved the work into the click handler; the hook stayed backward compatible, so each is a small independent change · from spec 0014's review
 - **An index on `orders.scheduled_by`**: the column is a nullable FK to `profiles` with no index, unlike `assigned_expert_id`; nothing queries by it today, so it waits for the ops "who scheduled this" audit view that would need it · from spec 0014's review
 - **A dedicated `assessments` table**: split delivery off `orders.status` into its own record once features 17 and 18 define what an assessment holds, or sooner if a delivered order must re open or a refund must coexist with a delivery state · from spec 0014
+- **The DPA template as a signable document**: a data processing agreement ops send to an EU or enterprise client on request. It is a contract to be signed rather than a page to publish, so it belongs beside the record of processing and not in the route table; the four public legal pages ship first · from spec 0015
+- **Automatic generation of the data export**: the Art. 25 access export is assembled by ops by hand, which is right at pilot volume and wrong at a hundred requests a year; a Trigger.dev task would build the file once the shape per table is decided · from spec 0015 · needs a decision
 
 ## Legend
 
