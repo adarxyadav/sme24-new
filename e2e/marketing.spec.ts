@@ -353,18 +353,30 @@ test("every package card's action contrasts, meets the target size, and no name 
     // The rows the shared grid exists to align. A package name runs to one line in some cards and
     // two in others, so without a row of its own the promise under it starts at a different height
     // in every card; the same holds for the price and the action below it.
-    for (const selector of ["h3 + p", "p.self-end", 'a[data-slot="button"]']) {
+    //
+    // Each row is measured on the edge its own tracks align. A `self-start` row shares its top and
+    // a `self-end` row its bottom, which is the same assertion while every card sets that row at
+    // one size and a different one once they do not: "On demand" has sat two sizes below a franc
+    // figure since 2026-09-10, so the price row's tops differ by the size gap (168px against
+    // 180px) while its baselines still land together (208px in both). Measuring the top there
+    // would fail a row that is correctly aligned.
+    for (const { selector, edge } of [
+      { selector: "h3 + p", edge: "top" },
+      { selector: "p.self-end", edge: "bottom" },
+      { selector: 'a[data-slot="button"]', edge: "top" },
+    ] as const) {
       const offsets = await cards.evaluateAll(
-        (nodes, sel) =>
+        (nodes, { sel, side }) =>
           nodes.map((node) => {
             const child = node.querySelector(sel);
-            return child
-              ? Math.round(child.getBoundingClientRect().top - node.getBoundingClientRect().top)
-              : -1;
+            if (!child) return -1;
+            const box = child.getBoundingClientRect();
+            const own = node.getBoundingClientRect();
+            return Math.round((side === "top" ? box.top : box.bottom) - own.top);
           }),
-        selector,
+        { sel: selector, side: edge },
       );
-      expect(new Set(offsets).size).toBe(1);
+      expect(new Set(offsets).size, `${selector} (${edge} edge)`).toBe(1);
     }
   }
 });
