@@ -6,12 +6,14 @@ import {
   CampaignImage,
   CampaignPiece,
 } from "@/components/brand/campaign";
+import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
 import { aboutPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
+import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
@@ -28,9 +30,9 @@ export async function generateMetadata({
 }
 
 /**
- * The about page (spec 0009, page composition): the statement, the story in three paragraphs,
- * a campaign grid with the expert and two objects, how we work and the closing call to action;
- * `AboutPage` structured data. Prerendered in both languages.
+ * The about page (spec 0009, page composition; docs/design.md tier map): an anchor opener, the
+ * story as a major, the campaign grid as the page's one ruled major, how we work as a minor and
+ * the closing call to action; `AboutPage` structured data. Prerendered in both languages.
  */
 export default async function AboutPage({ params }: PageProps<"/[locale]/about">) {
   const { locale } = await params;
@@ -53,25 +55,25 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
       />
 
       <section className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:px-6 md:py-24">
-          <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
-          <Statement
+        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
+          <SectionHeader
+            tier="anchor"
             as="h1"
-            text={t("title")}
-            className="max-w-4xl text-display-sm md:text-display"
+            eyebrow={t("eyebrow")}
+            title={t("title")}
+            lead={t("lead")}
           />
-          <p className="max-w-prose text-lg text-muted-foreground">{t("lead")}</p>
         </div>
       </section>
 
+      {/*
+        The story is a major. The three paragraphs are prose, not the single lead the major
+        opener splits out, so the heading spans and they stack under it; the hand rolled
+        two column grid the section used to draw is what `SectionHeader` owns now.
+      */}
       <section aria-labelledby="story-heading" className="border-b">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <Statement
-            as="h2"
-            id="story-heading"
-            text={t("story.title")}
-            className="text-display-sm md:text-display"
-          />
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
+          <SectionHeader tier="major" id="story-heading" title={t("story.title")} />
           <div className="flex max-w-prose flex-col gap-6">
             {STORY.map((paragraph) => (
               <p key={paragraph} className="text-base leading-relaxed">
@@ -82,45 +84,43 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
         </div>
       </section>
 
-      <section aria-label={t("grid.label")} className="border-b">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24">
-          <CampaignPiece statement={t("grid.statement")} as="p">
-            <CampaignGrid columns={3}>
-              <CampaignFrame caption={t("grid.philipp.caption")} aspect="portrait">
-                <CampaignImage
-                  src="/campaign/philipp.webp"
-                  alt={t("grid.philipp.alt")}
-                  sizes="(min-width: 640px) 33vw, 100vw"
-                  loading="lazy"
-                />
-              </CampaignFrame>
-              <CampaignFrame caption={t("grid.dresscode.caption")} aspect="portrait">
-                <CampaignImage
-                  src="/campaign/dresscode.jpg"
-                  alt={t("grid.dresscode.alt")}
-                  sizes="(min-width: 640px) 33vw, 100vw"
-                />
-              </CampaignFrame>
-              <CampaignFrame caption={t("grid.firmenwagen.caption")} aspect="portrait">
-                <CampaignImage
-                  src="/campaign/firmenwagen.webp"
-                  alt={t("grid.firmenwagen.alt")}
-                  sizes="(min-width: 640px) 33vw, 100vw"
-                />
-              </CampaignFrame>
-            </CampaignGrid>
-          </CampaignPiece>
-        </div>
-      </section>
+      {/* The page's one ruled ground: the campaign grid is the section that turns the argument. */}
+      <RuledField>
+        <section aria-label={t("grid.label")} className="border-b">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-28">
+            <CampaignPiece statement={t("grid.statement")} as="p">
+              <CampaignGrid columns={3}>
+                <CampaignFrame caption={t("grid.philipp.caption")} aspect="portrait">
+                  <CampaignImage
+                    src="/campaign/philipp.webp"
+                    alt={t("grid.philipp.alt")}
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                    loading="lazy"
+                  />
+                </CampaignFrame>
+                <CampaignFrame caption={t("grid.dresscode.caption")} aspect="portrait">
+                  <CampaignImage
+                    src="/campaign/dresscode.jpg"
+                    alt={t("grid.dresscode.alt")}
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                  />
+                </CampaignFrame>
+                <CampaignFrame caption={t("grid.firmenwagen.caption")} aspect="portrait">
+                  <CampaignImage
+                    src="/campaign/firmenwagen.webp"
+                    alt={t("grid.firmenwagen.alt")}
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                  />
+                </CampaignFrame>
+              </CampaignGrid>
+            </CampaignPiece>
+          </div>
+        </section>
+      </RuledField>
 
       <section aria-labelledby="how-heading" className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-24">
-          <Statement
-            as="h2"
-            id="how-heading"
-            text={t("how.title")}
-            className="text-display-sm md:text-display"
-          />
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
+          <SectionHeader tier="minor" id="how-heading" title={t("how.title")} />
           <ul className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-4">
             {HOW.map((item) => (
               <li key={item} className="flex flex-col gap-3 bg-background px-6 py-8">

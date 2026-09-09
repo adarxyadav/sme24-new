@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
@@ -34,6 +34,20 @@ export async function generateMetadata({
     description: t("description"),
   };
 }
+
+/**
+ * The mobile browser chrome follows the page ground (docs/design.md, the Web Interface Guidelines
+ * gate). Both entries are the `--background` token of their theme written as hex, because
+ * `themeColor` is consumed by the OS shell rather than the stylesheet and `oklch()` is not read
+ * everywhere: `#ffffff` is the light `:root` `oklch(1 0 0)`, `#000000` the `.dark` `oklch(0 0 0)`.
+ * Without it a jet full bleed opener or the closing call to action stops dead at a grey status bar.
+ */
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
