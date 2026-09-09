@@ -1,8 +1,15 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
 import { CURRENT_TERMS_VERSION } from "../src/features/legal/terms";
-import { accountByEmail, dbAvailable, serviceClient } from "./db";
+import {
+  accountByEmail,
+  createConfirmedClient,
+  dbAvailable,
+  deleteAccount,
+  serviceClient,
+} from "./db";
 import { SEED_USERS, seedPassword, signIn } from "./helpers";
+import { uniqueEmail } from "./mail";
 
 /**
  * The four legal pages (spec 0015, milestone 2): every page in both languages and both themes
@@ -298,5 +305,165 @@ test.describe
       await expect(page.getByTestId("terms-gate")).toBeVisible();
       const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
       expect(results.violations).toEqual([]);
+    });
+  });
+
+/**
+ * The two defects `/check verify` found on 2026-09-09, both invisible to the green suite (spec
+ * 0015, milestone 4). They live here rather than in Vitest because neither is reachable in jsdom:
+ * one is the real GoTrue merge semantics, the other is whether a toast region exists in the tree
+ * the browser actually renders.
+ */
+test.describe("the data rights card and the deletion scrub", () => {
+  test.skip(!dbAvailable || !seedPassword, "needs the local stack and the seeded password");
+
+  /**
+   * AC-11 regression: `Toaster` is mounted in `AreaShell`, and `/cookies` is a marketing route
+   * outside that shell, so every toast the card fired was dropped. The success path degraded
+   * quietly (the list reloads and shows the row), but `already_open` and the error paths told the
+   * user nothing at all. Sonner renders nothing until a toast is fired, so the assertion is on a
+   * toast actually appearing, not on the region being in the DOM at load.
+   */
+  test("the card's toast is announced on /cookies, a route outside the shell (AC-11)", async ({
+    page,
+  }) => {
+    await signIn(page, SEED_USERS.client);
+    await page.goto("/en/cookies");
+
+    const card = page.locator('section[aria-labelledby="data-heading"]');
+    await card.getByRole("button", { name: "Request a copy" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Request a copy", exact: true })
+      .click();
+
+    // The toast itself, in this tree. Before the fix this never appeared on `/cookies` while it
+    // appeared on `/en/app`, which is exactly what made the defect invisible to the suite.
+    await expect(
+      page.getByText("Request received. We will send your copy within 30 days."),
+    ).toBeVisible();
+
+    // And the second attempt, whose only feedback is a toast: the list still shows one row, so
+    // without a region the user is told nothing whatsoever about why nothing happened.
+    await card.getByRole("button", { name: "Request a copy" }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Request a copy", exact: true })
+      .click();
+    await expect(
+      page.getByText(
+        "You already have an open request of this kind. We will answer it within 30 days.",
+      ),
+    ).toBeVisible();
+  });
+
+  test.afterEach(async () => {
+    if (!dbAvailable) return;
+    // The card's rows are the seeded client's own, and the partial unique index would refuse the
+    // next run's request, so the open ones go back.
+    const account = await accountByEmail(SEED_USERS.client);
+    const id = account?.profile?.id;
+    if (!id) return;
+    await serviceClient().from("data_requests").delete().eq("requested_by", id);
+  });
+});
+
+/**
+ * AC-15 regression: `anonymisePerson` sent `user_metadata: {}`, and GoTrue merges rather than
+ * replaces, so the call succeeded while the person's real name stayed in
+ * `auth.users.raw_user_meta_data`. The routine still reported `authScrubbed: true`, so the audit
+ * log asserted a scrub that never happened and the privacy page promised it in writing.
+ *
+ * Serial, because it drives one throwaway account through the whole path: file, then fulfil as
+ * ops, then read the auth row back with the service client.
+ */
+test.describe
+  .serial("fulfilling a deletion actually scrubs the auth user", () => {
+    test.skip(!dbAvailable || !seedPassword, "needs the local stack and the seeded password");
+
+    const email = uniqueEmail("deletion");
+    const password = "Passw0rd!12345";
+
+    test.beforeAll(async () => {
+      if (!dbAvailable) return;
+      // A sign up carrying the full metadata set: this is what has to be gone at the end.
+      await createConfirmedClient(email, password, "Deletion Test AG");
+    });
+
+    test.afterAll(async () => {
+      if (!dbAvailable) return;
+      await deleteAccount(email);
+    });
+
+    test("clears every sign up key from raw_user_meta_data (AC-15)", async ({ page }) => {
+      const before = await accountByEmail(email);
+      const userId = before?.user.id as string;
+      expect(userId, "the throwaway account was not created").toBeTruthy();
+      // The precondition the assertion at the end is only meaningful against.
+      expect(before?.user.user_metadata?.full_name).toBe("Fixture Person");
+
+      // The person files the deletion themselves, through the card, as a real request would arrive.
+      await page.goto("/de/sign-in");
+      await page.getByLabel("E-Mail").fill(email);
+      await page.getByLabel("Passwort").fill(password);
+      await page.getByRole("button", { name: "Anmelden", exact: true }).click();
+      await page.waitForURL((url) => !url.pathname.endsWith("/sign-in"));
+      await page.goto("/en/cookies");
+      const card = page.locator('section[aria-labelledby="data-heading"]');
+      await card.getByRole("button", { name: "Request deletion" }).click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: "Request deletion", exact: true })
+        .click();
+      // The badge in the list, not the toast: with the region mounted, "Received" now matches both.
+      await expect(card.getByText("Received", { exact: true })).toBeVisible();
+
+      const { data: filed } = await serviceClient()
+        .from("data_requests")
+        .select("id")
+        .eq("requested_by", userId)
+        .eq("kind", "deletion")
+        .single();
+      const requestId = filed?.id as string;
+      expect(requestId).toBeTruthy();
+
+      // Ops fulfil it through the form, so the scrub runs where it really runs: inside
+      // `updateDataRequest`, never as a manual side channel.
+      await page.context().clearCookies();
+      await signIn(page, SEED_USERS.ops);
+      await page.goto(`/en/admin/data-requests/${requestId}`);
+      // Two saves, because `DATA_REQUEST_TRANSITIONS` has no `new → fulfilled` edge: a deletion is
+      // picked up and only then fulfilled, so this walks the path ops actually walk.
+      // By role: the section is also labelled "Status", so `getByLabel` matches two elements.
+      // The bar is pinned to the bottom of the viewport until it is answered, and the success
+      // toast lands on top of the button; both would intercept the second save's click.
+      await page.getByTestId("cookie-bar").getByRole("button", { name: "Reject" }).click();
+      for (const next of ["In progress", "Fulfilled"]) {
+        await page.getByRole("combobox", { name: "Status" }).click();
+        await page.getByRole("option", { name: next, exact: true }).click();
+        await page.getByLabel("What was done").fill(`Anonymised on request, e2e (${next}).`);
+        await page.getByRole("button", { name: "Save", exact: true }).click();
+        await expect(page.getByText("Request updated.")).toBeVisible();
+        // The toaster has no close button, so the reload is what clears it before the next save;
+        // it also proves the move was stored rather than only shown.
+        await page.reload();
+      }
+
+      // The assertion the whole test exists for, read straight from the auth row.
+      const supabase = serviceClient();
+      const { data: after, error } = await supabase.auth.admin.getUserById(userId);
+      expect(error).toBeNull();
+      const metadata = (after.user?.user_metadata ?? {}) as Record<string, unknown>;
+      for (const key of ["full_name", "organization_name", "locale", "terms_accepted_at"]) {
+        expect(metadata[key], `${key} survived the scrub in raw_user_meta_data`).toBeUndefined();
+      }
+      // The rest of AC-15, so a fix to the metadata cannot quietly cost the other two.
+      expect(after.user?.email).toBe(`deleted+${userId}@invalid.sme24.ch`);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .single();
+      expect(profile?.full_name).toBeNull();
     });
   });
