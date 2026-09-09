@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
+import { Toaster } from "@/components/ui/sonner";
 import {
   Table,
   TableBody,
@@ -38,10 +39,11 @@ export async function generateMetadata({
  * signed in person asks for a copy of their data or its deletion.
  *
  * Both the control and the card are client components that read their own state after mount, so
- * the page stays statically prerendered; the page never reads `cookies()` itself. It gets its strings through a nested
- * provider, because the page copy lives outside the shared namespaces on purpose: the legal text
- * is long, and shipping it to every client bundle would cost the first load budget for nothing.
- * Prerendered in both languages.
+ * the page stays statically prerendered; the page never reads `cookies()` itself. It gets its
+ * strings through a nested provider, because the page copy lives outside the shared namespaces on
+ * purpose: the legal text is long, and shipping it to every client bundle would cost the first
+ * load budget for nothing. This is also the one marketing page carrying a `Toaster`, because the
+ * card is the one thing on this path that toasts (AC-11). Prerendered in both languages.
  */
 export default async function CookiesPage({ params }: PageProps<"/[locale]/cookies">) {
   const { locale } = await params;
@@ -76,6 +78,17 @@ export default async function CookiesPage({ params }: PageProps<"/[locale]/cooki
         <LegalSection id="data" title={data("title")}>
           <NextIntlClientProvider messages={clientMessages(messages, ["legalPages"])}>
             <DataRequestsCard />
+            {/*
+              Spec 0015 (AC-11): the card is the only thing on the static marketing path that
+              toasts, and `Toaster` lives in `AreaShell` rather than the root layout so its weight
+              stays off the other ten prerendered pages (spec 0009, Follow-up). Without a region in
+              this tree every toast is dropped silently: the success path degrades (the list
+              reloads and shows the row) but `already_open` and the error paths say nothing at all.
+              So the region is mounted here, beside the one component that needs it, rather than
+              being put back in the root layout. `/cookies` is a marketing route and never renders
+              inside `AreaShell`, so the two can never both mount and double every toast.
+            */}
+            <Toaster />
           </NextIntlClientProvider>
         </LegalSection>
 

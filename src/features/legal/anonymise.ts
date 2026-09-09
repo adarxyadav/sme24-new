@@ -103,9 +103,21 @@ export async function anonymisePerson(
   // keys, and its `role` and `organization_id` are rewritten from the profile by the access token
   // hook on every token anyway, so clearing it would break the auth row without removing anything
   // the person supplied.
+  //
+  // GoTrue MERGES `user_metadata` rather than replacing it, so passing `{}` is a silent no-op that
+  // returns success while leaving the person's real name in `auth.users.raw_user_meta_data`. A key
+  // is removed only by sending it explicitly as null, so the nulls are derived from the keys the
+  // user actually carries: a hard coded list would rot the day a sixth key is added at sign up,
+  // and this clears whatever is there (`full_name`, `organization_name`, `locale`,
+  // `terms_accepted_at`, `terms_version`, an OAuth `avatar_url`) without naming any of them.
+  const { data: current, error: readAuthError } = await service.auth.admin.getUserById(userId);
+  if (readAuthError) throw new Error(`anonymise: auth read: ${readAuthError.message}`);
+  const scrubbedMetadata = Object.fromEntries(
+    Object.keys(current.user?.user_metadata ?? {}).map((key) => [key, null]),
+  );
   const { error: authError } = await service.auth.admin.updateUserById(userId, {
     email: scrubbedEmail(userId),
-    user_metadata: {},
+    user_metadata: scrubbedMetadata,
   });
   if (authError) throw new Error(`anonymise: auth: ${authError.message}`);
 
