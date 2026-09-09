@@ -87,7 +87,7 @@
       "pricing": "Pakete",
       "about": "Über uns",
       "contact": "Kontakt",
-      "freeBenchmark": "Kostenloser Benchmark"
+      "freeBenchmark": "Was Ihr Risiko kostet"
     },
     "howItWorks": {
       "meta": {
@@ -334,12 +334,12 @@
         "statement": "Senior-Experten. Keine Slides. Nur Resultate."
       },
       "eyebrow": "EHS-Beratung zum Fixpreis",
-      "title": "EHS-Risiko kennen. Wissen, was zu tun ist. Den richtigen Experten finden.",
-      "lead": "Ein benchmarktes Risikoprofil, eine Shortlist erfahrener Expertinnen und Experten und ein Fixpreis-Angebot, bevor Sie sich festlegen.",
+      "title": "Sehen Sie, was Ihr EHS-Risiko kostet. Und was zuerst zu tun ist.",
+      "lead": "Ein Risikoprofil in Franken, gemessen an Ihren Branchenkollegen, mit einer Shortlist erfahrener Expertinnen und Experten und einem Fixpreis-Angebot — bevor Sie sich festlegen.",
       "lookup": {
         "label": "Ihr Unternehmen",
         "placeholder": "Name des Unternehmens",
-        "cta": "Unternehmen kostenlos benchmarken"
+        "cta": "Sehen, was Ihr Risiko kostet"
       },
       "signIn": "Schon Kunde? Anmelden",
       "pointsLabel": "Warum SME24",
@@ -421,7 +421,7 @@
         "title": "Starten Sie mit dem Benchmark. Er ist kostenlos.",
         "lead": "Geben Sie den Namen Ihres Unternehmens ein. Der Benchmark folgt, ohne Kosten."
       },
-      "free": "Der Benchmark ist kostenlos. Kein Verkaufsgespräch.",
+      "free": "Kostenlos und ohne Verkaufsgespräch. Ihre Zahl im Vergleich in zwei Minuten.",
       "example": {
         "label": "Beispiel-Benchmark für {company}",
         "company": "Muster AG",
