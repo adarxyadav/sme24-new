@@ -112,9 +112,9 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         cards carry. Two rows let each card leave the note row empty and keep the amounts level.
       */}
       {onDemand ? (
-        <p className="self-end text-heading-40">{pricing("onDemand")}</p>
+        <p className="self-end text-heading-32">{pricing("onDemand")}</p>
       ) : (
-        <p className="self-end text-heading-40 tabular-nums" data-numeric>
+        <p className="self-end text-heading-32 tabular-nums" data-numeric>
           {format.number(entry.priceChf ?? 0, "chfWhole")}
         </p>
       )}
