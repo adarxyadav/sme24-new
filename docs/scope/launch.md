@@ -35,7 +35,7 @@ spec [0015](../specs/0015-legal-privacy-cookie-consent/index.md)
 - [x] Verify it: `/check verify legal, privacy & cookie consent`
 - [x] Test it: `/test legal, privacy & cookie consent`
 - [x] Review it (fresh model): `/check review legal, privacy & cookie consent`
-- [ ] Document it: `/document legal, privacy & cookie consent`
+- [x] Document it: `/document legal, privacy & cookie consent`
 
 ### 15. Analytics & monitoring · needs a decision
 Conversion funnel events (lookup started, run finished, benchmark viewed, checkout started, payment completed, enquiry sent) plus runtime error monitoring, failed background job alerts and slow page reporting. The event taxonomy is the decision; consent from feature 14 gates the client side part.
