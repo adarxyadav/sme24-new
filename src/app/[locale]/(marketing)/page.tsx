@@ -167,12 +167,18 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
 
       <section aria-labelledby="packages-heading" className="border-b">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
+          {/*
+            The packages opener takes the emphasis shape: the label as a pill and one heading that
+            states the claim and answers it in the muted colour, with nothing beside it. The first
+            two sentences stay at full strength ("Fixed price. No surprises.") and the third, which
+            was the lead until 2026-09-10, closes the heading in grey.
+          */}
           <SectionHeader
             tier="major"
             id="packages-heading"
             eyebrow={t("packages.eyebrow")}
             title={t("packages.title")}
-            lead={t("packages.lead")}
+            emphasis={{ leadSentences: 2 }}
           />
           <PackagesGrid variant="overview" />
         </div>

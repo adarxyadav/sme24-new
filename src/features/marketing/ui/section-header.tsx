@@ -1,4 +1,5 @@
 import { Statement } from "@/components/brand/statement";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 /** The rhythm tier of a marketing section (docs/design.md, marketing section vocabulary). */
@@ -10,6 +11,13 @@ export type SectionHeaderProps = {
   readonly eyebrow?: string;
   readonly title: string;
   readonly lead?: string;
+  /**
+   * Renders the eyebrow as a pill and drops the heading's closing sentences to the muted colour,
+   * so one heading carries the claim and the line that would otherwise sit beside it as a lead
+   * (the shape of the reference the owner brought on 2026-09-10). Majors only, and the section
+   * passes no `lead` with it -- the count says how many opening sentences stay at full strength.
+   */
+  readonly emphasis?: { readonly leadSentences: number };
   /** `h1` on the page opener, `h2` everywhere else. */
   readonly as?: "h1" | "h2";
   /** The id an owning `section` points at with `aria-labelledby`. */
@@ -21,13 +29,15 @@ export type SectionHeaderProps = {
  * The opener of a marketing section (docs/design.md, marketing section vocabulary): the tier
  * picks the shape, so a page decides weight once and the heading size, the layout and the eyebrow
  * all follow. Anchor stacks left, major splits the heading from the lead, minor runs inline under
- * a hairline. Server component.
+ * a hairline. `emphasis` overrides the tier's layout with the pill and two tone heading shape.
+ * Server component.
  */
 export function SectionHeader({
   tier,
   eyebrow,
   title,
   lead,
+  emphasis,
   as = "h2",
   id,
   className,
@@ -37,13 +47,44 @@ export function SectionHeader({
       as={as}
       id={id}
       text={title}
+      // The emphasis heading runs on as prose rather than breaking at every sentence: its whole
+      // point is that the claim and its answer read as one paragraph of display type.
+      layout={emphasis ? "flow" : "line"}
+      leadSentences={emphasis?.leadSentences}
       className={cn(
         tier === "anchor" && "max-w-4xl text-display-sm md:text-display-lg",
         tier === "major" && "text-display-sm md:text-display",
         tier === "minor" && "font-semibold text-2xl tracking-headline md:text-display-sm",
+        // A measure the two tone heading needs and the split major does not: the heading is the
+        // whole width of the band here, so without a cap the muted half runs to a line length
+        // display type cannot hold.
+        emphasis && "max-w-5xl",
       )}
     />
   );
+
+  /*
+    The emphasis shape (owner decision of 2026-09-10, from the reference they brought): the label
+    is a pill rather than a bare caps line, the heading carries its own lead in the muted colour,
+    and nothing sits beside it. It stacks like an anchor rather than splitting like a major,
+    because there is no second column left to split into.
+
+    The pill takes `secondary` -- the neutral ground already in the palette. The reference sets a
+    blue label on a light blue pill, which `docs/design.md` rule 3 forbids outright ("No accent
+    hue", the brand is black and white), so the shape is borrowed and the hue is not.
+  */
+  if (emphasis) {
+    return (
+      <div className={cn("flex flex-col items-start gap-5", className)}>
+        {eyebrow ? (
+          <Badge variant="secondary" className="eyebrow h-auto px-2.5 py-1 text-muted-foreground">
+            {eyebrow}
+          </Badge>
+        ) : null}
+        {heading}
+      </div>
+    );
+  }
 
   if (tier === "minor") {
     return (

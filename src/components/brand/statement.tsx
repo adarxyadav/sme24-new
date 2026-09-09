@@ -11,6 +11,12 @@ export type StatementProps = {
    * run on and wrap like prose, for a headline whose sentences are shorter than its measure.
    */
   readonly layout?: "line" | "flow";
+  /**
+   * How many opening sentences keep the heading's own colour. The rest render in
+   * `text-muted-foreground`, so one heading carries both the claim and the sentence that used to
+   * sit beside it as a lead. Omit it (the default) and every sentence takes the same colour.
+   */
+  readonly leadSentences?: number;
   readonly className?: string;
 };
 
@@ -57,13 +63,29 @@ export function SquareStop() {
  * each closed by the square stop. "Senior experts. No slides. Just results." Pair with a display
  * size (`text-display-*`) or a headline size. Server or browser.
  */
-export function Statement({ text, as: Tag = "p", id, layout = "line", className }: StatementProps) {
+export function Statement({
+  text,
+  as: Tag = "p",
+  id,
+  layout = "line",
+  leadSentences,
+  className,
+}: StatementProps) {
   const sentences = splitSentences(text);
   return (
     <Tag id={id} data-slot="statement" className={cn("text-balance", className)}>
       {sentences.map((sentence, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: the lines are static per render and derived from one string, and a repeated sentence must keep its own line
-        <span key={index} className={layout === "line" ? "block" : undefined}>
+        <span
+          // biome-ignore lint/suspicious/noArrayIndexKey: the lines are static per render and derived from one string, and a repeated sentence must keep its own line
+          key={index}
+          className={cn(
+            layout === "line" ? "block" : undefined,
+            // Everything past the opening sentences drops to the muted colour, so the heading
+            // states the claim and then answers it in one breath. The stop stays `bg-current`,
+            // so each square takes the colour of the sentence it closes.
+            leadSentences !== undefined && index >= leadSentences && "text-muted-foreground",
+          )}
+        >
           {lastWord(sentence.text).head}
           {/* The stop stays glued to the last word, so a wrapped sentence never opens a line with it. */}
           <span className="whitespace-nowrap">
