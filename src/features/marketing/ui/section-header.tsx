@@ -40,7 +40,7 @@ export function SectionHeader({
       className={cn(
         tier === "anchor" && "max-w-4xl text-display-sm md:text-display-lg",
         tier === "major" && "text-display-sm md:text-display",
-        tier === "minor" && "font-extrabold text-2xl tracking-headline md:text-display-sm",
+        tier === "minor" && "font-semibold text-2xl tracking-headline md:text-display-sm",
       )}
     />
   );

@@ -43,7 +43,7 @@ One typeface: Geist (Google Fonts, self hosted through `next/font` in `src/app/[
 
 | Role (brand hierarchy) | Classes |
 |---|---|
-| Display · 800 · −3% | `text-display-lg` (72px), `text-display` (56px), `text-display-sm` (40px); weight and tracking are built into the size. Marketing statements and campaign blocks. |
+| Display · 600 · −3% | `text-display-lg` (72px), `text-display` (56px), `text-display-sm` (40px); weight and tracking are built into the size. Marketing statements and campaign blocks. |
 | Headline · 700 · −2% (`h1`, rendered by `PageHeader`) | `text-2xl font-bold tracking-headline` |
 | Subhead · 600 (`h2`) | `text-lg font-semibold` |
 | Card title | `text-base font-semibold` |
@@ -54,6 +54,38 @@ One typeface: Geist (Google Fonts, self hosted through `next/font` in `src/app/[
 | Numbers in tables and KPI tiles | add `tabular-nums` (or `data-numeric`) so figures align |
 
 Prose blocks cap at `max-w-prose`. Exactly one `h1` per page. Heading levels never skip.
+
+### The scale
+
+The role table above is the shorthand; underneath it sits a four-family scale adapted from the Geist
+design system (2026-09-09). A size alone is not a style -- the same 14px is a nav item, a button and
+a paragraph, and those want different line heights -- so each token presets size, line-height,
+letter-spacing and weight together. A call site names a role rather than assembling one:
+`text-copy-14`, not `text-sm leading-relaxed font-normal`.
+
+| Family | Sizes | Metrics | Use for |
+|---|---|---|---|
+| `text-heading-*` | 72, 64, 56, 48, 40, 32, 24, 20, 16, 14 | 600, leading 1–1.5, tracking −4.5% to −0.4% | Headings only. Tight leading hurts to read in bulk. |
+| `text-copy-*` | 24, 20, 18, 16, 14, 13 | 400, leading 1.5 | Multiple lines: paragraphs, marketing prose, email body. |
+| `text-label-*` | 20, 18, 16, 14, 13, 12 | 400, leading ~1.25 | Single lines: nav, menus, table headers, form labels, badges. |
+| `text-button-*` | 16, 14, 12 | 500, label metrics | Control labels. 12 only for a button inside an input. |
+| `text-copy-13-mono`, `text-label-{14,13,12}-mono` | — | Geist Mono, tabular figures | Run ids, invoice numbers, amounts. Half a step below the sans size they pair with, because Geist Mono's x-height reads bigger at the same nominal size. |
+
+Choosing between them is one question: **does it wrap?** More than one line is `copy`, one line is
+`label`, and a heading is `heading` at any length. Tracking tightens as the size grows and turns
+positive again below 16px, which is what keeps a large heading from reading loose and small text
+from reading cramped; never override it by hand.
+
+Emphasis inside these families is markup, not a second class. `<strong>` (or `<b>`) nested in any
+`heading`/`copy`/`label` element goes to 600 at the same size, and `<span className="subtle">` goes
+to the muted token — so `<p className="text-copy-16">Copy <strong>with Strong</strong></p>` needs
+nothing on the child.
+
+The brand `text-display-*` tokens are unchanged and still outrank `text-heading-*` for marketing
+statements and the campaign blocks: `heading` is the working scale, `display` is the voice. The
+plain Tailwind ramp (`text-sm`, `text-lg`) still works and is what most existing call sites use;
+new UI takes the scale above, and old call sites move with the file when it is next touched.
+
 
 ## Color
 
@@ -132,7 +164,7 @@ The tier of every section that exists today. A new section joins this table.
 
 | Page | Sections in order |
 |---|---|
-| Landing | anchor hero on the page ground, centred, with the hero object under it · minor proof points · **major ruled steps** · major packages · minor campaign wall · anchor jet closing |
+| Landing | anchor hero on the page ground, centred, with the hero object under it · minor proof points · **major ruled steps** · major packages · minor campaign wall · major trust · anchor jet closing |
 | How it works | anchor opener · **major ruled steps** · major split of labour · minor timing · anchor jet closing |
 | Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
 | Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |
@@ -157,7 +189,7 @@ Overlays and toasts use `tw-animate-css` fades and slides, 150 to 200ms. A globa
 | Shared | `PageHeader`, `PageStack`, `EmptyState`, `ErrorState`, `SkipLink`, `ThemeToggle`, `ThemeSubmenu`, `LocaleSwitcher`, `MarketingHeader` | `src/components/`, named exports, one line JSDoc. `ThemeToggle` is a segmented pill of icon radios (`rounded-full border bg-background p-0.5`, 28px segments, `bg-accent` plus `shadow-xs` on the active one); `LocaleSwitcher` is a dropdown with a matching pill shaped trigger (`h-[34px] rounded-full border`, the height of the theme pill) showing the current language. Where both appear, place them side by side with `gap-2`; the marketing header carries the language switch alone (the theme control sits in the footer). |
 | Brand | `BrandMark`, `Logo`, `Statement`, `SquareStop`, `Signature` | `src/components/brand/`, see `## Brand`. |
 | Shell | `AreaShell` (server), `AppSidebar` (client), `LocaleMenuItems`, `AreaError`, `PageSkeleton`, `nav.ts` | `src/components/shell/`. Add a navigation entry by appending to `AREA_NAV` in `nav.ts` and its `nav.<area>.<key>` messages. |
-| Marketing | `MarketingFooter`, `CompanyLookupField`, `SectionHeader`, `HeroBenchmark`, `StepsSection`, `PackageCard`, `PackagesGrid`, `RegisterDirectory`, `Faq`, `ClosingCta`, `EnquiryForm`, `EnquiryConfirmation`, `JsonLd` | `src/features/marketing/ui/` (spec 0009). Sections sit in `max-w-6xl`, hairline grids (`gap-px border bg-border`) for steps and packages, a ruled ledger (`border-t`, `divide-x`) for the proof points, the inverse block for the closing call to action (the landing hero sits on the page ground). The gallery's Marketing section shows the three `SectionHeader` tiers, the hero benchmark, the register directory, the package card, the FAQ and the enquiry form empty and in its error state. `SectionHeader` renders the anchor, major and minor openers from a `tier` prop, see `## Marketing section vocabulary`. |
+| Marketing | `MarketingFooter`, `CompanyLookupField`, `SectionHeader`, `HeroBenchmark`, `StepsSection`, `PackageCard`, `PackagesGrid`, `RegisterDirectory`, `Faq`, `TrustSection`, `ClosingCta`, `EnquiryForm`, `EnquiryConfirmation`, `JsonLd` | `src/features/marketing/ui/` (spec 0009). Sections sit in `max-w-6xl`, hairline grids (`gap-px border bg-border`) for steps and packages, a ruled ledger (`border-t`, `divide-x`) for the proof points, the inverse block for the closing call to action (the landing hero sits on the page ground). The gallery's Marketing section shows the three `SectionHeader` tiers, the hero benchmark, the register directory, the package card, the FAQ and the enquiry form empty and in its error state. `SectionHeader` renders the anchor, major and minor openers from a `tier` prop, see `## Marketing section vocabulary`. |
 
 Icons: lucide, `size-4` inline (components size them), decorative icons `aria-hidden="true"`, icon only buttons carry `aria-label`. Icons inside a `Button` use `data-icon="inline-start"` or `inline-end`.
 

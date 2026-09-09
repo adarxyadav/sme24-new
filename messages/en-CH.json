@@ -417,6 +417,47 @@
           }
         }
       },
+      "trust": {
+        "eyebrow": "Trust",
+        "title": "Your figures stay yours.",
+        "lead": "You sign for this data, so the guarantees sit in the database rather than in a policy — and the whole list is public.",
+        "cta": "Read the privacy page",
+        "panelsLabel": "How we handle your data",
+        "panels": {
+          "residency": {
+            "badge": "Zurich",
+            "title": "One jurisdiction, and a strict one.",
+            "body": "Not a policy — a region. Your figures and documents are stored on Swiss infrastructure and stay there, under the revised FADP, with the GDPR met wherever it reaches you."
+          },
+          "isolation": {
+            "title": "The database says no.",
+            "body": "The fence is in the database, not the app. Even a mistake in our code returns an empty result for someone else's benchmark, because the row was never theirs to read.",
+            "rows": {
+              "yours": "Your organisation",
+              "expert": "Assigned expert",
+              "other": "Another company"
+            },
+            "allowed": "Visible",
+            "denied": "Blocked",
+            "rootLabel": "Your safety data"
+          },
+          "record": {
+            "title": "You can answer the audit question.",
+            "body": "Where your data goes, and what happens there. Every company involved is named on the privacy page, generated from the code that is actually running — so it cannot fall behind the stack it describes.",
+            "regions": {
+              "ch": "Switzerland",
+              "eu": "European Union",
+              "us": "United States"
+            },
+            "countLabel": "{count, plural, one {# provider} other {# providers}}",
+            "purposes": {
+              "ch": "Your account, your figures and your documents are stored here.",
+              "eu": "The site, email, payments and error monitoring run here.",
+              "us": "Only the research and AI analysis steps, on the public company information we look up — never your stored figures."
+            }
+          }
+        }
+      },
       "closing": {
         "title": "See what your risk costs. Free.",
         "lead": "Type your company name. Your figure in francs, measured against your peers, in two minutes."
@@ -857,7 +898,7 @@
       },
       "type": {
         "title": "Type",
-        "description": "Geist in five roles (display, headline, subhead, body, caption), Geist Mono for identifiers, tabular figures for numbers."
+        "description": "Geist in five roles (display, headline, subhead, body, caption), Geist Mono for identifiers, tabular figures for numbers, and the four family scale: heading, copy, label, button."
       },
       "buttons": {
         "title": "Buttons and badges",
@@ -994,7 +1035,27 @@
       "headline": "Risk, innovation, transformation",
       "subhead": "Senior experts, on demand",
       "body": "Tailored, no-nonsense solutions for organizations pursuing sustainable growth.",
-      "caption": "Fixed-price EHS consulting · sme24.ch"
+      "caption": "Fixed-price EHS consulting · sme24.ch",
+      "headings": "Headings",
+      "headingRule": "Used to introduce pages or sections. Tight leading and negative tracking; never for more than a couple of lines.",
+      "headingSample": "Heading {size}",
+      "headingUsage": "Headings only.",
+      "copy": "Copy",
+      "copyRule": "Designed for multiple lines of text, with a higher line height than Label. Paragraphs, marketing prose, email body.",
+      "copySample": "Copy {size} with Strong",
+      "copyUsage": "Wraps to more than one line.",
+      "labels": "Label",
+      "labelRule": "Designed for single lines, with ample line height for pairing with icons. Navigation, menus, table headers, form labels.",
+      "labelSample": "Label {size}",
+      "labelUsage": "One line, next to an icon.",
+      "buttons": "Buttons",
+      "buttonRule": "Only to be used within components that render buttons. 12 is only for a tiny button placed inside an input field.",
+      "buttonSample": "Button {size}",
+      "buttonUsage": "Control labels.",
+      "mono": "Mono",
+      "monoRule": "Geist Mono with tabular figures, half a step below the sans size it pairs with. Run ids, invoice numbers, amounts.",
+      "monoUsage": "Identifiers and figures.",
+      "modifiers": "Copy 16 <strong>with Strong</strong> and <subtle>with Subtle</subtle>."
     },
     "buttons": {
       "variants": "Variants",

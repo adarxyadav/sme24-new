@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MarketingHeader } from "@/components/marketing-header";
+import { PROCESSORS } from "@/features/legal/processors";
 import { PACKAGES, sortedPackages } from "@/features/marketing/packages";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
 import { EnquiryConfirmation } from "@/features/marketing/ui/enquiry-confirmation";
@@ -12,6 +13,7 @@ import { MarketingFooter } from "@/features/marketing/ui/marketing-footer";
 import { PackageCard } from "@/features/marketing/ui/package-card";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
 import { StepsSection } from "@/features/marketing/ui/steps-section";
+import { TrustSection } from "@/features/marketing/ui/trust-section";
 import { formats } from "@/i18n/formats";
 import de from "../../../messages/de-CH.json";
 import en from "../../../messages/en-CH.json";
@@ -394,5 +396,86 @@ describe("JsonLd (spec 0009, AC-3)", () => {
       "@type": "Organization",
       name: "SME24 </script><script>alert(1)",
     });
+  });
+});
+
+describe("TrustSection (docs/design.md, tier map: major)", () => {
+  it("opens as a major with the heading the section is labelled by", () => {
+    const { container } = renderIn("en-CH", <TrustSection />);
+    const section = container.querySelector("section");
+    expect(section?.getAttribute("aria-labelledby")).toBe("trust-heading");
+    const heading = screen.getByRole("heading", { level: 2 });
+    expect(heading.id).toBe("trust-heading");
+    expect(heading).toHaveTextContent(en.marketing.landing.trust.title.replace(/\.$/, ""));
+    expect(screen.getByText(en.marketing.landing.trust.lead)).toBeInTheDocument();
+  });
+
+  it("renders the three panels as one labelled list, each with its own subheading", () => {
+    renderIn("en-CH", <TrustSection />);
+    const panels = screen.getByRole("list", {
+      name: en.marketing.landing.trust.panelsLabel,
+    });
+    // The panels are the list's own children.
+    expect([...panels.children].filter((node) => node.tagName === "LI")).toHaveLength(3);
+    for (const key of ["residency", "isolation", "record"] as const) {
+      expect(
+        screen.getByRole("heading", {
+          level: 3,
+          name: en.marketing.landing.trust.panels[key].title,
+        }),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it("counts the processors per region from PROCESSORS, so the panel cannot drift from the stack", () => {
+    renderIn("en-CH", <TrustSection />);
+    for (const region of ["ch", "eu", "us"] as const) {
+      const count = PROCESSORS.filter((processor) => processor.region === region).length;
+      expect(
+        screen.getByText(en.marketing.landing.trust.panels.record.regions[region]),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(en.marketing.landing.trust.panels.record.purposes[region]),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(`${count} ${count === 1 ? "provider" : "providers"}`),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it("names no processor on the landing page, leaving the vendor list to the privacy page", () => {
+    const { container } = renderIn("en-CH", <TrustSection />);
+    // A buyer wants the jurisdiction here; the supplier list belongs where due diligence looks.
+    for (const processor of PROCESSORS) {
+      expect(container.textContent).not.toContain(processor.name);
+    }
+  });
+
+  it("states each isolation outcome in words, never by colour or icon alone", () => {
+    renderIn("en-CH", <TrustSection />);
+    const { allowed, denied } = en.marketing.landing.trust.panels.isolation;
+    expect(screen.getAllByText(allowed)).toHaveLength(2);
+    expect(screen.getAllByText(denied)).toHaveLength(1);
+  });
+
+  it("links to the privacy page and renders the German catalogue too", () => {
+    const { unmount } = renderIn("en-CH", <TrustSection />);
+    expect(screen.getByRole("link", { name: en.marketing.landing.trust.cta })).toHaveAttribute(
+      "href",
+      "/en/privacy",
+    );
+    unmount();
+
+    renderIn("de-CH", <TrustSection />);
+    expect(
+      screen.getByRole("heading", {
+        level: 3,
+        name: de.marketing.landing.trust.panels.isolation.title,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: de.marketing.landing.trust.cta })).toHaveAttribute(
+      "href",
+      "/de/datenschutz",
+    );
   });
 });
