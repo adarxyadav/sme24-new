@@ -315,7 +315,7 @@ test("the expert network page links into the directory in both languages (direct
  * in two lines at the size the card uses. A regression to a larger step silently returns it to
  * three lines and breaks the row's rhythm.
  */
-test("every package card's action contrasts with its ground and no name runs past two lines", async ({
+test("every package card's action contrasts, meets the target size, and no name runs past two lines", async ({
   page,
 }) => {
   for (const path of ["/en/pricing", "/de/preise", "/en", "/de"]) {
@@ -338,6 +338,11 @@ test("every package card's action contrasts with its ground and no name runs pas
         return Math.round(el.getBoundingClientRect().height / Number.parseFloat(style.lineHeight));
       });
       expect(lines).toBeLessThanOrEqual(2);
+
+      // WCAG 2.2 AA target size (2.5.8). The action is the only control on the landing card, and
+      // `py-2.5` on the `lg` button lands at 42px, so this is a real floor rather than a formality.
+      const { height } = (await action.boundingBox()) ?? { height: 0 };
+      expect(height).toBeGreaterThanOrEqual(44);
     }
   }
 });

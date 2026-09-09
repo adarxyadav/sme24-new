@@ -385,7 +385,7 @@
       "packages": {
         "eyebrow": "Packages",
         "title": "Fixed price. No surprises.",
-        "lead": "Three snapshots at a fixed price, and an implementation partner when you want results delivered rather than a project."
+        "lead": "The price you see is the price you pay. Scope, duration and deliverables agreed up front."
       },
       "wall": {
         "eyebrow": "Our SMEs",
@@ -502,8 +502,8 @@
       "outcomeLabel": "So that",
       "cta": "See what your risk costs",
       "retainerCta": "Let’s talk",
-      "overviewLink": "See all prices",
-      "overviewLinkFor": "See all prices: {name}",
+      "overviewLink": "See what’s included",
+      "overviewLinkFor": "See what’s included: {name}",
       "included": {
         "title": "What every package includes.",
         "items": {

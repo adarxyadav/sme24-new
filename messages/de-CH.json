@@ -385,7 +385,7 @@
       "packages": {
         "eyebrow": "Pakete",
         "title": "Fixpreis. Keine Überraschungen.",
-        "lead": "Drei Snapshots zum Fixpreis, und ein Umsetzungspartner, wenn Sie Resultate wollen statt ein Projekt."
+        "lead": "Der angezeigte Preis ist der Preis, den Sie zahlen. Umfang, Dauer und Leistungen vorab vereinbart."
       },
       "wall": {
         "eyebrow": "Unsere KMU",
@@ -502,8 +502,8 @@
       "outcomeLabel": "Damit",
       "cta": "Sehen, was Ihr Risiko kostet",
       "retainerCta": "Sprechen wir",
-      "overviewLink": "Alle Preise ansehen",
-      "overviewLinkFor": "Alle Preise ansehen: {name}",
+      "overviewLink": "Leistungen ansehen",
+      "overviewLinkFor": "Leistungen ansehen: {name}",
       "included": {
         "title": "Was jedes Paket enthält.",
         "items": {

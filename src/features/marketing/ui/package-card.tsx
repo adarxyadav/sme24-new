@@ -127,18 +127,36 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
 
       <div className="self-end">
         {variant === "overview" ? (
-          <Button asChild variant="ghost" className="-mx-3 h-auto justify-start gap-2 px-3 py-2">
+          /*
+            A full width action on a quiet ground rather than a bare text link. The landing card
+            carries no price to buy against, so its action is the only control on it: given the
+            width of the card it should read as a control, and `secondary` is the one ground in the
+            palette that lifts off the card without becoming a second black button competing with
+            the real ones on the pricing page.
+
+            The arrow slides on hover, which is the only motion on the card -- enough to say the
+            control leads somewhere, and it is dropped for a visitor who asked for reduced motion.
+          */
+          <Button
+            asChild
+            variant="secondary"
+            size="lg"
+            className="group/cta h-auto w-full justify-between whitespace-normal py-3"
+          >
             {/*
               Four cards carry this link to the same page, so the visible label stays short while
               the accessible name names the package: a screen reader's link list reads four
-              distinct destinations rather than "See all prices" four times.
+              distinct destinations rather than the same label four times.
             */}
             <Link
               href="/pricing"
               aria-label={pricing("overviewLinkFor", { name: t(`${entry.key}.name`) })}
             >
               {pricing("overviewLink")}
-              <ArrowRightIcon aria-hidden="true" />
+              <ArrowRightIcon
+                aria-hidden="true"
+                className="transition-transform group-hover/cta:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover/cta:translate-x-0"
+              />
             </Link>
           </Button>
         ) : onDemand ? (
@@ -152,7 +170,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             asChild
             variant="outline"
             size="lg"
-            className="h-auto w-full whitespace-normal py-2.5"
+            className="h-auto w-full whitespace-normal py-3"
           >
             <Link href={{ pathname: "/contact", query: { topic: "retainer" } }}>
               {pricing("retainerCta")}
@@ -164,7 +182,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             own primary action reads as primary; filling only one card's button demoted the others
             into looking unavailable.
           */
-          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2.5">
+          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-3">
             {/*
               Spec 0011 (AC-16): the chosen package rides along, so a signed out visitor lands
               back on the checkout for the package they picked once they have signed up. A

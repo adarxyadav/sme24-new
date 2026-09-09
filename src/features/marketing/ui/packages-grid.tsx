@@ -29,7 +29,14 @@ export function PackagesGrid({ variant = "full" }: Pick<PackageCardProps, "varia
         // One track per stacked card below `sm`, then the tracks the cards subgrid into.
         full
           ? "grid-rows-[repeat(7,auto)] sm:grid-rows-[repeat(14,auto)] lg:grid-rows-[repeat(7,auto)]"
-          : "grid-rows-[repeat(4,auto)] sm:grid-rows-[repeat(8,auto)] lg:grid-rows-[repeat(4,auto)]",
+          : // The landing cards run taller than their content needs, because a price deserves a
+            // tall quiet card rather than a tight one: the room around the amount is what makes it
+            // read as a considered figure instead of a line item. The height goes on the third
+            // track -- the one between the VAT note and the action -- so it opens as space under
+            // the price rather than as padding at the foot of the card. It has to live here rather
+            // than as a `min-h` on the card, because a subgrid child takes its height from these
+            // tracks and cannot stretch them from the inside.
+            "grid-rows-[repeat(4,auto)] sm:grid-rows-[repeat(8,auto)] lg:grid-rows-[auto_auto_minmax(3.5rem,auto)_auto]",
       ].join(" ")}
     >
       {sortedPackages().map((entry) => (
