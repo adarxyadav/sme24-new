@@ -11,7 +11,7 @@ export type FooterLink =
   | { readonly kind: "external"; readonly href: string; readonly label: string };
 
 export type MarketingFooterProps = {
-  /** The legal group feature 14 fills (privacy, terms, imprint); not rendered while empty. */
+  /** The legal group (privacy, terms, imprint, cookies), passed by the marketing layout; not rendered while empty. */
   readonly legal?: readonly FooterLink[];
 };
 
@@ -20,8 +20,8 @@ const LINK_CLASS =
 
 /**
  * The public site footer (spec 0009, AC-7): the signature, the one line site description and
- * the mail address on the left, the Product, Company and (once feature 14 fills it) Legal link
- * groups on the right, then a bottom bar with the copyright line and the theme control. The
+ * the mail address on the left, the Product, Company and Legal link groups on the right, then
+ * a bottom bar with the copyright line and the theme control. The
  * language switch stays in the header only, so the page has a single language control (a
  * dropdown button and its menu, not a landmark). Every route link is a typed `Link`.
  * Server component; the copyright year is the build year, static pages rebuild on deploy.
