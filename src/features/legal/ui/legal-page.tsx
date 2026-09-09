@@ -23,10 +23,20 @@ export function LegalPage({
 }) {
   return (
     <>
+      {/*
+        The opener is an anchor (docs/design.md, tiers), the same rhythm and heading size the six
+        marketing pages open with, so a reader arriving from the footer does not cross into what
+        looks like a different site. The prose column below stays narrower than a marketing band,
+        because these pages are read rather than scanned.
+      */}
       <section className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:px-6 md:py-24">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-24 sm:px-6 md:py-40">
           <p className="eyebrow text-muted-foreground">{eyebrow}</p>
-          <Statement as="h1" text={title} className="max-w-4xl text-display-sm md:text-display" />
+          <Statement
+            as="h1"
+            text={title}
+            className="max-w-4xl text-display-sm md:text-display-lg"
+          />
           <p className="max-w-prose text-lg text-muted-foreground">{lead}</p>
           {meta ? (
             <p className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-sm">{meta}</p>
