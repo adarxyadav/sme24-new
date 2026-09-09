@@ -163,7 +163,7 @@
       },
       "closing": {
         "title": "Fangen Sie mit dem Benchmark an. Kostenlos.",
-        "cta": "Firma kostenlos vergleichen"
+        "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
     "expertNetwork": {
@@ -235,7 +235,7 @@
       },
       "closing": {
         "title": "Sehen Sie, wo Sie stehen. Kostenlos.",
-        "cta": "Firma kostenlos vergleichen"
+        "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
     "directory": {
@@ -316,7 +316,7 @@
       "closing": {
         "title": "Wir suchen den passenden für Sie.",
         "lead": "Sie wählen nicht aus dem Verzeichnis. Wir teilen den Experten zu, dessen Branche, Normen und Anfahrt zu Ihrer Firma passen.",
-        "cta": "Firma kostenlos vergleichen"
+        "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
     "footer": {
@@ -459,7 +459,7 @@
       "bestForLabel": "Ideal für",
       "outputLabel": "Ergebnis",
       "outcomeLabel": "Wirkung",
-      "cta": "Mit dem kostenlosen Benchmark starten",
+      "cta": "Sehen, was Ihr Risiko kostet",
       "retainerCta": "Sprechen wir",
       "overviewLink": "Alle Preise ansehen",
       "included": {
@@ -494,7 +494,7 @@
       },
       "closing": {
         "title": "Nicht sicher, welches? Starten Sie mit dem Benchmark.",
-        "cta": "Unternehmen kostenlos benchmarken"
+        "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
     "about": {
@@ -553,7 +553,7 @@
       },
       "closing": {
         "title": "Sehen Sie, wo Sie stehen. Kostenlos.",
-        "cta": "Unternehmen kostenlos benchmarken"
+        "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
     "contact": {
