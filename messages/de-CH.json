@@ -323,27 +323,7 @@
       "product": "Produkt",
       "company": "Unternehmen",
       "legal": "Rechtliches",
-      "copyright": "© {year} {name}",
-      "compliance": {
-        "label": "Compliance und Datenschutz",
-        "items": {
-          "residency": {
-            "title": "Hosting in der Schweiz",
-            "detail": "Region Zürich",
-            "seal": "Hosting Schweiz"
-          },
-          "revdsg": {
-            "title": "revDSG und DSGVO",
-            "detail": "Auftragsverarbeiter genannt",
-            "seal": "revDSG · DSGVO"
-          },
-          "swiss": {
-            "title": "Schweizer Unternehmen",
-            "detail": "Baar, Zug",
-            "seal": "Schweizer Firma"
-          }
-        }
-      }
+      "copyright": "© {year} {name}"
     },
     "landing": {
       "meta": {
