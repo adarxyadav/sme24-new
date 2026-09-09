@@ -98,7 +98,15 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         layout="flow"
         className="hyphens-auto self-start text-balance break-words pb-3 text-heading-16"
       />
-      <p className="self-start text-copy-13 text-muted-foreground">{t(`${entry.key}.promise`)}</p>
+      {/*
+        `break-words` for the same reason the name above it carries one: this is the narrowest text
+        in the card at four columns, and the German promise runs longer than the English
+        ("Wissen, was zu tun ist und wie"). Nothing overflows today; the guard is what keeps a
+        longer promise from pushing the card's measure later.
+      */}
+      <p className="self-start break-words text-copy-13 text-muted-foreground">
+        {t(`${entry.key}.promise`)}
+      </p>
 
       {/*
         The price block, bottom aligned in its row: the amount is the line the eye lands on, so it
@@ -131,8 +139,16 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         bottom aligned block its "On demand" would drop by the height of the note the other three
         cards carry. Two rows let each card leave the note row empty and keep the amounts level.
       */}
+      {/*
+        "On demand" is not a price, so it does not take the price's size. At `heading-32` in the
+        slot where the other three cards set a franc figure, the eye lined it up against
+        "CHF 10'000", expected a number and got none (the shape until 2026-09-10). A step down to
+        `heading-20` in the muted colour keeps it on the amount's baseline -- the row's alignment
+        is the grid's, not this line's -- while saying plainly that this card is scoped rather
+        than priced.
+      */}
       {onDemand ? (
-        <p className="mt-7 self-end text-heading-32">{pricing("onDemand")}</p>
+        <p className="mt-7 self-end text-heading-20 text-muted-foreground">{pricing("onDemand")}</p>
       ) : (
         <p className="mt-7 self-end text-heading-32 tabular-nums" data-numeric>
           {format.number(entry.priceChf ?? 0, "chfWhole")}
@@ -154,18 +170,20 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             palette that lifts off the card without becoming a second black button competing with
             the real ones on the pricing page.
 
-            The partner card takes `ghost` instead: three cards carry a franc figure and one does
-            not, so its action reads a step quieter than the three that lead to a price. The
-            variation follows the offer rather than decorating the row -- it is the same difference
-            the pricing page draws when that card takes the outline button and the other three the
-            filled one.
+            The partner card takes `outline` instead: three cards carry a franc figure and one does
+            not, so its action reads a step quieter than the three that lead to a price. It took
+            `ghost` until 2026-09-10, which has no resting ground at all -- the same signal as a
+            disabled control, so the one card sold by conversation read as the one card that could
+            not be acted on. `outline` keeps the step down in weight while its hairline still says
+            the control is live, and it is the variant the pricing page already gives this same
+            card, so the two pages now agree.
 
             The arrow slides on hover, which is the only motion on the card -- enough to say the
             control leads somewhere, and it is dropped for a visitor who asked for reduced motion.
           */
           <Button
             asChild
-            variant={onDemand ? "ghost" : "secondary"}
+            variant={onDemand ? "outline" : "secondary"}
             size="lg"
             className="group/cta h-auto w-full justify-between whitespace-normal py-3"
           >
@@ -179,9 +197,15 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
               aria-label={pricing("overviewLinkFor", { name: t(`${entry.key}.name`) })}
             >
               {pricing("overviewLink")}
+              {/*
+                The arrow answers the CARD's hover, not the button's own: the whole card leads to
+                this one destination, so the corner brackets and the arrow are one affordance and
+                must fire together. Keyed on its own `focus-visible` as well, so a keyboard visitor
+                on the link sees the arrow move rather than only the brackets appear.
+              */}
               <ArrowRightIcon
                 aria-hidden="true"
-                className="transition-transform group-hover/cta:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover/cta:translate-x-0"
+                className="transition-transform group-hover:translate-x-0.5 group-focus-visible/cta:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-focus-visible/cta:translate-x-0"
               />
             </Link>
           </Button>
