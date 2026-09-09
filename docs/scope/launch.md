@@ -33,7 +33,7 @@ spec [0015](../specs/0015-legal-privacy-cookie-consent/index.md)
   - [x] The terms version and re consent: the `profiles.terms_version` migration with pgTAP, `CURRENT_TERMS_VERSION` at `'1'`, the blocking dialog comparing by equality and the changelog key test (AC-10)
   - [x] Data requests and the ops surface: the `data_requests` migration with RLS and pgTAP, the four actions with the transition map and the refusal note rule, the anonymisation routine including the `auth.users` scrub, the `data_request.received` alert, the client card, `/admin/data-requests` list and detail, and `docs/legal.md` (AC-11, AC-12, AC-13, AC-14, AC-15)
 - [x] Verify it: `/check verify legal, privacy & cookie consent`
-- [ ] Test it: `/test legal, privacy & cookie consent`
+- [x] Test it: `/test legal, privacy & cookie consent`
 - [ ] Review it (fresh model): `/check review legal, privacy & cookie consent`
 - [ ] Document it: `/document legal, privacy & cookie consent`
 
