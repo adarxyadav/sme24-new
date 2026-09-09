@@ -333,9 +333,14 @@ test("every package card's action contrasts, meets the target size, and no name 
       // label must not be painted in the colour it sits on.
       expect(color).not.toBe(background);
 
+      // Counted from the text's own client rects rather than the element's height: the name
+      // carries bottom padding (the space under it lives inside its grid track), so dividing the
+      // padded box by the line height counts a line that is not there.
       const lines = await card.locator("h3").evaluate((el) => {
-        const style = getComputedStyle(el);
-        return Math.round(el.getBoundingClientRect().height / Number.parseFloat(style.lineHeight));
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const rects = Array.from(range.getClientRects()).filter((rect) => rect.height > 1);
+        return new Set(rects.map((rect) => Math.round(rect.top))).size;
       });
       expect(lines).toBeLessThanOrEqual(2);
 

@@ -4,6 +4,7 @@ import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
 import { checkoutPath } from "@/features/checkout/checkout-path";
 import type { Package } from "@/features/marketing/packages";
+import { CornerBrackets } from "@/features/marketing/ui/corner-brackets";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         // inside `max-w-6xl` those last 8px per side are what let the longest package name
         // ("Compliance Check, EHS System & Culture Snapshot", 47 characters in both languages)
         // set in two lines instead of three. Measured, not guessed.
-        "grid min-w-0 gap-y-5 px-5 py-10",
+        "grid min-w-0 px-5 py-9",
         // Each card stands on its own hairline now that the grid separates them, rather than
         // borrowing the shared rule of one edge to edge block. Square corners and no elevation:
         // `docs/design.md` fixes every surface as flat and block cornered, so a card is told apart
@@ -60,12 +61,26 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         // on all four: no card is marked out as the one to pick (owner decision of 2026-09-10,
         // replacing the marked middle rung of 2026-09-09), because the ladder is the buyer's to
         // read and a heavier edge on one rung puts a thumb on that scale.
-        "border bg-card",
+        //
+        // `group` and `relative` are the hover: the corner brackets inside are positioned against
+        // this box and fade in when the card is hovered or holds the keyboard focus, so a card
+        // answers the pointer with the band's own mark rather than a shadow or a colour the design
+        // system does not use.
+        "group relative border bg-card",
         // The card takes the grid's rows, so every card's price, button and details align.
         full ? "row-span-8 grid-rows-subgrid" : "row-span-5 grid-rows-subgrid",
         className,
       )}
     >
+      {/*
+        The corner brackets of the trust band, borrowed as this card's hover. They are hidden at
+        rest so the row stays quiet, and they answer `focus-within` as well as `hover`, so a
+        keyboard visitor tabbing onto the card's link gets the same mark a pointer does. Decorative
+        and `aria-hidden`, and they sit outside the grid's rows because they are absolutely
+        positioned and so never take a track of their own.
+      */}
+      <CornerBrackets className="opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 motion-reduce:transition-none" />
+
       {/*
         The name and the promise are two rows of the shared grid rather than one stacked block,
         so the promise starts on the same line in all four cards whether the name above it runs to
@@ -81,7 +96,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         as="h3"
         text={t(`${entry.key}.name`)}
         layout="flow"
-        className="hyphens-auto self-start text-balance break-words text-heading-16"
+        className="hyphens-auto self-start text-balance break-words pb-3 text-heading-16"
       />
       <p className="self-start text-copy-13 text-muted-foreground">{t(`${entry.key}.promise`)}</p>
 
@@ -93,7 +108,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         are two different facts, and running them together reads as one broken sentence.
       */}
       {full ? (
-        <p className="self-end text-copy-13">
+        <p className="mt-2.5 self-end text-copy-13">
           <span className="text-muted-foreground">{pricing("bestForLabel")} </span>
           <strong className="font-medium">{t(`${entry.key}.bestFor`)}</strong>
         </p>
@@ -105,7 +120,9 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         stacked line would push that card's amount a row below the other three.
       */}
       {full ? (
-        <p className="self-end text-label-12 text-muted-foreground">{t(`${entry.key}.delivery`)}</p>
+        <p className="mt-1.5 self-end text-label-12 text-muted-foreground">
+          {t(`${entry.key}.delivery`)}
+        </p>
       ) : null}
 
       {/*
@@ -115,20 +132,20 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         cards carry. Two rows let each card leave the note row empty and keep the amounts level.
       */}
       {onDemand ? (
-        <p className="self-end text-heading-32">{pricing("onDemand")}</p>
+        <p className="mt-7 self-end text-heading-32">{pricing("onDemand")}</p>
       ) : (
-        <p className="self-end text-heading-32 tabular-nums" data-numeric>
+        <p className="mt-7 self-end text-heading-32 tabular-nums" data-numeric>
           {format.number(entry.priceChf ?? 0, "chfWhole")}
         </p>
       )}
 
-      <div className="-mt-3 self-start">
+      <div className="mt-1.5 self-start">
         {onDemand ? null : (
           <p className="text-label-12 text-muted-foreground">{pricing("vatNote")}</p>
         )}
       </div>
 
-      <div className="self-end">
+      <div className="mt-7 self-end">
         {variant === "overview" ? (
           /*
             A full width action on a quiet ground rather than a bare text link. The landing card
@@ -137,12 +154,18 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             palette that lifts off the card without becoming a second black button competing with
             the real ones on the pricing page.
 
+            The partner card takes `ghost` instead: three cards carry a franc figure and one does
+            not, so its action reads a step quieter than the three that lead to a price. The
+            variation follows the offer rather than decorating the row -- it is the same difference
+            the pricing page draws when that card takes the outline button and the other three the
+            filled one.
+
             The arrow slides on hover, which is the only motion on the card -- enough to say the
             control leads somewhere, and it is dropped for a visitor who asked for reduced motion.
           */
           <Button
             asChild
-            variant="secondary"
+            variant={onDemand ? "ghost" : "secondary"}
             size="lg"
             className="group/cta h-auto w-full justify-between whitespace-normal py-3"
           >

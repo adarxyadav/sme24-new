@@ -25,10 +25,10 @@ export function PackagesGrid({ variant = "full" }: Pick<PackageCardProps, "varia
   return (
     <ul
       className={[
-        "grid gap-3 sm:grid-cols-2 lg:grid-cols-4",
+        "grid gap-x-3 gap-y-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-0",
         // One track per stacked card below `sm`, then the tracks the cards subgrid into.
         //
-        // The first track is `minmax(3rem,auto)` -- two lines of the name at `heading-16` and its
+        // The first track is `3rem` -- two lines of the name at `heading-16` and its
         // 1.5 leading -- so a card whose name runs to one line leaves the second line empty rather
         // than pulling the promise below it upwards. That is what puts every promise on the same
         // baseline across the row, whatever the length of the name above it.
