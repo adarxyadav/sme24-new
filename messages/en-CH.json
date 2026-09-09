@@ -323,7 +323,24 @@
       "product": "Product",
       "company": "Company",
       "legal": "Legal",
-      "copyright": "© {year} {name}"
+      "copyright": "© {year} {name}",
+      "compliance": {
+        "label": "Compliance and data protection",
+        "items": {
+          "residency": {
+            "title": "Swiss hosting",
+            "detail": "Zurich region"
+          },
+          "revdsg": {
+            "title": "revDSG and GDPR",
+            "detail": "Processors named"
+          },
+          "swiss": {
+            "title": "Swiss company",
+            "detail": "Baar, Zug"
+          }
+        }
+      }
     },
     "landing": {
       "meta": {
