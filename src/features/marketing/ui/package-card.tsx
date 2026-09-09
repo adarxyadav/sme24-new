@@ -62,25 +62,28 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         // read and a heavier edge on one rung puts a thumb on that scale.
         "border bg-card",
         // The card takes the grid's rows, so every card's price, button and details align.
-        full ? "row-span-7 grid-rows-subgrid" : "row-span-4 grid-rows-subgrid",
+        full ? "row-span-8 grid-rows-subgrid" : "row-span-5 grid-rows-subgrid",
         className,
       )}
     >
       {/*
+        The name and the promise are two rows of the shared grid rather than one stacked block,
+        so the promise starts on the same line in all four cards whether the name above it runs to
+        one line or two. Stacked together they sat directly under their own name, which left the
+        promise floating at a different height in every card (the shape until 2026-09-10).
+
         The name sets at `heading-16` rather than `heading-20`. Two reasons, and they agree: the
         longest package name only fits two lines at 16px in this column (measured in both
         languages), and a smaller name leaves the price as the one large thing on the card, which
         is the hierarchy this section wants -- the visitor is comparing prices, not titles.
       */}
-      <div className="flex min-w-0 flex-col gap-1.5 self-start">
-        <Statement
-          as="h3"
-          text={t(`${entry.key}.name`)}
-          layout="flow"
-          className="hyphens-auto text-balance break-words text-heading-16"
-        />
-        <p className="text-copy-13 text-muted-foreground">{t(`${entry.key}.promise`)}</p>
-      </div>
+      <Statement
+        as="h3"
+        text={t(`${entry.key}.name`)}
+        layout="flow"
+        className="hyphens-auto self-start text-balance break-words text-heading-16"
+      />
+      <p className="self-start text-copy-13 text-muted-foreground">{t(`${entry.key}.promise`)}</p>
 
       {/*
         The price block, bottom aligned in its row: the amount is the line the eye lands on, so it

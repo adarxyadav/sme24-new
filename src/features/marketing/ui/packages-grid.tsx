@@ -27,23 +27,28 @@ export function PackagesGrid({ variant = "full" }: Pick<PackageCardProps, "varia
       className={[
         "grid gap-3 sm:grid-cols-2 lg:grid-cols-4",
         // One track per stacked card below `sm`, then the tracks the cards subgrid into.
+        //
+        // The first track is `minmax(3rem,auto)` -- two lines of the name at `heading-16` and its
+        // 1.5 leading -- so a card whose name runs to one line leaves the second line empty rather
+        // than pulling the promise below it upwards. That is what puts every promise on the same
+        // baseline across the row, whatever the length of the name above it.
         full
-          ? "grid-rows-[repeat(7,auto)] sm:grid-rows-[repeat(14,auto)] lg:grid-rows-[repeat(7,auto)]"
-          : // The landing cards run taller than their content needs, because a price deserves a
-            // tall quiet card rather than a tight one: the room around the amount is what makes it
-            // read as a considered figure instead of a line item. The height goes on the third
-            // track -- the one between the VAT note and the action -- so it opens as space under
-            // the price rather than as padding at the foot of the card. It has to live here rather
-            // than as a `min-h` on the card, because a subgrid child takes its height from these
-            // tracks and cannot stretch them from the inside.
-            "grid-rows-[repeat(4,auto)] sm:grid-rows-[repeat(8,auto)] lg:grid-rows-[auto_auto_minmax(3.5rem,auto)_auto]",
+          ? "grid-rows-[repeat(8,auto)] sm:grid-rows-[repeat(16,auto)] lg:grid-rows-[minmax(3rem,auto)_repeat(7,auto)]"
+          : // The landing cards also run taller than their content needs, because a price deserves
+            // a tall quiet card rather than a tight one: the room around the amount is what makes
+            // it read as a considered figure instead of a line item. That height goes on the track
+            // between the VAT note and the action, so it opens as space under the price rather
+            // than as padding at the foot of the card. It has to live here rather than as a
+            // `min-h` on the card, because a subgrid child takes its height from these tracks and
+            // cannot stretch them from the inside.
+            "grid-rows-[repeat(5,auto)] sm:grid-rows-[repeat(10,auto)] lg:grid-rows-[minmax(3rem,auto)_auto_auto_minmax(3.5rem,auto)_auto]",
       ].join(" ")}
     >
       {sortedPackages().map((entry) => (
         <li
           key={entry.key}
           className={
-            full ? "row-span-7 grid grid-rows-subgrid" : "row-span-4 grid grid-rows-subgrid"
+            full ? "row-span-8 grid grid-rows-subgrid" : "row-span-5 grid grid-rows-subgrid"
           }
         >
           <PackageCard entry={entry} variant={variant} />

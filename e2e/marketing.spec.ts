@@ -344,5 +344,22 @@ test("every package card's action contrasts, meets the target size, and no name 
       const { height } = (await action.boundingBox()) ?? { height: 0 };
       expect(height).toBeGreaterThanOrEqual(44);
     }
+
+    // The rows the shared grid exists to align. A package name runs to one line in some cards and
+    // two in others, so without a row of its own the promise under it starts at a different height
+    // in every card; the same holds for the price and the action below it.
+    for (const selector of ["h3 + p", "p.self-end", 'a[data-slot="button"]']) {
+      const offsets = await cards.evaluateAll(
+        (nodes, sel) =>
+          nodes.map((node) => {
+            const child = node.querySelector(sel);
+            return child
+              ? Math.round(child.getBoundingClientRect().top - node.getBoundingClientRect().top)
+              : -1;
+          }),
+        selector,
+      );
+      expect(new Set(offsets).size).toBe(1);
+    }
   }
 });
