@@ -667,7 +667,9 @@
     "packages": {
       "compliance": {
         "name": "Compliance Check, EHS System & Culture Snapshot",
+        "shortName": "Compliance",
         "promise": "Know what to fix and how",
+        "buildsOn": "Everything in System",
         "bestFor": "fix systematically",
         "delivery": "On site, 5 days",
         "included": {
@@ -680,7 +682,9 @@
       },
       "sms": {
         "name": "EHS System & Culture Snapshot",
+        "shortName": "System",
         "promise": "Know your real risks",
+        "buildsOn": "Everything in Culture",
         "bestFor": "validate real risks",
         "delivery": "On site, 2 days",
         "included": {
@@ -693,6 +697,7 @@
       },
       "culture": {
         "name": "EHS Culture Snapshot",
+        "shortName": "Culture",
         "promise": "Know where you stand",
         "bestFor": "quick visibility",
         "delivery": "Remote, 1 day",
@@ -706,6 +711,7 @@
       },
       "retainer": {
         "name": "EHS Implementation Partner",
+        "shortName": "Partner",
         "promise": "Get the risks fixed",
         "bestFor": "deliver results",
         "delivery": "On site and ongoing",

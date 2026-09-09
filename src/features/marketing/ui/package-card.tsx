@@ -38,6 +38,14 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
   const locale = useLocale() as Parameters<typeof checkoutPath>[0];
   const onDemand = entry.priceChf === null;
   const full = variant === "full";
+  /*
+    The ladder line, read through `t.has` the way the social card reads its optional statement:
+    only the two middle rungs carry a `buildsOn` key, because the first snapshot has nothing below
+    it and the partner sits outside the ladder. A missing key would otherwise render as its own
+    path, so the check is what keeps the first and last cards' slot genuinely empty.
+  */
+  const buildsOnKey = `${entry.key}.buildsOn` as PackageMessageKey;
+  const buildsOn = t.has(buildsOnKey) ? t(buildsOnKey) : null;
 
   return (
     <article
@@ -87,24 +95,42 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         one line or two. Stacked together they sat directly under their own name, which left the
         promise floating at a different height in every card (the shape until 2026-09-10).
 
-        The name sets at `heading-16` rather than `heading-20`. Two reasons, and they agree: the
-        longest package name only fits two lines at 16px in this column (measured in both
-        languages), and a smaller name leaves the price as the one large thing on the card, which
-        is the hierarchy this section wants -- the visitor is comparing prices, not titles.
+        The heading is the one word trade name (`shortName`: Culture, System, Compliance, Partner
+        -- owner decision of 2026-09-10) with the full catalogue name under it as a subtitle. Until
+        then the heading carried the full name, and the longest of them ran to 47 characters
+        ("Compliance Check, EHS System & Culture Snapshot"), which forced the heading down to
+        `heading-16` -- body copy size -- just to fit two lines in this column. That fought the
+        section's own hierarchy: the visitor is comparing prices, and the first thing the eye met
+        was a mouthful set no larger than the promise beneath it.
+
+        A one word name fits one line in both languages, so the heading takes `heading-20` back and
+        still leaves the price the largest thing on the card, and the name track collapses from two
+        lines to one -- which is the room the ladder line below now occupies.
       */}
-      <Statement
-        as="h3"
-        text={t(`${entry.key}.name`)}
-        layout="flow"
-        className="hyphens-auto self-start text-balance break-words pb-3 text-heading-16"
-      />
+      <div className="self-start pb-3">
+        <Statement
+          as="h3"
+          text={t(`${entry.key}.shortName`)}
+          layout="flow"
+          className="text-heading-20"
+        />
+        {/*
+          The full catalogue name stays on the card rather than moving to the pricing page alone:
+          it is what the package is called on the invoice and in the report, so a buyer must be
+          able to tie the short name to it here. `break-words` because this is now the longest
+          string in the card's narrowest column.
+        */}
+        <p className="mt-1 hyphens-auto break-words text-copy-13 text-muted-foreground">
+          {t(`${entry.key}.name`)}
+        </p>
+      </div>
       {/*
         `break-words` for the same reason the name above it carries one: this is the narrowest text
         in the card at four columns, and the German promise runs longer than the English
         ("Wissen, was zu tun ist und wie"). Nothing overflows today; the guard is what keeps a
         longer promise from pushing the card's measure later.
       */}
-      <p className="self-start break-words text-copy-13 text-muted-foreground">
+      <p className="self-start break-words text-copy-13 text-foreground">
         {t(`${entry.key}.promise`)}
       </p>
 
@@ -155,10 +181,32 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         </p>
       )}
 
-      <div className="mt-1.5 self-start">
+      {/*
+        The VAT note and, under it, the ladder line: "Everything in Culture" on the System card
+        and "Everything in System" on the Compliance card (owner decision of 2026-09-10, the
+        Stripe convention). It carries no trailing "plus": the landing card has no included list
+        under it, so the line has to be a complete statement rather than a sentence that never
+        finishes.
+
+        The three snapshots are cumulative -- the 5'000 package contains the 2'000 one and the
+        10'000 contains both -- and the copy knew it while the row did not, so four prices read as
+        four unrelated offers instead of three rungs of one ladder. Naming the rung below is what
+        turns the row into a progression a visitor can read in one pass, and it does it without
+        marking any card as the one to pick: a ladder is not a thumb on the scale (the decision of
+        2026-09-10 that took the heavier edge off the middle rung).
+
+        Both lines sit in the same row rather than taking one each, because the row is already the
+        one the partner card leaves empty: it carries neither a VAT note nor a rung below it, so
+        the slot stays blank there and the grid keeps every card's button level. `culture` is the
+        first rung and has nothing below it either, so only two of the four cards render a line.
+      */}
+      <div className="mt-1.5 flex flex-col gap-1.5 self-start">
         {onDemand ? null : (
           <p className="text-label-12 text-muted-foreground">{pricing("vatNote")}</p>
         )}
+        {buildsOn ? (
+          <p className="text-balance text-copy-13 text-muted-foreground">{buildsOn}</p>
+        ) : null}
       </div>
 
       <div className="mt-7 self-end">
