@@ -256,6 +256,60 @@
   body {
     @apply bg-background text-foreground;
   }
+  /*
+   * Touch interaction on everything that takes a tap (docs/design.md, the Web Interface Guidelines
+   * gate). Two separate defaults, both touch only, neither of which changes how anything looks at
+   * rest -- which is why this is global rather than scoped to `[data-marketing]`: the signed in
+   * areas tap the same buttons on the same phones.
+   *
+   * `touch-action: manipulation` drops the ~300ms the browser holds every tap for, waiting to see
+   * whether a second one arrives and means "zoom". Double tap zoom is worth nothing on a control
+   * and costs a third of a second on every press, which is long enough that a buyer taps a package
+   * card twice thinking the first one missed. Pinch zoom is untouched, so the page stays zoomable.
+   *
+   * `-webkit-tap-highlight-color` is otherwise a translucent blue rectangle that WebKit paints over
+   * the element for the length of the press. On a jet and pure white palette that blue is the only
+   * chromatic thing on the page, and it lands on the element's box rather than its border radius,
+   * so a rounded button flashes a square. It is still the only press feedback a touch user gets --
+   * `hover:` never fires on touch -- so it is replaced rather than removed, and only where we
+   * already say something ourselves:
+   *
+   *   - Buttons carry `active:not-aria-[haspopup]:translate-y-px` (src/components/ui/button.tsx)
+   *     and the sidebar items carry an `active:` background, so the press already reads. They take
+   *     `transparent` and lose nothing.
+   *   - Links, summaries and labels carry only `hover:` states, so removing the flash outright
+   *     would leave a tapped nav or footer link with no acknowledgement at all. They keep a
+   *     highlight, but a neutral one mixed from `--foreground`, so it inverts with the theme and
+   *     stays inside the palette.
+   */
+  button,
+  a,
+  label,
+  summary,
+  select,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: color-mix(in oklch, var(--foreground) 12%, transparent);
+  }
+  button,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /*
+   * Text entry gets the delay removed but keeps the platform highlight: a tap that lands on an
+   * input is a request for the keyboard, and iOS uses that flash to confirm which field took focus
+   * before the keyboard animates up over it.
+   */
+  input,
+  textarea {
+    touch-action: manipulation;
+  }
   /* Figures align in tables and KPI tiles (spec 0003); formatting itself is feature 5. */
   [data-numeric],
   .tabular-nums {

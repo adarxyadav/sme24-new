@@ -81,7 +81,7 @@
   },
   "marketing": {
     "nav": {
-      "howItWorks": "So funktioniert's",
+      "howItWorks": "So funktioniert’s",
       "expertNetwork": "Expertennetzwerk",
       "pricing": "Pakete",
       "about": "Über uns",
@@ -90,13 +90,13 @@
     },
     "howItWorks": {
       "meta": {
-        "title": "So funktioniert's",
+        "title": "So funktioniert’s",
         "description": "Von der Firmensuche zum schriftlichen Bericht mit priorisierten Massnahmen: die vier Schritte, Ihr Teil und unserer."
       },
       "og": {
         "statement": "Vier Schritte. Ein Bericht."
       },
-      "eyebrow": "So funktioniert's",
+      "eyebrow": "So funktioniert’s",
       "title": "Vier Schritte. Ein Bericht.",
       "lead": "Keine Discovery-Phase, kein Scoping-Workshop. Sie nennen uns die Firma; wir sagen Ihnen, wo Sie stehen und was zuerst zu tun ist.",
       "steps": {
@@ -278,7 +278,7 @@
       },
       "search": {
         "label": "Suche",
-        "placeholder": "Name oder Ort"
+        "placeholder": "Name oder Ort, z. B. Meier oder Zürich…"
       },
       "canton": {
         "label": "Kanton",
@@ -590,7 +590,7 @@
           "retainer": "Ein dauerhafter EHS-Partner für Ihre Standorte, Preis auf Anfrage.",
           "general": "Ein Paket, ein Termin oder etwas anderes."
         },
-        "headcountPlaceholder": "Keine Angabe",
+        "headcountPlaceholder": "Keine Angabe …",
         "bands": {
           "1-49": "1 bis 49",
           "50-249": "50 bis 249",
@@ -601,7 +601,7 @@
         "honeypot": "Dieses Feld leer lassen",
         "privacyNote": "Wir verwenden Ihre Angaben nur, um diese Anfrage zu beantworten. <link>Datenschutzerklärung</link>",
         "submit": "Anfrage senden",
-        "submitting": "Wird gesendet",
+        "submitting": "Wird gesendet …",
         "summaryTitle": "Bitte prüfen Sie diese Felder",
         "errors": {
           "companyRequired": "Geben Sie den Namen Ihres Unternehmens ein.",
