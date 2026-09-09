@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import type { AuthError } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import { CURRENT_TERMS_VERSION } from "@/features/legal/terms";
 import { LOCALE_CODE, type Locale, resolveLocale } from "@/i18n/routing";
 import { landingPath, localizedPath, nextWithinLocale, roleHomePath } from "@/lib/auth/redirects";
 import { roleFromClaims } from "@/lib/auth/roles";
@@ -77,6 +78,9 @@ function signUpMetadata(
     locale: LOCALE_CODE[locale],
     // The schema only accepts `true`; the timestamp is the consent record the trigger copies.
     terms_accepted_at: values.termsAccepted ? new Date().toISOString() : undefined,
+    // Spec 0015 (AC-10): which version that consent was for, so a sign up during a version bump
+    // records what it actually showed rather than inheriting the column default.
+    terms_version: values.termsAccepted ? CURRENT_TERMS_VERSION : undefined,
   };
 }
 
@@ -322,7 +326,11 @@ export async function completeOnboarding(
   if (!userId) redirect(`${localizedPath(locale, "/sign-in")}?error=session`);
   if (roleFromClaims(claims) !== "client") redirect(localizedPath(locale, "/forbidden"));
 
-  const { error: consentError } = await supabase.rpc("accept_terms");
+  // The version is passed explicitly rather than left to the function's default, so a bump of
+  // CURRENT_TERMS_VERSION reaches this path too; the default only exists for backward compatibility.
+  const { error: consentError } = await supabase.rpc("accept_terms", {
+    version: CURRENT_TERMS_VERSION,
+  });
   if (consentError) {
     log.warn("accept_terms failed", { userId, reason: consentError.message });
     return { ok: false, error: "generic" };

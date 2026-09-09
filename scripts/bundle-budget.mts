@@ -29,7 +29,11 @@ export type MarketingRoute =
   | "/expert-network/directory"
   | "/pricing"
   | "/about"
-  | "/contact";
+  | "/contact"
+  | "/privacy"
+  | "/terms"
+  | "/imprint"
+  | "/cookies";
 export type BudgetLocale = "en-CH" | "de-CH";
 export type BudgetPage = { readonly locale: BudgetLocale; readonly route: MarketingRoute };
 
@@ -48,6 +52,12 @@ export const BUDGETS_KB: Readonly<Record<MarketingRoute, number>> = {
   "/pricing": 250,
   "/about": 250,
   "/contact": 350,
+  // The four legal pages (spec 0015). Three are pure prose and sit near the shell's floor; the
+  // cookies page carries the consent control, which is the same two buttons the bar already has.
+  "/privacy": 250,
+  "/terms": 250,
+  "/imprint": 250,
+  "/cookies": 250,
 };
 
 /** The routes whose module scripts must carry no zod (the contact form keeps its resolver). */
@@ -58,6 +68,10 @@ export const ZOD_FREE_ROUTES: readonly MarketingRoute[] = [
   "/expert-network/directory",
   "/pricing",
   "/about",
+  "/privacy",
+  "/terms",
+  "/imprint",
+  "/cookies",
 ];
 
 /** A string literal minification keeps: the browser tracing integration's name. */
@@ -65,7 +79,7 @@ export const SENTRY_MARKER = "BrowserTracing";
 /** A string literal minification keeps: zod's error constructor name. */
 export const ZOD_MARKER = "$ZodError";
 
-/** The eight pages, listed literally (`routing.locales` times `MARKETING_ROUTES`, equality tested). */
+/** Every page, listed literally (`routing.locales` times `MARKETING_ROUTES`, equality tested). */
 export const PAGES: readonly BudgetPage[] = [
   { locale: "de-CH", route: "/" },
   { locale: "de-CH", route: "/how-it-works" },
@@ -74,6 +88,10 @@ export const PAGES: readonly BudgetPage[] = [
   { locale: "de-CH", route: "/pricing" },
   { locale: "de-CH", route: "/about" },
   { locale: "de-CH", route: "/contact" },
+  { locale: "de-CH", route: "/privacy" },
+  { locale: "de-CH", route: "/terms" },
+  { locale: "de-CH", route: "/imprint" },
+  { locale: "de-CH", route: "/cookies" },
   { locale: "en-CH", route: "/" },
   { locale: "en-CH", route: "/how-it-works" },
   { locale: "en-CH", route: "/expert-network" },
@@ -81,6 +99,10 @@ export const PAGES: readonly BudgetPage[] = [
   { locale: "en-CH", route: "/pricing" },
   { locale: "en-CH", route: "/about" },
   { locale: "en-CH", route: "/contact" },
+  { locale: "en-CH", route: "/privacy" },
+  { locale: "en-CH", route: "/terms" },
+  { locale: "en-CH", route: "/imprint" },
+  { locale: "en-CH", route: "/cookies" },
 ];
 
 export const KB = 1024;

@@ -1,15 +1,17 @@
 import "./instrumentation";
 
 import { logger, schedules } from "@trigger.dev/sdk";
+import { CLOSED_RETENTION_DAYS, IP_HASH_RETENTION_DAYS } from "@/features/legal/retention-periods";
 import { TIME_ZONE } from "@/i18n/formats";
 import { taskEnv } from "@/lib/env";
 import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 
-/** The address hash is a flood guard only; after this many days it is nulled (spec 0009, AC-13). */
-export const IP_HASH_RETENTION_DAYS = 30;
-/** Closed enquiries are deleted this many days after they were handled. */
-export const CLOSED_RETENTION_DAYS = 365;
+/**
+ * The two periods, re-exported from the pure module the privacy page also reads (spec 0015,
+ * AC-8), so the page and the task can never claim different numbers.
+ */
+export { CLOSED_RETENTION_DAYS, IP_HASH_RETENTION_DAYS };
 
 const DAY_MS = 24 * 60 * 60 * 1_000;
 

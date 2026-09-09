@@ -10,15 +10,16 @@ import { clientEnv } from "@/lib/env";
 
 /**
  * Public pages (spec 0009): statically rendered (`setRequestLocale` in every layout and page on
- * this path), the header with the three site links, the footer with the link groups and the
- * `Organization` structured data on every page.
+ * this path), the header with the three site links, the footer with the link groups (its legal
+ * group filled by spec 0015, AC-9) and the `Organization` structured data on every page.
  */
 export default async function MarketingLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(resolveLocale(locale));
-  const [t, common] = await Promise.all([
+  const [t, common, legal] = await Promise.all([
     getTranslations("marketing.nav"),
     getTranslations("common"),
+    getTranslations("legalPages"),
   ]);
   const appUrl = clientEnv().NEXT_PUBLIC_APP_URL.replace(/\/$/, "");
 
@@ -46,7 +47,14 @@ export default async function MarketingLayout({ children, params }: LayoutProps<
       <main id="main" tabIndex={-1} className="outline-none">
         {children}
       </main>
-      <MarketingFooter />
+      <MarketingFooter
+        legal={[
+          { kind: "route", href: "/privacy", label: legal("privacy.meta.title") },
+          { kind: "route", href: "/terms", label: legal("terms.meta.title") },
+          { kind: "route", href: "/imprint", label: legal("imprint.meta.title") },
+          { kind: "route", href: "/cookies", label: legal("cookiesPage.meta.title") },
+        ]}
+      />
     </div>
   );
 }

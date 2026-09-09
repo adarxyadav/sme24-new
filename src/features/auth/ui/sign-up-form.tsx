@@ -11,6 +11,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { Input } from "@/components/ui/input";
 import { requestCode, resendConfirmation, signUp } from "@/features/auth/actions";
 import { type SignUpInput, type SignUpValues, signUpSchema } from "@/features/auth/schema";
+import { LEGAL_LINK_TAGS } from "@/features/legal/ui/legal-links";
 import { useRouter } from "@/i18n/navigation";
 import { issueMessage, zodLocaleError } from "@/lib/validation";
 import { AuthErrorAlert } from "./auth-error-alert";
@@ -161,7 +162,7 @@ export function SignUpForm({
               />
               <div className="flex flex-col gap-1">
                 <FieldLabel htmlFor="termsAccepted" className="font-normal">
-                  {t("consent")}
+                  {t.rich("consent", LEGAL_LINK_TAGS)}
                 </FieldLabel>
                 <FieldError id="termsAccepted-error">
                   {errorText(fieldState.error?.message)}

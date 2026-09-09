@@ -2,8 +2,11 @@ import type { Messages } from "next-intl";
 
 /**
  * The namespaces every client component may read (spec 0004, AC-6): the shell, the primitives,
- * the states, the theme and the brand. Everything else is a feature namespace that a page hands
- * to its client children through a nested provider built with `clientMessages`.
+ * the states, the theme, the brand and the consent strings. Everything else is a feature namespace
+ * that a page hands to its client children through a nested provider built with `clientMessages`.
+ *
+ * `legal` is shared because the cookie bar lives in the root layout (spec 0015, AC-5b): it renders
+ * above every page in every area, so it has no page to hand it a nested provider.
  */
 export const SHARED_NAMESPACES = [
   "common",
@@ -14,6 +17,7 @@ export const SHARED_NAMESPACES = [
   "nav",
   "brand",
   "metadata",
+  "legal",
 ] as const;
 
 export type SharedNamespace = (typeof SHARED_NAMESPACES)[number];

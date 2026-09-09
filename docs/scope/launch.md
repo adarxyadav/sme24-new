@@ -21,11 +21,21 @@ spec [0009](../specs/0009-marketing-site-retainer-enquiry/index.md)
 - [x] Review it (fresh model): `/check review marketing site & retainer enquiry`
 - [x] Document it: `/document marketing site & retainer enquiry`
 
-### 14. Legal, privacy & cookie consent · needs a decision
+### 14. Legal, privacy & cookie consent · in-progress
 Swiss revised FADP basics with GDPR readiness for EU clients: privacy policy, terms, a data processing agreement template, a record of what is processed and where it is stored, deletion and export on request, and a cookie consent banner that gates analytics and marketing scripts until consent is given. The consent pattern is cross cutting, so it needs a decision before analytics ships.
 **Done when:** privacy, terms and DPA pages exist in both languages; no analytics or marketing script loads before consent and the choice is remembered; a client can request deletion or export and ops can fulfil it with a record.
 Carried over from earlier specs: point the sign up consent links at the real pages, add a terms version beside `terms_accepted_at` and re consent when it changes (spec 0005); fill the footer's legal group and the enquiry form's privacy link (spec 0009); the retention rules for `benchmark_snapshots` and for enquiries belong in the record of processing (specs 0008 and 0009).
-- [ ] Design it (spec): `/architect legal, privacy & cookie consent`
+spec [0015](../specs/0015-legal-privacy-cookie-consent/index.md)
+- [x] Design it (spec): `/architect legal, privacy & cookie consent`
+- [x] Build it: `/develop legal, privacy & cookie consent`
+  - [x] The consent thread end to end: the `sme24_consent` cookie with its version segment, `setConsent`, the bar hidden by default in the root layout with accept and reject at equal weight, the rewritten analytics gate and the withdrawal path, Playwright proving zero PostHog requests before a choice (AC-1, AC-2, AC-3, AC-4, AC-5, AC-5b)
+  - [x] The four legal pages: the `PROCESSORS` and `RETENTION` constants with the test tying them to the purge tasks, the routes with German slugs, metadata and social cards, the German and English copy, the consent control on `/cookies`, the footer legal group and the real sign up and enquiry links, the record of processing with its pgTAP check (AC-6, AC-7, AC-8, AC-8b, AC-9, AC-16)
+  - [x] The terms version and re consent: the `profiles.terms_version` migration with pgTAP, `CURRENT_TERMS_VERSION` at `'1'`, the blocking dialog comparing by equality and the changelog key test (AC-10)
+  - [x] Data requests and the ops surface: the `data_requests` migration with RLS and pgTAP, the four actions with the transition map and the refusal note rule, the anonymisation routine including the `auth.users` scrub, the `data_request.received` alert, the client card, `/admin/data-requests` list and detail, and `docs/legal.md` (AC-11, AC-12, AC-13, AC-14, AC-15)
+- [x] Verify it: `/check verify legal, privacy & cookie consent`
+- [x] Test it: `/test legal, privacy & cookie consent`
+- [x] Review it (fresh model): `/check review legal, privacy & cookie consent`
+- [x] Document it: `/document legal, privacy & cookie consent`
 
 ### 15. Analytics & monitoring · needs a decision
 Conversion funnel events (lookup started, run finished, benchmark viewed, checkout started, payment completed, enquiry sent) plus runtime error monitoring, failed background job alerts and slow page reporting. The event taxonomy is the decision; consent from feature 14 gates the client side part.

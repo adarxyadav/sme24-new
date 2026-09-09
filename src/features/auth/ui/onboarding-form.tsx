@@ -9,6 +9,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field
 import { Input } from "@/components/ui/input";
 import { completeOnboarding } from "@/features/auth/actions";
 import { type OnboardingInput, onboardingSchema } from "@/features/auth/schema";
+import { LEGAL_LINK_TAGS } from "@/features/legal/ui/legal-links";
 import { issueMessage, zodLocaleError } from "@/lib/validation";
 import { AuthErrorAlert } from "./auth-error-alert";
 import { useAuthAction } from "./use-auth-action";
@@ -64,7 +65,7 @@ export function OnboardingForm({ organizationName }: { readonly organizationName
               />
               <div className="flex flex-col gap-1">
                 <FieldLabel htmlFor="termsAccepted" className="font-normal">
-                  {t("consent")}
+                  {t.rich("consent", LEGAL_LINK_TAGS)}
                 </FieldLabel>
                 <FieldError id="termsAccepted-error">
                   {issueMessage(fieldState.error?.message, v)}

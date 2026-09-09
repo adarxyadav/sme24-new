@@ -60,7 +60,8 @@
       "enquiries": "Anfragen",
       "orders": "Bestellungen",
       "companies": "Firmen",
-      "experts": "Expertinnen und Experten"
+      "experts": "Expertinnen und Experten",
+      "dataRequests": "Datenanfragen"
     }
   },
   "theme": {
@@ -696,7 +697,7 @@
       "email": "Geschäftliche E-Mail",
       "password": "Passwort",
       "passwordHint": "Mindestens 8 Zeichen.",
-      "consent": "Ich akzeptiere die Nutzungsbedingungen und die Datenschutzerklärung.",
+      "consent": "Ich akzeptiere die <terms>Nutzungsbedingungen</terms> und die <privacy>Datenschutzerklärung</privacy>.",
       "submit": "Konto erstellen",
       "codeInstead": "Stattdessen einen Code per E-Mail erhalten",
       "hasAccount": "Schon ein Konto?",
@@ -737,7 +738,7 @@
       "title": "Ihr Unternehmen",
       "lead": "Noch ein Schritt: Nennen Sie uns Ihr Unternehmen, dann geht es los.",
       "organizationName": "Unternehmen",
-      "consent": "Ich akzeptiere die Nutzungsbedingungen und die Datenschutzerklärung.",
+      "consent": "Ich akzeptiere die <terms>Nutzungsbedingungen</terms> und die <privacy>Datenschutzerklärung</privacy>.",
       "submit": "Weiter"
     },
     "providers": {
@@ -2298,6 +2299,85 @@
       "notScheduled": "Nicht geplant"
     }
   },
+  "adminDataRequests": {
+    "title": "Datenanfragen",
+    "description": "Auskunfts- und Löschungsanfragen, sortiert nach der 30-Tage-Frist.",
+    "listHeading": "Anfragen",
+    "columns": {
+      "due": "Antwort bis",
+      "kind": "Recht",
+      "subject": "Betroffene Person",
+      "organization": "Kundin",
+      "filed": "Eingegangen",
+      "status": "Status"
+    },
+    "kinds": {
+      "export": "Datenkopie",
+      "deletion": "Löschung"
+    },
+    "status": {
+      "new": "Neu",
+      "in_progress": "In Bearbeitung",
+      "fulfilled": "Erfüllt",
+      "refused": "Abgelehnt"
+    },
+    "overdue": "Überfällig",
+    "noName": "Kein Name hinterlegt",
+    "noOrganization": "Keine",
+    "filters": {
+      "label": "Status",
+      "open": "Offen",
+      "all": "Alle",
+      "apply": "Anwenden"
+    },
+    "pagination": {
+      "first": "Erste Seite",
+      "next": "Nächste Seite"
+    },
+    "empty": {
+      "title": "Keine Datenanfragen",
+      "description": "Wenn jemand eine Kopie seiner Daten oder deren Löschung verlangt, erscheint die Anfrage hier."
+    },
+    "noResults": {
+      "title": "Nichts entspricht diesem Filter",
+      "description": "Versuchen Sie die offenen Anfragen oder heben Sie den Filter auf."
+    },
+    "detail": {
+      "title": "Datenanfrage",
+      "subject": "Betroffene Person",
+      "email": "E-Mail",
+      "kind": "Recht",
+      "filed": "Eingegangen",
+      "due": "Antwort bis",
+      "handledBy": "Bearbeitet von",
+      "handledAt": "Bearbeitet am",
+      "notHandled": "Noch nicht bearbeitet",
+      "organization": "Kundin"
+    },
+    "form": {
+      "status": "Status",
+      "opsNote": "Was getan wurde",
+      "opsNoteHint": "Bei einer Auskunft festhalten, was wie gesendet wurde. Bei einer Ablehnung ist die Begründung zwingend und bleibt auf dem Datensatz.",
+      "submit": "Speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Anfrage aktualisiert.",
+      "deletionWarning": "Eine Löschungsanfrage als erfüllt zu markieren anonymisiert die Person sofort: Name, E-Mail und Profil werden gelöscht und sie kann sich nicht mehr anmelden. Bestellungen und Rechnungen bleiben erhalten. Dies kann nicht rückgängig gemacht werden.",
+      "errors": {
+        "noteLong": "Halten Sie die Notiz unter 2000 Zeichen.",
+        "validation": "Prüfen Sie die Felder und versuchen Sie es erneut.",
+        "forbidden": "Sie dürfen diese Anfrage nicht ändern.",
+        "not_found": "Diese Anfrage existiert nicht mehr.",
+        "invalid_transition": "Dieser Schritt ist vom aktuellen Status aus nicht erlaubt. Laden Sie die Seite neu und versuchen Sie es erneut.",
+        "note_required": "Eine Ablehnung braucht eine Begründung. Halten Sie fest, was warum abgelehnt wurde.",
+        "unexpected": "Etwas ist schiefgelaufen. Die Anfrage wurde nicht geändert."
+      },
+      "deletionWarningTitle": "Dies löscht die Identität der Person"
+    },
+    "terminal": {
+      "fulfilled": "Diese Anfrage wurde erfüllt und ist abgeschlossen. Eine weitere Anfrage wird neu erfasst.",
+      "refused": "Diese Anfrage wurde abgelehnt und ist abgeschlossen. Eine weitere Anfrage wird neu erfasst."
+    }
+  },
   "experts": {
     "catalogue": {
       "competencies": {
@@ -2653,6 +2733,400 @@
         "already_active": "Diese Fachperson ist nicht deaktiviert.",
         "not_found": "Diese Fachperson wurde nicht gefunden.",
         "forbidden": "Sie dürfen das nicht tun.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    }
+  },
+  "legal": {
+    "consent": {
+      "title": "Cookies und Analyse",
+      "body": "Wir setzen ein Analysewerkzeug ein, um zu verstehen, wie die Website genutzt wird. Es lädt nur mit Ihrer Zustimmung. <link>Was wir speichern</link>.",
+      "accept": "Zustimmen",
+      "reject": "Ablehnen",
+      "current": {
+        "granted": "Sie haben der Analyse zugestimmt.",
+        "denied": "Sie haben die Analyse abgelehnt.",
+        "none": "Sie haben noch nicht geantwortet."
+      },
+      "change": "Auswahl ändern",
+      "changed": "Ihre Auswahl wurde gespeichert."
+    },
+    "terms": {
+      "gate": {
+        "title": "Unsere Nutzungsbedingungen haben sich geändert",
+        "body": "Wir haben die Nutzungsbedingungen aktualisiert. Bitte lesen Sie sie und stimmen Sie zu, um SME24 weiter zu nutzen.",
+        "read": "Vollständige Nutzungsbedingungen lesen",
+        "accept": "Zustimmen und fortfahren",
+        "decline": "Stattdessen abmelden",
+        "error": "Ihre Zustimmung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      },
+      "changelog": {
+        "1": "Dies sind die ersten Nutzungsbedingungen für SME24. Sie regeln unsere Leistungen, den Inhalt eines Pakets, die Stornierung und das anwendbare Recht."
+      }
+    }
+  },
+  "legalPages": {
+    "privacy": {
+      "meta": {
+        "title": "Datenschutzerklärung",
+        "description": "Was SME24 erhebt, warum, wer es bearbeitet und wie lange es aufbewahrt wird."
+      },
+      "og": {
+        "statement": "Was wir über Sie wissen. Klar gesagt."
+      },
+      "eyebrow": "Datenschutz",
+      "title": "Datenschutzerklärung.",
+      "lead": "Diese Seite sagt, was SME24 erhebt, warum wir es erheben, wer es in unserem Auftrag bearbeitet und wie lange wir es aufbewahren. Sie ist aus dem System selbst geschrieben und beschreibt deshalb, was der Code tatsächlich tut.",
+      "updated": "Zuletzt aktualisiert am {date}",
+      "controller": {
+        "title": "Wer verantwortlich ist",
+        "body": "{name}, {address}, ist für die hier beschriebene Bearbeitung verantwortlich. Schreiben Sie an {email} bei jeder Frage zu Ihren Daten, auch für Auskunft, Berichtigung oder Löschung.",
+        "law": "SME24 ist ein Schweizer Unternehmen, deshalb gilt das revidierte Datenschutzgesetz (revDSG, in Kraft seit 1. September 2023). Wo eine Kundin oder eine Besucherin in der EU ist, wenden wir zusätzlich den Massstab der DSGVO an."
+      },
+      "collected": {
+        "title": "Was wir erheben",
+        "lead": "Drei Arten von Daten, und sonst nichts.",
+        "account": {
+          "title": "Was Sie uns geben",
+          "body": "Ihren Namen, Ihre E-Mail-Adresse, Ihre Sprache und das Unternehmen, für das Sie arbeiten, aus der Registrierung und aus Ihrem Profil. Expertinnen und Experten geben zusätzlich einen Lebenslauf, Qualifikationen und ein Foto an."
+        },
+        "work": {
+          "title": "Was der Dienst erzeugt",
+          "body": "Die Unternehmensangaben und Sicherheitskennzahlen, die Sie erfassen oder bestätigen, die Recherche, die wir aus öffentlichen Quellen zu Ihrem Unternehmen durchführen, den daraus berechneten Benchmark sowie die Bestellungen, Rechnungen und Termine, die folgen. Das ist der Dienst; ohne diese Daten gibt es nichts zu liefern."
+        },
+        "technical": {
+          "title": "Was das System aufzeichnet",
+          "body": "Serverprotokolle, Fehlermeldungen und, nur mit Ihrer Zustimmung, Produktanalyse. Anfrageformulare speichern einen Einweg-Hash Ihrer IP-Adresse als Flutschutz, nie die Adresse selbst."
+        }
+      },
+      "purposes": {
+        "title": "Warum wir es bearbeiten",
+        "lead": "Jeder Zweck und die Grundlage, auf der er beruht.",
+        "service": {
+          "title": "Um den Dienst zu erbringen",
+          "body": "Erfüllung des Vertrags, den Sie mit Ihrer Bestellung eingegangen sind, oder vorvertragliche Schritte auf Ihren Wunsch."
+        },
+        "legal": {
+          "title": "Um gesetzliche Pflichten zu erfüllen",
+          "body": "Das schweizerische Handels- und Steuerrecht verlangt, dass Buchungsbelege zehn Jahre aufbewahrt werden (Art. 958f OR). Das ist eine gesetzliche Pflicht, keine Wahl."
+        },
+        "improve": {
+          "title": "Damit der Dienst funktioniert und ehrlich bleibt",
+          "body": "Fehlermeldungen, Sicherheitsprotokolle und, mit Zustimmung, Analyse. Unser berechtigtes Interesse an einem funktionierenden Dienst, abgewogen gegen eine Bearbeitung, die minimal ist und nie zur Profilbildung dient."
+        },
+        "consent": {
+          "title": "Wo Sie zugestimmt haben",
+          "body": "Die Produktanalyse lädt erst, wenn Sie zustimmen, und Sie können die Zustimmung jederzeit auf der Cookie-Seite widerrufen, ohne sonst etwas zu verlieren."
+        }
+      },
+      "processors": {
+        "title": "Wer es für uns bearbeitet",
+        "lead": "Jeder Dritte, der in unserem Auftrag Personendaten berührt, was er tut und wo er speichert. Eine Änderung dieser Liste ist eine Änderung am Code.",
+        "columnName": "Auftragsbearbeiter",
+        "columnPurpose": "Was er tut",
+        "columnRegion": "Wo gespeichert wird",
+        "regions": {
+          "ch": "Schweiz",
+          "eu": "Europäische Union",
+          "us": "Vereinigte Staaten"
+        },
+        "usNote": "Die beiden Auftragsbearbeiter in den Vereinigten Staaten erhalten Rechercheinhalte zu Unternehmen, nicht Ihre Kontodaten, und sind über die Standardvertragsklauseln abgedeckt. Kein Auftragsbearbeiter verkauft oder verwendet Ihre Daten weiter.",
+        "supabase": {
+          "purpose": "Datenbank, Anmeldung und Dateiablage. Unsere Instanz läuft in Zürich."
+        },
+        "vercel": {
+          "purpose": "Betrieb und Auslieferung der Anwendung. Unsere Funktionen laufen in Frankfurt."
+        },
+        "trigger": {
+          "purpose": "Führt die Hintergrundarbeit aus: Recherche, Benchmarks, Rechnungen und E-Mail."
+        },
+        "resend": {
+          "purpose": "Stellt die Produkt-E-Mails zu, die wir Ihnen senden."
+        },
+        "stripe": {
+          "purpose": "Wickelt die Kartenzahlung an der Kasse ab. Wir sehen Ihre Kartennummer nie."
+        },
+        "anthropic": {
+          "purpose": "Wandelt öffentliche Rechercheergebnisse in strukturierte Angaben um. Der Dienst erhält den Recherchetext, nie Ihre Kontodaten, und trainiert nicht damit."
+        },
+        "parallel": {
+          "purpose": "Durchsucht öffentliche Quellen nach Angaben zu Ihrem Unternehmen."
+        },
+        "posthog": {
+          "purpose": "Produktanalyse, und erst nachdem Sie zugestimmt haben. Unsere Instanz läuft in Frankfurt."
+        },
+        "sentry": {
+          "purpose": "Sammelt Fehlermeldungen, damit Störungen gefunden werden. Unsere Instanz läuft in Frankfurt."
+        }
+      },
+      "retention": {
+        "title": "Wie lange wir es aufbewahren",
+        "lead": "Jede Tabelle mit Personendaten und ihre Frist. Drei ehrliche Antworten: ein geplanter Auftrag löscht sie, sie lebt so lange wie Ihr Konto, oder sie wird ohne Enddatum aufbewahrt, aus einem Grund, den wir nennen.",
+        "columnData": "Was",
+        "columnPeriod": "Wie lange",
+        "kinds": {
+          "purged": "{days} Tage, danach automatisch gelöscht",
+          "account": "Solange Ihr Konto besteht",
+          "indefinite": "Unbefristet aufbewahrt"
+        },
+        "profiles": {
+          "purpose": "Ihr Name, Ihre Sprache und Ihre Rolle"
+        },
+        "organization_members": {
+          "purpose": "Wer zu welchem Unternehmen gehört"
+        },
+        "expert_profiles": {
+          "purpose": "Lebenslauf, Qualifikationen und Foto einer Expertin oder eines Experten"
+        },
+        "companies": {
+          "purpose": "Die Unternehmensangaben, aus denen ein Benchmark entsteht"
+        },
+        "company_kpis": {
+          "purpose": "Die Sicherheitskennzahlen, die Sie erfasst haben oder die wir gefunden haben"
+        },
+        "notifications": {
+          "purpose": "Was wir Ihnen in der App angezeigt haben"
+        },
+        "email_deliveries": {
+          "purpose": "Der Nachweis, dass eine E-Mail an Sie gesendet wurde"
+        },
+        "enquiries": {
+          "purpose": "Eine abgeschlossene Anfrage aus dem Kontaktformular, nachdem sie beantwortet wurde"
+        },
+        "enquiries_ip_hash": {
+          "purpose": "Die gehashte Adresse hinter einer Anfrage, nur als Flutschutz"
+        },
+        "orders": {
+          "purpose": "Was Sie bestellt haben und was es gekostet hat"
+        },
+        "invoices": {
+          "purpose": "Die Rechnung selbst"
+        },
+        "order_events": {
+          "purpose": "Was mit einer Bestellung geschehen ist und wann"
+        },
+        "research_runs": {
+          "purpose": "Ein Recherchelauf und sein Ergebnis"
+        },
+        "benchmark_snapshots": {
+          "purpose": "Ein Benchmark genau so, wie er berechnet wurde"
+        },
+        "audit_log": {
+          "purpose": "Wer was geändert hat, der Nachweis, der den Rest überprüfbar macht"
+        },
+        "accountingNote": "Bestellungen, Rechnungen und Bestellereignisse bewahren wir zehn Jahre auf, weil Art. 958f OR es verlangt. Rechercheläufe und Benchmark-Momentaufnahmen bewahren wir ohne Enddatum auf: eine Momentaufnahme ist bewusst unveränderlich, damit eine Ihnen gezeigte Zahl jederzeit erklärt werden kann, und der Vergleich von Läufen über die Zeit ist es, was den Dienst genau hält. Wenn Ihnen das nicht recht ist, verlangen Sie die Löschung und wir löschen sie."
+      },
+      "rights": {
+        "title": "Ihre Rechte",
+        "lead": "Sie können eine Kopie Ihrer Daten verlangen, ihre Berichtigung oder ihre Löschung. Angemeldet ist die Anfrage eine Schaltfläche in Ihrem Konto; sonst schreiben Sie an {email}. Wir antworten innert dreissig Tagen.",
+        "access": "Eine Kopie der Daten, die wir über Sie halten.",
+        "correct": "Berichtigung von allem, was falsch ist. Das meiste können Sie selbst bearbeiten.",
+        "delete": "Löschung, mit der einen Ausnahme weiter unten.",
+        "object": "Widerspruch gegen eine Bearbeitung, die auf unserem berechtigten Interesse beruht, und jederzeitiger Widerruf der Analyse-Zustimmung.",
+        "complain": "Eine Anzeige beim Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB) in Bern oder bei Ihrer Aufsichtsbehörde in der EU."
+      },
+      "deletion": {
+        "title": "Was eine Löschung tatsächlich bewirkt",
+        "body": "Wenn wir eine Löschung ausführen, entfernen wir Ihren Namen aus Ihrem Profil, bereinigen Ihre E-Mail-Adresse und Ihre Anmeldedaten, sodass das Konto nicht mehr verwendet werden kann, und bei Expertinnen und Experten zusätzlich Lebenslauf, Foto und Kontaktadresse.",
+        "exception": "Bestellungen, Rechnungen und deren Verlauf bleiben bewusst unangetastet. Sie gehören dem Unternehmen und nicht Ihnen persönlich, und das schweizerische Handelsrecht verlangt, dass sie zehn Jahre aufbewahrt werden. Nach der Löschung nennen diese Belege Sie nicht mehr namentlich.",
+        "note": "Das ist eine feste Liste, die in einem Schritt ausgeführt wird, keine Einzelfallentscheidung, und sie wird in unserem Prüfprotokoll festgehalten."
+      },
+      "cookies": {
+        "title": "Cookies",
+        "body": "Wir setzen ein Cookie, um Ihre Analyse-Antwort zu merken, und jene, die die Anmeldung braucht, um Sie angemeldet zu halten. Sonst wird nichts gesetzt, ausser Sie stimmen der Analyse zu. <link>Die vollständige Cookie-Liste</link>."
+      },
+      "security": {
+        "title": "Wie es geschützt ist",
+        "body": "Jede Tabelle erzwingt Sicherheit auf Zeilenebene in der Datenbank, sodass der Zugriff bei jedem Lesen geprüft und nicht der Anwendung geglaubt wird. Der Verkehr ist auf dem Transportweg verschlüsselt, Geheimnisse hält die Betriebsplattform, und Änderungen an sensiblen Zeilen werden in einem Prüfprotokoll festgehalten."
+      },
+      "changes": {
+        "title": "Änderungen dieser Erklärung",
+        "body": "Wenn wir ändern, wie wir Ihre Daten bearbeiten, aktualisieren wir diese Seite und sagen es Ihnen bei wesentlichen Änderungen in der App. Das Datum oben ist immer das Datum der letzten Änderung."
+      }
+    },
+    "terms": {
+      "meta": {
+        "title": "Allgemeine Geschäftsbedingungen",
+        "description": "Die Bedingungen, unter denen SME24 den Benchmark, die Pakete und die Expertenarbeit erbringt."
+      },
+      "og": {
+        "statement": "Die Abmachung. Schriftlich."
+      },
+      "eyebrow": "AGB",
+      "title": "Allgemeine Geschäftsbedingungen.",
+      "lead": "Diese Bedingungen regeln Ihre Nutzung von SME24 und alles, was Sie darüber bestellen. Ihre Annahme bei der Registrierung macht sie verbindlich.",
+      "updated": "Zuletzt aktualisiert am {date}",
+      "version": "Version {version}",
+      "parties": {
+        "title": "Mit wem der Vertrag besteht",
+        "body": "SME24 wird betrieben von {name}, {address}. Registrieren Sie sich für ein Unternehmen, bestätigen Sie, dass Sie es verpflichten dürfen, und der Vertrag besteht mit diesem."
+      },
+      "service": {
+        "title": "Was wir erbringen",
+        "body": "Einen Benchmark der Arbeitssicherheit und des Gesundheitsschutzes Ihres Unternehmens gegen Schweizer Vergleichsdaten und, wo Sie eines kaufen, ein Festpreispaket, das eine qualifizierte Fachperson erbringt. Der Benchmark ist kostenlos und wird aus öffentlicher Recherche und Ihren Angaben berechnet.",
+        "expert": "Die Fachpersonen sind qualifizierte Berufsleute, die wir beiziehen. Wir wählen sie aus und teilen sie zu; Sie schliessen keinen Vertrag direkt mit ihnen."
+      },
+      "account": {
+        "title": "Ihr Konto",
+        "body": "Behalten Sie Ihre Anmeldedaten für sich und sagen Sie uns, wenn Sie vermuten, dass jemand anderes sie hat. Sie sind verantwortlich für das, was unter Ihrem Konto geschieht. Eine Person, ein Konto: teilen Sie keine Anmeldung im Team.",
+        "accuracy": "Ihre Zahlen bestimmen den Benchmark. Erfassen Sie sie ehrlich, denn ein Benchmark auf falschen Zahlen ist schlechter als keiner."
+      },
+      "packages": {
+        "title": "Pakete, Preise und Zahlung",
+        "body": "Preise sind in Schweizer Franken angegeben und enthalten die schweizerische Mehrwertsteuer zum geltenden Satz. Die Zahlung ist an der Kasse per Karte fällig oder zu den auf der Rechnung genannten Bedingungen. Für jede Bestellung erhalten Sie eine Rechnung.",
+        "delivery": "Den Termin für die Beurteilung vereinbaren wir nach der Zahlung mit Ihnen. Können wir nicht in angemessener Frist liefern, sagen wir es und erstatten Ihnen den Betrag."
+      },
+      "cancellation": {
+        "title": "Ändern und absagen",
+        "body": "Sagen Sie es uns mindestens fünf Arbeitstage vor einem vereinbarten Termin, und wir verschieben ihn kostenlos. Später, oder bei Nichterscheinen, können wir die reservierte Zeit der Fachperson verrechnen.",
+        "refund": "Haben wir noch nicht mit der Arbeit begonnen, können Sie stornieren und erhalten den vollen Betrag zurück."
+      },
+      "obligations": {
+        "title": "Was wir von Ihnen brauchen",
+        "body": "Zugang zum Betrieb, zu den Unterlagen und zu den Personen, die die Beurteilung braucht, zur vereinbarten Zeit. Eine Fachperson, die den Arbeitsplatz nicht sehen kann, kann ihn nicht beurteilen.",
+        "safety": "Die Verantwortung für die Sicherheit an Ihrem Arbeitsplatz bleibt bei Ihnen. Unsere Beratung unterstützt Ihre Pflichten nach schweizerischem Recht; sie übernimmt sie nicht."
+      },
+      "ip": {
+        "title": "Was wem gehört",
+        "body": "Die Berichte, Benchmarks und Dokumente, die wir liefern, dürfen Sie in Ihrem Unternehmen nutzen. Die Plattform, die Methodik und die dahinterliegenden Vergleichsdaten bleiben unser.",
+        "aggregate": "Wir dürfen Zahlen aus Ihrem Unternehmen anonymisiert und aggregiert verwenden, um die Vergleichsdaten zu verbessern. Nichts, was so veröffentlicht wird, macht Sie oder Ihr Unternehmen erkennbar."
+      },
+      "liability": {
+        "title": "Haftung",
+        "body": "Wir haften unbeschränkt für Schaden, den wir absichtlich oder grobfahrlässig verursachen, sowie für Verletzung von Leben, Körper oder Gesundheit. Im Übrigen ist unsere Haftung auf den Betrag beschränkt, den Sie uns in den zwölf Monaten vor dem Ereignis bezahlt haben.",
+        "benchmark": "Der kostenlose Benchmark ist ein Hinweis aus öffentlichen Daten und Ihren eigenen Zahlen. Er ist keine rechtliche Prüfung und ersetzt keine Beurteilung. Entscheide, die Sie allein darauf stützen, sind Ihre."
+      },
+      "termination": {
+        "title": "Beendigung",
+        "body": "Sie können Ihr Konto jederzeit in der App oder schriftlich schliessen. Bereits erteilte Bestellungen werden wie vereinbart erbracht und bezahlt. Wir können ein Konto sperren oder schliessen, das gegen diese Bedingungen verstösst, und sagen den Grund."
+      },
+      "changes": {
+        "title": "Änderungen dieser Bedingungen",
+        "body": "Wir können diese Bedingungen ändern. Ist eine Änderung wesentlich, erhöhen wir die Version und bitten Sie bei der nächsten Anmeldung um Annahme, wobei wir zeigen, was sich geändert hat. Nutzen Sie den Dienst danach weiter, gelten die neuen Bedingungen.",
+        "current": "Die aktuelle Version ist {version}."
+      },
+      "law": {
+        "title": "Recht und Gerichtsstand",
+        "body": "Es gilt schweizerisches Recht unter Ausschluss seiner Kollisionsnormen. Gerichtsstand ist {city}, soweit nicht zwingendes Recht einen anderen Ort vorsieht."
+      }
+    },
+    "imprint": {
+      "meta": {
+        "title": "Impressum",
+        "description": "Wer SME24 betreibt: Firma, Sitz und wie Sie eine Person erreichen."
+      },
+      "og": {
+        "statement": "Wer wir sind. Wo wir sind."
+      },
+      "eyebrow": "Impressum",
+      "title": "Impressum.",
+      "lead": "Wer hinter dieser Website steht, wie es Art. 3 UWG verlangt.",
+      "operator": "Betreiberin",
+      "address": "Sitz",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "responsible": "Verantwortlich für den Inhalt",
+      "disclaimer": {
+        "title": "Haftung für Inhalte und Links",
+        "body": "Wir achten darauf, dass das hier Veröffentlichte richtig und aktuell ist, und übernehmen dafür keine Haftung. Wo wir auf eine andere Website verweisen, kontrollieren wir sie nicht und übernehmen keine Verantwortung für deren Inhalt."
+      },
+      "copyright": {
+        "title": "Urheberrecht",
+        "body": "Text, Bilder und Gestaltung dieser Website gehören {name}, sofern keine andere Inhaberin genannt ist. Eine Verwendung über das gewöhnliche Lesen hinaus braucht unsere schriftliche Zustimmung."
+      }
+    },
+    "cookiesPage": {
+      "meta": {
+        "title": "Cookies",
+        "description": "Jedes Cookie, das SME24 setzt, wofür es dient und wie Sie Ihre Analyse-Antwort ändern."
+      },
+      "og": {
+        "statement": "Zwei Cookies. Eines ist Ihre Wahl."
+      },
+      "eyebrow": "Cookies",
+      "title": "Cookies.",
+      "lead": "Wir setzen so wenige, wie der Dienst braucht. Die Analyse lädt nur, wenn Sie zustimmen, und Sie können diese Antwort hier jederzeit ändern.",
+      "table": {
+        "title": "Was wir setzen",
+        "columnName": "Cookie",
+        "columnPurpose": "Wofür es dient",
+        "columnLife": "Wie lange"
+      },
+      "items": {
+        "consent": {
+          "name": "sme24_consent",
+          "purpose": "Merkt sich, ob Sie der Analyse zugestimmt oder sie abgelehnt haben, damit Sie nicht erneut gefragt werden.",
+          "life": "Ein Jahr"
+        },
+        "auth": {
+          "name": "sb-*-auth-token",
+          "purpose": "Hält Sie angemeldet. Wird erst nach der Anmeldung gesetzt und beim Abmelden entfernt.",
+          "life": "Bis Sie sich abmelden"
+        },
+        "posthog": {
+          "name": "ph_*",
+          "purpose": "Produktanalyse: welche Seiten genutzt werden und wo Menschen hängen bleiben. Wird erst nach Ihrer Zustimmung gesetzt.",
+          "life": "Ein Jahr"
+        }
+      },
+      "necessary": {
+        "title": "Die, nach denen wir nicht fragen können",
+        "body": "Das Anmelde-Cookie und jenes mit Ihrer Analyse-Antwort sind zwingend nötig: ohne das erste bleiben Sie nicht angemeldet, ohne das zweite müssten wir Sie auf jeder Seite fragen. Keines dient dazu, Sie über andere Websites hinweg zu verfolgen."
+      },
+      "choice": {
+        "title": "Ihre Wahl",
+        "lead": "Das haben Sie geantwortet, und hier ändern Sie es.",
+        "reopen": "Auswahl ändern",
+        "reopened": "Beantworten Sie die Leiste am unteren Seitenrand.",
+        "accept": "Analyse zulassen",
+        "reject": "Analyse ablehnen"
+      },
+      "more": {
+        "title": "Mehr Details",
+        "body": "Die Datenschutzerklärung sagt, was jeder Auftragsbearbeiter mit den Daten tut und wie lange wir sie aufbewahren. <link>Datenschutzerklärung lesen</link>."
+      }
+    },
+    "dataRequests": {
+      "title": "Ihre Daten",
+      "lead": "Sie können eine Kopie der Personendaten verlangen, die SME24 über Sie hält, oder deren Löschung verlangen. Wir antworten innert 30 Tagen.",
+      "signedOut": "Melden Sie sich an, um eine Anfrage zu stellen. Ohne Konto schreiben Sie uns, wir antworten gleichermassen.",
+      "actions": {
+        "export": "Kopie verlangen",
+        "deletion": "Löschung verlangen"
+      },
+      "kinds": {
+        "export": "Kopie meiner Daten",
+        "deletion": "Löschung"
+      },
+      "status": {
+        "new": "Eingegangen",
+        "in_progress": "In Bearbeitung",
+        "fulfilled": "Beantwortet",
+        "refused": "Abgelehnt"
+      },
+      "dueBy": "Antwort bis {date}",
+      "filed": {
+        "export": "Anfrage eingegangen. Wir senden Ihre Kopie innert 30 Tagen.",
+        "deletion": "Anfrage eingegangen. Wir antworten innert 30 Tagen."
+      },
+      "confirm": {
+        "cancel": "Abbrechen",
+        "filing": "Wird gesendet…",
+        "export": {
+          "title": "Kopie Ihrer Daten verlangen",
+          "body": "Wir stellen zusammen, was SME24 über Sie hält, und senden es innert 30 Tagen an Ihre Kontoadresse.",
+          "submit": "Kopie verlangen"
+        },
+        "deletion": {
+          "title": "Löschung verlangen",
+          "body": "Ihr Name, Ihre E-Mail-Adresse und Ihr Profil werden entfernt und Sie können sich nicht mehr anmelden. Rechnungen und Bestellungen bleiben zehn Jahre erhalten, weil das Schweizer Obligationenrecht (Art. 958f OR) dies verlangt. Dies kann nicht rückgängig gemacht werden.",
+          "submit": "Löschung verlangen"
+        }
+      },
+      "errors": {
+        "already_open": "Sie haben bereits eine offene Anfrage dieser Art. Wir beantworten sie innert 30 Tagen.",
+        "validation": "Diese Anfrage konnte nicht gelesen werden. Bitte versuchen Sie es erneut.",
+        "forbidden": "Bitte melden Sie sich erneut an, um eine Anfrage zu stellen.",
         "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
       }
     }

@@ -10,13 +10,27 @@ type TableDensity = "default" | "compact";
 function Table({
   className,
   density = "default",
+  scrollLabel,
   ...props
-}: React.ComponentProps<"table"> & { density?: TableDensity }) {
+}: React.ComponentProps<"table"> & {
+  density?: TableDensity;
+  /**
+   * Names the horizontal scroll box and makes it keyboard reachable (spec 0015, AC-6). A
+   * scrollable region whose content holds nothing focusable can only be scrolled with a mouse
+   * otherwise, which axe reports as `scrollable-region-focusable` (WCAG 2.1.1). Pass it on a
+   * table of plain text; a table whose rows carry links or buttons is already reachable and does
+   * not need it.
+   */
+  scrollLabel?: string;
+}) {
   return (
     <div
       data-slot="table-container"
       data-density={density}
       className="group/table relative w-full overflow-x-auto"
+      // Spread together so `aria-label` never appears without the `role` that supports it: a bare
+      // `div` does not accept one, which is what `useAriaPropsSupportedByRole` checks for.
+      {...(scrollLabel ? { tabIndex: 0, role: "group", "aria-label": scrollLabel } : {})}
     >
       <table
         data-slot="table"

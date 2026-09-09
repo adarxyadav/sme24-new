@@ -23,7 +23,8 @@ type Presenter<K extends AlertKind> = (fields: AlertFields<K>, context: AlertCon
  * The alert registry (AC-11): one presenter per kind, English only by decision, Swiss formats
  * through the `en-CH` formatter. Every kind but `payment.received` has a caller today
  * (`enquiry.received` since spec 0009, its topic may be general; `expert.onboarded` since spec
- * 0013). A new kind adds its fields in `schema.ts` and its presenter here. Pure.
+ * 0013; `data_request.received` since spec 0015). A new kind adds its fields in `schema.ts` and
+ * its presenter here. Pure.
  */
 export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
   "client.signed_up": (fields, context) => ({
@@ -103,6 +104,16 @@ export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
       ["Time", format.dateTime(context.now, "dateTime")],
     ],
     buttonLabel: "Open expert",
+  }),
+  "data_request.received": (fields, context) => ({
+    title: "Data request received",
+    fields: [
+      ["Right", fields.kind === "deletion" ? "Deletion" : "Export"],
+      ["Subject", fields.email],
+      ["Answer by", fields.dueOn],
+      ["Time", format.dateTime(context.now, "dateTime")],
+    ],
+    buttonLabel: "Open request",
   }),
   "invoice.render_failed": (fields, context) => ({
     title: "Invoice render failed",

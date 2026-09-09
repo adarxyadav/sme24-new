@@ -1,9 +1,9 @@
--- terms_accepted_at and accept_terms(): the consent column is written once, by handle_new_user
--- from the sign up metadata or by accept_terms() for provider sign ups, and never through a
--- direct update (spec 0005 AC-11).
+-- terms_accepted_at, terms_version and accept_terms(): the two consent columns are written by
+-- handle_new_user from the sign up metadata or by accept_terms(), and never through a direct
+-- update (spec 0005 AC-11, spec 0015 AC-10).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(16);
+select plan(35);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -50,12 +50,30 @@ select pg_temp.make_user('f0000000-0000-4000-8000-000000000002', 'provider@test.
 select pg_temp.make_user('f0000000-0000-4000-8000-000000000003', 'garbage@test.local', 'client',
   '{"full_name":"Gustav Garbage","terms_accepted_at":"yes please"}');
 select pg_temp.make_user('f0000000-0000-4000-8000-000000000004', 'staff@test.local', 'expert');
+-- Spec 0015: a sign up that carries the version it was shown, and one that carries junk in it.
+select pg_temp.make_user('f0000000-0000-4000-8000-000000000005', 'versioned@test.local', 'client',
+  '{"full_name":"Vera Version","terms_accepted_at":"2026-09-01T08:00:00Z","terms_version":"2"}');
+select pg_temp.make_user('f0000000-0000-4000-8000-000000000006', 'junkversion@test.local', 'client',
+  '{"full_name":"Jonas Junk","terms_accepted_at":"2026-09-01T08:00:00Z","terms_version":"'' or 1=1 --"}');
 
 -- Column grant --------------------------------------------------------------------------------
 select ok(not has_column_privilege('authenticated', 'public.profiles', 'terms_accepted_at', 'UPDATE'),
   'authenticated cannot update terms_accepted_at directly');
 select ok(has_column_privilege('authenticated', 'public.profiles', 'full_name', 'UPDATE'),
   'authenticated still updates full_name (the display grant is intact)');
+-- Spec 0015 (AC-10): the column added by the migration must inherit no write grant. Postgres does
+-- not extend a column level grant to a new column, and this test is what keeps that true: a later
+-- `grant update on profiles` would hand the compliance column away silently.
+select ok(not has_column_privilege('authenticated', 'public.profiles', 'terms_version', 'UPDATE'),
+  'authenticated cannot update terms_version directly');
+-- anon carries a table level UPDATE grant on profiles from Supabase's defaults (it is not
+-- revoked the way authenticated's is), so the grant check above says nothing about it. RLS is the
+-- real boundary for anon: there is no anon update policy, so the write reaches zero rows.
+select is(
+  (select count(*) from pg_policies where tablename = 'profiles' and cmd = 'UPDATE'
+   and roles::text like '%anon%'),
+  0::bigint,
+  'no update policy on profiles admits anon, so anon writes reach no row');
 
 -- handle_new_user ----------------------------------------------------------------------------
 select is(
@@ -78,6 +96,22 @@ select is(
   (select terms_accepted_at from public.profiles where id = '11111111-1111-4111-8111-111111111111'),
   '2026-09-01T08:00:00Z'::timestamptz,
   'the seeded client carries consent');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000005'),
+  '2',
+  'handle_new_user copies the version the sign up form showed');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000001'),
+  '1',
+  'a sign up without a version key falls back to the default');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000006'),
+  '1',
+  'handle_new_user ignores a version that is not version shaped');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000002'),
+  '1',
+  'a sign up with no consent at all still gets the default version');
 
 -- Direct writes are refused ---------------------------------------------------------------------
 select pg_temp.impersonate('f0000000-0000-4000-8000-000000000002', 'client');
@@ -89,6 +123,16 @@ select throws_ok(
   $$ update public.profiles set terms_accepted_at = null where id = 'f0000000-0000-4000-8000-000000000001' $$,
   '42501', null,
   'a client cannot clear terms_accepted_at with a direct update either');
+-- Spec 0015 (AC-10): the point of the whole column. If a client could write this, they could mark
+-- themselves current on a version they never saw and walk straight past the re consent dialog.
+select throws_ok(
+  $$ update public.profiles set terms_version = '99' where id = 'f0000000-0000-4000-8000-000000000002' $$,
+  '42501', null,
+  'a client cannot set terms_version with a direct update');
+select throws_ok(
+  $$ update public.profiles set full_name = 'Fine', terms_version = '99' where id = 'f0000000-0000-4000-8000-000000000002' $$,
+  '42501', null,
+  'a write that smuggles terms_version in beside an allowed column is refused whole');
 
 -- accept_terms ---------------------------------------------------------------------------------
 select isnt((select public.accept_terms()), null, 'accept_terms returns a timestamp for a provider sign up');
@@ -99,14 +143,61 @@ select ok(
 select is(
   (select public.accept_terms()),
   (select terms_accepted_at from public.profiles where id = 'f0000000-0000-4000-8000-000000000002'),
-  'a second accept_terms call returns the stored value and changes nothing');
+  'a second accept_terms call for the same version returns the stored value and changes nothing');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000002'),
+  '1',
+  'the default argument records version 1, the version the zero argument callers were written for');
 
 select pg_temp.as_postgres();
 select pg_temp.impersonate('f0000000-0000-4000-8000-000000000001', 'client');
 select is(
   (select public.accept_terms()),
   '2026-09-01T08:00:00Z'::timestamptz,
-  'accept_terms never overwrites a consent the sign up already recorded');
+  'accept_terms leaves a consent already recorded for the same version untouched');
+
+-- Re consent (AC-10): accepting a different version moves both columns together, which is the
+-- whole mechanism. Before spec 0015 this call was a no op, because the write was guarded on the
+-- stamp being null rather than on the version differing.
+select isnt(
+  (select public.accept_terms('2')),
+  '2026-09-01T08:00:00Z'::timestamptz,
+  'accepting a new version restamps terms_accepted_at');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000001'),
+  '2',
+  'accepting a new version stores that version');
+select ok(
+  (select terms_accepted_at from public.profiles where id = 'f0000000-0000-4000-8000-000000000001')
+    between now() - interval '1 minute' and now(),
+  'the two consent columns move together: the stamp is now, not the old acceptance');
+
+-- Equality, never ordering (AC-10). A profile at '10' against a constant of '2' is a *different*
+-- version, so accepting '2' must move it; a `<` comparison would read '10' as already older and
+-- the app would treat the profile as current. Both directions are asserted, because a text
+-- comparison is wrong in one direction and accidentally right in the other.
+select is((select public.accept_terms('10')), (select terms_accepted_at from public.profiles
+  where id = 'f0000000-0000-4000-8000-000000000001'),
+  'a version that sorts below the previous one is still accepted');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000001'),
+  '10',
+  'moving from ''2'' to ''10'' is stored, though ''10'' < ''2'' as text');
+
+-- The argument is a compliance value, so its shape is checked in the body rather than trusted.
+select throws_ok($$ select public.accept_terms('not a version at all, far too long') $$,
+  'P0001', 'invalid_terms_version',
+  'accept_terms refuses a version that is not version shaped');
+select throws_ok($$ select public.accept_terms('') $$,
+  'P0001', 'invalid_terms_version',
+  'accept_terms refuses an empty version');
+select throws_ok($$ select public.accept_terms(null) $$,
+  'P0001', 'invalid_terms_version',
+  'accept_terms refuses a null version rather than storing one');
+select is(
+  (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000001'),
+  '10',
+  'a refused call leaves the stored version alone');
 
 select pg_temp.as_postgres();
 select pg_temp.impersonate('f0000000-0000-4000-8000-000000000004', 'expert');
@@ -115,8 +206,15 @@ select isnt((select public.accept_terms()), null,
 
 -- anon ----------------------------------------------------------------------------------------
 select pg_temp.as_postgres();
-select ok(not has_function_privilege('anon', 'public.accept_terms()', 'EXECUTE'),
+select ok(not has_function_privilege('anon', 'public.accept_terms(text)', 'EXECUTE'),
   'anon cannot execute accept_terms');
+-- The zero argument form is gone: a defaulted argument adds a signature rather than replacing
+-- one, so leaving it would have made a bare accept_terms() call ambiguous at run time.
+select is(
+  (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname = 'accept_terms'),
+  1::bigint,
+  'exactly one accept_terms signature exists');
 select pg_temp.as_anon();
 select throws_ok($$ select public.accept_terms() $$, '42501', null,
   'accept_terms as anon is refused by the grant, before the body runs');
