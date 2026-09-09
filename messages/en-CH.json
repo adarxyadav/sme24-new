@@ -87,7 +87,7 @@
       "pricing": "Packages",
       "about": "About",
       "contact": "Contact",
-      "freeBenchmark": "Free benchmark"
+      "freeBenchmark": "What your risk costs"
     },
     "howItWorks": {
       "meta": {
@@ -334,12 +334,12 @@
         "statement": "Senior experts. No slides. Just results."
       },
       "eyebrow": "Fixed-price EHS consulting",
-      "title": "Know your EHS risk. Know what to fix. Get the right expert.",
-      "lead": "A benchmarked risk profile, a ranked shortlist of senior experts and a fixed-price proposal, before you commit.",
+      "title": "See what your EHS risk costs. Then fix what matters most.",
+      "lead": "A risk profile priced in francs, measured against your peers, with a ranked shortlist of senior experts and a fixed-price proposal — before you commit.",
       "lookup": {
         "label": "Your company",
         "placeholder": "Company name",
-        "cta": "Benchmark your company for free"
+        "cta": "See what your risk costs"
       },
       "signIn": "Already a client? Sign in",
       "pointsLabel": "Why SME24",
@@ -421,7 +421,7 @@
         "title": "Start with the benchmark. It is free.",
         "lead": "Type your company name. The benchmark follows, at no cost."
       },
-      "free": "The benchmark is free. No sales call.",
+      "free": "Free, and no sales call. Your figure against your peers in two minutes.",
       "example": {
         "label": "Example benchmark for {company}",
         "company": "Muster AG",

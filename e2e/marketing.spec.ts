@@ -109,7 +109,7 @@ test("the landing field carries the company name into the sign up form, an empty
   await expect(page.getByLabel("Company")).toHaveValue("Geberit AG");
 
   await page.goto("/en");
-  await page.getByRole("button", { name: "Benchmark your company for free" }).first().click();
+  await page.getByRole("button", { name: "See what your risk costs" }).first().click();
   await expect(page).toHaveURL(/\/en\/sign-up$/);
   await expect(page.getByLabel("Company")).toHaveValue("");
 });
