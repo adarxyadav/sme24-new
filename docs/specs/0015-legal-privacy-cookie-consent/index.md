@@ -85,7 +85,13 @@ years.
   object itself. Every accounting row (`orders`, `invoices`, `order_events`) is deliberately
   untouched, because it belongs to the organisation rather than the person and Art. 958f OR
   requires it for ten years. The profile row itself survives so no foreign key breaks. The privacy
-  page states this exception in plain words.
+  page states this exception in plain words. The scrub runs only for the caller that won the
+  guarded status write: that write is the claim and comes first, because the scrub cannot be
+  undone and a caller that lost the race would otherwise ban and scrub a person whose row it never
+  moved. If the scrub then throws, the claim is released back to the status the caller read, so no
+  row is ever left claiming a deletion that did not happen and the request stays workable. The
+  audit trigger records the claim and the release both, so the trail shows the attempt and its
+  reversal (amended 2026-09-09 by `/debug`, after a Major in the fresh model review).
 - **AC-16**: The record of processing exists as a document in the repo listing every table, its
   purpose, its legal basis, its retention and its processor, and a pgTAP test in `supabase/tests/`
   keeps its table list equal to the tables that actually exist. It is pgTAP rather than Vitest
@@ -214,6 +220,7 @@ party script and lets the bar work without JavaScript enabled for the reject pat
 | ops list | "overdue" | `due_at <= now()` compared in `Europe/Zurich` via `TIME_ZONE` |
 | the user's card | kind, status, due date | the `data_requests` row the caller can already read under RLS |
 | `updateDataRequest` | which columns anonymisation clears | the fixed list in AC-15, executed in one transaction, never a per case ops judgement |
+| `updateDataRequest` | whether this caller may anonymise at all | winning the guarded status write, which runs first and is the claim; a caller whose write matched zero rows never reaches the scrub |
 | `data_request.received` alert | kind, the requester's email, the due date, a link to `/admin/data-requests/[id]` | the inserted row plus `auth.users` email, assembled by the presenter |
 | the re consent dialog | what changed in this version | `terms.changelog.${CURRENT_TERMS_VERSION}` in both catalogues, with a Vitest test asserting every version from `'1'` up has a key |
 | privacy page | the processor list | `PROCESSORS` constant in `src/features/legal/processors.ts` |

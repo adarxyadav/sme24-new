@@ -207,10 +207,13 @@ export type UpdateDataRequestResult =
  * then guarded on that status, so two ops users moving the same row at once cannot both win: the
  * second reads zero rows and is told `invalid_transition` rather than overwriting the first.
  *
- * A deletion reaching `fulfilled` anonymises the person **before** the row records the fulfilment.
- * That order is the point: a throw from `anonymisePerson` leaves the request open and honest,
- * where recording first would leave a row claiming a deletion that did not happen. Server action,
- * ops only.
+ * That guarded write is also what claims the right to anonymise. A deletion reaching `fulfilled`
+ * writes the row **first**, then anonymises, then rolls the status back to where it was if the
+ * anonymisation throws. The claim has to come first because `anonymisePerson` is irreversible: if
+ * it ran before the guard, the loser of the race would scrub and ban the person and only then
+ * discover its own write matched zero rows. Rolling back on a throw keeps the other half of the
+ * promise, that no row ever claims a deletion that did not happen, and the audit trigger records
+ * both moves, so the trail shows the attempt and its reversal. Server action, ops only.
  */
 export async function updateDataRequest(
   _previous: UpdateDataRequestResult | null,
@@ -237,23 +240,6 @@ export async function updateDataRequest(
   const from = current.status as DataRequestStatus;
   if (!canTransition(from, status)) return { ok: false, error: "invalid_transition" };
 
-  if (current.kind === "deletion" && status === "fulfilled") {
-    if (!current.requested_by) {
-      // The profile is already gone, so there is nothing left to anonymise and the fulfilment is
-      // truthful as it stands. Recorded rather than refused: the right was still answered.
-      log.info("data request deletion: subject already gone", { id });
-    } else {
-      try {
-        const outcome = await anonymisePerson(actor.service, current.requested_by);
-        log.info("data request deletion anonymised", { id, ...outcome });
-      } catch (error) {
-        log.error("anonymisation failed", { id, reason: String(error) });
-        Sentry.captureException(error, { tags: { source: "legal" } });
-        return { ok: false, error: "unexpected" };
-      }
-    }
-  }
-
   // `handled_by` and `handled_at` are written the first time the status leaves `new`, in the same
   // statement as the change, and never cleared afterwards (the check constraint keeps them paired).
   const handled =
@@ -270,8 +256,27 @@ export async function updateDataRequest(
     .maybeSingle();
   if (error) return reportUpdateFailure("data request update failed", error.message);
   // Zero rows means the stored status moved between the read and the write: another ops user got
-  // there first, so this move is no longer the one the adjacency list allowed.
+  // there first, so this move is no longer the one the adjacency list allowed. Nothing has been
+  // anonymised at this point, which is the whole reason the claim comes before the scrub.
   if (!data) return { ok: false, error: "invalid_transition" };
+
+  if (current.kind === "deletion" && status === "fulfilled") {
+    if (!current.requested_by) {
+      // The profile is already gone, so there is nothing left to anonymise and the fulfilment is
+      // truthful as it stands. Recorded rather than refused: the right was still answered.
+      log.info("data request deletion: subject already gone", { id });
+    } else {
+      try {
+        const outcome = await anonymisePerson(actor.service, current.requested_by);
+        log.info("data request deletion anonymised", { id, ...outcome });
+      } catch (error) {
+        log.error("anonymisation failed", { id, reason: String(error) });
+        Sentry.captureException(error, { tags: { source: "legal" } });
+        await releaseFulfilment(actor.service, id, from);
+        return { ok: false, error: "unexpected" };
+      }
+    }
+  }
 
   log.info("data request updated", { id, from, to: status, by: actor.userId });
   revalidatePath("/admin/data-requests");
@@ -290,6 +295,39 @@ async function requireOps() {
     userId: claims.sub,
     service: createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL),
   };
+}
+
+/**
+ * Puts a claimed deletion back where it was after `anonymisePerson` threw (AC-15).
+ *
+ * The claim write is what makes the anonymisation exclusive, so a failed anonymisation has to give
+ * the claim back or the request would sit at `fulfilled` with nobody scrubbed and no exit, since
+ * `fulfilled` is terminal. Guarded on `fulfilled` so it can only ever undo this action's own
+ * claim, and reported rather than thrown: the caller already answers `unexpected`, and a person
+ * whose row is stuck at `fulfilled` needs an alert, not a second failure on top of the first.
+ * Server only, service client.
+ */
+async function releaseFulfilment(
+  service: ReturnType<typeof createServiceClient>,
+  id: string,
+  from: DataRequestStatus,
+): Promise<void> {
+  const { error } = await service
+    .from("data_requests")
+    .update({ status: from })
+    .eq("id", id)
+    .eq("status", "fulfilled");
+  if (!error) {
+    log.info("data request fulfilment released", { id, back_to: from });
+    return;
+  }
+  log.error("data request fulfilment release failed", { id, reason: error.message });
+  Sentry.captureException(
+    new Error(
+      `data request ${id} stuck at fulfilled after a failed anonymisation: ${error.message}`,
+    ),
+    { tags: { source: "legal" } },
+  );
 }
 
 function reportUpdateFailure(what: string, reason: string): UpdateDataRequestResult {

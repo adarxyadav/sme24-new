@@ -514,7 +514,11 @@ describe("updateDataRequest: fulfilling a deletion (AC-15)", () => {
     };
   });
 
-  it("anonymises the subject named on the row before the row records the fulfilment", async () => {
+  /**
+   * The guarded write is what claims the right to scrub, so it has to land before the scrub does.
+   * Anything else lets the loser of a race anonymise a person it has no claim on.
+   */
+  it("claims the row with the guarded write before it anonymises the subject", async () => {
     const order: string[] = [];
     boundary.anonymise.mockImplementation(async () => {
       order.push("anonymise");
@@ -529,18 +533,39 @@ describe("updateDataRequest: fulfilling a deletion (AC-15)", () => {
       ok: true,
       data: { id: REQUEST_ID, status: "fulfilled" },
     });
-    order.push("record");
     expect(boundary.anonymise).toHaveBeenCalledWith(expect.anything(), CLIENT_ID);
-    expect(order).toEqual(["anonymise", "record"]);
+    expect(order).toEqual(["anonymise"]);
+    expect(updateOf("data_requests")?.filters).toEqual({
+      id: REQUEST_ID,
+      status: "in_progress",
+    });
   });
 
-  it("leaves the request open when the anonymisation throws, rather than recording it", async () => {
+  /**
+   * The race the whole ordering exists for: a second ops user moves the same `in_progress`
+   * deletion in the gap between this action's read and its write, so the guarded write matches
+   * zero rows. The loser must not have scrubbed and banned the person on its way to being told no.
+   */
+  it("never anonymises when it loses the race for the row", async () => {
+    boundary.serviceWrites.data_requests = { data: null, error: null };
+    expect(await updateDataRequest(null, { id: REQUEST_ID, status: "fulfilled" })).toEqual({
+      ok: false,
+      error: "invalid_transition",
+    });
+    expect(boundary.anonymise).not.toHaveBeenCalled();
+  });
+
+  it("releases the claim back to the status it read when the anonymisation throws", async () => {
     boundary.anonymise.mockRejectedValue(new Error("anonymise: auth: sign in not ended"));
     expect(await updateDataRequest(null, { id: REQUEST_ID, status: "fulfilled" })).toEqual({
       ok: false,
       error: "unexpected",
     });
-    expect(boundary.updates).toHaveLength(0);
+    const release = boundary.updates.at(-1);
+    expect(release?.table).toBe("data_requests");
+    expect(release?.values).toEqual({ status: "in_progress" });
+    // Guarded on `fulfilled`, so the release can only ever undo this action's own claim.
+    expect(release?.filters).toEqual({ id: REQUEST_ID, status: "fulfilled" });
     expect(boundary.captureException).toHaveBeenCalled();
   });
 
