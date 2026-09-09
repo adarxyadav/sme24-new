@@ -25,8 +25,14 @@ export default async function MarketingLayout({ children, params }: LayoutProps<
 
   // `data-marketing` scopes the sticky header's `scroll-margin-top` in `globals.css` to these
   // pages; the signed in areas have no sticky bar and must not inherit it.
+  //
+  // The padding reserves the cookie bar's height while it is showing, the same way the signed in
+  // sidebar footer does (`app-sidebar.tsx`): the bar is fixed to the bottom of the viewport from
+  // the root layout, so without this it sits opaquely over the end of the footer and the
+  // `ThemeToggle` there cannot be reached, clicked, or seen to have focus. It collapses to zero
+  // once the visitor has answered, which is why the fallback is `0px` rather than a constant.
   return (
-    <div data-marketing>
+    <div data-marketing className="pb-[var(--consent-bar-height,0px)]">
       <JsonLd
         data={organizationJsonLd({
           name: common("appName"),

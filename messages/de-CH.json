@@ -87,7 +87,7 @@
       "pricing": "Pakete",
       "about": "Über uns",
       "contact": "Kontakt",
-      "freeBenchmark": "Was Ihr Risiko kostet"
+      "riskCost": "Was Ihr Risiko kostet"
     },
     "howItWorks": {
       "meta": {
@@ -328,7 +328,7 @@
     "landing": {
       "meta": {
         "title": "EHS-Beratung zum Fixpreis",
-        "description": "Benchmarken Sie das EHS-Risiko Ihres Unternehmens kostenlos, sehen Sie, was Unfälle Sie in CHF kosten, und buchen Sie eine Senior-Expertin zum Fixpreis."
+        "description": "Sehen Sie, was Ihr EHS-Risiko in CHF kostet, im Vergleich zu Ihren Branchenkollegen — kostenlos. Dann buchen Sie eine Senior-Expertin zum Fixpreis."
       },
       "og": {
         "statement": "Senior-Experten. Keine Slides. Nur Resultate."

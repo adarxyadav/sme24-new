@@ -147,7 +147,7 @@ describe("MarketingFooter (spec 0009, AC-7)", () => {
       "href",
       "/de/preise",
     );
-    expect(screen.getByRole("link", { name: de.marketing.nav.freeBenchmark })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: de.marketing.nav.riskCost })).toHaveAttribute(
       "href",
       "/de/sign-up",
     );

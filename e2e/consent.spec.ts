@@ -160,6 +160,20 @@ test.describe("the cookie bar", () => {
     // against elsewhere in this suite (see auth.spec.ts, benchmark.spec.ts).
     await page.waitForLoadState("networkidle");
 
+    // The precondition AC-4 is actually about: PostHog must have written something before
+    // withdrawal can be shown to clear it. `NEXT_PUBLIC_POSTHOG_KEY` is empty in local dev, and
+    // `AnalyticsProvider` returns before it initialises anything when the key is missing, so
+    // without this check the three assertions below all pass on absence rather than on
+    // withdrawal working -- a test that cannot fail, which is the shape of the AC-4 bug that
+    // once survived the whole workflow and only failed on a deployment. Skip loudly instead.
+    const initialised = await page.evaluate(() =>
+      Object.keys(window.localStorage).some((key) => key.startsWith("ph_")),
+    );
+    test.skip(
+      !initialised,
+      "PostHog never initialised, so there is nothing to withdraw: set NEXT_PUBLIC_POSTHOG_KEY to run this.",
+    );
+
     const hits = watchPostHog(page);
     // Withdrawal goes through the same server action, so the cookie is the record of the change.
     await page
