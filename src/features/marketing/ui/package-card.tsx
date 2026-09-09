@@ -44,8 +44,15 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
       data-package={entry.key}
       className={cn(
         // The rows are set on the grid, so the gap is the one the grid publishes; a card only
-        // says how it fills them.
-        "grid min-w-0 gap-y-3 px-6 py-8",
+        // says how it fills them. The inset is generous and the vertical gap wide, because the
+        // card's job is to let four dense offers breathe rather than to pack them: the white
+        // space around the price is what makes it the thing the eye lands on.
+        //
+        // `px-5` rather than the `p-6` the design system gives a card, because at four columns
+        // inside `max-w-6xl` those last 8px per side are what let the longest package name
+        // ("Compliance Check, EHS System & Culture Snapshot", 47 characters in both languages)
+        // set in two lines instead of three. Measured, not guessed.
+        "grid min-w-0 gap-y-5 px-5 py-10",
         // Each card stands on its own hairline now that the grid separates them, rather than
         // borrowing the shared rule of one edge to edge block. Square corners and no elevation:
         // `docs/design.md` fixes every surface as flat and block cornered, so a card is told apart
@@ -59,14 +66,20 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         className,
       )}
     >
-      <div className="flex min-w-0 flex-col gap-2 self-start">
+      {/*
+        The name sets at `heading-16` rather than `heading-20`. Two reasons, and they agree: the
+        longest package name only fits two lines at 16px in this column (measured in both
+        languages), and a smaller name leaves the price as the one large thing on the card, which
+        is the hierarchy this section wants -- the visitor is comparing prices, not titles.
+      */}
+      <div className="flex min-w-0 flex-col gap-1.5 self-start">
         <Statement
           as="h3"
           text={t(`${entry.key}.name`)}
           layout="flow"
-          className="hyphens-auto text-balance break-words text-heading-20"
+          className="hyphens-auto text-balance break-words text-heading-16"
         />
-        <p className="text-copy-14 text-muted-foreground">{t(`${entry.key}.promise`)}</p>
+        <p className="text-copy-13 text-muted-foreground">{t(`${entry.key}.promise`)}</p>
       </div>
 
       {/*
@@ -77,9 +90,9 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         are two different facts, and running them together reads as one broken sentence.
       */}
       {full ? (
-        <p className="self-end text-copy-14">
+        <p className="self-end text-copy-13">
           <span className="text-muted-foreground">{pricing("bestForLabel")} </span>
-          <strong>{t(`${entry.key}.bestFor`)}</strong>
+          <strong className="font-medium">{t(`${entry.key}.bestFor`)}</strong>
         </p>
       ) : null}
 
@@ -106,7 +119,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
         </p>
       )}
 
-      <div className="self-start">
+      <div className="-mt-3 self-start">
         {onDemand ? null : (
           <p className="text-label-12 text-muted-foreground">{pricing("vatNote")}</p>
         )}
@@ -139,7 +152,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             asChild
             variant="outline"
             size="lg"
-            className="h-auto w-full whitespace-normal py-2"
+            className="h-auto w-full whitespace-normal py-2.5"
           >
             <Link href={{ pathname: "/contact", query: { topic: "retainer" } }}>
               {pricing("retainerCta")}
@@ -151,7 +164,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             own primary action reads as primary; filling only one card's button demoted the others
             into looking unavailable.
           */
-          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2">
+          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2.5">
             {/*
               Spec 0011 (AC-16): the chosen package rides along, so a signed out visitor lands
               back on the checkout for the package they picked once they have signed up. A
@@ -170,13 +183,13 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
       </div>
 
       {full ? (
-        <div className="flex flex-col gap-5 border-t pt-6">
+        <div className="flex flex-col gap-6 border-t pt-7">
           {/*
             The included points read as a checked list rather than as filled pills: a pill is a
             status in this design system, and these are contents. One point per line also lets a
             long point wrap without reflowing the ones beside it.
           */}
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2.5">
             {entry.included.map((point) => (
               <li key={point} className="flex items-start gap-2 text-copy-14">
                 <CheckIcon
@@ -187,7 +200,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
               </li>
             ))}
           </ul>
-          <dl className="flex flex-col gap-3 border-t pt-5">
+          <dl className="flex flex-col gap-4 border-t pt-6">
             <div className="flex flex-col gap-0.5">
               <dt className="text-label-12 text-muted-foreground">{pricing("outputLabel")}</dt>
               <dd className="text-copy-14">{t(`${entry.key}.output`)}</dd>

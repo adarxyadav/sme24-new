@@ -25,7 +25,7 @@ export function PackagesGrid({ variant = "full" }: Pick<PackageCardProps, "varia
   return (
     <ul
       className={[
-        "grid gap-4 sm:grid-cols-2 lg:grid-cols-4",
+        "grid gap-3 sm:grid-cols-2 lg:grid-cols-4",
         // One track per stacked card below `sm`, then the tracks the cards subgrid into.
         full
           ? "grid-rows-[repeat(7,auto)] sm:grid-rows-[repeat(14,auto)] lg:grid-rows-[repeat(7,auto)]"

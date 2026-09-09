@@ -302,3 +302,42 @@ test("the expert network page links into the directory in both languages (direct
   await expect(page).toHaveURL(/\/de\/expertennetzwerk\/verzeichnis$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
+
+/*
+ * The package cards, in the browser rather than in jsdom, because both of these failed a real page
+ * while every unit test stayed green (2026-09-10).
+ *
+ * The contrast case: `text-button-14` shares the `text-*` namespace with the colour utilities the
+ * button variant sets, so adding it to a filled button won the cascade and painted the label in the
+ * foreground colour, black on black. jsdom computes no cascade, so only a rendered page catches it.
+ *
+ * The measure case: the longest package name runs to 47 characters in both languages and only sets
+ * in two lines at the size the card uses. A regression to a larger step silently returns it to
+ * three lines and breaks the row's rhythm.
+ */
+test("every package card's action contrasts with its ground and no name runs past two lines", async ({
+  page,
+}) => {
+  for (const path of ["/en/pricing", "/de/preise", "/en", "/de"]) {
+    await page.goto(path);
+    const cards = page.locator('[data-slot="package-card"]');
+    await expect(cards).toHaveCount(4);
+
+    for (const card of await cards.all()) {
+      const action = card.locator('a[data-slot="button"]').first();
+      const [color, background] = await action.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return [style.color, style.backgroundColor];
+      });
+      // A filled button paints its own ground; a ghost link leaves it transparent. Either way the
+      // label must not be painted in the colour it sits on.
+      expect(color).not.toBe(background);
+
+      const lines = await card.locator("h3").evaluate((el) => {
+        const style = getComputedStyle(el);
+        return Math.round(el.getBoundingClientRect().height / Number.parseFloat(style.lineHeight));
+      });
+      expect(lines).toBeLessThanOrEqual(2);
+    }
+  }
+});
