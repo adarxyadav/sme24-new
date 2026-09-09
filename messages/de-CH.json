@@ -87,7 +87,7 @@
       "pricing": "Pakete",
       "about": "Über uns",
       "contact": "Kontakt",
-      "freeBenchmark": "Was Ihr Risiko kostet"
+      "riskCost": "Was Ihr Risiko kostet"
     },
     "howItWorks": {
       "meta": {
