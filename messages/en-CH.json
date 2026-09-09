@@ -329,15 +329,18 @@
         "items": {
           "residency": {
             "title": "Swiss hosting",
-            "detail": "Zurich region"
+            "detail": "Zurich region",
+            "seal": "Swiss hosting"
           },
           "revdsg": {
             "title": "revDSG and GDPR",
-            "detail": "Processors named"
+            "detail": "Processors named",
+            "seal": "revDSG · GDPR"
           },
           "swiss": {
             "title": "Swiss company",
-            "detail": "Baar, Zug"
+            "detail": "Baar, Zug",
+            "seal": "Swiss company"
           }
         }
       }

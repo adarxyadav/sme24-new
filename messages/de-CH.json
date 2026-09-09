@@ -329,15 +329,18 @@
         "items": {
           "residency": {
             "title": "Hosting in der Schweiz",
-            "detail": "Region Zürich"
+            "detail": "Region Zürich",
+            "seal": "Hosting Schweiz"
           },
           "revdsg": {
             "title": "revDSG und DSGVO",
-            "detail": "Auftragsverarbeiter genannt"
+            "detail": "Auftragsverarbeiter genannt",
+            "seal": "revDSG · DSGVO"
           },
           "swiss": {
             "title": "Schweizer Unternehmen",
-            "detail": "Baar, Zug"
+            "detail": "Baar, Zug",
+            "seal": "Schweizer Firma"
           }
         }
       }

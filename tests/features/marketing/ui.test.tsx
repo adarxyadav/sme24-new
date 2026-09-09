@@ -178,25 +178,28 @@ describe("MarketingFooter (spec 0009, AC-7)", () => {
     expect(screen.queryByRole("button", { name: de.common.language })).toBeNull();
   });
 
-  it("carries the compliance row, each mark linking to the page holding its detail", () => {
+  it("carries the compliance row, each seal linking to the page holding its detail", () => {
     renderIn("de-CH", <MarketingFooter />);
     const row = screen.getByRole("list", { name: de.marketing.footer.compliance.label });
     expect(within(row).getAllByRole("listitem")).toHaveLength(3);
-    // jsdom joins adjacent inline text with no separator of its own, so the name reads with the
-    // colon and no space; a browser inserts the gap. The colon is what matters: without it the
-    // two labels are announced as a single run-together word.
     const items = de.marketing.footer.compliance.items;
-    expect(
-      within(row).getByRole("link", { name: `${items.residency.title}:${items.residency.detail}` }),
-    ).toHaveAttribute("href", "/de/datenschutz");
-    expect(
-      within(row).getByRole("link", { name: `${items.swiss.title}:${items.swiss.detail}` }),
-    ).toHaveAttribute("href", "/de/impressum");
+    expect(within(row).getByRole("link", { name: items.residency.seal })).toHaveAttribute(
+      "href",
+      "/de/datenschutz",
+    );
+    expect(within(row).getByRole("link", { name: items.revdsg.seal })).toHaveAttribute(
+      "href",
+      "/de/datenschutz",
+    );
+    expect(within(row).getByRole("link", { name: items.swiss.seal })).toHaveAttribute(
+      "href",
+      "/de/impressum",
+    );
   });
 
   /**
    * The row states standards SME24 meets, never a certification it holds: SME24 has no SOC 2
-   * report and no ISO certificate, so a seal claiming one would be the single badge on the page a
+   * report and no ISO certificate, so a seal claiming one would be the single mark on the page a
    * buyer doing due diligence could disprove. This fails the day such a word is added without the
    * audit behind it.
    */
