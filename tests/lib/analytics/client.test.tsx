@@ -156,6 +156,38 @@ describe("AnalyticsProvider", () => {
   });
 
   /**
+   * The withdrawal leak (AC-4, proven on the deployment with a real key): a visitor accepts, then
+   * withdraws by reloading with the consent cookie already set to denied, so this JS context never
+   * calls `posthog.init` and `posthog.__loaded` is false the whole time. `posthog.reset()` and
+   * `posthog.opt_out_capturing()` both guard on their own `__loaded` flag and do nothing at all
+   * when it is false (verified against the posthog-js source, not assumed), so the accepted
+   * session's leftover `ph_` prefixed `localStorage` keys and cookies survive unless the gate
+   * clears them itself. `storeChoice("denied")` on a fresh render is exactly that fresh page load:
+   * the mock's `__loaded` stays false for the whole test, the same as after a real reload.
+   */
+  it("clears leftover PostHog storage on a fresh page load even though the library never loaded here (AC-4)", async () => {
+    // A previous, accepted session's write, already sitting in storage when this page loads.
+    window.localStorage.setItem("ph_phc_test_posthog", '{"distinct_id":"abc"}');
+    window.localStorage.setItem("unrelated_key", "keep-me");
+    document.cookie = "ph_phc_test_posthog=abc; path=/";
+    document.cookie = "unrelated_cookie=keep-me; path=/";
+
+    storeChoice("denied");
+    render(<AnalyticsProvider>{null}</AnalyticsProvider>);
+    await settle();
+
+    expect(posthog.reset).not.toHaveBeenCalled();
+    expect(posthog.opt_out_capturing).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem("ph_phc_test_posthog")).toBeNull();
+    expect(window.localStorage.getItem("unrelated_key")).toBe("keep-me");
+    expect(document.cookie).not.toMatch(/ph_phc_test_posthog/);
+    expect(document.cookie).toMatch(/unrelated_cookie=keep-me/);
+
+    window.localStorage.removeItem("unrelated_key");
+    document.cookie = "unrelated_cookie=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  });
+
+  /**
    * Re-accepting after a withdrawal in the same tab opts back in rather than initialising again.
    * A second `init` on a loaded library is what would double count every event from then on.
    */

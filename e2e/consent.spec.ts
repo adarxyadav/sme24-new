@@ -153,6 +153,12 @@ test.describe("the cookie bar", () => {
     await page.goto("/en");
     await accept(page).click();
     await expect(bar(page)).toBeHidden();
+    // Let the accepted session's own PostHog init calls (script, config and flags requests, then
+    // their persistence writes) finish before withdrawing: a request or a storage write already in
+    // flight when the cookie flips is not part of what AC-4 claims, and starting the watch or
+    // reading storage beforehand would catch it by accident, the same race `networkidle` guards
+    // against elsewhere in this suite (see auth.spec.ts, benchmark.spec.ts).
+    await page.waitForLoadState("networkidle");
 
     const hits = watchPostHog(page);
     // Withdrawal goes through the same server action, so the cookie is the record of the change.
@@ -175,12 +181,18 @@ test.describe("the cookie bar", () => {
     expect(posthogCookies).toEqual([]);
   });
 
-  test("a visitor who already answered never sees the bar flash (AC-5)", async ({ page }) => {
+  test("a visitor who already answered never sees the bar flash (AC-5)", async ({
+    page,
+    baseURL,
+  }) => {
+    // No navigation has happened yet, so there is no `page.url()` to derive the cookie's URL from;
+    // the configured `baseURL` is the local dev server or, against a deployment, the deployment's
+    // own URL (see playwright.config.ts), which is what every other spec in this file assumes.
     await page.context().addCookies([
       {
         name: CONSENT_COOKIE,
         value: `granted.${CONSENT_VERSION}`,
-        url: "http://localhost:3100",
+        url: baseURL,
       },
     ]);
 
