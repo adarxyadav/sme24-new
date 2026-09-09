@@ -383,6 +383,8 @@ test.describe
 
     const email = uniqueEmail("deletion");
     const password = "Passw0rd!12345";
+    /** The note the fulfilment writes, and the only handle cleanup has on the scrubbed row. */
+    const FULFIL_NOTE = "Anonymised on request, e2e (Fulfilled).";
 
     test.beforeAll(async () => {
       if (!dbAvailable) return;
@@ -390,9 +392,27 @@ test.describe
       await createConfirmedClient(email, password, "Deletion Test AG");
     });
 
+    /**
+     * Cleanup cannot look the subject up by `email`: the scrub has renamed the address to
+     * `deleted+<id>@invalid.sme24.ch` by now, and it cannot use a variable the test set either,
+     * because `afterAll` runs in its own fixture scope. So the id comes from the row itself, found
+     * by the note the test wrote, and the request row goes first: `requested_by` is
+     * `on delete set null` on purpose, so the record outlives the profile (AC-11) and nothing could
+     * match it to this run afterwards.
+     */
     test.afterAll(async () => {
       if (!dbAvailable) return;
-      await deleteAccount(email);
+      const supabase = serviceClient();
+      const { data: rows } = await supabase
+        .from("data_requests")
+        .select("id, requested_by")
+        .eq("ops_note", FULFIL_NOTE);
+      for (const row of rows ?? []) {
+        await supabase.from("data_requests").delete().eq("id", row.id);
+        if (row.requested_by) {
+          await deleteAccount(`deleted+${row.requested_by}@invalid.sme24.ch`);
+        }
+      }
     });
 
     test("clears every sign up key from raw_user_meta_data (AC-15)", async ({ page }) => {
