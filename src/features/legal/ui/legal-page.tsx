@@ -42,8 +42,14 @@ export function LegalPage({
 
 /**
  * One numbered-feeling section of a legal page: a heading the table of contents could point at,
- * an optional lead, and the body. The heading id is derived from the section key, so a link to
- * `#retention` keeps working as the text is rewritten. Server component.
+ * an optional lead, and the body. The id is derived from the section key, so a link to
+ * `#retention` keeps working as the text is rewritten.
+ *
+ * The key lands on the section itself and `${id}-heading` on the heading, because
+ * `aria-labelledby` needs an id of its own: without the bare id the documented `#retention`
+ * anchor matched nothing in the DOM and scrolled nowhere. The `[data-marketing] :target` rule in
+ * `globals.css` then clears the sticky header, so the heading of a linked section stays in view
+ * rather than landing underneath it. Server component.
  */
 export function LegalSection({
   id,
@@ -57,7 +63,7 @@ export function LegalSection({
   readonly children?: ReactNode;
 }) {
   return (
-    <section aria-labelledby={`${id}-heading`} className="flex flex-col gap-4">
+    <section id={id} aria-labelledby={`${id}-heading`} className="flex flex-col gap-4">
       <Statement
         as="h2"
         id={`${id}-heading`}
