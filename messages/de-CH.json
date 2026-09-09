@@ -162,7 +162,7 @@
         }
       },
       "closing": {
-        "title": "Fangen Sie mit dem Benchmark an. Kostenlos.",
+        "title": "Vier Schritte zu Ihrer Zahl in Franken.",
         "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
@@ -234,7 +234,7 @@
         "directory": "Das ganze SGAS-Register ansehen"
       },
       "closing": {
-        "title": "Sehen Sie, wo Sie stehen. Kostenlos.",
+        "title": "Sehen Sie, was Ihr Risiko kostet. Dann Ihr Experte.",
         "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
@@ -418,8 +418,8 @@
         }
       },
       "closing": {
-        "title": "Starten Sie mit dem Benchmark. Er ist kostenlos.",
-        "lead": "Geben Sie den Namen Ihres Unternehmens ein. Der Benchmark folgt, ohne Kosten."
+        "title": "Sehen Sie, was Ihr Risiko kostet. Kostenlos.",
+        "lead": "Geben Sie Ihren Firmennamen ein. Ihre Zahl in Franken, gemessen an Ihren Peers, in zwei Minuten."
       },
       "free": "Kostenlos und ohne Verkaufsgespräch. Ihre Zahl im Vergleich in zwei Minuten.",
       "example": {
@@ -457,11 +457,12 @@
       "vatNote": "exkl. 8.1% MWST",
       "onDemand": "Auf Anfrage",
       "bestForLabel": "Ideal für",
-      "outputLabel": "Ergebnis",
-      "outcomeLabel": "Wirkung",
+      "outputLabel": "Sie erhalten",
+      "outcomeLabel": "Damit",
       "cta": "Sehen, was Ihr Risiko kostet",
       "retainerCta": "Sprechen wir",
       "overviewLink": "Alle Preise ansehen",
+      "overviewLinkFor": "Alle Preise ansehen: {name}",
       "included": {
         "title": "Was jedes Paket enthält.",
         "items": {
@@ -493,7 +494,7 @@
         }
       },
       "closing": {
-        "title": "Nicht sicher, welches? Starten Sie mit dem Benchmark.",
+        "title": "Nicht sicher, welches? Starten Sie mit der kostenlosen Zahl.",
         "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
@@ -552,7 +553,7 @@
         }
       },
       "closing": {
-        "title": "Sehen Sie, wo Sie stehen. Kostenlos.",
+        "title": "Keine Folien. Eine Zahl in Franken.",
         "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
@@ -627,7 +628,7 @@
         "name": "Compliance-Check, EHS-System- & Kultur-Snapshot",
         "promise": "Wissen, was zu tun ist und wie",
         "bestFor": "systematisch beheben",
-        "delivery": "Vor Ort · 5 Tage",
+        "delivery": "Vor Ort, 5 Tage",
         "included": {
           "systemSnapshot": "System- & Kultur-Snapshot",
           "standards": "5 ausgewählte Standards",
@@ -640,7 +641,7 @@
         "name": "EHS-System- & Kultur-Snapshot",
         "promise": "Ihre echten Risiken kennen",
         "bestFor": "echte Risiken validieren",
-        "delivery": "Vor Ort · 2 Tage",
+        "delivery": "Vor Ort, 2 Tage",
         "included": {
           "cultureSnapshot": "Kultur-Snapshot",
           "iso": "ISO 45001 · 7 Kategorien",
@@ -653,7 +654,7 @@
         "name": "EHS-Kultur-Snapshot",
         "promise": "Wissen, wo Sie stehen",
         "bestFor": "schnelle Sichtbarkeit",
-        "delivery": "Remote · 1 Tag",
+        "delivery": "Remote, 1 Tag",
         "included": {
           "categories": "8 Kulturkategorien",
           "levels": "5 Stufen",
@@ -666,7 +667,7 @@
         "name": "EHS-Umsetzungspartner",
         "promise": "Risiken beseitigt",
         "bestFor": "Resultate liefern",
-        "delivery": "Vor Ort + laufend",
+        "delivery": "Vor Ort und laufend",
         "included": {
           "implementation": "Umsetzung",
           "pmo": "PMO",
