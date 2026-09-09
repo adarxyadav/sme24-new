@@ -76,7 +76,7 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
                 <Statement
                   as="h3"
                   text={t(`standard.items.${item}.title`)}
-                  className="font-bold text-xl tracking-headline"
+                  className="font-semibold text-xl tracking-headline"
                 />
                 <p className="max-w-prose text-muted-foreground text-sm">
                   {t(`standard.items.${item}.body`)}
@@ -106,7 +106,7 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
                   <Statement
                     as="h3"
                     text={t(`vetting.steps.${step}.title`)}
-                    className="font-bold text-xl tracking-headline"
+                    className="font-semibold text-xl tracking-headline"
                   />
                   <p className="max-w-prose text-muted-foreground text-sm">
                     {t(`vetting.steps.${step}.body`)}

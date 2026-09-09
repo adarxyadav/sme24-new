@@ -24,7 +24,7 @@ const REGIONS: readonly ProcessorRegion[] = ["ch", "eu", "us"];
 const PANEL = "flex flex-col gap-5 px-6 py-7 lg:row-span-3 lg:grid lg:grid-rows-subgrid lg:gap-5";
 
 /** The panel heading, one step under the step titles so the section heading keeps the weight. */
-const PANEL_TITLE = "self-start text-pretty font-bold text-lg tracking-headline";
+const PANEL_TITLE = "self-start text-pretty font-semibold text-lg tracking-headline";
 
 /**
  * The residency object: the Zurich pin inside two rings, the way the reference band draws a

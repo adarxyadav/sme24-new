@@ -24,7 +24,7 @@ The mark, the lockup and the campaign language live in `src/components/brand/` a
 | Element | Component | Rules |
 |---|---|---|
 | Mark | `BrandMark` (`variant="bare" \| "badge" \| "keyline"`) | Draws in `currentColor`; the badge knocks the mark out of the circle, so the four approved variants are pure `text-*` and `bg-*` choices: black on white (`text-jet` on `bg-pure-white`), white on jet, badge black on white, badge white on obsidian. Decorative (`aria-hidden`) unless you pass `title`. Never recolored, stretched, rotated, shadowed or placed on a busy ground. Keep 30px clear space and never render under 80px wide as a standalone badge; in lockups and the sidebar it sits next to the visible name. |
-| Lockup | `Logo` (`variant`, `size="sm" \| "md" \| "lg"`, `descriptor`) | Mark plus the wordmark "SME24" in Geist 800 with display tracking; `descriptor` adds "EHS CONSULTING" tracked at `tracking-lockup`. Primary lockup is bare, alternate is the badge. Used in the marketing header and sign in (`size="md"`); the sidebar shows the bare mark beside the name. |
+| Lockup | `Logo` (`variant`, `size="sm" \| "md" \| "lg"`, `descriptor`) | Mark plus the wordmark "SME24" in Geist 600 with display tracking (800 until the 2026-09-10 weight cap; the brand guidelines v1.0 still say 800 and owe an amendment); `descriptor` adds "EHS CONSULTING" tracked at `tracking-lockup`. Primary lockup is bare, alternate is the badge. Used in the marketing header and sign in (`size="md"`); the sidebar shows the bare mark beside the name. |
 | Statement | `Statement` (`text`, `as`) | Campaign copy: each sentence on its own line, closed by the square stop (`SquareStop`, a solid square on the baseline with an `sr-only` period). Pair with `text-display-*` or a headline size. "Senior experts. No slides. Just results." |
 | Signature | `Signature` | The badge beside "SME24. Einfach. Anders." / "SME24. Just. Different." (`brand.signature`). Closes marketing pages and campaign blocks. |
 | Inverse block | `className="dark bg-background text-foreground"` on a section | The jet black ground in both themes (the brand's 30% jet). The `.dark` token block applies to the subtree, so every component inside keeps working. The closing call to action of every marketing page is one; the landing hero sits on the page ground. |
@@ -44,7 +44,7 @@ One typeface: Geist (Google Fonts, self hosted through `next/font` in `src/app/[
 | Role (brand hierarchy) | Classes |
 |---|---|
 | Display · 450 · −3% | `text-display-lg` (72px), `text-display` (56px), `text-display-sm` (40px); weight and tracking are built into the size. Marketing statements and campaign blocks. The weight dropped from 600 to 450 on 2026-09-10 (owner decision): Geist carries a 100–900 weight axis and no width axis, so weight is the only lever on how heavy a statement sits, and 450 is a real point on that axis rather than a snap to 400 or 500. |
-| Headline · 700 · −2% (`h1`, rendered by `PageHeader`) | `text-2xl font-bold tracking-headline` |
+| Headline · 600 · −2% (`h1`, rendered by `PageHeader`) | `text-2xl font-semibold tracking-headline` |
 | Subhead · 600 (`h2`) | `text-lg font-semibold` |
 | Card title | `text-base font-semibold` |
 | Body · 400 | `text-sm` (14px) |

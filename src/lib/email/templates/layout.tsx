@@ -34,7 +34,8 @@ const styles = {
     margin: 0,
     fontSize: "22px",
     lineHeight: "28px",
-    fontWeight: 800,
+    // 600 like the product's `Logo` wordmark: the 2026-09-10 weight cap covers email too.
+    fontWeight: 600,
     letterSpacing: "-0.02em",
     color: colors.jet,
   },
@@ -53,7 +54,8 @@ const styles = {
     margin: "0 0 16px",
     fontSize: "24px",
     lineHeight: "32px",
-    fontWeight: 700,
+    // 600, the headline weight since the 2026-09-10 cap.
+    fontWeight: 600,
     letterSpacing: "-0.02em",
     color: colors.jet,
   },

@@ -15,7 +15,7 @@ export function Signature({ className }: { className?: string }) {
     >
       <BrandMark variant="badge" className="size-9" />
       <span>
-        <span className="font-bold">{t("common.appName")}.</span> {t("brand.signature")}
+        <span className="font-semibold">{t("common.appName")}.</span> {t("brand.signature")}
       </span>
     </span>
   );

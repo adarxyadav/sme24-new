@@ -151,6 +151,13 @@ export async function renderOgImage(
     </div>,
     {
       ...OG_SIZE,
+      /*
+        The declared weight matches the file: `Geist-Bold.ttf` is a STATIC instance
+        (`usWeightClass` 700, no `fvar` table), so satori draws its Bold outlines whatever number
+        is written here. The 2026-09-10 cap of 600 therefore cannot reach the social card by an
+        edit to this line -- it needs a 600 weight font file beside the bold one. Declaring 600
+        against a 700 file would only make the declaration lie.
+      */
       fonts: [{ name: "Geist", data: GEIST_BOLD, style: "normal", weight: 700 }],
     },
   );

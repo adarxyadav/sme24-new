@@ -120,7 +120,7 @@ export default async function DirectoryPage({
                 key={entry.canton}
                 className="flex flex-col gap-1 bg-background px-6 py-5 text-center"
               >
-                <span className="font-bold text-xl tracking-headline">{entry.canton}</span>
+                <span className="font-semibold text-xl tracking-headline">{entry.canton}</span>
                 <span className="text-muted-foreground text-sm tabular-nums" data-numeric>
                   {format.number(entry.count)}
                 </span>

@@ -35,7 +35,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                 <Statement
                   as="h3"
                   text={step.title}
-                  className="font-bold text-xl tracking-headline"
+                  className="font-semibold text-xl tracking-headline"
                 />
                 <p className="max-w-prose text-muted-foreground text-sm">{step.body}</p>
               </li>
