@@ -94,19 +94,31 @@
   --color-obsidian: oklch(0.19 0 0);
   --color-pure-white: oklch(1 0 0);
 
-  /* Display · 600 · −3% tracking. Marketing statements and the wordmark. */
+  /*
+   * Display · 450 · −3% tracking. Marketing statements and the wordmark.
+   *
+   * 450 rather than the 600 these carried until 2026-09-10 (owner decision): Geist is a variable
+   * face with a 100–900 weight axis and no width axis, so the weight is the only lever on how
+   * heavy a statement sits, and at display sizes 600 reads heavier than the brand's quiet
+   * register needs. The tracking stays at −3%: it is what makes the line hold together, and it
+   * does not depend on the weight.
+   *
+   * 450 is deliberately off the 50-step grid the rest of the scale uses (400, 500, 600). It is a
+   * real interpolation on the axis, not a snap to normal, so it must never be rounded to 400 or
+   * 500 "for consistency".
+   */
   --text-display-lg: 4.5rem;
   --text-display-lg--line-height: 1;
   --text-display-lg--letter-spacing: -0.03em;
-  --text-display-lg--font-weight: 600;
+  --text-display-lg--font-weight: 450;
   --text-display: 3.5rem;
   --text-display--line-height: 1.02;
   --text-display--letter-spacing: -0.03em;
-  --text-display--font-weight: 600;
+  --text-display--font-weight: 450;
   --text-display-sm: 2.5rem;
   --text-display-sm--line-height: 1.08;
   --text-display-sm--letter-spacing: -0.03em;
-  --text-display-sm--font-weight: 600;
+  --text-display-sm--font-weight: 450;
 
   /*
    * The Geist scale (adapted 2026-09-09). Three families, because a size alone is not a style: the

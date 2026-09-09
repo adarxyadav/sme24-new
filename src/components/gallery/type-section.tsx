@@ -118,13 +118,13 @@ export function TypeSection() {
   const t = useTranslations("gallery.type");
   return (
     <div className="flex flex-col gap-12">
-      <Example label="display · text-display-lg · 600 · −3%">
+      <Example label="display · text-display-lg · 450 · −3%">
         <p className="text-display-lg">{t("display")}</p>
       </Example>
-      <Example label="display · text-display · 600 · −3%">
+      <Example label="display · text-display · 450 · −3%">
         <p className="text-display">{t("display")}</p>
       </Example>
-      <Example label="display · text-display-sm · 600 · −3%">
+      <Example label="display · text-display-sm · 450 · −3%">
         <p className="text-display-sm">{t("display")}</p>
       </Example>
       <Example label="headline · h1 · text-2xl font-bold tracking-headline · 700 · −2%">

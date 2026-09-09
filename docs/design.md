@@ -43,7 +43,7 @@ One typeface: Geist (Google Fonts, self hosted through `next/font` in `src/app/[
 
 | Role (brand hierarchy) | Classes |
 |---|---|
-| Display · 600 · −3% | `text-display-lg` (72px), `text-display` (56px), `text-display-sm` (40px); weight and tracking are built into the size. Marketing statements and campaign blocks. |
+| Display · 450 · −3% | `text-display-lg` (72px), `text-display` (56px), `text-display-sm` (40px); weight and tracking are built into the size. Marketing statements and campaign blocks. The weight dropped from 600 to 450 on 2026-09-10 (owner decision): Geist carries a 100–900 weight axis and no width axis, so weight is the only lever on how heavy a statement sits, and 450 is a real point on that axis rather than a snap to 400 or 500. |
 | Headline · 700 · −2% (`h1`, rendered by `PageHeader`) | `text-2xl font-bold tracking-headline` |
 | Subhead · 600 (`h2`) | `text-lg font-semibold` |
 | Card title | `text-base font-semibold` |
