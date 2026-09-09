@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
 import { PROCESSORS, type ProcessorRegion } from "@/features/legal/processors";
+import { CornerBrackets } from "@/features/marketing/ui/corner-brackets";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -11,21 +12,6 @@ const ISOLATION_ROWS = [
   { key: "yours", allowed: true },
   { key: "expert", allowed: true },
   { key: "other", allowed: false },
-] as const;
-
-/**
- * A corner bracket: two hairlines meeting at a right angle at each corner of the grid. The grid
- * carries the design system's closed `border` hairline like the steps and packages sections; the
- * brackets sit over it at a stronger value, so the band is framed like every other block and only
- * marked out at its corners.
- */
-const BRACKET = "pointer-events-none absolute size-5 border-foreground/40";
-
-const CORNERS = [
-  "-top-px -left-px border-t border-l",
-  "-top-px -right-px border-t border-r",
-  "-bottom-px -left-px border-b border-l",
-  "-bottom-px -right-px border-b border-r",
 ] as const;
 
 /** The regions of the processor record, in the order the privacy page lists them. */
@@ -38,7 +24,7 @@ const REGIONS: readonly ProcessorRegion[] = ["ch", "eu", "us"];
 const PANEL = "flex flex-col gap-5 px-6 py-7 lg:row-span-3 lg:grid lg:grid-rows-subgrid lg:gap-5";
 
 /** The panel heading, one step under the step titles so the section heading keeps the weight. */
-const PANEL_TITLE = "self-start text-pretty font-bold text-lg tracking-headline";
+const PANEL_TITLE = "self-start text-pretty font-semibold text-lg tracking-headline";
 
 /**
  * The residency object: the Zurich pin inside two rings, the way the reference band draws a
@@ -227,9 +213,7 @@ export function TrustSection() {
             dividers turn with the layout: horizontal while the panels stack, vertical from `lg`.
           */}
         <div className="relative">
-          {CORNERS.map((corner) => (
-            <span key={corner} aria-hidden="true" className={cn(BRACKET, corner)} />
-          ))}
+          <CornerBrackets />
           <ul
             aria-label={t("panelsLabel")}
             className="grid border divide-y divide-border/60 lg:grid-cols-3 lg:grid-rows-[auto_auto_1fr] lg:divide-x lg:divide-y-0"

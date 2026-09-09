@@ -78,7 +78,7 @@ export function LegalSection({
         as="h2"
         id={`${id}-heading`}
         text={title}
-        className="font-bold text-2xl tracking-headline md:text-3xl"
+        className="font-semibold text-2xl tracking-headline md:text-3xl"
       />
       {lead ? <p className="max-w-prose text-muted-foreground">{lead}</p> : null}
       {children}

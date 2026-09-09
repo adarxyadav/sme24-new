@@ -384,8 +384,7 @@
       },
       "packages": {
         "eyebrow": "Packages",
-        "title": "Fixed price. No surprises.",
-        "lead": "Three snapshots at a fixed price, and an implementation partner when you want results delivered rather than a project."
+        "title": "Fixed price. No surprises. What you see is what you pay."
       },
       "wall": {
         "eyebrow": "Our SMEs",
@@ -502,8 +501,8 @@
       "outcomeLabel": "So that",
       "cta": "See what your risk costs",
       "retainerCta": "Let’s talk",
-      "overviewLink": "See all prices",
-      "overviewLinkFor": "See all prices: {name}",
+      "overviewLink": "See what’s included",
+      "overviewLinkFor": "See what’s included: {name}",
       "included": {
         "title": "What every package includes.",
         "items": {
@@ -667,7 +666,9 @@
     "packages": {
       "compliance": {
         "name": "Compliance Check, EHS System & Culture Snapshot",
+        "shortName": "Compliance",
         "promise": "Know what to fix and how",
+        "buildsOn": "Everything in System",
         "bestFor": "fix systematically",
         "delivery": "On site, 5 days",
         "included": {
@@ -680,7 +681,9 @@
       },
       "sms": {
         "name": "EHS System & Culture Snapshot",
+        "shortName": "System",
         "promise": "Know your real risks",
+        "buildsOn": "Everything in Culture",
         "bestFor": "validate real risks",
         "delivery": "On site, 2 days",
         "included": {
@@ -693,6 +696,7 @@
       },
       "culture": {
         "name": "EHS Culture Snapshot",
+        "shortName": "Culture",
         "promise": "Know where you stand",
         "bestFor": "quick visibility",
         "delivery": "Remote, 1 day",
@@ -706,7 +710,8 @@
       },
       "retainer": {
         "name": "EHS Implementation Partner",
-        "promise": "Risks eliminated",
+        "shortName": "Partner",
+        "promise": "Get the risks fixed",
         "bestFor": "deliver results",
         "delivery": "On site and ongoing",
         "included": {

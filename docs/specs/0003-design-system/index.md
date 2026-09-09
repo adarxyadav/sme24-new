@@ -257,6 +257,54 @@ Found by `/check review`: **AC-1** and the first key invariant name `--border` a
 - **Consequence**: a hairline that must be perceived on its own (a table whose rows are told apart only by lines, a gridline that carries a value) is a design question to raise, not a token to darken; give it markup or a label instead.
 - **Follow-up for `/architect`**: fold the amended clause into **AC-1** and the invariant, and drop `--border` from the "Contrast pairs" paragraph of `## Feature design`.
 
+## Amendment 2026-09-09: the Geist four family type scale
+
+Adopted during the marketing UX pass. The `### Typography` section above sets an app scale of plain
+Tailwind sizes (`text-sm` body, `text-lg` section titles) plus the three marketing `display-*`
+tokens. That leaves the weight, leading and tracking of everything between them to the call site,
+and a size alone is not a style: the same 14px is a nav label, a button and a paragraph, and those
+want different line heights. Assembling `text-sm leading-relaxed font-normal` at each call site is
+how the same role ends up spelled three ways across a codebase.
+
+Four families are added to `@theme` in `src/app/globals.css`, adapted from the Geist design system,
+each token presetting size, line-height, letter-spacing and weight together so a call site names a
+role rather than assembling one:
+
+| Family | Sizes | Metrics | Use for |
+|---|---|---|---|
+| `text-heading-*` | 72 to 14 | 600, tight leading, −4.5% to −0.4% tracking | Headings only |
+| `text-copy-*` | 24 to 13 | 400, leading 1.5 | Multiple lines: paragraphs, prose, email body |
+| `text-label-*` | 20 to 12 | 400, leading ~1.25 | Single lines: nav, menus, table headers, labels |
+| `text-button-*` | 16, 14, 12 | 500, label metrics | Control labels |
+| the four `*-mono` utilities | — | Geist Mono, tabular figures | Run ids, invoice numbers, amounts |
+
+Choosing between them is one question: **does it wrap?** More than one line is `copy`, one line is
+`label`, a heading is `heading` at any length. Tracking tightens as the size grows and turns
+positive again below 16px; never override it by hand.
+
+Four consequences worth recording:
+
+- **Display drops from 800 to 600**, which changes the figure carried by the two typeface
+  amendments of 2026-09-04 above (both state "Display 800 −3%"). The tracking is unchanged. Three
+  call sites hard coded `font-extrabold` against the old weight and now follow the token:
+  `SectionHeader`'s minor tier, the landing hero figure and the directory figures.
+- **The brand `display-*` tokens still outrank `heading-*`** for marketing statements and campaign
+  blocks. `heading` is the working scale, `display` is the voice; the two are not merged.
+- **Strong and Subtle are nested markup, not classes.** `<strong>` inside any family goes to 600 at
+  the same size and `.subtle` to the muted token, scoped to the three text families so a bare
+  `<strong>` elsewhere keeps the browser default.
+- **The mono pairings are utilities rather than tokens**, because a `--text-*` token cannot carry a
+  font family. Each sits half a step below the sans size it pairs with, since Geist Mono's larger
+  x-height reads bigger at the same nominal size.
+
+The plain Tailwind ramp still works and is what most existing call sites use: this is additive, and
+old call sites move with the file when it is next touched rather than in one sweep.
+
+The gallery's Type section shows every row and writes each class out in full. Tailwind v4 scans
+source files for literal strings, so an interpolated `text-heading-${size}` would produce no CSS and
+every row would render at the inherited size — silently, and identically for each size, on a gallery
+whose whole job is showing what the sizes look like.
+
 ## Follow-up
 
 - [ ] Feature 5 (localization): decide number, date and CHF formatting; the tabular figure rule here assumes it.

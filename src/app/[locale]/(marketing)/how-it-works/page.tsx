@@ -101,7 +101,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
                 <Statement
                   as="h3"
                   text={column.title}
-                  className="font-bold text-xl tracking-headline"
+                  className="font-semibold text-xl tracking-headline"
                 />
                 <ul className="flex flex-col gap-3">
                   {column.items.map((item) => (
@@ -130,7 +130,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
                 <Statement
                   as="h3"
                   text={t(`timing.items.${item}.title`)}
-                  className="font-bold text-xl tracking-headline"
+                  className="font-semibold text-xl tracking-headline"
                 />
                 <p className="max-w-prose text-muted-foreground text-sm">
                   {t(`timing.items.${item}.body`)}

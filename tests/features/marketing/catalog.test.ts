@@ -24,7 +24,11 @@ function packageMessages(catalog: Catalog, key: string) {
       string,
       {
         name: string;
+        /** The one word trade name that heads the card since 2026-09-10. */
+        shortName: string;
         promise: string;
+        /** Only the two middle rungs of the ladder carry one. */
+        buildsOn?: string;
         bestFor: string;
         delivery: string;
         output: string;
@@ -58,6 +62,7 @@ describe("PACKAGES and the catalogs (AC-6)", () => {
         const messages = packageMessages(catalog, entry.key);
         for (const field of [
           "name",
+          "shortName",
           "promise",
           "bestFor",
           "delivery",
@@ -66,11 +71,36 @@ describe("PACKAGES and the catalogs (AC-6)", () => {
         ] as const) {
           expect(messages?.[field], `${entry.key}.${field}`).toBeTruthy();
         }
+        // The trade name is the card's heading, so it has to stay short enough to set on one
+        // line in this column: the whole point of the 2026-09-10 rename was that the full
+        // catalogue name did not (47 characters, two lines, at body copy size).
+        expect(
+          messages?.shortName.length,
+          `${entry.key}.shortName is too long to head a card`,
+        ).toBeLessThanOrEqual(12);
         expect(entry.included, `${entry.key}.included`).toHaveLength(3);
         for (const point of entry.included) {
           expect(messages?.included[point], `${entry.key}.included.${point}`).toBeTruthy();
         }
       }
+    }
+  });
+
+  it("carries the ladder line on the two middle rungs only, each naming the rung below", () => {
+    // The three snapshots are cumulative, so each rung above the first says what it builds on
+    // (owner decision of 2026-09-10). `culture` is the first rung and `retainer` sits outside
+    // the ladder, so both leave the slot empty -- the card reads the key through `t.has`, and a
+    // key added here without a rung below it would render on a card that has nothing to point at.
+    for (const catalog of [de, en]) {
+      const rung = (key: string) => {
+        const messages = packageMessages(catalog, key);
+        if (!messages) throw new Error(`the catalog is missing the ${key} package`);
+        return messages;
+      };
+      expect(rung("culture")).not.toHaveProperty("buildsOn");
+      expect(rung("retainer")).not.toHaveProperty("buildsOn");
+      expect(rung("sms").buildsOn, "sms.buildsOn").toContain(rung("culture").shortName);
+      expect(rung("compliance").buildsOn, "compliance.buildsOn").toContain(rung("sms").shortName);
     }
   });
 

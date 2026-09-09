@@ -127,7 +127,7 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
                 <Statement
                   as="h3"
                   text={t(`how.items.${item}.title`)}
-                  className="font-bold text-xl tracking-headline"
+                  className="font-semibold text-xl tracking-headline"
                 />
                 <p className="max-w-prose text-muted-foreground text-sm">
                   {t(`how.items.${item}.body`)}

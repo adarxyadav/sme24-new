@@ -384,8 +384,7 @@
       },
       "packages": {
         "eyebrow": "Pakete",
-        "title": "Fixpreis. Keine Überraschungen.",
-        "lead": "Drei Snapshots zum Fixpreis, und ein Umsetzungspartner, wenn Sie Resultate wollen statt ein Projekt."
+        "title": "Fixpreis. Keine Überraschungen. Was Sie sehen, zahlen Sie."
       },
       "wall": {
         "eyebrow": "Unsere KMU",
@@ -502,8 +501,8 @@
       "outcomeLabel": "Damit",
       "cta": "Sehen, was Ihr Risiko kostet",
       "retainerCta": "Sprechen wir",
-      "overviewLink": "Alle Preise ansehen",
-      "overviewLinkFor": "Alle Preise ansehen: {name}",
+      "overviewLink": "Leistungen ansehen",
+      "overviewLinkFor": "Leistungen ansehen: {name}",
       "included": {
         "title": "Was jedes Paket enthält.",
         "items": {
@@ -667,7 +666,9 @@
     "packages": {
       "compliance": {
         "name": "Compliance-Check, EHS-System- & Kultur-Snapshot",
+        "shortName": "Compliance",
         "promise": "Wissen, was zu tun ist und wie",
+        "buildsOn": "Alles aus System",
         "bestFor": "systematisch beheben",
         "delivery": "Vor Ort, 5 Tage",
         "included": {
@@ -680,7 +681,9 @@
       },
       "sms": {
         "name": "EHS-System- & Kultur-Snapshot",
+        "shortName": "System",
         "promise": "Ihre echten Risiken kennen",
+        "buildsOn": "Alles aus Kultur",
         "bestFor": "echte Risiken validieren",
         "delivery": "Vor Ort, 2 Tage",
         "included": {
@@ -693,6 +696,7 @@
       },
       "culture": {
         "name": "EHS-Kultur-Snapshot",
+        "shortName": "Kultur",
         "promise": "Wissen, wo Sie stehen",
         "bestFor": "schnelle Sichtbarkeit",
         "delivery": "Remote, 1 Tag",
@@ -706,7 +710,8 @@
       },
       "retainer": {
         "name": "EHS-Umsetzungspartner",
-        "promise": "Risiken beseitigt",
+        "shortName": "Partner",
+        "promise": "Risiken beheben lassen",
         "bestFor": "Resultate liefern",
         "delivery": "Vor Ort und laufend",
         "included": {

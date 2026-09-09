@@ -35,8 +35,15 @@ export function Logo({ variant = "bare", size = "sm", descriptor = false, classN
     >
       <BrandMark variant={variant} className={badge ? "size-[1.5em]" : "h-[1.15em]"} />
       <span className="flex flex-col gap-[0.12em]">
-        {/* The wordmark is a name, not a word: an auto translated page must leave "SME24" alone. */}
-        <span translate="no" className="font-extrabold tracking-display">
+        {/*
+          The wordmark is a name, not a word: an auto translated page must leave "SME24" alone.
+
+          `font-semibold` (600) rather than the 800 weight the brand guidelines v1.0
+          name, because the owner capped every weight in the product at 600 on 2026-09-10. The
+          guidelines still say 800, so they are the document that owes an amendment, not this
+          line.
+        */}
+        <span translate="no" className="font-semibold tracking-display">
           {t("common.appName")}
         </span>
         {descriptor ? (

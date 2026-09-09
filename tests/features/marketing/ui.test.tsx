@@ -48,14 +48,19 @@ function renderIn(locale: "de-CH" | "en-CH", ui: React.ReactNode) {
 
 const compliance = PACKAGES.find((entry) => entry.key === "compliance");
 const retainer = PACKAGES.find((entry) => entry.key === "retainer");
-if (!compliance || !retainer)
-  throw new Error("the catalog needs the compliance and retainer packages");
+const culture = PACKAGES.find((entry) => entry.key === "culture");
+if (!compliance || !retainer || !culture)
+  throw new Error("the catalog needs the culture, compliance and retainer packages");
 
 describe("PackageCard (spec 0009, AC-5, AC-6)", () => {
   it("shows the price without decimals in CHF, the VAT note, the card lines, the pills and the sign up call to action", () => {
     renderIn("en-CH", <PackageCard entry={{ ...compliance, priceChf: 4900 }} />);
     const messages = en.marketing.packages.compliance;
-    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(messages.name);
+    // The heading is the trade name; the full catalogue name is the subtitle under it, and the
+    // ladder line names the rung below (all three from the owner decision of 2026-09-10).
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(messages.shortName);
+    expect(screen.getByText(messages.name)).toBeInTheDocument();
+    expect(screen.getByText(messages.buildsOn)).toBeInTheDocument();
     expect(screen.getByText(messages.promise)).toBeInTheDocument();
     expect(screen.getByText(messages.bestFor)).toBeInTheDocument();
     // ICU's Swiss grouping character differs between Node versions: match CHF, the digits and any mark.
@@ -75,6 +80,18 @@ describe("PackageCard (spec 0009, AC-5, AC-6)", () => {
       "href",
       `/en/sign-up?next=${encodeURIComponent("/en/app/checkout?package=compliance")}`,
     );
+  });
+
+  it("leaves the ladder slot empty on the rungs that have nothing below them", () => {
+    // `culture` is the first rung and `retainer` sits outside the ladder, so neither carries a
+    // `buildsOn` key. The card reads it through `t.has`, so a missing key must render nothing at
+    // all rather than the key's own path.
+    for (const entry of [culture, retainer]) {
+      const { unmount } = renderIn("en-CH", <PackageCard entry={entry} />);
+      expect(screen.queryByText(/buildsOn/)).toBeNull();
+      expect(screen.queryByText(/^Everything in/)).toBeNull();
+      unmount();
+    }
   });
 
   it("shows on demand and the contact call to action with the retainer topic", () => {
@@ -354,13 +371,19 @@ describe("EnquiryConfirmation (spec 0009, AC-8)", () => {
 describe("PackagesGrid (spec 0009, AC-5, AC-6)", () => {
   it("renders one card per package in catalog order", () => {
     renderIn("en-CH", <PackagesGrid variant="overview" />);
+    // The heading is the one word trade name since 2026-09-10; the full catalogue name sits
+    // under it as a subtitle, and it is still the name the card's link announces.
     const headings = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
     expect(headings).toEqual(
       sortedPackages().map(
-        (entry) => en.marketing.packages[entry.key as keyof typeof en.marketing.packages].name,
+        (entry) => en.marketing.packages[entry.key as keyof typeof en.marketing.packages].shortName,
       ),
     );
     expect(headings).toHaveLength(4);
+    for (const entry of sortedPackages()) {
+      const messages = en.marketing.packages[entry.key as keyof typeof en.marketing.packages];
+      expect(screen.getByText(messages.name), `${entry.key} full name`).toBeInTheDocument();
+    }
     // Each card's link carries its own accessible name, so the four are told apart.
     expect(
       sortedPackages().map(

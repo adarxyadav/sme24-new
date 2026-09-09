@@ -14,7 +14,7 @@ export function GallerySection({ id, title, description, children }: GallerySect
       className="flex scroll-mt-20 flex-col gap-10 border-t pt-12"
     >
       <div className="flex flex-col gap-2">
-        <h2 id={`${id}-heading`} className="font-bold text-lg tracking-headline">
+        <h2 id={`${id}-heading`} className="font-semibold text-lg tracking-headline">
           {title}
         </h2>
         <p className="max-w-prose text-muted-foreground text-sm">{description}</p>

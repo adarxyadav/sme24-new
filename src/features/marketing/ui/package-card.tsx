@@ -1,9 +1,10 @@
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowRightIcon, CheckIcon } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
 import { checkoutPath } from "@/features/checkout/checkout-path";
 import type { Package } from "@/features/marketing/packages";
+import { CornerBrackets } from "@/features/marketing/ui/corner-brackets";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -20,11 +21,15 @@ type PackageMessageKey = Parameters<ReturnType<typeof useTranslations<"marketing
  * One package (spec 0009, AC-5, AC-6 as amended on 2026-09-06): the name, the one line promise,
  * the delivery line, the price without decimals through the `chfWhole` format with the VAT note
  * (or "On demand" for the implementation partner), the call to action, then on the full variant
- * the included points as a list and the output and outcome rows. The card is a subgrid of the
- * grid's rows, so the name, the price, the button and the detail block sit on the same baseline
- * in every card whatever the length of the copy. Every string comes from
- * `marketing.packages.<key>.*` and `marketing.pricing.*`, the price and the order from
- * `PACKAGES`. Server component.
+ * the included points as a checked list and the output and outcome rows.
+ *
+ * The card is a subgrid of the grid's rows, so the name, the price, the button and the detail
+ * block sit on the same baseline in every card whatever the length of the copy. Because the rows
+ * are shared rather than per card, a shorter card leaves its own gap and no invisible placeholder
+ * text is needed to hold a baseline (the shape this card carried until 2026-09-09).
+ *
+ * Every string comes from `marketing.packages.<key>.*` and `marketing.pricing.*`, the price and
+ * the order from `PACKAGES`. Server component.
  */
 export function PackageCard({ entry, variant = "full", className }: PackageCardProps) {
   const t = useTranslations("marketing.packages");
@@ -33,90 +38,249 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
   const locale = useLocale() as Parameters<typeof checkoutPath>[0];
   const onDemand = entry.priceChf === null;
   const full = variant === "full";
+  /*
+    The ladder line, read through `t.has` the way the social card reads its optional statement:
+    only the two middle rungs carry a `buildsOn` key, because the first snapshot has nothing below
+    it and the partner sits outside the ladder. A missing key would otherwise render as its own
+    path, so the check is what keeps the first and last cards' slot genuinely empty.
+  */
+  const buildsOnKey = `${entry.key}.buildsOn` as PackageMessageKey;
+  const buildsOn = t.has(buildsOnKey) ? t(buildsOnKey) : null;
 
   return (
     <article
       data-slot="package-card"
       data-package={entry.key}
       className={cn(
-        "grid min-w-0 bg-background px-6 py-8",
+        // The rows are set on the grid, so the gap is the one the grid publishes; a card only
+        // says how it fills them. The inset is generous and the vertical gap wide, because the
+        // card's job is to let four dense offers breathe rather than to pack them: the white
+        // space around the price is what makes it the thing the eye lands on.
+        //
+        // `px-5` rather than the `p-6` the design system gives a card, because at four columns
+        // inside `max-w-6xl` those last 8px per side are what let the longest package name
+        // ("Compliance Check, EHS System & Culture Snapshot", 47 characters in both languages)
+        // set in two lines instead of three. Measured, not guessed.
+        "grid min-w-0 px-5 py-9",
+        // Each card stands on its own hairline now that the grid separates them, rather than
+        // borrowing the shared rule of one edge to edge block. Square corners and no elevation:
+        // `docs/design.md` fixes every surface as flat and block cornered, so a card is told apart
+        // from the page by its line, never by a shadow or a softened corner. The line is the same
+        // on all four: no card is marked out as the one to pick (owner decision of 2026-09-10,
+        // replacing the marked middle rung of 2026-09-09), because the ladder is the buyer's to
+        // read and a heavier edge on one rung puts a thumb on that scale.
+        //
+        // `group` and `relative` are the hover: the corner brackets inside are positioned against
+        // this box and fade in when the card is hovered or holds the keyboard focus, so a card
+        // answers the pointer with the band's own mark rather than a shadow or a colour the design
+        // system does not use.
+        "group relative border bg-card",
         // The card takes the grid's rows, so every card's price, button and details align.
-        full ? "row-span-4 grid-rows-subgrid gap-y-8" : "row-span-3 grid-rows-subgrid gap-y-8",
+        full ? "row-span-8 grid-rows-subgrid" : "row-span-5 grid-rows-subgrid",
         className,
       )}
     >
-      <div className="flex min-w-0 flex-col gap-2 self-start">
+      {/*
+        The corner brackets of the trust band, borrowed as this card's hover. They are hidden at
+        rest so the row stays quiet, and they answer `focus-within` as well as `hover`, so a
+        keyboard visitor tabbing onto the card's link gets the same mark a pointer does. Decorative
+        and `aria-hidden`, and they sit outside the grid's rows because they are absolutely
+        positioned and so never take a track of their own.
+      */}
+      <CornerBrackets className="opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 motion-reduce:transition-none" />
+
+      {/*
+        The name and the promise are two rows of the shared grid rather than one stacked block,
+        so the promise starts on the same line in all four cards whether the name above it runs to
+        one line or two. Stacked together they sat directly under their own name, which left the
+        promise floating at a different height in every card (the shape until 2026-09-10).
+
+        The heading is the one word trade name (`shortName`: Culture, System, Compliance, Partner
+        -- owner decision of 2026-09-10) with the full catalogue name under it as a subtitle. Until
+        then the heading carried the full name, and the longest of them ran to 47 characters
+        ("Compliance Check, EHS System & Culture Snapshot"), which forced the heading down to
+        `heading-16` -- body copy size -- just to fit two lines in this column. That fought the
+        section's own hierarchy: the visitor is comparing prices, and the first thing the eye met
+        was a mouthful set no larger than the promise beneath it.
+
+        A one word name fits one line in both languages, so the heading takes `heading-20` back and
+        still leaves the price the largest thing on the card, and the name track collapses from two
+        lines to one -- which is the room the ladder line below now occupies.
+      */}
+      <div className="self-start pb-3">
         <Statement
           as="h3"
-          text={t(`${entry.key}.name`)}
+          text={t(`${entry.key}.shortName`)}
           layout="flow"
-          className="hyphens-auto break-words font-bold text-lg tracking-headline"
+          className="text-heading-20"
         />
-        <p className="text-muted-foreground text-sm">{t(`${entry.key}.promise`)}</p>
-        {full ? (
-          <p className="text-sm">
-            <span className="text-muted-foreground">{pricing("bestForLabel")} </span>
-            <span className="font-medium">{t(`${entry.key}.bestFor`)}</span>
-          </p>
+        {/*
+          The full catalogue name stays on the card rather than moving to the pricing page alone:
+          it is what the package is called on the invoice and in the report, so a buyer must be
+          able to tie the short name to it here. `break-words` because this is now the longest
+          string in the card's narrowest column.
+        */}
+        <p className="mt-1 hyphens-auto break-words text-copy-13 text-muted-foreground">
+          {t(`${entry.key}.name`)}
+        </p>
+      </div>
+      {/*
+        `break-words` for the same reason the name above it carries one: this is the narrowest text
+        in the card at four columns, and the German promise runs longer than the English
+        ("Wissen, was zu tun ist und wie"). Nothing overflows today; the guard is what keeps a
+        longer promise from pushing the card's measure later.
+      */}
+      <p className="self-start break-words text-copy-13 text-foreground">
+        {t(`${entry.key}.promise`)}
+      </p>
+
+      {/*
+        The price block, bottom aligned in its row: the amount is the line the eye lands on, so it
+        sits closest to the button with the VAT note tucked under it, and the delivery line above
+        it as the term of the sale. "Best for" stays its own line above the block rather than being
+        folded into the delivery line with a separator: how a package is delivered and who it suits
+        are two different facts, and running them together reads as one broken sentence.
+      */}
+      {full ? (
+        <p className="mt-2.5 self-end text-copy-13">
+          <span className="text-muted-foreground">{pricing("bestForLabel")} </span>
+          <strong className="font-medium">{t(`${entry.key}.bestFor`)}</strong>
+        </p>
+      ) : null}
+
+      {/*
+        The delivery line is its own row of the shared grid rather than a line stacked above the
+        amount, because one package's delivery wraps to two lines ("On site and ongoing") and a
+        stacked line would push that card's amount a row below the other three.
+      */}
+      {full ? (
+        <p className="mt-1.5 self-end text-label-12 text-muted-foreground">
+          {t(`${entry.key}.delivery`)}
+        </p>
+      ) : null}
+
+      {/*
+        The amount and the VAT note are two rows rather than one stacked block, for the same reason
+        the delivery line is its own row: the partner card carries no VAT note, and inside one
+        bottom aligned block its "On demand" would drop by the height of the note the other three
+        cards carry. Two rows let each card leave the note row empty and keep the amounts level.
+      */}
+      {/*
+        "On demand" is not a price, so it does not take the price's size. At `heading-32` in the
+        slot where the other three cards set a franc figure, the eye lined it up against
+        "CHF 10'000", expected a number and got none (the shape until 2026-09-10). A step down to
+        `heading-20` in the muted colour keeps it on the amount's baseline -- the row's alignment
+        is the grid's, not this line's -- while saying plainly that this card is scoped rather
+        than priced.
+      */}
+      {onDemand ? (
+        <p className="mt-7 self-end text-heading-20 text-muted-foreground">{pricing("onDemand")}</p>
+      ) : (
+        <p className="mt-7 self-end text-heading-32 tabular-nums" data-numeric>
+          {format.number(entry.priceChf ?? 0, "chfWhole")}
+        </p>
+      )}
+
+      {/*
+        The VAT note and, under it, the ladder line: "Everything in Culture" on the System card
+        and "Everything in System" on the Compliance card (owner decision of 2026-09-10, the
+        Stripe convention). It carries no trailing "plus": the landing card has no included list
+        under it, so the line has to be a complete statement rather than a sentence that never
+        finishes.
+
+        The three snapshots are cumulative -- the 5'000 package contains the 2'000 one and the
+        10'000 contains both -- and the copy knew it while the row did not, so four prices read as
+        four unrelated offers instead of three rungs of one ladder. Naming the rung below is what
+        turns the row into a progression a visitor can read in one pass, and it does it without
+        marking any card as the one to pick: a ladder is not a thumb on the scale (the decision of
+        2026-09-10 that took the heavier edge off the middle rung).
+
+        Both lines sit in the same row rather than taking one each, because the row is already the
+        one the partner card leaves empty: it carries neither a VAT note nor a rung below it, so
+        the slot stays blank there and the grid keeps every card's button level. `culture` is the
+        first rung and has nothing below it either, so only two of the four cards render a line.
+      */}
+      <div className="mt-1.5 flex flex-col gap-1.5 self-start">
+        {onDemand ? null : (
+          <p className="text-label-12 text-muted-foreground">{pricing("vatNote")}</p>
+        )}
+        {buildsOn ? (
+          <p className="text-balance text-copy-13 text-muted-foreground">{buildsOn}</p>
         ) : null}
       </div>
 
-      {/* Three tracks of its own, so the delivery line, the amount and the VAT note each sit on
-          one baseline across the row even where a card has no VAT note. */}
-      <div className="grid grid-rows-[auto_auto_auto] gap-1 self-end">
-        {/* Empty on the overview variant, but the row keeps its height (an invisible full stop),
-            so the amounts stay on one baseline across the whole row. */}
-        <p
-          aria-hidden={full ? undefined : true}
-          className={cn("text-muted-foreground text-xs", !full && "invisible")}
-        >
-          {full ? t(`${entry.key}.delivery`) : "."}
-        </p>
-        {onDemand ? (
-          <p className="font-bold text-3xl tracking-headline">{pricing("onDemand")}</p>
-        ) : (
-          <p className="font-bold text-3xl tabular-nums tracking-headline" data-numeric>
-            {format.number(entry.priceChf ?? 0, "chfWhole")}
-          </p>
-        )}
-        {/* The partner has no VAT note; the row still holds, so its amount keeps the baseline. */}
-        <p
-          aria-hidden={onDemand ? true : undefined}
-          className={cn("text-muted-foreground text-xs", onDemand && "invisible")}
-        >
-          {onDemand ? "." : pricing("vatNote")}
-        </p>
-      </div>
-
-      <div className="self-end">
+      <div className="mt-7 self-end">
         {variant === "overview" ? (
-          <Button asChild variant="ghost" className="-mx-3 h-auto justify-start gap-2 px-3 py-2">
+          /*
+            A full width action on a quiet ground rather than a bare text link. The landing card
+            carries no price to buy against, so its action is the only control on it: given the
+            width of the card it should read as a control, and `secondary` is the one ground in the
+            palette that lifts off the card without becoming a second black button competing with
+            the real ones on the pricing page.
+
+            The partner card takes `outline` instead: three cards carry a franc figure and one does
+            not, so its action reads a step quieter than the three that lead to a price. It took
+            `ghost` until 2026-09-10, which has no resting ground at all -- the same signal as a
+            disabled control, so the one card sold by conversation read as the one card that could
+            not be acted on. `outline` keeps the step down in weight while its hairline still says
+            the control is live, and it is the variant the pricing page already gives this same
+            card, so the two pages now agree.
+
+            The arrow slides on hover, which is the only motion on the card -- enough to say the
+            control leads somewhere, and it is dropped for a visitor who asked for reduced motion.
+          */
+          <Button
+            asChild
+            variant={onDemand ? "outline" : "secondary"}
+            size="lg"
+            className="group/cta h-auto w-full justify-between whitespace-normal py-3"
+          >
             {/*
               Four cards carry this link to the same page, so the visible label stays short while
               the accessible name names the package: a screen reader's link list reads four
-              distinct destinations rather than "See all prices" four times.
+              distinct destinations rather than the same label four times.
             */}
             <Link
               href="/pricing"
               aria-label={pricing("overviewLinkFor", { name: t(`${entry.key}.name`) })}
             >
               {pricing("overviewLink")}
-              <ArrowRightIcon aria-hidden="true" />
+              {/*
+                The arrow answers the CARD's hover, not the button's own: the whole card leads to
+                this one destination, so the corner brackets and the arrow are one affordance and
+                must fire together. Keyed on its own `focus-visible` as well, so a keyboard visitor
+                on the link sees the arrow move rather than only the brackets appear.
+              */}
+              <ArrowRightIcon
+                aria-hidden="true"
+                className="transition-transform group-hover:translate-x-0.5 group-focus-visible/cta:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0 motion-reduce:group-focus-visible/cta:translate-x-0"
+              />
             </Link>
           </Button>
         ) : onDemand ? (
+          /*
+            The partner card asks for a conversation rather than a purchase, so it takes the
+            outline button: the three cards that can be bought carry the one filled action each,
+            and the odd one out is told apart by the weight of its button rather than by different
+            copy alone.
+          */
           <Button
             asChild
             variant="outline"
             size="lg"
-            className="h-auto w-full whitespace-normal py-2"
+            className="h-auto w-full whitespace-normal py-3"
           >
             <Link href={{ pathname: "/contact", query: { topic: "retainer" } }}>
               {pricing("retainerCta")}
             </Link>
           </Button>
         ) : (
-          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2">
+          /*
+            Every buyable card takes the filled button. Each card is a self contained offer, so its
+            own primary action reads as primary; filling only one card's button demoted the others
+            into looking unavailable.
+          */
+          <Button asChild size="lg" className="h-auto w-full whitespace-normal py-3">
             {/*
               Spec 0011 (AC-16): the chosen package rides along, so a signed out visitor lands
               back on the checkout for the package they picked once they have signed up. A
@@ -135,26 +299,31 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
       </div>
 
       {full ? (
-        <div className="flex flex-col gap-5 border-t pt-6 text-sm">
-          <ul className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-6 border-t pt-7">
+          {/*
+            The included points read as a checked list rather than as filled pills: a pill is a
+            status in this design system, and these are contents. One point per line also lets a
+            long point wrap without reflowing the ones beside it.
+          */}
+          <ul className="flex flex-col gap-2.5">
             {entry.included.map((point) => (
-              <li key={point} className="rounded-4xl bg-muted px-3 py-1">
-                {t(includedKey(entry.key, point))}
+              <li key={point} className="flex items-start gap-2 text-copy-14">
+                <CheckIcon
+                  aria-hidden="true"
+                  className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+                />
+                <span className="min-w-0">{t(includedKey(entry.key, point))}</span>
               </li>
             ))}
           </ul>
-          <dl className="flex flex-col gap-3">
+          <dl className="flex flex-col gap-4 border-t pt-6">
             <div className="flex flex-col gap-0.5">
-              <dt className="font-medium text-muted-foreground text-xs">
-                {pricing("outputLabel")}
-              </dt>
-              <dd>{t(`${entry.key}.output`)}</dd>
+              <dt className="text-label-12 text-muted-foreground">{pricing("outputLabel")}</dt>
+              <dd className="text-copy-14">{t(`${entry.key}.output`)}</dd>
             </div>
             <div className="flex flex-col gap-0.5">
-              <dt className="font-medium text-muted-foreground text-xs">
-                {pricing("outcomeLabel")}
-              </dt>
-              <dd>{t(`${entry.key}.outcome`)}</dd>
+              <dt className="text-label-12 text-muted-foreground">{pricing("outcomeLabel")}</dt>
+              <dd className="text-copy-14">{t(`${entry.key}.outcome`)}</dd>
             </div>
           </dl>
         </div>

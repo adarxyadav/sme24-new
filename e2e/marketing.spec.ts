@@ -302,3 +302,81 @@ test("the expert network page links into the directory in both languages (direct
   await expect(page).toHaveURL(/\/de\/expertennetzwerk\/verzeichnis$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
+
+/*
+ * The package cards, in the browser rather than in jsdom, because both of these failed a real page
+ * while every unit test stayed green (2026-09-10).
+ *
+ * The contrast case: `text-button-14` shares the `text-*` namespace with the colour utilities the
+ * button variant sets, so adding it to a filled button won the cascade and painted the label in the
+ * foreground colour, black on black. jsdom computes no cascade, so only a rendered page catches it.
+ *
+ * The measure case: the longest package name runs to 47 characters in both languages and only sets
+ * in two lines at the size the card uses. A regression to a larger step silently returns it to
+ * three lines and breaks the row's rhythm.
+ */
+test("every package card's action contrasts, meets the target size, and no name runs past two lines", async ({
+  page,
+}) => {
+  for (const path of ["/en/pricing", "/de/preise", "/en", "/de"]) {
+    await page.goto(path);
+    const cards = page.locator('[data-slot="package-card"]');
+    await expect(cards).toHaveCount(4);
+
+    for (const card of await cards.all()) {
+      const action = card.locator('a[data-slot="button"]').first();
+      const [color, background] = await action.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return [style.color, style.backgroundColor];
+      });
+      // A filled button paints its own ground; a ghost link leaves it transparent. Either way the
+      // label must not be painted in the colour it sits on.
+      expect(color).not.toBe(background);
+
+      // Counted from the text's own client rects rather than the element's height: the name
+      // carries bottom padding (the space under it lives inside its grid track), so dividing the
+      // padded box by the line height counts a line that is not there.
+      const lines = await card.locator("h3").evaluate((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const rects = Array.from(range.getClientRects()).filter((rect) => rect.height > 1);
+        return new Set(rects.map((rect) => Math.round(rect.top))).size;
+      });
+      expect(lines).toBeLessThanOrEqual(2);
+
+      // WCAG 2.2 AA target size (2.5.8). The action is the only control on the landing card, and
+      // `py-2.5` on the `lg` button lands at 42px, so this is a real floor rather than a formality.
+      const { height } = (await action.boundingBox()) ?? { height: 0 };
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+
+    // The rows the shared grid exists to align. A package name runs to one line in some cards and
+    // two in others, so without a row of its own the promise under it starts at a different height
+    // in every card; the same holds for the price and the action below it.
+    //
+    // Each row is measured on the edge its own tracks align. A `self-start` row shares its top and
+    // a `self-end` row its bottom, which is the same assertion while every card sets that row at
+    // one size and a different one once they do not: "On demand" has sat two sizes below a franc
+    // figure since 2026-09-10, so the price row's tops differ by the size gap (168px against
+    // 180px) while its baselines still land together (208px in both). Measuring the top there
+    // would fail a row that is correctly aligned.
+    for (const { selector, edge } of [
+      { selector: "h3 + p", edge: "top" },
+      { selector: "p.self-end", edge: "bottom" },
+      { selector: 'a[data-slot="button"]', edge: "top" },
+    ] as const) {
+      const offsets = await cards.evaluateAll(
+        (nodes, { sel, side }) =>
+          nodes.map((node) => {
+            const child = node.querySelector(sel);
+            if (!child) return -1;
+            const box = child.getBoundingClientRect();
+            const own = node.getBoundingClientRect();
+            return Math.round((side === "top" ? box.top : box.bottom) - own.top);
+          }),
+        { sel: selector, side: edge },
+      );
+      expect(new Set(offsets).size, `${selector} (${edge} edge)`).toBe(1);
+    }
+  }
+});
