@@ -15,8 +15,13 @@ export type CompanyLookupFieldProps = {
   readonly cta: string;
   /** Renders on the jet ground when the field sits in the hero. */
   readonly inverse?: boolean;
-  /** `hero` grows the field and the button to the hero's 44px and hides the label visually. */
+  /**
+   * `hero` grows the field and the button to 44px. The closing call to action is an anchor tier
+   * too (docs/design.md, tier map), so it takes the same size and keeps its visible label.
+   */
   readonly size?: "default" | "hero";
+  /** Hides the label visually. The hero has its own heading above the field; the closing does not. */
+  readonly hideLabel?: boolean;
   readonly className?: string;
 };
 
@@ -36,6 +41,7 @@ export function CompanyLookupField({
   cta,
   inverse = false,
   size = "default",
+  hideLabel = false,
   className,
 }: CompanyLookupFieldProps) {
   const id = useId();
@@ -57,10 +63,7 @@ export function CompanyLookupField({
       className={className ?? "flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-end"}
     >
       <div className="flex flex-1 flex-col gap-2">
-        <Label
-          htmlFor={id}
-          className={cn(inverse && "text-foreground", size === "hero" && "sr-only")}
-        >
+        <Label htmlFor={id} className={cn(inverse && "text-foreground", hideLabel && "sr-only")}>
           {label}
         </Label>
         <Input

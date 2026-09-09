@@ -98,6 +98,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
           <CompanyLookupField
             {...lookup}
             size="hero"
+            hideLabel
             className="mt-4 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
           />
           <p className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-muted-foreground text-sm">
@@ -122,7 +123,9 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       */}
       <section aria-label={t("pointsLabel")} className="border-b">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20">
-          <dl className="grid divide-y border-t sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {/* Ruled top and bottom, so the ledger reads as one closed figure: the section's own
+              `border-b` is full bleed and sits a band away, so it never closes these columns. */}
+          <dl className="grid divide-y border-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {POINTS.map((point) => (
               // The cell is a subgrid of three rows, so a figure that wraps pushes every note down together.
               <div
@@ -135,7 +138,11 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
                 <dd>
                   <Statement
                     text={t(`points.${point}.figure`, priceRange)}
-                    className="font-extrabold text-2xl tracking-headline tabular-nums md:text-display-sm"
+                    // The cell is a third of the container and the longest figure is a range
+                    // ("CHF 2'000 to 10'000"), which does not fit a display size there: at 40px
+                    // it wraps mid range and splits the one number a reader came for. The
+                    // headline size holds it on one line at every width.
+                    className="font-extrabold text-2xl tracking-headline tabular-nums xl:text-3xl"
                   />
                 </dd>
                 <dd className="max-w-prose text-muted-foreground text-sm">
@@ -204,7 +211,9 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       </section>
 
       <ClosingCta title={t("closing.title")} lead={t("closing.lead")}>
-        <CompanyLookupField {...lookup} inverse />
+        {/* An anchor tier like the hero, so the field carries the hero's weight; its label stays
+            visible because the closing has no field heading of its own. */}
+        <CompanyLookupField {...lookup} size="hero" inverse />
       </ClosingCta>
     </>
   );
