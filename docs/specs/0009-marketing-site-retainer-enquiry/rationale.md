@@ -178,3 +178,50 @@ The spec was written before the owner's own pricing page existed. It named three
 ### Rationale
 
 The product ladder is the owner's call and the spec has no opinion to defend; the amendment moves the facts into the two places the spec already reserved for them (the catalogs and `packages.ts`) and keeps every mechanism (the order test, the positive price test, the placeholder test) alive. Making the phone and the profiles optional is the honest placeholder: nothing fake is published, the tests are green, and each fact is a one line edit when it exists. The imprint facts beyond the address (managing director, UID, VAT number) belong to the imprint page of feature 14 and are recorded in its follow-up.
+
+## Amendment 2026-09-09 (third): the hero call to action is a role, not a fixed string
+
+### Context
+
+The spec was written when the benchmark was the headline: AC-5 quoted the hero's call to action as
+"Benchmark your company for free", and the `/` row of the page table repeated it. On 2026-09-09 the
+landing page changed voice. #41 rewrote the hero to "See what your EHS risk costs. Then fix what
+matters most.", the lookup control to "See what your risk costs", and the lead, the free line and the
+footer product link with it; #42 followed with the landing meta description, which had still opened
+"Benchmark your company's EHS risk for free" and so contradicted the page it described in the search
+snippet and the social card. Feature 13 is `done` and this spec is `Accepted`, so the code is right
+and the spec text is what drifted. The reason for the change is commercial: both buyers are in play,
+the safety manager who needs a number to carry upward and the CFO or managing director who reads a
+franc figure directly, and a franc figure serves both while the word "benchmark" serves neither as a
+headline.
+
+### Options considered
+
+1. Rewrite the quoted string to the new copy. A one word fix that lasts until the next copy pass,
+   then drifts again. It also keeps a spec claiming authority over wording that the owner has said is
+   not compulsory. Rejected.
+2. Describe the control by its role and behaviour, and let the catalogs hold the words (chosen). The
+   spec keeps everything it is actually good at pinning (the field opens `/sign-up?company=<name>`,
+   the quiet sign in link, the section order, the `defaultCompany` handling) and releases the one
+   thing it should never have pinned. A later copy pass owes this spec nothing.
+3. Drop AC-5's hero clause altogether. It would take the structural requirements down with the copy,
+   and those are the parts a verification run genuinely needs. Rejected.
+
+### Rationale
+
+A spec should pin what breaks if it changes, not what someone might reword on a Tuesday. The
+behaviour of that control is load bearing: the company name has to survive the hop to
+`/sign-up?company=<name>` and land in the form as a default, and that is worth an acceptance
+criterion. The label is a marketing decision that lives in two catalog keys, is reviewed as copy, and
+is expected to keep moving as the positioning sharpens. Pinning it bought nothing and cost a false
+failure the moment the copy improved, which is exactly what happened: the words changed in #41 and
+the spec started describing a page that no longer existed.
+
+Keeping "benchmark" as a word is deliberate, not a compromise. It is the honest name for the thing,
+and the four steps, the proof points and AC-1's own "all lead into the free benchmark" still use it
+accurately. What changed is which idea goes first, and only that.
+
+The dashboard heading and the product email subject still lead with the benchmark on purpose. The
+name is being proven where it is cheapest to see and fastest to change, on static marketing pages
+behind a copy review, before it is carried into a signed in surface and an email template that reach
+existing clients. That second pass is recorded as a follow up rather than done here.
