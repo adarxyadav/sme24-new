@@ -35,7 +35,10 @@ export function Logo({ variant = "bare", size = "sm", descriptor = false, classN
     >
       <BrandMark variant={variant} className={badge ? "size-[1.5em]" : "h-[1.15em]"} />
       <span className="flex flex-col gap-[0.12em]">
-        <span className="font-extrabold tracking-display">{t("common.appName")}</span>
+        {/* The wordmark is a name, not a word: an auto translated page must leave "SME24" alone. */}
+        <span translate="no" className="font-extrabold tracking-display">
+          {t("common.appName")}
+        </span>
         {descriptor ? (
           <span className="font-medium text-[0.36em] uppercase leading-none tracking-lockup">
             {t("brand.descriptor")}

@@ -186,6 +186,34 @@ Beside every area `layout.tsx`: `loading.tsx` renders `PageSkeleton` shaped like
 
 Nothing truncates except table cells. A truncated cell wraps its text in a `Tooltip` whose trigger is focusable, so hover and keyboard focus both reveal the full text. Everywhere else, wrap: buttons and navigation labels are short by design, prose caps at `max-w-prose`. The gallery test asserts that sampled navigation items and buttons have no horizontal overflow.
 
+## Interface compliance
+
+_Added 2026-09-09, during the marketing UX pass. The [Web Interface Guidelines](https://github.com/vercel-labs/web-interface-guidelines) (the `web-design-guidelines` skill, which fetches them fresh on every run) are a named gate on this design system, sitting under everything above: this file decides what a surface looks like and which vocabulary it uses, the guidelines decide whether the mechanics underneath are sound. Where the two disagree, this file wins and the disagreement is recorded below._
+
+Run the skill against the files you changed before opening a PR, the same way `pnpm budget` gates first load JavaScript:
+
+```
+/web-design-guidelines src/features/marketing/ui/*.tsx
+```
+
+The guidelines are largely already met, and the parts we meet are load bearing, so do not undo them: `[data-numeric]` and `.tabular-nums` in `globals.css` carry `font-variant-numeric` for every figure; the `prefers-reduced-motion` block clamps to 1ms rather than zero so Radix exit animations still fire; `[data-marketing] :is(:target, input, select, textarea, fieldset)` clears the sticky header so a fragment target and the field React Hook Form focuses on an invalid submit both stay in view; `RegisterDirectory` pages at fifty rows rather than mapping 1,929 and defers its grouped count until mount. An `outline-none` on a `tabIndex={-1}` skip link landing (`#main`, the forbidden page, the auth page) is correct and is not a finding.
+
+### The four fixes
+
+Four gaps were real when the gate was adopted. All four are additive, so all four sit inside a marketing branch's design system rule.
+
+| Fix | Where | Why |
+|---|---|---|
+| `viewport` export carrying `themeColor` | `src/app/[locale]/layout.tsx` | Two entries under `prefers-color-scheme`, matching the light page ground and the dark one. Without it the mobile browser chrome does not follow the jet ground, which breaks the full bleed of a jet opener and the closing call to action. |
+| `text-wrap: balance` on section headings | `SectionHeader`, all three tiers | A display size heading over two or three words per line strands a widow. `Statement` already balances; the tier headings did not. |
+| `touch-action: manipulation` and an intentional `-webkit-tap-highlight-color` | `globals.css`, on the interactive elements | Removes the double tap zoom delay on iOS and stops the default blue flash landing on our black and white surfaces. |
+| `translate="no"` on the wordmark and identifiers | `Logo`, `font-mono` identifiers | "SME24" survives an auto translated page intact. |
+
+### Deliberate exceptions
+
+- **Title Case for headings and buttons.** The guidelines ask for Chicago style Title Case; we use sentence case in both languages. German does not take title case at all, so following the rule would either break the German catalog or split the two catalogs' voice, and the campaign statements ("Senior experts. No slides. Just results.") are written as sentences by the brand guidelines. Sentence case stays.
+- **`autocomplete="off"` on non-auth fields.** The enquiry form deliberately keeps real autocomplete tokens (`organization`, `name`, `email`, `tel`) because a returning enquirer filling six fields by hand is the worse outcome. The honeypot keeps `autocomplete="off"`, which is what that rule is actually protecting.
+
 ## Do's and Don'ts
 
 - Do compose `PageHeader` + `PageStack`; don't render a second `h1`.

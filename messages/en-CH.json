@@ -264,7 +264,7 @@
         },
         "trained": {
           "label": "Trained 2025",
-          "note": "Completed the year's continuing education requirement in full."
+          "note": "Completed the year’s continuing education requirement in full."
         }
       },
       "coverage": {
@@ -279,7 +279,7 @@
       },
       "search": {
         "label": "Search",
-        "placeholder": "Name or town"
+        "placeholder": "Name or town, e.g. Meier or Zürich…"
       },
       "canton": {
         "label": "Canton",
@@ -328,7 +328,7 @@
     "landing": {
       "meta": {
         "title": "Fixed-price EHS consulting",
-        "description": "Benchmark your company's EHS risk for free, see what incidents cost you in CHF, then book a senior expert at a fixed price."
+        "description": "Benchmark your company’s EHS risk for free, see what incidents cost you in CHF, then book a senior expert at a fixed price."
       },
       "og": {
         "statement": "Senior experts. No slides. Just results."
@@ -460,7 +460,7 @@
       "outputLabel": "Output",
       "outcomeLabel": "Outcome",
       "cta": "Start with the free benchmark",
-      "retainerCta": "Let's talk",
+      "retainerCta": "Let’s talk",
       "overviewLink": "See all prices",
       "included": {
         "title": "What every package includes.",
@@ -591,7 +591,7 @@
           "retainer": "An ongoing EHS partner for your sites, priced on request.",
           "general": "A package, a date, or anything else."
         },
-        "headcountPlaceholder": "Not specified",
+        "headcountPlaceholder": "Not specified …",
         "bands": {
           "1-49": "1 to 49",
           "50-249": "50 to 249",
@@ -602,7 +602,7 @@
         "honeypot": "Leave this field empty",
         "privacyNote": "We use your details only to answer this enquiry. <link>Privacy policy</link>",
         "submit": "Send enquiry",
-        "submitting": "Sending",
+        "submitting": "Sending …",
         "summaryTitle": "Please check these fields",
         "errors": {
           "companyRequired": "Enter your company name.",

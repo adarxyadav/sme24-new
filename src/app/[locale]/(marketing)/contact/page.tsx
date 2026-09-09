@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations, setRequestLocale } from "next-intl/server";
 import { Suspense } from "react";
-import { Statement } from "@/components/brand/statement";
 import { contactPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { SITE } from "@/features/marketing/site";
 import { EnquiryForm } from "@/features/marketing/ui/enquiry-form";
 import { EnquiryFormFromQuery } from "@/features/marketing/ui/enquiry-form-from-query";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
+import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { clientMessages } from "@/i18n/client-messages";
 import { absoluteUrl } from "@/i18n/metadata";
 import { resolveLocale } from "@/i18n/routing";
@@ -47,17 +47,17 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
         })}
       />
       <section className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:px-6 md:py-24">
-          <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
-          <Statement
+        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
+          <SectionHeader
+            tier="anchor"
             as="h1"
-            text={t("title")}
-            className="max-w-4xl text-display-sm md:text-display"
+            eyebrow={t("eyebrow")}
+            title={t("title")}
+            lead={t("lead")}
           />
-          <p className="max-w-prose text-lg text-muted-foreground">{t("lead")}</p>
         </div>
       </section>
-      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-12 sm:px-6 md:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className="mx-auto grid max-w-6xl gap-12 px-4 py-16 sm:px-6 md:py-28 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <section aria-labelledby="contact-facts-heading" className="flex flex-col gap-4">
           <h2 id="contact-facts-heading" className="font-semibold text-lg">
             {t("facts.heading")}

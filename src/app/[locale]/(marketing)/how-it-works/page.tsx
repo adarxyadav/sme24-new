@@ -6,6 +6,7 @@ import { howToJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
+import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { StepsSection } from "@/features/marketing/ui/steps-section";
 import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
@@ -54,14 +55,14 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
       />
 
       <section className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-16 sm:px-6 md:py-24">
-          <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
-          <Statement
+        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
+          <SectionHeader
+            tier="anchor"
             as="h1"
-            text={t("title")}
-            className="max-w-4xl text-display-sm md:text-display"
+            eyebrow={t("eyebrow")}
+            title={t("title")}
+            lead={t("lead")}
           />
-          <p className="max-w-prose text-lg text-muted-foreground">{t("lead")}</p>
         </div>
       </section>
 
@@ -76,16 +77,13 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
       />
 
       <section aria-labelledby="split-heading" className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-24">
-          <div className="flex flex-col gap-3">
-            <p className="eyebrow text-muted-foreground">{t("split.eyebrow")}</p>
-            <Statement
-              as="h2"
-              id="split-heading"
-              text={t("split.title")}
-              className="text-display-sm md:text-display"
-            />
-          </div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
+          <SectionHeader
+            tier="major"
+            id="split-heading"
+            eyebrow={t("split.eyebrow")}
+            title={t("split.title")}
+          />
           <div className="grid gap-px border bg-border md:grid-cols-2">
             {[
               {
@@ -119,17 +117,13 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
       </section>
 
       <section aria-labelledby="timing-heading" className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-24">
-          <div className="flex flex-col gap-3">
-            <p className="eyebrow text-muted-foreground">{t("timing.eyebrow")}</p>
-            <Statement
-              as="h2"
-              id="timing-heading"
-              text={t("timing.title")}
-              className="text-display-sm md:text-display"
-            />
-            <p className="max-w-prose text-lg text-muted-foreground">{t("timing.lead")}</p>
-          </div>
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
+          <SectionHeader
+            tier="minor"
+            id="timing-heading"
+            title={t("timing.title")}
+            lead={t("timing.lead")}
+          />
           <ul className="grid gap-px border bg-border sm:grid-cols-3">
             {TIMING.map((item) => (
               <li key={item} className="flex flex-col gap-3 bg-background px-6 py-8">

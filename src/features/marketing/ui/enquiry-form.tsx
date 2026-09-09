@@ -61,10 +61,15 @@ const FIELD_ORDER = [
 ] as const;
 type FieldName = (typeof FIELD_ORDER)[number];
 
+/** The length from which the character count announces itself: the last tenth of the allowance. */
+const COUNT_ANNOUNCE_FROM = MESSAGE_MAX - Math.round(MESSAGE_MAX / 10);
+
 /**
  * The enquiry form of the contact page (spec 0009, AC-8, AC-10): React Hook Form with the
- * feature schema, inline errors plus an announced summary, a live character count, the honeypot
- * and the mount time the server checks, and the confirmation panel after a successful submit.
+ * feature schema, inline errors plus an announced summary that takes focus on an invalid submit,
+ * a live character count that only announces near the limit, an unsaved changes guard while the
+ * form is dirty, the honeypot and the mount time the server checks, and the confirmation panel
+ * after a successful submit.
  * Browser; the page hands it the `marketing` messages through a nested provider.
  */
 export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFormProps) {
@@ -89,7 +94,11 @@ export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFo
   const [startedAt, setStartedAt] = useState<string | null>(null);
   const [summary, setSummary] = useState<readonly FieldName[]>([]);
   const websiteRef = useRef<HTMLInputElement>(null);
-  const { errors } = form.formState;
+  const summaryRef = useRef<HTMLDivElement>(null);
+  // Raised only by a submit that came back invalid, so the `validateOnMount` gallery state — which
+  // fills the same `summary` list — keeps its documented "without moving focus" contract.
+  const focusSummary = useRef(false);
+  const { errors, isDirty } = form.formState;
   const errorText = (message: string | undefined) => issueMessage(message, e);
   const messageLength = form.watch("message")?.length ?? 0;
   const result = action.result;
@@ -97,6 +106,17 @@ export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFo
   useEffect(() => {
     setStartedAt(String(Date.now()));
   }, []);
+
+  // Focus moves to the summary rather than to the first invalid field: the summary already lists
+  // every invalid field as an in page anchor, so one move announces the whole failure and leaves
+  // the reader one Tab from each field, where focusing the first field would announce only its own
+  // error and silently hide the rest. It is `tabIndex={-1}` so it takes focus without joining the
+  // tab order.
+  useEffect(() => {
+    if (!focusSummary.current || summary.length === 0) return;
+    focusSummary.current = false;
+    summaryRef.current?.focus();
+  }, [summary]);
 
   useEffect(() => {
     if (!validateOnMount) return;
@@ -110,9 +130,21 @@ export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFo
       for (const [name, message] of Object.entries(result.fields)) {
         if (isFieldName(name)) form.setError(name, { type: "server", message });
       }
+      focusSummary.current = true;
       setSummary(FIELD_ORDER.filter((name) => name in result.fields));
     }
   }, [result, form]);
+
+  // The unsaved changes guard: a typed message is long, so an accidental reload or a back gesture
+  // asks first. Armed only while the form is dirty and never after a success — the confirmation
+  // replaces the form, but the listener is torn down here rather than relying on that unmount.
+  const submitted = result?.ok === true;
+  useEffect(() => {
+    if (!isDirty || submitted) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty, submitted]);
 
   if (result?.ok) return <EnquiryConfirmation />;
 
@@ -127,6 +159,7 @@ export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFo
       });
     },
     (invalid: FieldErrors<EnquiryInput>) => {
+      focusSummary.current = true;
       setSummary(FIELD_ORDER.filter((name) => name in invalid));
     },
   );
@@ -141,7 +174,7 @@ export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFo
       className="flex flex-col gap-6"
     >
       {summary.length > 0 ? (
-        <Alert variant="destructive" role="alert">
+        <Alert ref={summaryRef} tabIndex={-1} variant="destructive" role="alert">
           <AlertCircleIcon aria-hidden="true" />
           <AlertTitle>{t("summaryTitle")}</AlertTitle>
           <AlertDescription>
@@ -226,6 +259,7 @@ export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFo
             id="enquiry-email"
             type="email"
             autoComplete="email"
+            spellCheck={false}
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? "enquiry-email-error" : undefined}
             {...form.register("email")}
@@ -286,7 +320,16 @@ export function EnquiryForm({ defaultTopic, validateOnMount = false }: EnquiryFo
             {...form.register("message")}
           />
           <FieldDescription id="enquiry-message-hint">{t("messageHint")}</FieldDescription>
-          <FieldDescription id="enquiry-message-count" aria-live="polite">
+          {/*
+            The count is read on every keystroke, so a permanent live region would announce every
+            letter typed. `aria-live` is switched on only inside the last stretch before the limit,
+            where the number is the news; below that the text still updates for the eye and stays
+            readable on demand, because the textarea's `aria-describedby` names this element.
+          */}
+          <FieldDescription
+            id="enquiry-message-count"
+            aria-live={messageLength >= COUNT_ANNOUNCE_FROM ? "polite" : "off"}
+          >
             {t("characterCount", { count: messageLength, max: MESSAGE_MAX })}
           </FieldDescription>
           <FieldError id="enquiry-message-error">{errorText(errors.message?.message)}</FieldError>
