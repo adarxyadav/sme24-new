@@ -11,8 +11,6 @@ export type PackageCardProps = {
   readonly entry: Package;
   /** `overview` on the landing page (name, promise, price, a link to pricing); `full` on the pricing page. */
   readonly variant?: "overview" | "full";
-  /** The one card the ladder leads with. Marked, never re-styled: the same card, one shade lifted. */
-  readonly featured?: boolean;
   readonly className?: string;
 };
 
@@ -32,12 +30,7 @@ type PackageMessageKey = Parameters<ReturnType<typeof useTranslations<"marketing
  * Every string comes from `marketing.packages.<key>.*` and `marketing.pricing.*`, the price and
  * the order from `PACKAGES`. Server component.
  */
-export function PackageCard({
-  entry,
-  variant = "full",
-  featured = false,
-  className,
-}: PackageCardProps) {
+export function PackageCard({ entry, variant = "full", className }: PackageCardProps) {
   const t = useTranslations("marketing.packages");
   const pricing = useTranslations("marketing.pricing");
   const format = useFormatter();
@@ -49,7 +42,6 @@ export function PackageCard({
     <article
       data-slot="package-card"
       data-package={entry.key}
-      data-featured={featured || undefined}
       className={cn(
         // The rows are set on the grid, so the gap is the one the grid publishes; a card only
         // says how it fills them.
@@ -57,39 +49,16 @@ export function PackageCard({
         // Each card stands on its own hairline now that the grid separates them, rather than
         // borrowing the shared rule of one edge to edge block. Square corners and no elevation:
         // `docs/design.md` fixes every surface as flat and block cornered, so a card is told apart
-        // from the page by its line, never by a shadow or a softened corner.
+        // from the page by its line, never by a shadow or a softened corner. The line is the same
+        // on all four: no card is marked out as the one to pick (owner decision of 2026-09-10,
+        // replacing the marked middle rung of 2026-09-09), because the ladder is the buyer's to
+        // read and a heavier edge on one rung puts a thumb on that scale.
         "border bg-card",
-        // The featured card is the same card with a heavier edge, not a filled one. A fill would
-        // make the middle rung a different kind of object; a foreground rule marks one card out of
-        // four and survives dark mode without a second background token. `outline` rather than a
-        // thicker `border`, so the mark sits over the hairline instead of adding width and nudging
-        // the card's content half a pixel out of line with its neighbours.
-        featured && "outline-2 outline-foreground -outline-offset-1",
         // The card takes the grid's rows, so every card's price, button and details align.
-        full ? "row-span-8 grid-rows-subgrid" : "row-span-5 grid-rows-subgrid",
+        full ? "row-span-7 grid-rows-subgrid" : "row-span-4 grid-rows-subgrid",
         className,
       )}
     >
-      {/*
-        The marker row. It is a row of the shared grid rather than a badge floated over the card,
-        so the names below sit on one baseline whether or not a card is marked, and the mark can
-        never overlap the name.
-
-        Every card renders the row, and an unmarked one renders it empty with a fixed height: at
-        `sm` the four cards sit in two grid rows and only one of those rows contains the marked
-        card, so an `auto` track with no content in it collapses and that pair of cards loses the
-        space above their names. The height is on the row's own box rather than on text nobody can
-        see, so no screen reader meets a placeholder.
-      */}
-      <div className="h-5 self-start">
-        {featured ? (
-          <p className="eyebrow flex items-center gap-1.5 text-foreground">
-            <span aria-hidden="true" className="size-1.5 rounded-full bg-foreground" />
-            {pricing("featuredLabel")}
-          </p>
-        ) : null}
-      </div>
-
       <div className="flex min-w-0 flex-col gap-2 self-start">
         <Statement
           as="h3"
@@ -178,11 +147,9 @@ export function PackageCard({
           </Button>
         ) : (
           /*
-            Every buyable card takes the filled button. Once the cards are separated each one is a
-            self contained offer, so its own primary action should read as primary; marking only
-            the featured card's button demoted the other two into looking unavailable. The featured
-            card is already marked by its heavier edge and its "Start here" line, which is the
-            emphasis that belongs to the ladder rather than to the buttons.
+            Every buyable card takes the filled button. Each card is a self contained offer, so its
+            own primary action reads as primary; filling only one card's button demoted the others
+            into looking unavailable.
           */
           <Button asChild size="lg" className="h-auto w-full whitespace-normal py-2">
             {/*

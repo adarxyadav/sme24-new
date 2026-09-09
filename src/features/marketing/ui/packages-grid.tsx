@@ -1,13 +1,5 @@
-import { type PackageKey, sortedPackages } from "@/features/marketing/packages";
+import { sortedPackages } from "@/features/marketing/packages";
 import { PackageCard, type PackageCardProps } from "./package-card";
-
-/**
- * The package the ladder leads with. The middle rung: the one that validates real risks rather
- * than the cheapest look or the largest bill, so the ladder has a first step to read from. A
- * marketing decision, so it lives here beside the grid rather than in `PACKAGES`, which feature 11
- * promotes into the `packages` table.
- */
-const FEATURED: PackageKey = "sms";
 
 /**
  * The four packages side by side in catalog order (spec 0009, AC-5, AC-6), each card standing on
@@ -17,17 +9,15 @@ const FEATURED: PackageKey = "sms";
  * table: the gap is what makes them comparable objects rather than columns of the same object.
  * The corners stay square and the surface flat, the way `docs/design.md` fixes every surface.
  *
- * The grid owns the rows -- the marker, the name, the best for and delivery lines, the amount, the
- * VAT note, the call to action and, on the full variant, the details -- and each card spans them
- * through `grid-rows-subgrid`, so the prices sit on one baseline and the buttons on another
- * however long a package name runs.
+ * No card is marked out as the one to pick (owner decision of 2026-09-10): the four are a ladder
+ * to read across, and singling one out put a thumb on the scale of the buyer's decision.
  *
- * The row tracks are the reason the cards need no invisible placeholder text: a card with no
- * marker and no VAT note simply leaves its share of those rows empty, and the rows keep their
- * height from the tallest card in the row rather than from a full stop nobody can see. The marker
- * row is the one a card always renders (empty when it is not the marked one), because at `sm` the
- * four cards sit in two grid rows and only one of those rows holds the marked card: an `auto`
- * track with nothing in it collapses, and that pair's names would sit higher than the other's.
+ * The grid owns the rows -- the name, the best for and delivery lines, the amount, the VAT note,
+ * the call to action and, on the full variant, the details -- and each card spans them through
+ * `grid-rows-subgrid`, so the prices sit on one baseline and the buttons on another however long a
+ * package name runs. The row tracks are also the reason the cards need no invisible placeholder
+ * text: a card with no VAT note simply leaves its share of that row empty, and the row keeps its
+ * height from the tallest card beside it rather than from a full stop nobody can see.
  * Server component.
  */
 export function PackagesGrid({ variant = "full" }: Pick<PackageCardProps, "variant">) {
@@ -38,18 +28,18 @@ export function PackagesGrid({ variant = "full" }: Pick<PackageCardProps, "varia
         "grid gap-4 sm:grid-cols-2 lg:grid-cols-4",
         // One track per stacked card below `sm`, then the tracks the cards subgrid into.
         full
-          ? "grid-rows-[repeat(8,auto)] sm:grid-rows-[repeat(16,auto)] lg:grid-rows-[repeat(8,auto)]"
-          : "grid-rows-[repeat(5,auto)] sm:grid-rows-[repeat(10,auto)] lg:grid-rows-[repeat(5,auto)]",
+          ? "grid-rows-[repeat(7,auto)] sm:grid-rows-[repeat(14,auto)] lg:grid-rows-[repeat(7,auto)]"
+          : "grid-rows-[repeat(4,auto)] sm:grid-rows-[repeat(8,auto)] lg:grid-rows-[repeat(4,auto)]",
       ].join(" ")}
     >
       {sortedPackages().map((entry) => (
         <li
           key={entry.key}
           className={
-            full ? "row-span-8 grid grid-rows-subgrid" : "row-span-5 grid grid-rows-subgrid"
+            full ? "row-span-7 grid grid-rows-subgrid" : "row-span-4 grid grid-rows-subgrid"
           }
         >
-          <PackageCard entry={entry} variant={variant} featured={entry.key === FEATURED} />
+          <PackageCard entry={entry} variant={variant} />
         </li>
       ))}
     </ul>
