@@ -90,10 +90,16 @@ describe("PackageCard (spec 0009, AC-5, AC-6)", () => {
     expect(screen.queryByRole("list")).toBeNull();
     expect(screen.queryByText(en.marketing.packages.compliance.delivery)).toBeNull();
     expect(screen.queryByText(en.marketing.packages.compliance.bestFor)).toBeNull();
-    expect(screen.getByRole("link", { name: en.marketing.pricing.overviewLink })).toHaveAttribute(
-      "href",
-      "/en/pricing",
-    );
+    // The visible label stays short; the accessible name names the package, so a link list does
+    // not read "See all prices" four times.
+    const overview = screen.getByRole("link", {
+      name: en.marketing.pricing.overviewLinkFor.replace(
+        "{name}",
+        en.marketing.packages.compliance.name,
+      ),
+    });
+    expect(overview).toHaveAttribute("href", "/en/pricing");
+    expect(overview).toHaveTextContent(en.marketing.pricing.overviewLink);
   });
 });
 
@@ -353,9 +359,18 @@ describe("PackagesGrid (spec 0009, AC-5, AC-6)", () => {
       ),
     );
     expect(headings).toHaveLength(4);
-    expect(screen.getAllByRole("link", { name: en.marketing.pricing.overviewLink })).toHaveLength(
-      4,
-    );
+    // Each card's link carries its own accessible name, so the four are told apart.
+    expect(
+      sortedPackages().map(
+        (entry) =>
+          screen.getByRole("link", {
+            name: en.marketing.pricing.overviewLinkFor.replace(
+              "{name}",
+              en.marketing.packages[entry.key as keyof typeof en.marketing.packages].name,
+            ),
+          }).textContent,
+      ),
+    ).toEqual(Array(4).fill(en.marketing.pricing.overviewLink));
   });
 });
 

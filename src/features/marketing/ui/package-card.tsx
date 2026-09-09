@@ -68,10 +68,7 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
             so the amounts stay on one baseline across the whole row. */}
         <p
           aria-hidden={full ? undefined : true}
-          className={cn(
-            "text-muted-foreground text-xs uppercase tracking-[0.08em]",
-            !full && "invisible",
-          )}
+          className={cn("text-muted-foreground text-xs", !full && "invisible")}
         >
           {full ? t(`${entry.key}.delivery`) : "."}
         </p>
@@ -94,7 +91,15 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
       <div className="self-end">
         {variant === "overview" ? (
           <Button asChild variant="ghost" className="-mx-3 h-auto justify-start gap-2 px-3 py-2">
-            <Link href="/pricing">
+            {/*
+              Four cards carry this link to the same page, so the visible label stays short while
+              the accessible name names the package: a screen reader's link list reads four
+              distinct destinations rather than "See all prices" four times.
+            */}
+            <Link
+              href="/pricing"
+              aria-label={pricing("overviewLinkFor", { name: t(`${entry.key}.name`) })}
+            >
               {pricing("overviewLink")}
               <ArrowRightIcon aria-hidden="true" />
             </Link>
@@ -140,13 +145,13 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
           </ul>
           <dl className="flex flex-col gap-3">
             <div className="flex flex-col gap-0.5">
-              <dt className="text-muted-foreground text-xs uppercase tracking-[0.08em]">
+              <dt className="font-medium text-muted-foreground text-xs">
                 {pricing("outputLabel")}
               </dt>
               <dd>{t(`${entry.key}.output`)}</dd>
             </div>
             <div className="flex flex-col gap-0.5">
-              <dt className="text-muted-foreground text-xs uppercase tracking-[0.08em]">
+              <dt className="font-medium text-muted-foreground text-xs">
                 {pricing("outcomeLabel")}
               </dt>
               <dd>{t(`${entry.key}.outcome`)}</dd>
