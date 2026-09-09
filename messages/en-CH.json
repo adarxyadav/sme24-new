@@ -162,7 +162,7 @@
         }
       },
       "closing": {
-        "title": "Start with the benchmark. It is free.",
+        "title": "Four steps to your figure in francs.",
         "cta": "See what your risk costs"
       }
     },
@@ -234,7 +234,7 @@
         "directory": "Browse the whole SGAS register"
       },
       "closing": {
-        "title": "See where you stand. For free.",
+        "title": "See what your risk costs. Then meet your expert.",
         "cta": "See what your risk costs"
       }
     },
@@ -418,8 +418,8 @@
         }
       },
       "closing": {
-        "title": "Start with the benchmark. It is free.",
-        "lead": "Type your company name. The benchmark follows, at no cost."
+        "title": "See what your risk costs. Free.",
+        "lead": "Type your company name. Your figure in francs, measured against your peers, in two minutes."
       },
       "free": "Free, and no sales call. Your figure against your peers in two minutes.",
       "example": {
@@ -457,11 +457,12 @@
       "vatNote": "excl. 8.1% VAT",
       "onDemand": "On demand",
       "bestForLabel": "Best for",
-      "outputLabel": "Output",
-      "outcomeLabel": "Outcome",
+      "outputLabel": "You get",
+      "outcomeLabel": "So that",
       "cta": "See what your risk costs",
       "retainerCta": "Let’s talk",
       "overviewLink": "See all prices",
+      "overviewLinkFor": "See all prices: {name}",
       "included": {
         "title": "What every package includes.",
         "items": {
@@ -493,7 +494,7 @@
         }
       },
       "closing": {
-        "title": "Not sure which one? Start with the benchmark.",
+        "title": "Not sure which one? Start with the free figure.",
         "cta": "See what your risk costs"
       }
     },
@@ -552,7 +553,7 @@
         }
       },
       "closing": {
-        "title": "See where you stand. For free.",
+        "title": "No slides. A figure in francs.",
         "cta": "See what your risk costs"
       }
     },
@@ -627,7 +628,7 @@
         "name": "Compliance Check, EHS System & Culture Snapshot",
         "promise": "Know what to fix and how",
         "bestFor": "fix systematically",
-        "delivery": "On-site · 5 Days",
+        "delivery": "On site, 5 days",
         "included": {
           "systemSnapshot": "System & Culture Snapshot",
           "standards": "5 selected standards",
@@ -640,7 +641,7 @@
         "name": "EHS System & Culture Snapshot",
         "promise": "Know your real risks",
         "bestFor": "validate real risks",
-        "delivery": "On-site · 2 Days",
+        "delivery": "On site, 2 days",
         "included": {
           "cultureSnapshot": "Culture Snapshot",
           "iso": "ISO 45001 · 7 categories",
@@ -653,7 +654,7 @@
         "name": "EHS Culture Snapshot",
         "promise": "Know where you stand",
         "bestFor": "quick visibility",
-        "delivery": "Remote · 1 Day",
+        "delivery": "Remote, 1 day",
         "included": {
           "categories": "8 culture categories",
           "levels": "5 levels",
@@ -666,7 +667,7 @@
         "name": "EHS Implementation Partner",
         "promise": "Risks eliminated",
         "bestFor": "deliver results",
-        "delivery": "On-site + Ongoing",
+        "delivery": "On site and ongoing",
         "included": {
           "implementation": "Implementation",
           "pmo": "PMO",
