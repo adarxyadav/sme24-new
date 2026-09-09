@@ -18,6 +18,7 @@ import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { StepsSection } from "@/features/marketing/ui/steps-section";
+import { TrustSection } from "@/features/marketing/ui/trust-section";
 import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
@@ -45,8 +46,8 @@ export async function generateMetadata({
 
 /**
  * The landing page (spec 0009, AC-5), top to bottom: the hero with the lookup field, the three
- * proof points, how it works, the packages overview, the campaign wall and the closing call to
- * action with the same field. Prerendered in both languages; the `WebSite` structured data sits
+ * proof points, how it works, the packages overview, the campaign wall, the trust band and the
+ * closing call to action with the same field. Prerendered in both languages; the `WebSite` structured data sits
  * next to the layout's `Organization`.
  */
 export default async function LandingPage({ params }: PageProps<"/[locale]">) {
@@ -142,7 +143,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
                     // ("CHF 2'000 to 10'000"), which does not fit a display size there: at 40px
                     // it wraps mid range and splits the one number a reader came for. The
                     // headline size holds it on one line at every width.
-                    className="font-extrabold text-2xl tracking-headline tabular-nums xl:text-3xl"
+                    className="font-semibold text-2xl tracking-headline tabular-nums xl:text-3xl"
                   />
                 </dd>
                 <dd className="max-w-prose text-muted-foreground text-sm">
@@ -209,6 +210,8 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
           </CampaignWall>
         </div>
       </section>
+
+      <TrustSection />
 
       <ClosingCta title={t("closing.title")} lead={t("closing.lead")}>
         {/* An anchor tier like the hero, so the field carries the hero's weight; its label stays

@@ -94,25 +94,206 @@
   --color-obsidian: oklch(0.19 0 0);
   --color-pure-white: oklch(1 0 0);
 
-  /* Display · 800 · −3% tracking. Marketing statements and the wordmark. */
+  /* Display · 600 · −3% tracking. Marketing statements and the wordmark. */
   --text-display-lg: 4.5rem;
   --text-display-lg--line-height: 1;
   --text-display-lg--letter-spacing: -0.03em;
-  --text-display-lg--font-weight: 800;
+  --text-display-lg--font-weight: 600;
   --text-display: 3.5rem;
   --text-display--line-height: 1.02;
   --text-display--letter-spacing: -0.03em;
-  --text-display--font-weight: 800;
+  --text-display--font-weight: 600;
   --text-display-sm: 2.5rem;
   --text-display-sm--line-height: 1.08;
   --text-display-sm--letter-spacing: -0.03em;
-  --text-display-sm--font-weight: 800;
+  --text-display-sm--font-weight: 600;
+
+  /*
+   * The Geist scale (adapted 2026-09-09). Three families, because a size alone is not a style: the
+   * same 14px is a nav label, a button and a paragraph, and those want different line heights. Each
+   * token presets size, line-height, letter-spacing and weight together, so a call site names a
+   * role (`text-copy-14`) rather than assembling one (`text-sm leading-relaxed font-normal`).
+   *
+   *   heading-*  tight leading, negative tracking, 600. Headings only; it hurts to read in bulk.
+   *   copy-*     1.5 leading. Multiple lines: paragraphs, marketing prose, email body.
+   *   label-*    ~1.25 leading with room for an icon beside it. Single lines: nav, menus, table
+   *              headers, form labels, badges.
+   *   button-*   label metrics at 500, the weight a control wants.
+   *
+   * Sizes are named in pixels after the reference, and stay in rem so a browser text-size setting
+   * still scales them. The brand `display-*` tokens above are unchanged and still outrank these
+   * three for marketing statements: heading-* is the working scale, display-* is the voice.
+   *
+   * Tracking tightens as the size grows (−4.5% at 72px, 0 by 16px), which is what keeps a large
+   * heading from reading as loose; below 16px it turns positive again so small text stays legible.
+   */
+
+  /* Headings · 600 · tight */
+  --text-heading-72: 4.5rem;
+  --text-heading-72--line-height: 1;
+  --text-heading-72--letter-spacing: -0.045em;
+  --text-heading-72--font-weight: 600;
+  --text-heading-64: 4rem;
+  --text-heading-64--line-height: 1;
+  --text-heading-64--letter-spacing: -0.045em;
+  --text-heading-64--font-weight: 600;
+  --text-heading-56: 3.5rem;
+  --text-heading-56--line-height: 1.04;
+  --text-heading-56--letter-spacing: -0.04em;
+  --text-heading-56--font-weight: 600;
+  --text-heading-48: 3rem;
+  --text-heading-48--line-height: 1.08;
+  --text-heading-48--letter-spacing: -0.04em;
+  --text-heading-48--font-weight: 600;
+  --text-heading-40: 2.5rem;
+  --text-heading-40--line-height: 1.1;
+  --text-heading-40--letter-spacing: -0.036em;
+  --text-heading-40--font-weight: 600;
+  --text-heading-32: 2rem;
+  --text-heading-32--line-height: 1.25;
+  --text-heading-32--letter-spacing: -0.032em;
+  --text-heading-32--font-weight: 600;
+  --text-heading-24: 1.5rem;
+  --text-heading-24--line-height: 1.33;
+  --text-heading-24--letter-spacing: -0.028em;
+  --text-heading-24--font-weight: 600;
+  --text-heading-20: 1.25rem;
+  --text-heading-20--line-height: 1.4;
+  --text-heading-20--letter-spacing: -0.02em;
+  --text-heading-20--font-weight: 600;
+  --text-heading-16: 1rem;
+  --text-heading-16--line-height: 1.5;
+  --text-heading-16--letter-spacing: -0.012em;
+  --text-heading-16--font-weight: 600;
+  --text-heading-14: 0.875rem;
+  --text-heading-14--line-height: 1.43;
+  --text-heading-14--letter-spacing: -0.004em;
+  --text-heading-14--font-weight: 600;
+
+  /* Copy · 400 · 1.5 leading. Multiple lines. */
+  --text-copy-24: 1.5rem;
+  --text-copy-24--line-height: 1.5;
+  --text-copy-24--letter-spacing: -0.02em;
+  --text-copy-24--font-weight: 400;
+  --text-copy-20: 1.25rem;
+  --text-copy-20--line-height: 1.5;
+  --text-copy-20--letter-spacing: -0.016em;
+  --text-copy-20--font-weight: 400;
+  --text-copy-18: 1.125rem;
+  --text-copy-18--line-height: 1.56;
+  --text-copy-18--letter-spacing: -0.012em;
+  --text-copy-18--font-weight: 400;
+  --text-copy-16: 1rem;
+  --text-copy-16--line-height: 1.5;
+  --text-copy-16--letter-spacing: 0em;
+  --text-copy-16--font-weight: 400;
+  --text-copy-14: 0.875rem;
+  --text-copy-14--line-height: 1.5;
+  --text-copy-14--letter-spacing: 0em;
+  --text-copy-14--font-weight: 400;
+  --text-copy-13: 0.8125rem;
+  --text-copy-13--line-height: 1.5;
+  --text-copy-13--letter-spacing: 0.002em;
+  --text-copy-13--font-weight: 400;
+
+  /* Labels · 400 · single lines, generous leading so an icon sits beside them. */
+  --text-label-20: 1.25rem;
+  --text-label-20--line-height: 1.6;
+  --text-label-20--letter-spacing: -0.016em;
+  --text-label-20--font-weight: 400;
+  --text-label-18: 1.125rem;
+  --text-label-18--line-height: 1.56;
+  --text-label-18--letter-spacing: -0.012em;
+  --text-label-18--font-weight: 400;
+  --text-label-16: 1rem;
+  --text-label-16--line-height: 1.5;
+  --text-label-16--letter-spacing: 0em;
+  --text-label-16--font-weight: 400;
+  --text-label-14: 0.875rem;
+  --text-label-14--line-height: 1.43;
+  --text-label-14--letter-spacing: 0em;
+  --text-label-14--font-weight: 400;
+  --text-label-13: 0.8125rem;
+  --text-label-13--line-height: 1.23;
+  --text-label-13--letter-spacing: 0.002em;
+  --text-label-13--font-weight: 400;
+  --text-label-12: 0.75rem;
+  --text-label-12--line-height: 1.33;
+  --text-label-12--letter-spacing: 0.004em;
+  --text-label-12--font-weight: 400;
+
+  /* Buttons · 500 · label metrics at the weight a control wants. */
+  --text-button-16: 1rem;
+  --text-button-16--line-height: 1.25;
+  --text-button-16--letter-spacing: -0.012em;
+  --text-button-16--font-weight: 500;
+  --text-button-14: 0.875rem;
+  --text-button-14--line-height: 1.43;
+  --text-button-14--letter-spacing: -0.004em;
+  --text-button-14--font-weight: 500;
+  --text-button-12: 0.75rem;
+  --text-button-12--line-height: 1.33;
+  --text-button-12--letter-spacing: 0.004em;
+  --text-button-12--font-weight: 500;
 
   /* Tracking: headline −2%, captions and the lockup descriptor tracked wide in caps. */
   --tracking-display: -0.03em;
   --tracking-headline: -0.02em;
   --tracking-caps: 0.18em;
   --tracking-lockup: 0.34em;
+}
+
+/*
+ * Strong and Subtle, the two modifiers the Geist scale defines as nested elements rather than extra
+ * classes: `<p className="text-copy-16">Copy <strong>with Strong</strong></p>` needs no second
+ * class on the child, so emphasis inside a sentence stays markup instead of styling. Strong is 600
+ * without a size change (`<b>` and `<strong>` both, since the base reset makes them bolder); Subtle
+ * is the muted token, for the trailing half of a heading that names its own section.
+ *
+ * Scoped to the four families on purpose -- a bare `<strong>` elsewhere keeps the browser default.
+ */
+:is([class*="text-heading-"], [class*="text-copy-"], [class*="text-label-"]) :is(strong, b) {
+  font-weight: 600;
+}
+:is([class*="text-heading-"], [class*="text-copy-"], [class*="text-label-"]) .subtle {
+  color: var(--muted-foreground);
+  font-weight: inherit;
+}
+
+/*
+ * Mono pairings from the Geist scale. A `--text-*` token cannot carry a font family, so the four
+ * mono sizes the reference lists are utilities rather than tokens. Each drops half a step below the
+ * sans size it pairs with, because Geist Mono's larger x-height reads bigger at the same nominal
+ * size: `text-label-14-mono` next to `text-label-14` text, `text-copy-13-mono` inline in copy.
+ * Figures are tabular here by default -- these carry run ids, invoice numbers and amounts.
+ */
+@utility text-copy-13-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  letter-spacing: 0em;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-label-14-mono {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.43;
+  letter-spacing: 0em;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-label-13-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.23;
+  letter-spacing: 0em;
+  font-variant-numeric: tabular-nums;
+}
+@utility text-label-12-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.33;
+  letter-spacing: 0.004em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Caption · 500 · caps: eyebrows, lockup descriptors, section labels. Pair with a color utility. */

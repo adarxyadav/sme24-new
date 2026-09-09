@@ -417,6 +417,47 @@
           }
         }
       },
+      "trust": {
+        "eyebrow": "Vertrauen",
+        "title": "Ihre Zahlen bleiben Ihre.",
+        "lead": "Sie unterschreiben für diese Daten, also liegen die Garantien in der Datenbank — und die Liste ist offen.",
+        "cta": "Datenschutzseite lesen",
+        "panelsLabel": "Wie wir mit Ihren Daten umgehen",
+        "panels": {
+          "residency": {
+            "badge": "Zürich",
+            "title": "Eine Rechtsordnung, und eine strenge.",
+            "body": "Keine Zusage, sondern eine Region. Ihre Kennzahlen und Dokumente werden auf Schweizer Infrastruktur gespeichert und bleiben dort, nach revidiertem DSG, und die DSGVO erfüllen wir, wo sie Sie betrifft."
+          },
+          "isolation": {
+            "title": "Die Datenbank sagt Nein.",
+            "body": "Der Zaun steht in der Datenbank, nicht in der Anwendung. Selbst ein Fehler in unserem Code liefert bei fremden Benchmarks ein leeres Ergebnis, weil die Zeile nie lesbar war.",
+            "rows": {
+              "yours": "Ihre Organisation",
+              "expert": "Zugewiesene Fachperson",
+              "other": "Anderes Unternehmen"
+            },
+            "allowed": "Sichtbar",
+            "denied": "Gesperrt",
+            "rootLabel": "Ihre Sicherheitsdaten"
+          },
+          "record": {
+            "title": "Sie können die Auditfrage beantworten.",
+            "body": "Wohin Ihre Daten gehen und was dort geschieht. Jedes beteiligte Unternehmen ist auf der Datenschutzseite namentlich genannt, erzeugt aus dem laufenden Code — sie kann dem Stack also nicht hinterherhinken.",
+            "regions": {
+              "ch": "Schweiz",
+              "eu": "Europäische Union",
+              "us": "Vereinigte Staaten"
+            },
+            "countLabel": "{count, plural, one {# Anbieter} other {# Anbieter}}",
+            "purposes": {
+              "ch": "Hier liegen Ihr Konto, Ihre Kennzahlen und Ihre Dokumente.",
+              "eu": "Hier laufen Website, E-Mail, Zahlungen und Fehlerüberwachung.",
+              "us": "Nur Recherche und KI-Analyse, auf den öffentlichen Firmeninformationen, die wir abrufen — nie Ihre gespeicherten Kennzahlen."
+            }
+          }
+        }
+      },
       "closing": {
         "title": "Sehen Sie, was Ihr Risiko kostet. Kostenlos.",
         "lead": "Geben Sie Ihren Firmennamen ein. Ihre Zahl in Franken, gemessen an Ihren Peers, in zwei Minuten."
@@ -857,7 +898,7 @@
       },
       "type": {
         "title": "Schrift",
-        "description": "Geist in fünf Rollen (Display, Headline, Subhead, Body, Caption), Geist Mono für Kennungen, Tabellenziffern für Zahlen."
+        "description": "Geist in fünf Rollen (Display, Headline, Subhead, Body, Caption), Geist Mono für Bezeichner, Tabellenziffern für Zahlen, dazu die vier Familien: Heading, Copy, Label, Button."
       },
       "buttons": {
         "title": "Buttons und Badges",
@@ -994,7 +1035,27 @@
       "headline": "Risiko, Innovation, Transformation",
       "subhead": "Senior-Experten auf Abruf",
       "body": "Massgeschneiderte, sachliche Lösungen für Organisationen, die nachhaltig wachsen wollen.",
-      "caption": "EHS-Beratung zum Fixpreis · sme24.ch"
+      "caption": "EHS-Beratung zum Fixpreis · sme24.ch",
+      "headings": "Überschriften",
+      "headingRule": "Führt Seiten und Abschnitte ein. Enge Zeilenhöhe, negative Laufweite; nie für mehr als ein paar Zeilen.",
+      "headingSample": "Überschrift {size}",
+      "headingUsage": "Nur für Überschriften.",
+      "copy": "Fliesstext",
+      "copyRule": "Für mehrzeiligen Text, mit grösserer Zeilenhöhe als Label. Absätze, Marketingtexte, E-Mail-Text.",
+      "copySample": "Fliesstext {size} mit Strong",
+      "copyUsage": "Läuft über mehr als eine Zeile.",
+      "labels": "Label",
+      "labelRule": "Für einzelne Zeilen, mit genug Zeilenhöhe für ein Icon daneben. Navigation, Menüs, Tabellenköpfe, Formularlabels.",
+      "labelSample": "Label {size}",
+      "labelUsage": "Eine Zeile, neben einem Icon.",
+      "buttons": "Schaltflächen",
+      "buttonRule": "Nur in Komponenten, die Schaltflächen rendern. 12 nur für eine kleine Schaltfläche in einem Eingabefeld.",
+      "buttonSample": "Schaltfläche {size}",
+      "buttonUsage": "Beschriftung von Bedienelementen.",
+      "mono": "Mono",
+      "monoRule": "Geist Mono mit Tabellenziffern, eine halbe Stufe unter der Sans-Grösse daneben. Run-IDs, Rechnungsnummern, Beträge.",
+      "monoUsage": "Bezeichner und Zahlen.",
+      "modifiers": "Fliesstext 16 <strong>mit Strong</strong> und <subtle>mit Subtle</subtle>."
     },
     "buttons": {
       "variants": "Varianten",

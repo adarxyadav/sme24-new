@@ -93,7 +93,7 @@ export default async function DirectoryPage({
                 <dt className="eyebrow self-end text-muted-foreground">
                   {t(`figures.${figure.key}.label`)}
                 </dt>
-                <dd className="font-extrabold text-2xl tracking-headline tabular-nums md:text-display-sm">
+                <dd className="font-semibold text-2xl tracking-headline tabular-nums md:text-display-sm">
                   {format.number(figure.value)}
                 </dd>
                 <dd className="max-w-prose text-muted-foreground text-sm">
