@@ -412,6 +412,12 @@ it lands with the milestone that needs it.
 - [ ] Confirm no Swiss representative is needed. The research could not settle from a primary
       source whether domicile is read as legal seat only; SME24 is Swiss domiciled so this looks
       moot, and it is worth one question to the lawyer already reviewing the text.
+- [ ] Widen the deletion scrub to `auth.identities`, or record why not. `identity_data` keeps a
+      copy of the person's email after a fulfilled deletion, and for a Google or Microsoft sign in it
+      also keeps `full_name` and `avatar_url`. AC-15 names exactly three places and this is not one
+      of them, so `/debug` left it alone on 2026-09-09 rather than widening the scope by hand: it is
+      the one remaining copy of the identifying data in `auth`, and it wants a spec decision.
+      Found while fixing the AC-15 metadata defect; see verify.md.
 - [ ] Three cross check findings were considered and deliberately not acted on, recorded so they
       are not raised again as new. The audit trigger's column list does not need `handled_by` and
       `handled_at` added, because the invariant already forces all three columns to move in one
