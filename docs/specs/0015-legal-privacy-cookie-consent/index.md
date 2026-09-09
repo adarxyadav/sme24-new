@@ -390,6 +390,23 @@ it lands with the milestone that needs it.
   browser.
 - The blocking terms dialog is an interruption on a version bump. Bump the version rarely and only
   for changes that genuinely alter the deal.
+- `terms_version` is caller supplied and only shape checked, at both of its write paths, so a
+  determined caller can self assign a version and skip re consent for good. Proven against the
+  local stack on 2026-09-09, both doors:
+  - `handle_new_user` takes the version from `auth.signUp` metadata, so a signed out caller with
+    only the publishable key can sign up with `{ terms_version: "999" }` and the profile stores
+    `999`.
+  - `accept_terms(version)` takes it as an argument, so any signed in user can call the RPC with
+    `888` and the profile stores `888`.
+
+  Because `termsAreCurrent` is strict equality with no upper bound, a version that will never be
+  reached exempts that account from every future re consent dialog. This is the same trust model
+  spec 0005 already accepts for `terms_accepted_at`, and it is accepted here for the same reason:
+  closing it needs the database to know which versions are real, which is a schema decision rather
+  than a code fix. The exposure is bounded: the dialog is a consent record, not an access control,
+  so a person who evades it gains nothing but the absence of a prompt, and the audit trail still
+  shows which version their profile carries. Recorded rather than fixed on 2026-09-09; the follow
+  up below owns the real answer.
 
 **Neutral**:
 
@@ -419,6 +436,15 @@ it lands with the milestone that needs it.
 - [ ] Confirm no Swiss representative is needed. The research could not settle from a primary
       source whether domicile is read as legal seat only; SME24 is Swiss domiciled so this looks
       moot, and it is worth one question to the lawyer already reviewing the text.
+- [ ] Give the database a list of the terms versions that were actually published, so both write
+      paths can reject one that was never issued. Today `handle_new_user` and `accept_terms` each
+      accept any string matching `^[A-Za-z0-9._-]{1,16}$`, which lets a caller self assign a
+      version and skip re consent for good (both doors proven on the local stack 2026-09-09, see
+      Consequences). The likely shape is a small `terms_versions` table seeded with the published
+      versions that both functions check against, which also gives `CURRENT_TERMS_VERSION` a
+      database side counterpart it does not have today. It wants a spec decision rather than a
+      hand fix, because the alternative is duplicating the TypeScript constant in SQL and the
+      drift that invites. Raised by the fresh model review on 2026-09-09.
 - [ ] Widen the deletion scrub to `auth.identities`, or record why not. `identity_data` keeps a
       copy of the person's email after a fulfilled deletion, and for a Google or Microsoft sign in it
       also keeps `full_name` and `avatar_url`. AC-15 names exactly three places and this is not one

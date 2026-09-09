@@ -143,3 +143,31 @@ A first pass on this same diff ran on the author's own model (Opus) because a re
 did not take effect. It returned Approve with nits, no blockers and no majors, and missed the Major
 above. This file is the Sonnet pass that replaced it, which is the cross model read `/check review`
 exists to provide.
+
+## Outcome, 2026-09-09
+
+Worked by `/debug` on the same day the review landed.
+
+- **Major, anonymisation before the concurrency guard**: fixed in `fbc9b81`. The guarded status
+  write now runs first and is the claim, so a caller whose write matches zero rows never reaches
+  `anonymisePerson`; if the scrub then throws, the claim is released back to the status the caller
+  read, which keeps the other half of the promise that no row claims a deletion that did not
+  happen. The audit trigger records the claim and the release both. A regression test was added and
+  proven to fail without the fix (`never anonymises when it loses the race for the row`), and the
+  two existing tests that encoded the old ordering were rewritten to the new contract. No sibling
+  instances: the one comparable guarded write, `orderDeliveryState` in spec 0014, has no side
+  effect before its guard, and `deactivateExpert`'s ban is reversible by design.
+- **Minor, `AnalyticsProvider` untested**: fixed in `ea73a1e`. Eight Vitest tests over the gate's
+  branches: no key, no answer, denied, granted, same tab withdrawal and same tab re acceptance.
+  Both same tab branches are mutation proven, swapping `opt_in_capturing` for a second `init` or
+  dropping the `opt_out_capturing` and `reset` each fail the suite, which is the exact regression
+  this finding named.
+- **Minor, `terms_version` trusted from sign up metadata**: recorded as a known limitation rather
+  than fixed, which is the option this finding offered. Investigation found the hole is wider than
+  reported: `accept_terms(version)` takes the version as an argument with the same shape only
+  check, so a signed in user can self assign one without touching sign up metadata at all. Both
+  doors were proven against the local stack. Closing it properly needs the database to know which
+  versions are real, which is a schema decision rather than a code fix, so it is written up in the
+  spec's Consequences and owned by a new follow up.
+
+The three nits were read and left as they are, in line with the review's own framing of them.
