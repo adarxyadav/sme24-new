@@ -45,6 +45,14 @@ export type BenchmarkSegmentProps = {
    * showing them the form would offer an edit that can only ever fail.
    */
   readonly readOnly?: boolean;
+  /**
+   * The "Your figures" card, rendered inside the `noData` state above the facts form (spec 0010).
+   * `noData` means a snapshot compared zero KPIs, so entering a figure by hand is the remedy the
+   * alert is asking for and the card belongs beside it rather than further down the page. A
+   * caller that has no client KPI form to offer — the expert view, which is `readOnly` — passes
+   * nothing and the state renders as it did before.
+   */
+  readonly figuresSlot?: React.ReactNode;
 };
 
 type Formatter = Awaited<ReturnType<typeof getFormatter>>;
@@ -67,7 +75,8 @@ function formatQuartile(
 /**
  * The benchmark segment of the dashboard (spec 0008, AC-9): the opportunity card, the priority
  * gaps and the per KPI positions read from the newest snapshot, or one of the three waiting
- * states. Server component.
+ * states. The `noData` state also carries the caller's `figuresSlot`, so the client KPI form sits
+ * beside the alert that asks for a figure. Server component.
  */
 export async function BenchmarkSegment({
   snapshot,
@@ -77,6 +86,7 @@ export async function BenchmarkSegment({
   company,
   locale,
   readOnly = false,
+  figuresSlot,
 }: BenchmarkSegmentProps) {
   const t = await getTranslations("benchmark");
   const research = await getTranslations("research.table");
@@ -108,6 +118,7 @@ export async function BenchmarkSegment({
             <InfoIcon aria-hidden="true" />
             <AlertTitle>{t("state.noData")}</AlertTitle>
           </Alert>
+          {readOnly ? null : figuresSlot}
           {readOnly ? null : (
             <Card>
               <CardHeader>

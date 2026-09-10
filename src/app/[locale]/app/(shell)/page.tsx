@@ -141,6 +141,10 @@ export default async function AppPage() {
   const blocked = quota.openRunId ? "open" : quota.remaining <= 0 ? "quota" : null;
   const details = companyDetails(dashboard, t);
   const failed = latestRun?.status === "failed";
+  // `noData` renders the card into the benchmark segment (see `figuresSlot`), so every other
+  // render site on this page stands down: an older snapshot with a failed or still running rerun
+  // reaches this state too, not only a finished one.
+  const figuresInBenchmark = dashboard.benchmarkState === "noData";
   const selfAssessment = (
     <SelfAssessmentSection
       companyId={company.id}
@@ -175,7 +179,7 @@ export default async function AppPage() {
             </CardContent>
           </Card>
         </section>
-        {!finished && !failed ? selfAssessment : null}
+        {!finished && !failed && !figuresInBenchmark ? selfAssessment : null}
 
         {dashboard.benchmark || latestRun?.status === "succeeded" ? (
           <BenchmarkSegment
@@ -189,6 +193,9 @@ export default async function AppPage() {
               employeesCount: company.employees_count,
             }}
             locale={locale}
+            // `noData` is the one state where entering a figure by hand is the fix the alert is
+            // asking for, so the card moves up beside it instead of sitting below the KPI table.
+            figuresSlot={figuresInBenchmark ? selfAssessment : undefined}
           />
         ) : null}
 
@@ -216,7 +223,7 @@ export default async function AppPage() {
             </AlertDescription>
           </Alert>
         ) : null}
-        {failed ? selfAssessment : null}
+        {failed && !figuresInBenchmark ? selfAssessment : null}
 
         {finished ? (
           <section aria-labelledby="kpis-heading" className="flex flex-col gap-4">
@@ -231,7 +238,9 @@ export default async function AppPage() {
             />
           </section>
         ) : null}
-        {finished ? selfAssessment : null}
+        {/* Not when `noData` already rendered it into the benchmark segment above, or the one
+            card would appear twice on the same page. */}
+        {finished && !figuresInBenchmark ? selfAssessment : null}
 
         {latestRun?.status === "empty" || latestRun?.status === "failed" ? (
           <section aria-labelledby="rerun-heading" className="flex flex-col gap-4">
