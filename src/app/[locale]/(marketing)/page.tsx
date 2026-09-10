@@ -13,7 +13,7 @@ import { marketingMetadata } from "@/features/marketing/metadata";
 import { fixedPricePackages } from "@/features/marketing/packages";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
-import { HeroBenchmark } from "@/features/marketing/ui/hero-benchmark";
+import { HeroResearch } from "@/features/marketing/ui/hero-research";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
@@ -84,36 +84,96 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         The hero runs up behind the sticky header (`-mt-16`, the bar's `h-16`, given back as
         padding inside) so the ruled ground reaches the top of the viewport; the unscrolled bar
         is transparent, so the two meet without a seam. The hero sits on the page ground in both
-        themes, white in light and jet in dark, so the bar never has to invert here.
+        themes, white in light and jet in dark, so the bar never has to invert here. The section's
+        `pt-*` therefore reads 4rem short of the space it actually opens above the headline: the
+        first 4rem sits under the bar.
       */}
       <RuledField hero align="center" className="-mt-16">
-        <section className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pt-36 pb-16 text-center sm:px-6 md:pt-44 md:pb-20">
-          <p className="eyebrow text-muted-foreground">{t("eyebrow")}</p>
+        {/*
+          The hero is the page's one quiet block (docs/design.md, tier map: anchor): the statement,
+          one lead, one control, one utility line, and nothing else. There is no eyebrow, because
+          the headline already names the offer and a caps label above it only adds a third type
+          size before the reader reaches the claim.
+        */}
+        <section className="mx-auto flex max-w-5xl flex-col items-center px-4 pt-48 pb-28 text-center sm:px-6 md:pt-60 md:pb-36">
+          {/*
+            The one headline on the site that is a noun phrase rather than a campaign statement
+            (owner decision of 2026-09-10): it names the number the CFO is buying and carries no
+            verb, so it takes no square stop -- `splitSentences` leaves a stopless string bare,
+            which is why the copy ends without a period and must keep ending without one. Adding
+            a full stop back would put a square mid headline.
+
+            `display` and not `display-lg`, on the full `max-w-5xl` measure: German is the longer
+            language here, and at 4.5rem "Franken" drops to a third line while English holds two.
+          */}
           <Statement
             as="h1"
             layout="flow"
             text={t("title")}
-            className="max-w-6xl text-display-sm sm:text-display"
+            // `text-wrap-pretty` overrides the `text-balance` every `Statement` carries: the
+            // balancer equalises the two lines, which on this headline leaves the second line as
+            // long as, or longer than, the first -- the block widens as it falls. Pretty keeps
+            // the first line full and lets the second run short, the shape display type wants,
+            // and it is the one headline long enough for the difference to show.
+            className="text-pretty font-semibold text-display-sm sm:text-display"
           />
-          <p className="max-w-xl text-lg text-muted-foreground">{t("lead")}</p>
+          {/* Held to a narrower measure than the statement, so the lead sits under it as a block
+              rather than running wider than the words it supports. `2xl` and not `xl`, with the
+              balancer off for the same reason as the headline: at `xl` the copy just fills both
+              lines and the second comes out longer than the first, so the block splays as it
+              falls. At this measure the first line runs full and the second sits short in both
+              languages, which is the shape the statement above it already has.
+
+              The balancer stays on below `sm`, though: at a phone measure the copy runs to four
+              lines, and `pretty` there fills three and leaves "fixed price." alone on the fourth.
+              Even lines beat a top heavy block once the block is a paragraph. */}
+          <p className="mt-6 max-w-2xl text-balance text-lg text-muted-foreground sm:text-pretty">
+            {t("lead")}
+          </p>
+          {/* The field is one centred control, not a full width bar: past `max-w-xl` the input
+              stretches away from the button and the pair stops reading as a single object. */}
           <CompanyLookupField
             {...lookup}
             size="hero"
             hideLabel
-            className="mt-4 flex w-full max-w-2xl flex-col gap-2 sm:flex-row"
+            className="mt-10 flex w-full max-w-xl flex-col gap-2 sm:flex-row"
           />
-          <p className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-muted-foreground text-sm">
-            <span>{t("free")}</span>
-            <Link href="/sign-in" className="underline underline-offset-4 hover:text-foreground">
+          {/* Held to the field's own `max-w-xl` measure so the line shares the control's box,
+              and laid out as that control's two columns from `sm`: an empty flexible cell over
+              the input, then the link centred over the button's own column. Centring the link on
+              the whole measure would sit it under the input instead, where it reads as belonging
+              to the field. Below `sm` the form stacks and the button goes full width, so the
+              single centred cell already lands under it. */}
+          <p className="mt-5 grid w-full max-w-xl justify-items-center text-muted-foreground text-sm sm:grid-cols-[1fr_auto] sm:justify-items-stretch">
+            {/* The input's column, mirrored: flexible and empty, so the cell beside it takes the
+                button's own intrinsic width and centres the link inside it. */}
+            <span aria-hidden className="hidden sm:block" />
+            {/* A copy of the button's label at the button's own `xl` size metrics (`px-4`,
+                `text-base`), invisible and zero height, purely to give this grid column the
+                button's exact width so the link centres on it. */}
+            <span
+              className="sm:invisible sm:col-start-2 sm:row-start-1 sm:h-0 sm:px-4 sm:font-medium sm:text-base"
+              aria-hidden
+            >
+              {lookup.cta}
+            </span>
+            <Link
+              href="/sign-in"
+              className="underline underline-offset-4 hover:text-foreground sm:col-start-2 sm:row-start-1 sm:justify-self-center"
+            >
               {t("signIn")}
             </Link>
           </p>
         </section>
       </RuledField>
 
-      {/* The hero object (docs/design.md, hero object): the example benchmark under the statement. */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <HeroBenchmark />
+      {/*
+        The hero object (docs/design.md, hero object): a still of the client area's first screen,
+        under the hero rather than inside it, so the picture of a form never sits beside the real
+        lookup field above. The block is `inert` and announced as one image.
+      */}
+      <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 md:pb-20">
+        <HeroResearch />
       </div>
 
       {/*

@@ -334,8 +334,8 @@
         "statement": "Senior-Experten. Keine Slides. Nur Resultate."
       },
       "eyebrow": "EHS-Beratung zum Fixpreis",
-      "title": "Sehen Sie, was Ihr EHS-Risiko kostet. Und was zuerst zu tun ist.",
-      "lead": "Ein Risikoprofil in Franken, gemessen an Ihren Branchenkollegen, mit einer Shortlist erfahrener Expertinnen und Experten und einem Fixpreis-Angebot — bevor Sie sich festlegen.",
+      "title": "Ihre Bilanz beziffert längst jedes Risiko ausser einem einzigen",
+      "lead": "SME24 beziffert Ihr EHS-Risiko in Franken, vergleicht es mit echten Branchenwerten und schliesst die Lücken zum Fixpreis.",
       "lookup": {
         "label": "Ihr Unternehmen",
         "placeholder": "Name des Unternehmens",
@@ -461,25 +461,8 @@
         "title": "Sehen Sie, was Ihr Risiko kostet. Kostenlos.",
         "lead": "Geben Sie Ihren Firmennamen ein. Ihre Zahl in Franken, gemessen an Ihren Peers, in zwei Minuten."
       },
-      "free": "Kostenlos und ohne Verkaufsgespräch. Ihre Zahl im Vergleich in zwei Minuten.",
-      "example": {
-        "label": "Beispiel-Benchmark für {company}",
-        "company": "Muster AG",
-        "sector": "NOGA C 25, Metallerzeugnisse",
-        "nextStep": "Empfohlener nächster Schritt",
-        "seePackage": "Zum Paket",
-        "peersCertified": "{percent} der Vergleichsfirmen zertifiziert",
-        "kpis": {
-          "ltifr": "LTIFR",
-          "trifr": "TRIFR",
-          "fatalities": "Todesfälle",
-          "lost_days_per_incident": "Ausfalltage pro Unfall",
-          "accident_rate_per_1000_fte": "Unfallrate pro 1 000 Vollzeitstellen",
-          "absenteeism_rate": "Absenzenquote",
-          "near_miss_rate": "Beinahe-Unfälle pro 100 Mitarbeitende",
-          "iso_45001_certified": "ISO 45001 zertifiziert"
-        },
-        "savingUnit": "pro Jahr am Median"
+      "research": {
+        "label": "Ein Vorschaubild des Kundenbereichs: Recherche zu Ihrem Unternehmen"
       }
     },
     "pricing": {
@@ -1301,7 +1284,7 @@
       "sectionTitle": "Erfahrene Experten. Keine Folien.",
       "sectionEyebrow": "So funktioniert es",
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
-      "heroBenchmark": "Hero-Objekt der Startseite: der Beispiel-Benchmark",
+      "heroResearch": "Hero-Objekt der Startseite: Standbild des Kundenbereichs",
       "registerDirectory": "Expertenverzeichnis"
     },
     "expertAvatar": "Expertenbild",
