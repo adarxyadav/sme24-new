@@ -186,7 +186,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         a heading, a lead and a footnote on one number. All three asked a reader two screens into
         the page to stop and study. One sentence with the figure inside it can be read at a glance
         and does the same work, and the methodology it used to footnote already has a whole page
-        (`/how-it-works`), which the link beside it goes to.
+        (`/how-it-works`), reached from the nav rather than from a link hung off this sentence.
 
         The figure is computed by the real model rather than chosen for effect, so the example can
         never contradict what a live benchmark would print for the same company. From
@@ -196,7 +196,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         `indirect_multiplier` of 3.7 -- CHF 595 853. The same arithmetic at the median rate gives
         CHF 447 787, so the gap is CHF 148 066, rounded down to the nearest thousand for display.
         Changing an assumption CSV changes this number, which is why the sentence says "about" and
-        the link carries the detail.
+        `/how-it-works` carries the detail.
       */}
       <section aria-labelledby="example-heading" className="border-b">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16">
@@ -217,13 +217,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
                   {chunks}
                 </span>
               ),
-            })}{" "}
-            <Link
-              href="/how-it-works"
-              className="whitespace-nowrap rounded-xs text-copy-16 underline underline-offset-4 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 md:text-copy-18"
-            >
-              {t("points.sourceCta")}
-            </Link>
+            })}
           </p>
         </div>
       </section>
