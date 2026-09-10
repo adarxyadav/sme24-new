@@ -342,22 +342,28 @@
         "cta": "See what your risk costs"
       },
       "signIn": "Already a client? Sign in",
-      "pointsLabel": "Why SME24",
+      "pointsLabel": "Where the number comes from",
       "points": {
-        "price": {
-          "label": "Price",
-          "figure": "CHF {low, number, integer} to {high, number, integer}.",
-          "note": "Three packages, one fixed price each. Excl. VAT."
+        "heading": "Where the number comes from.",
+        "lead": "Your own published figures, the national accident statistics every Swiss employer is measured by, and a register of senior experts. No proprietary black box.",
+        "disclosures": {
+          "label": "Your figure",
+          "figure": "Your public disclosures",
+          "note": "Annual reports, sustainability and safety reporting, read for what you already publish.",
+          "source": "Public sources"
         },
-        "setup": {
-          "label": "Setup",
-          "figure": "Four steps.",
-          "note": "No kickoff, no slides, no project team."
+        "statistics": {
+          "label": "The comparison",
+          "figure": "Swiss accident statistics",
+          "note": "Recognised occupational accidents per 1 000 full time employees, by industry section.",
+          "source": "Suva, UVG-Statistik",
+          "sourceHint": " (PDF, opens in a new tab)"
         },
-        "start": {
-          "label": "Start",
-          "figure": "The same week.",
-          "note": "Pick the expert, book the visit."
+        "register": {
+          "label": "The fix",
+          "figure": "{count, number, integer} experts",
+          "note": "The SGAS register of senior EHS specialists, searchable by canton and speciality.",
+          "source": "Expert register"
         }
       },
       "how": {

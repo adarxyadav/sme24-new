@@ -342,22 +342,28 @@
         "cta": "Sehen, was Ihr Risiko kostet"
       },
       "signIn": "Schon Kunde? Anmelden",
-      "pointsLabel": "Warum SME24",
+      "pointsLabel": "Woher die Zahl kommt",
       "points": {
-        "price": {
-          "label": "Preis",
-          "figure": "CHF {low, number, integer} bis {high, number, integer}.",
-          "note": "Drei Pakete, je ein Fixpreis. Exkl. MWST."
+        "heading": "Woher die Zahl kommt.",
+        "lead": "Ihre eigenen veröffentlichten Zahlen, die nationale Unfallstatistik, an der jeder Schweizer Arbeitgeber gemessen wird, und ein Register erfahrener Fachleute. Keine Blackbox.",
+        "disclosures": {
+          "label": "Ihre Zahl",
+          "figure": "Ihre öffentlichen Angaben",
+          "note": "Geschäftsberichte, Nachhaltigkeits- und Sicherheitsberichte, gelesen auf das, was Sie bereits veröffentlichen.",
+          "source": "Öffentliche Quellen"
         },
-        "setup": {
-          "label": "Setup",
-          "figure": "Vier Schritte.",
-          "note": "Kein Kickoff, keine Folien, kein Projektteam."
+        "statistics": {
+          "label": "Der Vergleich",
+          "figure": "Schweizer Unfallstatistik",
+          "note": "Anerkannte Berufsunfälle je 1 000 Vollzeitstellen, nach Wirtschaftsabschnitt.",
+          "source": "Suva, UVG-Statistik",
+          "sourceHint": " (PDF, öffnet in einem neuen Tab)"
         },
-        "start": {
-          "label": "Start",
-          "figure": "Dieselbe Woche.",
-          "note": "Expertin wählen, Termin buchen."
+        "register": {
+          "label": "Die Umsetzung",
+          "figure": "{count, number, integer} Fachleute",
+          "note": "Das SGAS-Register erfahrener EHS-Fachleute, durchsuchbar nach Kanton und Fachgebiet.",
+          "source": "Expertenregister"
         }
       },
       "how": {

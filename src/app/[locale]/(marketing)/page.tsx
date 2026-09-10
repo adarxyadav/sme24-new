@@ -10,7 +10,7 @@ import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
-import { fixedPricePackages } from "@/features/marketing/packages";
+import { REGISTER } from "@/features/marketing/register";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
 import { HeroResearch } from "@/features/marketing/ui/hero-research";
@@ -23,8 +23,15 @@ import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
 
-const POINTS = ["price", "setup", "start"] as const;
+/** The three sources the landing page's franc figure is built from, in ledger order. */
+const SOURCES = ["disclosures", "statistics", "register"] as const;
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
+
+/**
+ * The published Swiss accident statistics the peer comparison is seeded from
+ * (`supabase/seed-data/benchmarks.csv` cites the same document on every row).
+ */
+const UVG_STATISTICS_SOURCE = "https://www.unfallstatistik.ch/d/publik/unfstat/pdf/Ts24.pdf";
 
 /**
  * The campaign deck's objects (web sized under `public/campaign/`), in wall order. `grayscale`
@@ -62,10 +69,6 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
     getTranslations("marketing.landing"),
     getTranslations("marketing.landing.meta"),
   ]);
-  const prices = fixedPricePackages().flatMap((entry) =>
-    entry.priceChf === null ? [] : [entry.priceChf],
-  );
-  const priceRange = { low: Math.min(...prices), high: Math.max(...prices) };
   const lookup = {
     locale: resolved,
     label: t("lookup.label"),
@@ -181,37 +184,72 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       </div>
 
       {/*
-        The proof points (docs/design.md, tier map: minor): a ledger, not three cards. Each entry
-        is a caps label, one figure as the statement and a note that adds a fact rather than
-        restating the figure. The price range is read from the package data so it can never
-        drift from the pricing page.
+        Where the number comes from (docs/design.md, tier map: minor). Slot two answers the
+        question the hero's accusation raises -- "a franc figure on safety risk, from where?" --
+        because the two neighbours cannot: the hero object above already shows the product and
+        the steps below already give the mechanism.
+
+        It replaced a price/setup/start ledger on 2026-09-10. Two of that band's three entries
+        were already said on the page ("fixed price" in the hero lead, "Four steps." verbatim the
+        next section's heading), so the band summarised its own neighbours instead of adding
+        anything. Its one new fact, the same week, belongs with the steps.
+
+        Every cell is checkable and names its source. The register count is read from
+        `REGISTER` so it can never drift from the directory page it links to; the comparison
+        names Suva and the UVG-Statistik but deliberately carries no sample size, because the
+        seeded quartiles are derived across the 50 industry classes of Table 1.2 rather than
+        across companies (`supabase/seed-data/benchmarks.csv`, every row still `provisional`).
       */}
-      <section aria-label={t("pointsLabel")} className="border-b">
+      <section aria-labelledby="provenance-heading" className="border-b">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20">
-          {/* Ruled top and bottom, so the ledger reads as one closed figure: the section's own
-              `border-b` is full bleed and sits a band away, so it never closes these columns. */}
-          <dl className="grid divide-y border-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            {POINTS.map((point) => (
-              // The cell is a subgrid of three rows, so a figure that wraps pushes every note down together.
+          <SectionHeader
+            tier="minor"
+            id="provenance-heading"
+            title={t("points.heading")}
+            lead={t("points.lead")}
+            className="mb-10 md:mb-14"
+          />
+          {/* The hairline grid the steps and packages sections use, closed on all four sides by
+              its own `border`: the section's `border-b` is full bleed and sits a band away, so it
+              never closes these columns. */}
+          <dl className="grid gap-px border bg-border sm:grid-cols-3">
+            {SOURCES.map((source) => (
+              // A subgrid of four rows, so a figure that wraps pushes every note and source line
+              // down together and the sources stay on one baseline across the three cells.
               <div
-                key={point}
-                className="grid grid-rows-[auto_auto_auto] gap-3 py-6 sm:row-span-3 sm:grid-rows-subgrid sm:px-6 sm:py-8 sm:first:pl-0 sm:last:pr-0"
+                key={source}
+                className="grid grid-rows-[auto_auto_auto_auto] gap-2.5 bg-background px-6 py-7 sm:row-span-4 sm:grid-rows-subgrid sm:py-8"
               >
-                <dt className="eyebrow self-end text-muted-foreground">
-                  {t(`points.${point}.label`)}
-                </dt>
-                <dd>
-                  <Statement
-                    text={t(`points.${point}.figure`, priceRange)}
-                    // The cell is a third of the container and the longest figure is a range
-                    // ("CHF 2'000 to 10'000"), which does not fit a display size there: at 40px
-                    // it wraps mid range and splits the one number a reader came for. The
-                    // headline size holds it on one line at every width.
-                    className="font-semibold text-2xl tracking-headline tabular-nums xl:text-3xl"
-                  />
+                <dt className="eyebrow text-muted-foreground">{t(`points.${source}.label`)}</dt>
+                {/* The working headline scale, not a display size: a minor's own heading is the
+                    opener above, and three display figures under it would flatten the tier. */}
+                <dd className="text-balance font-semibold text-heading-24">
+                  {t(`points.${source}.figure`, { count: REGISTER.length })}
                 </dd>
-                <dd className="max-w-prose text-muted-foreground text-sm">
-                  {t(`points.${point}.note`)}
+                <dd className="text-copy-14 text-muted-foreground">{t(`points.${source}.note`)}</dd>
+                <dd className="eyebrow self-end text-muted-foreground">
+                  {source === "register" ? (
+                    <Link
+                      href="/expert-network/directory"
+                      className="underline underline-offset-4 hover:text-foreground"
+                    >
+                      {t(`points.${source}.source`)}
+                    </Link>
+                  ) : source === "statistics" ? (
+                    // The one link on the page that leaves the site, and it opens a PDF: named
+                    // as such for a screen reader, since the visible label is the publication.
+                    <a
+                      href={UVG_STATISTICS_SOURCE}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-4 hover:text-foreground"
+                    >
+                      <span translate="no">{t(`points.${source}.source`)}</span>
+                      <span className="sr-only">{t("points.statistics.sourceHint")}</span>
+                    </a>
+                  ) : (
+                    t(`points.${source}.source`)
+                  )}
                 </dd>
               </div>
             ))}
