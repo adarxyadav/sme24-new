@@ -1049,6 +1049,7 @@
       "withIcon": "Mit Symbol",
       "badges": "Status Badges",
       "levels": "Schweregrad Badges",
+      "accents": "Akzente",
       "disabled": "Deaktiviert",
       "create": "Erstellen",
       "export": "Exportieren",
@@ -1079,7 +1080,8 @@
         "critical": "Kritisch",
         "high": "Hoch",
         "medium": "Mittel",
-        "low": "Niedrig"
+        "low": "Niedrig",
+        "brand-accent": "Der Ablauf"
       }
     },
     "forms": {

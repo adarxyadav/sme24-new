@@ -19,6 +19,9 @@ const badgeVariants = cva(
         success: "bg-success-subtle text-success",
         warning: "bg-warning-subtle text-warning",
         info: "bg-info-subtle text-info",
+        // The one decorative hue (docs/design.md, rule 3). It labels a section; it never reports
+        // a state, which is what keeps it out of the status vocabulary above it.
+        "brand-accent": "bg-brand-accent-subtle text-brand-accent",
         critical: "bg-severity-critical-subtle text-severity-critical",
         high: "bg-severity-high-subtle text-severity-high",
         medium: "bg-severity-medium-subtle text-severity-medium",

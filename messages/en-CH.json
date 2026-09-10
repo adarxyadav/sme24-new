@@ -1049,6 +1049,7 @@
       "withIcon": "With icon",
       "badges": "Status badges",
       "levels": "Severity badges",
+      "accents": "Accents",
       "disabled": "Disabled",
       "create": "Create",
       "export": "Export",
@@ -1079,7 +1080,8 @@
         "critical": "Critical",
         "high": "High",
         "medium": "Medium",
-        "low": "Low"
+        "low": "Low",
+        "brand-accent": "The process"
       }
     },
     "forms": {

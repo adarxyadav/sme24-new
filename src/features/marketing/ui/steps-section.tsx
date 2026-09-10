@@ -153,10 +153,22 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                     data-active="true"
                     className="group flex scroll-mt-28 flex-col gap-4 border-border border-b py-6 lg:border-b-0 lg:py-0"
                   >
-                    <div className="flex items-center gap-4 lg:gap-5">
+                    <div className="relative flex items-center gap-4 lg:gap-0">
+                      {/*
+                        The open step's marker, against the frame's left border rather than beside
+                        the label (owner reference, 2026-09-10). `-ml-10` pulls it back through the
+                        column's own `pl-10`, so it lands on the panel edge and the labels keep
+                        their measure -- the reference hangs it in the margin, where it reads as
+                        the frame marking its place rather than as a bullet before a word.
+
+                        It carries the brand accent, the one decorative hue (docs/design.md, rule
+                        3): the marker and the eyebrow pill are the same voice, and colour is not
+                        the only carrier here -- the open label also goes to full foreground while
+                        the rest stay muted.
+                      */}
                       <span
                         aria-hidden="true"
-                        className="hidden h-6 w-px shrink-0 bg-transparent transition-colors duration-300 group-data-[active=true]:bg-foreground lg:block"
+                        className="-ml-8 hidden h-6 w-0.5 shrink-0 bg-transparent transition-colors duration-300 group-data-[active=true]:bg-brand-accent lg:absolute lg:block"
                       />
                       {/*
                       The label at body scale, not display: four of them are stacked and the

@@ -51,6 +51,8 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-info-subtle: var(--info-subtle);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-accent-subtle: var(--brand-accent-subtle);
   --color-severity-critical: var(--severity-critical);
   --color-severity-critical-foreground: var(--severity-critical-foreground);
   --color-severity-critical-subtle: var(--severity-critical-subtle);
@@ -345,6 +347,18 @@
   --info: oklch(0.52 0.12 250);
   --info-foreground: oklch(0.99 0 0);
   --info-subtle: color-mix(in oklch, var(--info) 12%, var(--background));
+
+  /*
+    The brand accent (owner decision, 2026-09-10). The one decorative hue on the marketing site:
+    it labels a section, it never reports a state. It is deliberately its own token rather than a
+    reuse of `--info`, which is the Notice status and has to keep meaning exactly that -- a
+    decorative pill borrowing it would spend the status vocabulary on ornament, and the next real
+    Notice on a marketing page would read as another label.
+
+    Same family as `--info` and a shade deeper, so the two are siblings rather than a near miss.
+  */
+  --brand-accent: oklch(0.48 0.13 250);
+  --brand-accent-subtle: color-mix(in oklch, var(--brand-accent) 12%, var(--background));
   --severity-critical: oklch(0.5 0.22 27);
   --severity-critical-foreground: oklch(0.99 0 0);
   --severity-critical-subtle: color-mix(in oklch, var(--severity-critical) 12%, var(--background));
@@ -407,6 +421,10 @@
   --info: oklch(0.76 0.11 250);
   --info-foreground: oklch(0.16 0 0);
   --info-subtle: color-mix(in oklch, var(--info) 12%, var(--background));
+
+  /* The brand accent, lifted for the jet ground the way every other hue is in this block. */
+  --brand-accent: oklch(0.78 0.12 250);
+  --brand-accent-subtle: color-mix(in oklch, var(--brand-accent) 12%, var(--background));
   --severity-critical: oklch(0.7 0.19 22);
   --severity-critical-foreground: oklch(0.16 0 0);
   --severity-critical-subtle: color-mix(in oklch, var(--severity-critical) 12%, var(--background));
