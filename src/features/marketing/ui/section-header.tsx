@@ -73,15 +73,17 @@ export function SectionHeader({
     and nothing sits beside it. It stacks like an anchor rather than splitting like a major,
     because there is no second column left to split into.
 
-    The pill takes `secondary` -- the neutral ground already in the palette. The reference sets a
-    blue label on a light blue pill, which `docs/design.md` rule 3 forbids outright ("No accent
-    hue", the brand is black and white), so the shape is borrowed and the hue is not.
+    The pill takes the brand accent (owner decision, 2026-09-10, amending rule 3). It was
+    `secondary` until then, on the reading that rule 3 forbade the reference's blue outright; the
+    rule now carries a named exception for one decorative hue, so the shape and the hue are both
+    borrowed. It is `--brand-accent`, not `--info`: the pill labels a section and never reports a
+    state, and the Notice status has to keep meaning exactly that.
   */
   if (emphasis) {
     return (
       <div className={cn("flex flex-col items-start gap-5", className)}>
         {eyebrow ? (
-          <Badge variant="secondary" className="eyebrow h-auto px-2.5 py-1 text-muted-foreground">
+          <Badge variant="brand-accent" className="eyebrow h-auto px-2.5 py-1">
             {eyebrow}
           </Badge>
         ) : null}
@@ -107,7 +109,7 @@ export function SectionHeader({
         className={cn("grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-10", className)}
       >
         <div className="flex flex-col gap-3">
-          {eyebrow ? <p className="eyebrow text-muted-foreground">{eyebrow}</p> : null}
+          {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
           {heading}
         </div>
         {lead ? <p className="max-w-prose self-end text-lg text-muted-foreground">{lead}</p> : null}
@@ -117,7 +119,7 @@ export function SectionHeader({
 
   return (
     <div className={cn("flex flex-col gap-6", className)}>
-      {eyebrow ? <p className="eyebrow text-muted-foreground">{eyebrow}</p> : null}
+      {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
       {heading}
       {lead ? <p className="max-w-prose text-lg text-muted-foreground">{lead}</p> : null}
     </div>

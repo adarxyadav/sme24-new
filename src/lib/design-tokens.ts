@@ -44,6 +44,15 @@ export const SEVERITY_TOKENS = [
 /** Every token with the `x`, `x-foreground`, `x-subtle` shape. */
 export const SEMANTIC_FILLS = [...STATUS_TOKENS, ...SEVERITY_TOKENS] as const;
 
+/**
+ * The brand accent (owner decision, 2026-09-10): the one decorative hue, on section eyebrows and
+ * the emphasis pill. It is not a `SEMANTIC_FILL` and deliberately has no `-foreground`, because it
+ * is never a fill with text on it -- only a text colour, bare on a ground or on its own subtle
+ * tint. Keeping it out of `STATUS_TOKENS` is the point: the status vocabulary reports state and
+ * this one only labels, so `--info` stays free to mean Notice.
+ */
+export const BRAND_ACCENT_TOKENS = ["brand-accent"] as const;
+
 /** Text tokens that must read on every page ground. */
 const TEXT_ON_GROUNDS = ["foreground", "muted-foreground", "primary"] as const;
 
@@ -93,6 +102,10 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   ...SURFACE_PAIRS.map(([foreground, background]) => text(foreground, background)),
   ...SEMANTIC_FILLS.flatMap((token) => [
     text(`${token}-foreground`, token),
+    text(token, `${token}-subtle`),
+    ...GROUNDS.map((ground) => text(token, ground)),
+  ]),
+  ...BRAND_ACCENT_TOKENS.flatMap((token) => [
     text(token, `${token}-subtle`),
     ...GROUNDS.map((ground) => text(token, ground)),
   ]),

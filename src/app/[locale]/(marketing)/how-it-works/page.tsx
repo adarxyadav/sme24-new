@@ -49,7 +49,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
           url: absoluteUrl("/how-it-works", resolved),
           inLanguage: resolved,
           steps: STEPS.map((step) => ({
-            name: t(`steps.items.${step}.title`),
+            name: t(`steps.items.${step}.label`),
             text: t(`steps.items.${step}.body`),
           })),
         })}
@@ -67,13 +67,30 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
         </div>
       </section>
 
+      {/*
+        The panel takes its own eyebrow and title here rather than the shared `steps.eyebrow` and
+        `steps.title` the landing page uses (2026-09-10). Those say "The process / What happens, in
+        order. Four steps, from the name to the report on your desk." -- which is the right opener
+        on the landing page, where the section has to announce the process to a reader meeting it
+        for the first time, and the wrong one here, where the `h1` 487px above already said "Four
+        steps. One report." and the lead under it already said what the four steps do. The reader
+        met "four steps" twice inside one screen and the second heading carried no news.
+
+        The panel's job on this page is to start the sequence, not to announce it: a line about
+        where the sequence goes rather than a restatement of how many parts it has.
+      */}
       <StepsSection
-        eyebrow={t("steps.eyebrow")}
-        title={t("steps.title")}
+        eyebrow={t("steps.panel.eyebrow")}
+        title={t("steps.panel.title")}
+        // The same four stills the landing page carries: the two steps with a real screen are
+        // drawn from that screen's own components, the two without take campaign photography
+        // (`StepVisual`). The keys are the same four, so one step is pictured the same way on
+        // both pages rather than the section arriving here as type only.
         steps={STEPS.map((step) => ({
           key: step,
-          title: t(`steps.items.${step}.title`),
+          label: t(`steps.items.${step}.label`),
           body: t(`steps.items.${step}.body`),
+          visual: step,
         }))}
       />
 

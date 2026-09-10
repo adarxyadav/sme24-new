@@ -102,24 +102,29 @@
       "lead": "Keine Discovery-Phase, kein Scoping-Workshop. Sie nennen uns die Firma; wir sagen Ihnen, wo Sie stehen und was zuerst zu tun ist.",
       "steps": {
         "eyebrow": "Der Ablauf",
-        "title": "Was passiert, der Reihe nach.",
+        "title": "Was passiert, der Reihe nach. Vier Schritte, vom Namen bis zum Bericht.",
         "items": {
           "lookup": {
-            "title": "Sie nennen die Firma.",
-            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse, damit nichts zweimal gefragt wird."
+            "label": "Sie nennen die Firma",
+            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse."
           },
           "benchmark": {
-            "title": "Wir vergleichen sie.",
-            "body": "Öffentliche Angaben und Zahlen vergleichbarer Schweizer Firmen ergeben eine erste Einordnung. Kostenlos, bevor jemand vorbeikommt."
+            "label": "Wir vergleichen",
+            "body": "Eine erste Einordnung gegenüber vergleichbaren Schweizer Firmen. Kostenlos, bevor jemand vorbeikommt."
           },
           "package": {
-            "title": "Sie wählen das Paket.",
-            "body": "Der Preis steht auf der Seite, und er gilt. Zeigt der Benchmark, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere."
+            "label": "Sie wählen das Paket",
+            "body": "Der Preis steht auf der Seite und das ist der Preis. Weniger nötig als gedacht? Nehmen Sie das kleinere."
           },
           "expert": {
-            "title": "Ein Senior kommt vorbei.",
-            "body": "Wer durch Ihren Betrieb geht, schreibt auch den Bericht. Diese Leute haben jahrzehntelang Arbeitssicherheit in der Industrie verantwortet."
+            "label": "Ein Experte kommt",
+            "body": "Wer Ihren Betrieb begeht, schreibt den Bericht. Er hat jahrzehntelang Sicherheit in der Industrie verantwortet."
           }
+        },
+        "navLabel": "Die vier Schritte",
+        "panel": {
+          "eyebrow": "Schritt für Schritt",
+          "title": "Es beginnt mit einem Namen und endet auf Ihrem Schreibtisch."
         }
       },
       "split": {
@@ -348,24 +353,18 @@
         "sentence": "Ein Metallbaubetrieb im Aargau mit 120 Mitarbeitenden gibt <figure>rund CHF 148 000 pro Jahr</figure> für Unfälle aus, die sein Medianwettbewerber nicht hat."
       },
       "how": {
-        "eyebrow": "So funktioniert es",
-        "title": "Vier Schritte. Kein Kickoff.",
-        "steps": {
+        "visual": {
           "lookup": {
-            "title": "Unternehmen suchen.",
-            "body": "Name eingeben. Wir recherchieren öffentliche Angaben im Hintergrund."
+            "alt": "Das Bild zum Schritt"
           },
           "benchmark": {
-            "title": "Benchmark in CHF sehen.",
-            "body": "Ihr Risikoprofil im Vergleich zu Ihren Peers, und was Unfälle Sie pro Jahr kosten."
+            "alt": "Das Bild zum Schritt"
           },
           "package": {
-            "title": "Paket wählen.",
-            "body": "Drei Fixpreise. Oder der Retainer, im Gespräch."
+            "alt": "Das Bild zum Schritt"
           },
           "expert": {
-            "title": "Experte vor Ort.",
-            "body": "Ein Senior-Experte, in derselben Woche. Bericht, Massnahmen, erledigt."
+            "alt": "Das Bild zum Schritt"
           }
         }
       },
@@ -1054,6 +1053,7 @@
       "withIcon": "Mit Symbol",
       "badges": "Status Badges",
       "levels": "Schweregrad Badges",
+      "accents": "Akzente",
       "disabled": "Deaktiviert",
       "create": "Erstellen",
       "export": "Exportieren",
@@ -1084,7 +1084,8 @@
         "critical": "Kritisch",
         "high": "Hoch",
         "medium": "Mittel",
-        "low": "Niedrig"
+        "low": "Niedrig",
+        "brand-accent": "Der Ablauf"
       }
     },
     "forms": {

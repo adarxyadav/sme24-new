@@ -139,22 +139,59 @@ describe("CompanyLookupField (spec 0009, AC-5)", () => {
 });
 
 describe("StepsSection (spec 0009, AC-5)", () => {
-  it("renders an ordered list of numbered steps under one h2", () => {
+  const steps = [
+    { key: "a", label: "Look up your company", body: "Type the name. We do the rest." },
+    {
+      key: "b",
+      label: "See it in francs",
+      body: "Your risk against your peers. Before anyone visits.",
+    },
+  ];
+
+  it("names every step in the left column, under one h2", () => {
     renderIn(
       "en-CH",
-      <StepsSection
-        eyebrow="How it works"
-        title="Four steps. No kickoff."
-        steps={[
-          { key: "a", title: "Look up.", body: "A" },
-          { key: "b", title: "Benchmark.", body: "B" },
-        ]}
-      />,
+      <StepsSection eyebrow="How it works" title="Four steps. No kickoff." steps={steps} />,
     );
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Four steps");
+    // One list, and it is the ordered one: the order and the count reach a screen reader from the
+    // markup, which is what let the visible ordinals go.
     expect(screen.getByRole("list").tagName).toBe("OL");
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
-    expect(screen.getByText("01")).toBeInTheDocument();
+    // The label is the whole of the left column (owner decision of 2026-09-10, matching the
+    // reference): every step is named at every moment, so the reader can see the whole path.
+    for (const step of steps) {
+      expect(document.querySelector(`[data-step="${step.key}"]`)).toHaveTextContent(step.label);
+    }
+  });
+
+  it("states each step once and carries no visible ordinal", () => {
+    renderIn(
+      "en-CH",
+      <StepsSection eyebrow="How it works" title="Four steps. No kickoff." steps={steps} />,
+    );
+    // The rail and the passage were two components naming the same step, so they are one row now.
+    expect(screen.queryByRole("navigation")).toBeNull();
+    const first = document.querySelector('[data-step="a"]');
+    // No "01": the number was the second name a step carried, and the ordered list already counts.
+    expect(first).not.toHaveTextContent("01");
+    expect(first).toHaveTextContent("Look up your company");
+    // Open from the server, so the steps read as a plain column without JavaScript.
+    expect(first).toHaveAttribute("data-active", "true");
+  });
+
+  it("puts the step's sentence opposite the label, with its claim lit", () => {
+    renderIn(
+      "en-CH",
+      <StepsSection eyebrow="How it works" title="Four steps. No kickoff." steps={steps} />,
+    );
+    // The desktop column carries the same sentence the row does below `lg`; exactly one of the two
+    // is ever displayed, so nothing is announced twice.
+    const visual = document.querySelector('[data-step-visual="a"]');
+    expect(visual).toHaveTextContent("Type the name");
+    expect(visual).toHaveAttribute("data-active", "true");
+    // Two tone: the opening sentence keeps the heading colour, the rest drops to muted.
+    const muted = visual?.querySelectorAll(".text-muted-foreground") ?? [];
+    expect(muted.length).toBeGreaterThan(0);
   });
 });
 

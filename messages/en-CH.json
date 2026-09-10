@@ -102,24 +102,29 @@
       "lead": "No discovery phase, no scoping workshop. You give us the company name; we come back with where you stand and what to fix first.",
       "steps": {
         "eyebrow": "The process",
-        "title": "What happens, in order.",
+        "title": "What happens, in order. Four steps, from the name to the report on your desk.",
         "items": {
           "lookup": {
-            "title": "You name the company.",
-            "body": "One field on the landing page. We find the public record, the industry and the size band, so nothing is asked twice."
+            "label": "You name the company",
+            "body": "One field on the landing page. We find the public record, the industry and the size band."
           },
           "benchmark": {
-            "title": "We benchmark it.",
-            "body": "Public disclosures and peer figures give you a first read against comparable Swiss companies. Free, before anyone visits."
+            "label": "We benchmark it",
+            "body": "A first read against comparable Swiss companies. Free, before anyone visits."
           },
           "package": {
-            "title": "You pick the package.",
-            "body": "The price is on the page and it is the price. If the benchmark shows you need less than you thought, take the smaller one."
+            "label": "You pick the package",
+            "body": "The price is on the page and it is the price. Need less than you thought? Take the smaller one."
           },
           "expert": {
-            "title": "A senior expert visits.",
-            "body": "The person who walks your site is the person who writes the report. They have run safety in industry for decades."
+            "label": "A senior expert visits",
+            "body": "The person who walks your site writes the report. They have run safety in industry for decades."
           }
+        },
+        "navLabel": "The four steps",
+        "panel": {
+          "eyebrow": "Step by step",
+          "title": "It starts with a name and ends on your desk."
         }
       },
       "split": {
@@ -348,24 +353,18 @@
         "sentence": "A 120 person metal fabricator in Aargau is spending <figure>about CHF 148 000 a year</figure> on accidents its median competitor does not have."
       },
       "how": {
-        "eyebrow": "How it works",
-        "title": "Four steps. No kickoff.",
-        "steps": {
+        "visual": {
           "lookup": {
-            "title": "Look up your company.",
-            "body": "Type the name. We research public disclosures in the background."
+            "alt": "The step's picture"
           },
           "benchmark": {
-            "title": "See your benchmark in CHF.",
-            "body": "Your risk profile against your peers, and what incidents cost you a year."
+            "alt": "The step's picture"
           },
           "package": {
-            "title": "Pick a package.",
-            "body": "Three fixed prices. Or the retainer, by conversation."
+            "alt": "The step's picture"
           },
           "expert": {
-            "title": "Expert on site.",
-            "body": "A senior expert, the same week. Report, actions, done."
+            "alt": "The step's picture"
           }
         }
       },
@@ -1054,6 +1053,7 @@
       "withIcon": "With icon",
       "badges": "Status badges",
       "levels": "Severity badges",
+      "accents": "Accents",
       "disabled": "Disabled",
       "create": "Create",
       "export": "Export",
@@ -1084,7 +1084,8 @@
         "critical": "Critical",
         "high": "High",
         "medium": "Medium",
-        "low": "Low"
+        "low": "Low",
+        "brand-accent": "The process"
       }
     },
     "forms": {

@@ -17,6 +17,14 @@ const BADGE_VARIANTS = [
 ] as const;
 const LEVELS = ["critical", "high", "medium", "low"] as const;
 
+/**
+ * The brand accent, in its own row rather than among the status badges above (owner decision,
+ * 2026-09-10). The separation is the decision: everything in `BADGE_VARIANTS` reports a state and
+ * this one only labels a section, so showing them in one row would teach exactly the confusion the
+ * separate token exists to prevent.
+ */
+const ACCENTS = ["brand-accent"] as const;
+
 /** Every button variant and size, the icon forms, and every badge variant (AC-6). Server. */
 export function ButtonsSection() {
   const t = useTranslations("gallery.buttons");
@@ -61,6 +69,13 @@ export function ButtonsSection() {
         {LEVELS.map((level) => (
           <Badge key={level} variant={level}>
             {t(`badge.${level}`)}
+          </Badge>
+        ))}
+      </Example>
+      <Example label={t("accents")}>
+        {ACCENTS.map((accent) => (
+          <Badge key={accent} variant={accent}>
+            {t(`badge.${accent}`)}
           </Badge>
         ))}
       </Example>
