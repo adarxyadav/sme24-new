@@ -107,13 +107,21 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
               the frame's own inner division, so it runs edge to edge of the panel and stops there.
             */}
             <div className="w-full shrink-0 px-4 pt-16 pb-10 sm:px-6 md:pt-28 lg:border-b lg:px-10 lg:pt-8 lg:pb-8">
+              {/*
+                Display scale below `lg`, where the head opens a page-width column and has the
+                room to. Inside the frame it drops to headline scale: the panel is one viewport
+                tall and everything in it competes for that height, so a two sentence statement at
+                `text-display` took roughly two fifths of the frame and pushed the still it is
+                introducing under the fold. The head labels the panel; the step's own sentence
+                opposite is the line that carries the section.
+              */}
               <SectionHeader
                 tier="major"
                 id="steps-heading"
                 eyebrow={eyebrow}
                 title={title}
                 emphasis={{ leadSentences: 1 }}
-                className="**:data-[slot=statement]:text-display-sm **:data-[slot=statement]:md:text-display"
+                className="**:data-[slot=statement]:text-display-sm **:data-[slot=statement]:md:text-display **:data-[slot=statement]:lg:text-3xl **:data-[slot=statement]:lg:leading-tight"
               />
             </div>
             {/*
@@ -156,7 +164,17 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                       inactive ones drop to the faded ground the reference uses, which is what
                       makes the column read as a path rather than as four equal links.
                     */}
-                      <span className="text-lg text-muted-foreground/50 transition-colors duration-300 group-data-[active=true]:text-foreground lg:text-xl">
+                      {/*
+                        The closed labels run on the muted token itself, not on a fraction of it.
+                        `muted-foreground` is `oklch(0.5)` in light and already sits close to the
+                        AA floor on the panel's ground, so the `/50` this carried until 2026-09-10
+                        halved it to roughly `oklch(0.75)` and put three of the four steps under
+                        3:1 -- a path the reader cannot read is not a path. The open step is still
+                        told apart from the closed ones, by the full foreground colour and the
+                        hairline marker beside it, which is contrast enough without pushing the
+                        others out of sight.
+                      */}
+                      <span className="text-lg text-muted-foreground transition-colors duration-300 group-data-[active=true]:text-foreground lg:text-xl">
                         {step.label}
                       </span>
                     </div>

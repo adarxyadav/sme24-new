@@ -49,7 +49,12 @@ export async function StepVisual({ step, className }: StepVisualProps) {
         // The reserved ground: the muted token rather than a hand mixed grey, so it follows the
         // palette in both themes (docs/design.md). `min-h-80` keeps the frame a picture's shape
         // on a short viewport, where the panel has little height to give it.
-        "h-full min-h-80 w-full bg-muted",
+        //
+        // `border-t` is the rule every real still carried, kept here for the same reason: without
+        // it the grey meets the sentence above with no edge, and a ground change alone reads as
+        // the panel discolouring rather than as a picture beginning. It is the placeholder's one
+        // piece of drawing, and it is the piece that says "something belongs here".
+        "h-full min-h-80 w-full border-t bg-muted",
         className,
       )}
     />
