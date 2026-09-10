@@ -1,3 +1,4 @@
+import { CheckIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Statement } from "@/components/brand/statement";
@@ -103,10 +104,26 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
                   text={column.title}
                   className="font-semibold text-xl tracking-headline"
                 />
-                <ul className="flex flex-col gap-3">
+                {/*
+                  Marked, not bare. Three grey sentences stacked on their own read as a paragraph
+                  that lost its leading, so the panel showed no sign of being a list of three
+                  things -- the one item list on the site without a marker, directly under the
+                  steps grid where every cell is numbered. The marker is the checked list from
+                  `PackageCard`, unchanged: these are contents of the engagement (what each side
+                  brings) exactly as the included points are contents of a package, so the same
+                  content takes the same shape rather than a second one.
+                */}
+                <ul className="flex flex-col gap-2.5">
                   {column.items.map((item) => (
-                    <li key={item.key} className="max-w-prose text-muted-foreground text-sm">
-                      {item.text}
+                    <li
+                      key={item.key}
+                      className="flex max-w-prose items-start gap-2 text-muted-foreground text-sm"
+                    >
+                      <CheckIcon
+                        aria-hidden="true"
+                        className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+                      />
+                      <span className="min-w-0">{item.text}</span>
                     </li>
                   ))}
                 </ul>
