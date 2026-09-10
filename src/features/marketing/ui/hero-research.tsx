@@ -1,21 +1,27 @@
 import { ClockIcon, SearchIcon, ShieldCheckIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { ProgressList } from "@/components/ui/progress-list";
+import { FactsCard } from "@/features/marketing/ui/facts-card";
 import { RUN_LIMIT_PER_DAY, RUN_STEPS } from "@/features/research/catalogue";
 import { cn } from "@/lib/utils";
 
-/** The company name shown in the still. Illustrative, never a customer. */
-const EXAMPLE_COMPANY = "Muster AG";
+/**
+ * The step the still is caught on: two searches done, the extraction running. The third of five,
+ * so the picture reads as a run underway rather than one about to start or about to finish.
+ */
+const RUNNING_INDEX = 2;
 
 /**
- * The landing hero's object: a still of the client area's first screen, drawn from that screen's
- * own `Card`, `Field`, `Input` and `ProgressList` and its own `research.lookup.*` strings, so the
- * page shows the product rather than describing it and the picture cannot drift from the screen
- * it pictures.
+ * The landing hero's object: a still of the client area -- the `FactsCard` beside the panel that
+ * says what a research run does, both drawn from the product's own components and its own strings,
+ * so the page shows the product rather than describing it and the picture cannot drift from the
+ * screens it pictures.
+
+ * The card was the `LookupCard` until 2026-09-10 (owner decision). That still pictured the same
+ * screen the hero's own live lookup field already is, so the hero asked for a company name twice,
+ * once for real and once in a photograph. The facts card pictures what happens after the name is
+ * in: the reader corrects what the research found. The lookup card is still the steps section's
+ * first step, where it illustrates that step rather than doubling a live control.
  *
  * The whole block is `inert`, so nothing inside it takes focus, answers a click or reaches the
  * tab order, and it is hidden from assistive tech behind one `img` role whose `aria-label` says
@@ -35,48 +41,26 @@ export function HeroResearch({ className }: { readonly className?: string }) {
       aria-label={m("label")}
       className={cn("grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]", className)}
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("lookup.title")}</CardTitle>
-          <CardDescription>{t("lookup.description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col gap-6">
-            <FieldGroup>
-              <Field>
-                <FieldLabel>{t("lookup.name")}</FieldLabel>
-                {/* `readOnly` and not `disabled`: the still should show the field at its resting
-                    contrast, the way the real one looks before it is touched. */}
-                <Input readOnly tabIndex={-1} value={EXAMPLE_COMPANY} />
-              </Field>
-              <Field>
-                <FieldLabel>{t("lookup.website")}</FieldLabel>
-                <Input
-                  readOnly
-                  tabIndex={-1}
-                  value=""
-                  placeholder={t("lookup.websitePlaceholder")}
-                />
-                <FieldDescription>{t("lookup.websiteHint")}</FieldDescription>
-              </Field>
-            </FieldGroup>
-            <Button size="lg" tabIndex={-1}>
-              {t("lookup.submit")}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <FactsCard />
 
       <section className="flex flex-col gap-6 rounded-lg border p-6">
         <div className="flex flex-col gap-2">
           <p className="font-semibold text-lg">{t("lookup.nextTitle")}</p>
           <p className="max-w-prose text-muted-foreground text-sm">{t("lookup.nextBody")}</p>
         </div>
+        {/*
+          Caught mid run rather than all pending: a list of five identical empty rings pictures a
+          run that has not started, which is the one moment of this screen that shows nothing
+          happening. Two done, one spinning and the rest waiting is what the reader would actually
+          see, and it is the gallery's own `running` state (`/admin/design`) rather than a shape
+          invented here. The index is fixed, so the still never animates through the sequence --
+          only the current ring spins, and `ProgressList` already drops that under reduced motion.
+        */}
         <ProgressList
-          items={RUN_STEPS.map((step) => ({
+          items={RUN_STEPS.map((step, index) => ({
             id: step,
             label: t(`steps.${step}`),
-            state: "pending" as const,
+            state: index < RUNNING_INDEX ? "done" : index === RUNNING_INDEX ? "current" : "pending",
           }))}
         />
         <ul className="flex flex-col gap-2 text-muted-foreground text-sm">

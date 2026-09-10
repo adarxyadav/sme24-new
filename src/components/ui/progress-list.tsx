@@ -49,7 +49,9 @@ export function ProgressList({ items, stepLabel, className, ...props }: Progress
                 aria-hidden="true"
                 className={cn(
                   "absolute top-6 bottom-0 left-2.5 w-px",
-                  item.state === "done" ? "bg-foreground" : "bg-border",
+                  // The connector follows the disc it leaves, so a run reads as one green thread
+                  // growing down the list rather than as green discs strung on a jet line.
+                  item.state === "done" ? "bg-success" : "bg-border",
                 )}
               />
             )}
@@ -57,7 +59,12 @@ export function ProgressList({ items, stepLabel, className, ...props }: Progress
               aria-hidden="true"
               className={cn(
                 "relative z-10 flex size-5 shrink-0 items-center justify-center rounded-full border",
-                item.state === "done" && "border-foreground bg-foreground text-background",
+                // Done is the one state here that reports an outcome rather than a position, so it
+                // takes the status hue the palette already has for exactly that (`--success`, the
+                // token the trust band's allowed rows use). It is not decoration: `docs/design.md`
+                // rule 3 keeps status colours for status, and this is one. The check mark inside
+                // stays, so colour is never the only carrier of "this step finished".
+                item.state === "done" && "border-success bg-success text-success-foreground",
                 item.state === "current" && "border-foreground bg-background text-foreground",
                 item.state === "pending" && "border-border bg-background text-muted-foreground",
                 item.state === "failed" &&
