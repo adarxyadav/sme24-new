@@ -334,8 +334,8 @@
         "statement": "Senior experts. No slides. Just results."
       },
       "eyebrow": "Fixed-price EHS consulting",
-      "title": "See what your EHS risk costs. Then fix what matters most.",
-      "lead": "A risk profile priced in francs, measured against your peers, with a ranked shortlist of senior experts and a fixed-price proposal — before you commit.",
+      "title": "Your balance sheet already prices every risk but this one",
+      "lead": "SME24 puts a franc figure on your safety and environmental risk, benchmarks it against real peers, and closes the gaps at a fixed price.",
       "lookup": {
         "label": "Your company",
         "placeholder": "Company name",
@@ -461,25 +461,8 @@
         "title": "See what your risk costs. Free.",
         "lead": "Type your company name. Your figure in francs, measured against your peers, in two minutes."
       },
-      "free": "Free, and no sales call. Your figure against your peers in two minutes.",
-      "example": {
-        "label": "Example benchmark for {company}",
-        "company": "Muster AG",
-        "sector": "NOGA C 25, metal products",
-        "nextStep": "Recommended next step",
-        "seePackage": "See the package",
-        "peersCertified": "{percent} of peers certified",
-        "kpis": {
-          "ltifr": "LTIFR",
-          "trifr": "TRIFR",
-          "fatalities": "Fatalities",
-          "lost_days_per_incident": "Lost days per incident",
-          "accident_rate_per_1000_fte": "Accident rate per 1 000 FTE",
-          "absenteeism_rate": "Absenteeism rate",
-          "near_miss_rate": "Near misses per 100 employees",
-          "iso_45001_certified": "ISO 45001 certified"
-        },
-        "savingUnit": "per year at the median"
+      "research": {
+        "label": "A preview of the client area: research your company"
       }
     },
     "pricing": {
@@ -1301,7 +1284,7 @@
       "sectionTitle": "Senior experts. No slides.",
       "sectionEyebrow": "How it works",
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
-      "heroBenchmark": "Landing hero object: the example benchmark",
+      "heroResearch": "Landing hero object: the client area still",
       "registerDirectory": "Expert directory"
     },
     "expertAvatar": "Expert avatar",
