@@ -596,6 +596,11 @@
       "eyebrow": "Contact",
       "title": "Talk to a person. Not to a form.",
       "lead": "For the retainer, a question about a package, or anything else: write to us or use the form. A senior expert answers within one working day.",
+      "reach": {
+        "eyebrow": "Two ways",
+        "title": "Write to us directly, or send the form.",
+        "lead": "The form reaches the same inbox and tells us what you need before we answer, so the first reply is an answer rather than a question back."
+      },
       "facts": {
         "heading": "Reach us",
         "email": "Email",

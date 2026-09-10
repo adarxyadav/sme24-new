@@ -596,6 +596,11 @@
       "eyebrow": "Kontakt",
       "title": "Reden Sie mit einem Menschen. Nicht mit einem Formular.",
       "lead": "Für den Retainer, eine Frage zu einem Paket oder alles andere: Schreiben Sie uns oder nutzen Sie das Formular. Ein Senior-Experte antwortet innerhalb eines Arbeitstags.",
+      "reach": {
+        "eyebrow": "Zwei Wege",
+        "title": "Schreiben Sie direkt oder senden Sie das Formular.",
+        "lead": "Das Formular landet im selben Postfach und sagt uns vorab, worum es geht, damit die erste Antwort eine Antwort ist und keine Rückfrage."
+      },
       "facts": {
         "heading": "So erreichen Sie uns",
         "email": "E-Mail",
