@@ -93,6 +93,42 @@ describe("the waiting states (AC-9)", () => {
     expect(container.querySelector("[data-facts-form]")).toBeInTheDocument();
     expect(container.querySelector("[data-opportunity-card]")).not.toBeInTheDocument();
   });
+
+  it("renders the caller's figures slot above the facts form in noData (spec 0010)", async () => {
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot({ kpisCompared: 0 }),
+      state: "noData",
+      figuresSlot: <div data-test-figures>Your figures</div>,
+    });
+    const slot = container.querySelector("[data-test-figures]");
+    const form = container.querySelector("[data-facts-form]");
+    expect(slot).toBeInTheDocument();
+    expect(form).toBeInTheDocument();
+    // The figures come first: entering a KPI is the fix the alert asks for, correcting the
+    // industry is the fallback.
+    expect(slot?.compareDocumentPosition(form as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+
+  it("withholds the figures slot from a read only reader (spec 0013, AC-11)", async () => {
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot({ kpisCompared: 0 }),
+      state: "noData",
+      readOnly: true,
+      figuresSlot: <div data-test-figures>Your figures</div>,
+    });
+    expect(screen.getByText(b.state.noData)).toBeInTheDocument();
+    expect(container.querySelector("[data-test-figures]")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-facts-form]")).not.toBeInTheDocument();
+  });
+
+  it("renders noData unchanged when the caller passes no slot", async () => {
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot({ kpisCompared: 0 }),
+      state: "noData",
+    });
+    expect(container.querySelector("[data-test-figures]")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-facts-form]")).toBeInTheDocument();
+  });
 });
 
 describe("the opportunity card (AC-9, AC-14)", () => {
