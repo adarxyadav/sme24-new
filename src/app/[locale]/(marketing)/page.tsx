@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import {
-  CampaignFrame,
-  CampaignImage,
-  CampaignPiece,
-  CampaignWall,
-} from "@/components/brand/campaign";
 import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
+import { Button } from "@/components/ui/button";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
+import { ExpertsSection } from "@/features/marketing/ui/experts-section";
+import { Faq } from "@/features/marketing/ui/faq";
 import { HeroResearch } from "@/features/marketing/ui/hero-research";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
@@ -25,18 +23,18 @@ import { resolveLocale } from "@/i18n/routing";
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
 
 /**
- * The campaign deck's objects (web sized under `public/campaign/`), in wall order. `grayscale`
- * carries the imagery rule (docs/design.md, Brand): photographs of people and places are black
- * and white, cut out objects keep their colour.
+ * The picture opposite the cost argument: a walkthrough on an industrial site. It is a photograph
+ * of people, so it runs black and white (docs/design.md, Brand).
  */
-const WALL = [
-  { key: "teamevent", src: "/campaign/teamevent.jpg", grayscale: false },
-  { key: "firmenwagen", src: "/campaign/firmenwagen.webp", grayscale: false },
-  { key: "dresscode", src: "/campaign/dresscode.jpg", grayscale: false },
-  { key: "jahresbonus", src: "/campaign/jahresbonus.webp", grayscale: true },
-  { key: "noCosmetics", src: "/campaign/graue-haare.jpg", grayscale: true },
-  { key: "noOverhead", src: "/campaign/keine-haare.jpg", grayscale: true },
-] as const;
+const EXAMPLE_IMAGE = "/campaign/walkthrough.png";
+
+/**
+ * The landing FAQ, in the order a first time reader asks them: what this is, where the numbers
+ * come from, whether the free part is really free, how long it takes, who turns up, what it costs.
+ * They are the landing page's own questions, not the pricing page's four (`marketing.pricing.faq`,
+ * VAT and cancellation), which answer a buyer already at the checkout.
+ */
+const FAQ = ["what", "figures", "free", "duration", "experts", "price"] as const;
 
 /** Title, description, alternates and social fields of the landing page (spec 0009, AC-1, AC-2). */
 export async function generateMetadata({
@@ -48,8 +46,8 @@ export async function generateMetadata({
 
 /**
  * The landing page (spec 0009, AC-5), top to bottom: the hero with the lookup field, the worked
- * example, how it works, the packages overview, the campaign wall, the trust band and the
- * closing call to action with the same field. Prerendered in both languages; the `WebSite` structured data sits
+ * example, how it works, the packages overview, the example expert profiles, the trust band,
+ * the FAQ and the closing call to action with the same field. Prerendered in both languages; the `WebSite` structured data sits
  * next to the layout's `Organization`.
  */
 export default async function LandingPage({ params }: PageProps<"/[locale]">) {
@@ -204,27 +202,61 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         Changing an assumption CSV changes this number, which is why the sentence says "about" and
         `/how-it-works` carries the detail.
       */}
+      {/*
+        The one piece of proof on the page before the mechanism is explained, and the page's answer
+        to the question the hero raises: the reader has just been offered a figure, so this says
+        what the figure is made of and what one looks like (owner reference, 2026-09-10).
+
+        It was one sentence running the page width until then, which is what made a load bearing
+        claim read as a caption. The split is the argument on the left and the worked example on
+        the right, so the prose and the number are read as one exchange rather than as a paragraph
+        with a figure buried in it.
+
+        Every driver named is one the model actually charges for. The cost is direct claims times
+        the ILO/NSC indirect multiplier (`supabase/seed-data/benchmark-assumptions.csv`), and the
+        indirect share is exactly the lost days, cover, disruption and administration listed here --
+        so the chips name the parts of the arithmetic rather than advertising lines the product
+        does not compute. Regulatory penalties and insurance premium impact are deliberately absent
+        for that reason: the model does not price them, so the page must not imply it does.
+      */}
       <section aria-labelledby="example-heading">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16">
-          {/* The band's accessible name, and the only heading it has: visually hidden, because a
-              minor's opener would reinstate the stack this pass removed, while the landmark still
-              owes a name (docs/design.md, accessibility). */}
-          <h2 id="example-heading" className="sr-only">
-            {t("points.heading")}
-          </h2>
-          {/* One sentence, at a size between the body copy around it and a display figure, with
-              the number set in the foreground colour so the eye lands on it first and reads
-              outward. `tabular-nums` per docs/design.md, type rules; `whitespace-nowrap` so the
-              figure never breaks across lines. */}
-          <p className="max-w-5xl text-pretty text-copy-18 text-muted-foreground leading-snug md:text-2xl">
-            {t.rich("points.sentence", {
-              figure: (chunks) => (
-                <span className="whitespace-nowrap font-semibold text-foreground text-xl tabular-nums md:text-3xl">
-                  {chunks}
-                </span>
-              ),
-            })}
-          </p>
+        <div className="mx-auto grid max-w-6xl items-start gap-10 px-4 py-16 sm:px-6 md:py-24 lg:grid-cols-2 lg:gap-16">
+          <div className="flex flex-col items-start gap-6">
+            <p className="eyebrow text-brand-accent">{t("points.eyebrow")}</p>
+            <Statement
+              as="h2"
+              id="example-heading"
+              text={t("points.title")}
+              layout="flow"
+              className="text-balance text-2xl leading-tight md:text-3xl"
+            />
+            <p className="max-w-prose text-muted-foreground leading-relaxed">{t("points.body")}</p>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/how-it-works">{t("points.cta")}</Link>
+            </Button>
+          </div>
+
+          {/*
+            The site walkthrough, opposite the argument (owner decision, 2026-09-10). A figure card
+            stood here until then, which put the page's franc figure in two places -- this card and
+            the benchmark step's own still -- and made the section an assertion answered by a
+            restatement of itself. The photograph answers the prose instead: the copy says an
+            accident costs more than the claim, and the picture is the walkthrough that finds what
+            the claim missed.
+
+            Grayscale per the brand's imagery rule (docs/design.md, Brand): photographs of people
+            and places are black and white, so the colour original is desaturated here rather than
+            a second file being checked in. The source is 16:9 and is shown at its own ratio, so
+            nothing is cropped off the three people the picture is of.
+          */}
+          <Image
+            src={EXAMPLE_IMAGE}
+            alt={t("points.imageAlt")}
+            width={1920}
+            height={1080}
+            sizes="(min-width: 1024px) 34rem, 100vw"
+            className="w-full grayscale"
+          />
         </div>
       </section>
 
@@ -255,51 +287,68 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
             eyebrow={t("packages.eyebrow")}
             title={t("packages.title")}
             emphasis={{ leadSentences: 2 }}
+            // A step under the tier's display scale, matching the steps and experts heads: the
+            // three emphasis headings on this page are one voice, and at `display` this one opened
+            // three sentences of display type over the cards it introduces.
+            className="**:data-[slot=statement]:text-2xl **:data-[slot=statement]:leading-tight **:data-[slot=statement]:md:text-3xl"
           />
           <PackagesGrid variant="overview" />
         </div>
       </section>
 
-      <section aria-labelledby="wall-heading">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-24">
-          <div className="flex flex-col gap-3">
-            <p className="eyebrow text-muted-foreground">{t("wall.eyebrow")}</p>
-            <Statement
-              as="h2"
-              id="wall-heading"
-              text={t("wall.title")}
-              className="text-display-sm md:text-display"
-            />
-          </div>
-          <CampaignWall>
-            {WALL.map((item, index) => (
-              <CampaignPiece
-                key={item.key}
-                statement={t(`wall.items.${item.key}.statement`)}
-                signature={false}
-                as="h3"
-              >
-                <CampaignFrame className="max-w-xs">
-                  <CampaignImage
-                    src={item.src}
-                    alt={t(`wall.items.${item.key}.alt`)}
-                    grayscale={item.grayscale}
-                    sizes="(min-width: 640px) 20rem, 80vw"
-                    loading={index === 0 ? "lazy" : undefined}
-                  />
-                </CampaignFrame>
-              </CampaignPiece>
-            ))}
-          </CampaignWall>
-        </div>
-      </section>
+      {/*
+        The experts come straight after the packages (owner decision, 2026-09-10): the reader has
+        just seen what a visit costs, and the next question a price raises is who is coming for it.
+        The profiles are examples and say so on every card -- see `ExpertsSection`.
+      */}
+      <ExpertsSection />
 
       <TrustSection />
 
-      <ClosingCta title={t("closing.title")} lead={t("closing.lead")}>
-        {/* An anchor tier like the hero, so the field carries the hero's weight; its label stays
-            visible because the closing has no field heading of its own. */}
-        <CompanyLookupField {...lookup} size="hero" inverse />
+      {/*
+        The FAQ sits after the trust band and before the closing call to action (owner decision,
+        2026-09-10): it is the last of the reader's objections, answered where they are raised --
+        after the argument is made and the data handling is settled, immediately before the page
+        asks for the company name a second time.
+
+        The two column split is the pricing page's own FAQ arrangement, so a reader who meets both
+        meets one shape. `minor` is the tier: the questions are the section, and a display sized
+        heading over an accordion would announce a list the reader is already looking at.
+      */}
+      <section aria-labelledby="faq-heading">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+          <SectionHeader
+            tier="minor"
+            id="faq-heading"
+            title={t("faq.title")}
+            className="border-0 pt-0"
+          />
+          <Faq
+            items={FAQ.map((item) => ({
+              id: item,
+              question: t(`faq.items.${item}.question`),
+              answer: t(`faq.items.${item}.answer`),
+            }))}
+          />
+        </div>
+      </section>
+
+      <ClosingCta title={t("closing.title")} lead={t("closing.lead")} centered>
+        {/* An anchor tier like the hero, so the field carries the hero's weight. The label is
+            hidden here, unlike the left aligned closing on the inner pages: the block is centred,
+            and a left aligned label above a centred control is the one part that would not line up
+            with anything. The placeholder and the button already say what the field is, and the
+            label is still there for a screen reader.
+
+            The same `max-w-xl` the hero's field takes, so the page's two lookup controls are one
+            object seen twice rather than two differently sized forms. */}
+        <CompanyLookupField
+          {...lookup}
+          size="hero"
+          inverse
+          hideLabel
+          className="flex w-full max-w-xl flex-col gap-2 sm:flex-row"
+        />
       </ClosingCta>
     </>
   );

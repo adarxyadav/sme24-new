@@ -349,8 +349,12 @@
       "signIn": "Schon Kunde? Anmelden",
       "pointsLabel": "Woher die Zahl kommt",
       "points": {
-        "heading": "Was ein Benchmark zeigt",
-        "sentence": "Ein Metallbaubetrieb im Aargau mit 120 Mitarbeitenden gibt <figure>rund CHF 148 000 pro Jahr</figure> für Unfälle aus, die sein Medianwettbewerber nicht hat."
+        "heading": "Was ein Vergleich zeigt",
+        "eyebrow": "Die Zahl",
+        "title": "Machen Sie aus Sicherheitsrisiko eine Zahl, die Ihr CFO kennt.",
+        "body": "Ein Unfall kostet mehr als den Schadenfall. Ausfalltage, Stellvertretung, Einarbeitung, Betriebsunterbruch und die Administration danach fallen alle im selben Geschäftsjahr an — und keine davon steht auf der Versicherungsabrechnung.",
+        "cta": "Sehen, was Ihr Risiko kostet",
+        "imageAlt": "Drei Sicherheitsfachleute in Helmen und Warnjacken im Gespräch bei einer Begehung in einem Industriebetrieb"
       },
       "how": {
         "visual": {
@@ -366,6 +370,17 @@
           "expert": {
             "alt": "Das Bild zum Schritt"
           }
+        },
+        "benchmarkCard": {
+          "title": "Kostenlücke bei Unfällen",
+          "description": "Gegenüber Ihrer Grössenklasse und Branche",
+          "action": "Quellen",
+          "figure": "CHF 148 000",
+          "unit": "pro Jahr",
+          "progressLabel": "Ihre Unfallrate gegenüber dem Median der Vergleichsgruppe",
+          "you": "Sie",
+          "peer": "Median",
+          "footer": "Aus öffentlichen UVG-Zahlen. Zu jedem Wert ist die Quelle ausgewiesen."
         }
       },
       "packages": {
@@ -399,6 +414,29 @@
           "noOverhead": {
             "statement": "Kein Overhead.",
             "alt": "Experte mit Glatze im dunklen Anzug, lächelnd"
+          }
+        }
+      },
+      "experts": {
+        "eyebrow": "Die Menschen",
+        "title": "Wer tatsächlich vorbeikommt. Eine erfahrene Fachperson aus der Schweizer Industrie, keine Junior-Kraft mit Checkliste.",
+        "listLabel": "Beispielprofile von Fachpersonen",
+        "experienceLabel": "Erfahrung",
+        "standardsLabel": "Normen",
+        "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
+        "viewProfile": "Profil ansehen",
+        "profiles": {
+          "manufacturing": {
+            "name": "M. Muster",
+            "experience": "22 Jahre, ASA-Spezialist"
+          },
+          "construction": {
+            "name": "A. Beispiel",
+            "experience": "18 Jahre, Sicherheitsleitung Bau"
+          },
+          "chemical": {
+            "name": "R. Muster",
+            "experience": "25 Jahre, EHS-Leitung"
           }
         }
       },
@@ -440,6 +478,35 @@
               "eu": "Hier laufen Website, E-Mail, Zahlungen und Fehlerüberwachung.",
               "us": "Nur Recherche und KI-Analyse, auf den öffentlichen Firmeninformationen, die wir abrufen — nie Ihre gespeicherten Kennzahlen."
             }
+          }
+        }
+      },
+      "faq": {
+        "title": "Fragen.",
+        "items": {
+          "what": {
+            "question": "Was macht SME24 genau?",
+            "answer": "Wir vergleichen Ihre Sicherheitskennzahlen mit vergleichbaren Schweizer Unternehmen, beziffern die Lücke in Franken und schicken eine erfahrene Fachperson zu Ihnen vor Ort. Der Vergleich ist kostenlos, der Besuch ist ein Paket zum Festpreis."
+          },
+          "figures": {
+            "question": "Woher stammen die Vergleichszahlen?",
+            "answer": "Aus öffentlichen Schweizer Quellen — der UVG-Unfallstatistik nach Branchenabschnitt und Grössenklasse sowie den veröffentlichten Berichten vergleichbarer Unternehmen. Zu jedem Wert nennen wir die Quelle."
+          },
+          "free": {
+            "question": "Ist der Vergleich wirklich kostenlos?",
+            "answer": "Ja. Sie nennen Ihr Unternehmen, wir recherchieren den öffentlichen Datenbestand und zeigen Ihnen, wo Sie stehen — bevor jemand vorbeikommt und bevor Sie etwas bezahlen."
+          },
+          "duration": {
+            "question": "Wie lange dauert der Vergleich?",
+            "answer": "Wenige Minuten. Die Recherche durchsucht Nachhaltigkeits-, Geschäfts- und Sicherheitsberichte, entnimmt die Kennzahlen der letzten drei Berichtsjahre und prüft jeden Wert gegen seine Quelle."
+          },
+          "experts": {
+            "question": "Wer sind die Fachpersonen?",
+            "answer": "Erfahrene EHS-Fachleute, die seit Jahrzehnten Sicherheit in der Schweizer Industrie verantworten. Wer bei Ihnen vor Ort ist, schreibt auch den Bericht — es gibt keine Übergabe an Junior-Kräfte."
+          },
+          "price": {
+            "question": "Was kostet ein Paket?",
+            "answer": "Ab CHF 2 000 exklusive MwSt., und der Preis auf der Seite ist der Preis, den Sie zahlen. Zeigt der Besuch, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere Paket."
           }
         }
       },
