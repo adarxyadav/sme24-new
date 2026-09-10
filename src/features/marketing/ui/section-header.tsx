@@ -52,6 +52,10 @@ export function SectionHeader({
       layout={emphasis ? "flow" : "line"}
       leadSentences={emphasis?.leadSentences}
       className={cn(
+        // The page opener carries the ceiling weight (600), so the one h1 on a marketing page
+        // sits heavier than the h2 section headings that follow it, which keep the display
+        // tokens' own 450. Owner decision of 2026-09-10.
+        as === "h1" && "font-semibold",
         tier === "anchor" && "max-w-4xl text-display-sm md:text-display-lg",
         tier === "major" && "text-display-sm md:text-display",
         tier === "minor" && "font-semibold text-2xl tracking-headline md:text-display-sm",
