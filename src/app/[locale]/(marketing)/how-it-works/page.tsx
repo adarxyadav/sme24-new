@@ -55,7 +55,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
         })}
       />
 
-      <section className="border-b">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
           <SectionHeader
             tier="anchor"
@@ -77,7 +77,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
         }))}
       />
 
-      <section aria-labelledby="split-heading" className="border-b">
+      <section aria-labelledby="split-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
           <SectionHeader
             tier="major"
@@ -133,7 +133,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
         </div>
       </section>
 
-      <section aria-labelledby="timing-heading" className="border-b">
+      <section aria-labelledby="timing-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
           <SectionHeader
             tier="minor"

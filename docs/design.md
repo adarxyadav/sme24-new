@@ -150,7 +150,7 @@ The opener follows from the tier, so there is nothing extra to decide per sectio
 |---|---|
 | Anchor | Stacked and left aligned: eyebrow, `Statement`, lead paragraph, `gap-6`. |
 | Major | Split: eyebrow and `Statement` in the left column, the lead in the right (`lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]`). The lead is optional; without one the heading spans. |
-| Minor | Inline, no eyebrow: a hairline above the band, heading and lead on one row (`md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]`), wrapping to two rows below `md`. |
+| Minor | Inline, no eyebrow: heading and lead on one row (`md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]`), wrapping to two rows below `md`. |
 
 `SectionHeader` in `src/features/marketing/ui/` renders all three from a `tier` prop; a page composes it rather than hand rolling the markup. A section that is deliberately different (the campaign wall, the packages grid) may still open with its own markup, but it picks one of the three shapes.
 

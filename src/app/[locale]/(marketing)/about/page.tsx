@@ -54,7 +54,7 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
         })}
       />
 
-      <section className="border-b">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
           <SectionHeader
             tier="anchor"
@@ -71,7 +71,7 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
         opener splits out, so the heading spans and they stack under it; the hand rolled
         two column grid the section used to draw is what `SectionHeader` owns now.
       */}
-      <section aria-labelledby="story-heading" className="border-b">
+      <section aria-labelledby="story-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
           <SectionHeader tier="major" id="story-heading" title={t("story.title")} />
           <div className="flex max-w-prose flex-col gap-6">
@@ -86,7 +86,7 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
 
       {/* The page's one ruled ground: the campaign grid is the section that turns the argument. */}
       <RuledField>
-        <section aria-label={t("grid.label")} className="border-b">
+        <section aria-label={t("grid.label")}>
           <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-28">
             <CampaignPiece statement={t("grid.statement")} as="p">
               <CampaignGrid columns={3}>
@@ -119,7 +119,7 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
         </section>
       </RuledField>
 
-      <section aria-labelledby="how-heading" className="border-b">
+      <section aria-labelledby="how-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
           <SectionHeader tier="minor" id="how-heading" title={t("how.title")} />
           <ul className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-4">

@@ -49,7 +49,7 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
           inLanguage: resolved,
         })}
       />
-      <section className="border-b">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
           <SectionHeader
             tier="anchor"
@@ -68,7 +68,7 @@ export default async function ContactPage({ params }: PageProps<"/[locale]/conta
         section this page exists for arriving with nothing said about it, and made contact the
         last page still off its own row in the tier map.
       */}
-      <section aria-labelledby="reach-heading" className="border-b">
+      <section aria-labelledby="reach-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
           <SectionHeader
             tier="major"

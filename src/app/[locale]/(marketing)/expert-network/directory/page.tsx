@@ -70,7 +70,7 @@ export default async function DirectoryPage({
         })}
       />
 
-      <section className="border-b">
+      <section>
         <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-24 sm:px-6 md:py-40">
           <SectionHeader
             tier="anchor"
@@ -105,7 +105,7 @@ export default async function DirectoryPage({
         </div>
       </section>
 
-      <section aria-labelledby="coverage-heading" className="border-b">
+      <section aria-labelledby="coverage-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
           <SectionHeader
             tier="major"
@@ -130,7 +130,7 @@ export default async function DirectoryPage({
         </div>
       </section>
 
-      <section aria-labelledby="register-heading" className="border-b">
+      <section aria-labelledby="register-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
           <SectionHeader
             tier="major"

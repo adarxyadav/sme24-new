@@ -93,10 +93,7 @@ export function SectionHeader({
   if (tier === "minor") {
     return (
       <div
-        className={cn(
-          "grid gap-4 border-t pt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-10",
-          className,
-        )}
+        className={cn("grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-10", className)}
       >
         {heading}
         {lead ? <p className="max-w-prose text-muted-foreground">{lead}</p> : null}

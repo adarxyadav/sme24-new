@@ -157,7 +157,7 @@ export function TrustSection() {
   return (
     <section
       aria-labelledby="trust-heading"
-      className="dark relative border-b bg-background text-foreground"
+      className="dark relative bg-background text-foreground"
     >
       {/*
           The ground: a soft radial lift from the centre, so the band reads as a lit surface
