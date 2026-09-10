@@ -342,23 +342,10 @@
         "cta": "Sehen, was Ihr Risiko kostet"
       },
       "signIn": "Schon Kunde? Anmelden",
-      "pointsLabel": "Warum SME24",
+      "pointsLabel": "Woher die Zahl kommt",
       "points": {
-        "price": {
-          "label": "Preis",
-          "figure": "CHF {low, number, integer} bis {high, number, integer}.",
-          "note": "Drei Pakete, je ein Fixpreis. Exkl. MWST."
-        },
-        "setup": {
-          "label": "Setup",
-          "figure": "Vier Schritte.",
-          "note": "Kein Kickoff, keine Folien, kein Projektteam."
-        },
-        "start": {
-          "label": "Start",
-          "figure": "Dieselbe Woche.",
-          "note": "Expertin wählen, Termin buchen."
-        }
+        "heading": "Was ein Benchmark zeigt",
+        "sentence": "Ein Metallbaubetrieb im Aargau mit 120 Mitarbeitenden gibt <figure>rund CHF 148 000 pro Jahr</figure> für Unfälle aus, die sein Medianwettbewerber nicht hat."
       },
       "how": {
         "eyebrow": "So funktioniert es",

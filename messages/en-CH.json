@@ -342,23 +342,10 @@
         "cta": "See what your risk costs"
       },
       "signIn": "Already a client? Sign in",
-      "pointsLabel": "Why SME24",
+      "pointsLabel": "Where the number comes from",
       "points": {
-        "price": {
-          "label": "Price",
-          "figure": "CHF {low, number, integer} to {high, number, integer}.",
-          "note": "Three packages, one fixed price each. Excl. VAT."
-        },
-        "setup": {
-          "label": "Setup",
-          "figure": "Four steps.",
-          "note": "No kickoff, no slides, no project team."
-        },
-        "start": {
-          "label": "Start",
-          "figure": "The same week.",
-          "note": "Pick the expert, book the visit."
-        }
+        "heading": "What a benchmark shows",
+        "sentence": "A 120 person metal fabricator in Aargau is spending <figure>about CHF 148 000 a year</figure> on accidents its median competitor does not have."
       },
       "how": {
         "eyebrow": "How it works",

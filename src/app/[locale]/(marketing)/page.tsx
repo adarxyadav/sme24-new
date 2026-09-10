@@ -10,7 +10,6 @@ import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
-import { fixedPricePackages } from "@/features/marketing/packages";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
 import { HeroResearch } from "@/features/marketing/ui/hero-research";
@@ -23,7 +22,6 @@ import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
 
-const POINTS = ["price", "setup", "start"] as const;
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
 
 /**
@@ -49,8 +47,8 @@ export async function generateMetadata({
 }
 
 /**
- * The landing page (spec 0009, AC-5), top to bottom: the hero with the lookup field, the three
- * proof points, how it works, the packages overview, the campaign wall, the trust band and the
+ * The landing page (spec 0009, AC-5), top to bottom: the hero with the lookup field, the worked
+ * example, how it works, the packages overview, the campaign wall, the trust band and the
  * closing call to action with the same field. Prerendered in both languages; the `WebSite` structured data sits
  * next to the layout's `Organization`.
  */
@@ -62,10 +60,6 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
     getTranslations("marketing.landing"),
     getTranslations("marketing.landing.meta"),
   ]);
-  const prices = fixedPricePackages().flatMap((entry) =>
-    entry.priceChf === null ? [] : [entry.priceChf],
-  );
-  const priceRange = { low: Math.min(...prices), high: Math.max(...prices) };
   const lookup = {
     locale: resolved,
     label: t("lookup.label"),
@@ -181,41 +175,50 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       </div>
 
       {/*
-        The proof points (docs/design.md, tier map: minor): a ledger, not three cards. Each entry
-        is a caps label, one figure as the statement and a note that adds a fact rather than
-        restating the figure. The price range is read from the package data so it can never
-        drift from the pricing page.
+        The bridge between the hero and the steps (docs/design.md, tier map: minor). It exists to
+        show one result before the mechanism is explained, because the reader has just seen the
+        product (the hero object above) and is about to be told the four steps below without ever
+        having been shown an outcome. Ingredients do not sell a dish.
+
+        Why it carries no heading, no lead and no footnote: this is a passage, not a destination.
+        The band that stood here until 2026-09-10 listed three data sources; the ledger that
+        replaced it printed three figures in three boxed cells; the version after that still spent
+        a heading, a lead and a footnote on one number. All three asked a reader two screens into
+        the page to stop and study. One sentence with the figure inside it can be read at a glance
+        and does the same work, and the methodology it used to footnote already has a whole page
+        (`/how-it-works`), reached from the nav rather than from a link hung off this sentence.
+
+        The figure is computed by the real model rather than chosen for effect, so the example can
+        never contradict what a live benchmark would print for the same company. From
+        `supabase/seed-data/`: UVG section C carries p75 66.4 and median 49.9 accidents per 1 000
+        FTE; at 120 FTE that is 7.97 accidents a year, each costing
+        `direct_cost_per_case_chf` 4811 + 14 lost days x 1100 = CHF 20 211, times the middle
+        `indirect_multiplier` of 3.7 -- CHF 595 853. The same arithmetic at the median rate gives
+        CHF 447 787, so the gap is CHF 148 066, rounded down to the nearest thousand for display.
+        Changing an assumption CSV changes this number, which is why the sentence says "about" and
+        `/how-it-works` carries the detail.
       */}
-      <section aria-label={t("pointsLabel")} className="border-b">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20">
-          {/* Ruled top and bottom, so the ledger reads as one closed figure: the section's own
-              `border-b` is full bleed and sits a band away, so it never closes these columns. */}
-          <dl className="grid divide-y border-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            {POINTS.map((point) => (
-              // The cell is a subgrid of three rows, so a figure that wraps pushes every note down together.
-              <div
-                key={point}
-                className="grid grid-rows-[auto_auto_auto] gap-3 py-6 sm:row-span-3 sm:grid-rows-subgrid sm:px-6 sm:py-8 sm:first:pl-0 sm:last:pr-0"
-              >
-                <dt className="eyebrow self-end text-muted-foreground">
-                  {t(`points.${point}.label`)}
-                </dt>
-                <dd>
-                  <Statement
-                    text={t(`points.${point}.figure`, priceRange)}
-                    // The cell is a third of the container and the longest figure is a range
-                    // ("CHF 2'000 to 10'000"), which does not fit a display size there: at 40px
-                    // it wraps mid range and splits the one number a reader came for. The
-                    // headline size holds it on one line at every width.
-                    className="font-semibold text-2xl tracking-headline tabular-nums xl:text-3xl"
-                  />
-                </dd>
-                <dd className="max-w-prose text-muted-foreground text-sm">
-                  {t(`points.${point}.note`)}
-                </dd>
-              </div>
-            ))}
-          </dl>
+      <section aria-labelledby="example-heading" className="border-b">
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16">
+          {/* The band's accessible name, and the only heading it has: visually hidden, because a
+              minor's opener would reinstate the stack this pass removed, while the landmark still
+              owes a name (docs/design.md, accessibility). */}
+          <h2 id="example-heading" className="sr-only">
+            {t("points.heading")}
+          </h2>
+          {/* One sentence, at a size between the body copy around it and a display figure, with
+              the number set in the foreground colour so the eye lands on it first and reads
+              outward. `tabular-nums` per docs/design.md, type rules; `whitespace-nowrap` so the
+              figure never breaks across lines. */}
+          <p className="max-w-5xl text-pretty text-copy-18 text-muted-foreground leading-snug md:text-2xl">
+            {t.rich("points.sentence", {
+              figure: (chunks) => (
+                <span className="whitespace-nowrap font-semibold text-foreground text-xl tabular-nums md:text-3xl">
+                  {chunks}
+                </span>
+              ),
+            })}
+          </p>
         </div>
       </section>
 
