@@ -139,7 +139,7 @@ Ground is chosen independently of the tier, and jet stays rare so it keeps meani
 | Ground | Markup | Rule |
 |---|---|---|
 | White | (default) | Every section that is not one of the two below. |
-| Ruled | `RuledField` | The one section per page that turns the argument (the steps on the landing page, the vetting ladder on the expert network). At most one per page, never adjacent to another non white ground. |
+| Ruled | `RuledField` | The one section per page that turns the argument (the vetting ladder on the expert network, the campaign grid on about). At most one per page, never adjacent to another non white ground. The landing hero keeps its own `hero` field; the steps came off the ruled ground on 2026-09-10, see `### The steps rail`. |
 | Jet | `className="dark bg-background text-foreground"` | The page opener when it is a hero, and the closing call to action. Structural bookends, never mid page. A jet opener also carries `hero` on its `RuledField` and its route joins `DARK_HERO_ROUTES` so the header holds its inversion. |
 
 ### Openers
@@ -160,9 +160,13 @@ One band is deliberately openerless: the landing page's worked figure, the passa
 
 `StepsSection` (both the landing page and how it works) sets its steps as full width passages down one column with a sticky rail beside them, rather than as the four across grid it was until 2026-09-10. The reason is that the content is a sequence: four equal cells side by side ask to be compared, which is what the packages grid wants and what a process does not, and at `text-xl` in a cell the step titles were captions under a number rather than the section's argument. The titles now take `text-2xl md:text-display-sm`, the number moves into its own column so the four titles share a left edge, and a single hairline runs between steps instead of a closed box around each.
 
+The section sits on the page ground, not the ruled one (owner decision of 2026-09-10). The rules run vertically, and once the steps became a column the reader travels down rather than a row they scan across, a field of vertical lines behind that column read as a second grid competing with the one hairline that actually carries the sequence. The landing page therefore has no ruled section at all now; the ruled ground stays what it was for, the one section per page that turns the argument, on the pages that still use it.
+
 The rail (`StepsRail`, the section's only client component) names the four steps and highlights the one the reader is level with. It is a position indicator for content the server already rendered in full, so it is `aria-hidden` -- it duplicates the panel headings, nothing in it is focusable, and a screen reader reads the panels in order without it -- while its `nav` keeps a name so the landmark is not anonymous. Below `lg` it is absent: a sticky index needs a viewport tall enough to hold both it and the panel it indexes, and on a phone the panels already arrive one per screen.
 
-Two mechanics are load bearing. The field carries `stickyChildren`, which swaps `RuledField`'s `overflow-hidden` for `overflow-clip`: `hidden` gives an element a scrolling mechanism and a sticky descendant anchors to that nearest scrolling ancestor instead of the viewport, so the rail would never move, while `clip` is deliberately excluded from that list and clips the rules identically (MDN, `position`). And the highlight is measured from the panel tops against a line at 40% of the viewport, with the `IntersectionObserver` only as the trigger and a rAF coalesced `scroll` listener beside it: with four short panels several are on screen at once, so "which one is intersecting" has no single answer, and a scroll between two thresholds fires no observer callback at all.
+One mechanic is load bearing: the highlight is measured from the panel tops against a line at 40% of the viewport, with the `IntersectionObserver` only as the trigger and a rAF coalesced `scroll` listener beside it. With four short panels several are on screen at once, so "which one is intersecting" has no single answer, and a scroll between two thresholds fires no observer callback at all.
+
+One trap worth remembering if this section ever goes back onto a ruled ground: `RuledField` carries `overflow-hidden`, which gives the element a scrolling mechanism, and a `position: sticky` descendant anchors to that nearest scrolling ancestor instead of the viewport, so the rail silently never moves. `overflow-clip` is deliberately excluded from that list and clips identically (MDN, `position`).
 
 ### Hero object
 
@@ -178,8 +182,8 @@ The tier of every section that exists today. A new section joins this table.
 
 | Page | Sections in order |
 |---|---|
-| Landing | anchor hero on the page ground, centred, with the hero object under it · minor proof points · **major ruled steps** · major packages · minor campaign wall · major trust · anchor jet closing |
-| How it works | anchor opener · **major ruled steps** · major split of labour · minor timing · anchor jet closing |
+| Landing | anchor hero on the page ground, centred, with the hero object under it · minor proof points · **major steps** · major packages · minor campaign wall · major trust · anchor jet closing |
+| How it works | anchor opener · **major steps** · major split of labour · minor timing · anchor jet closing |
 | Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
 | Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |
 | About | anchor opener · major story · **major ruled campaign grid** · minor how we work · anchor jet closing |

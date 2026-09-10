@@ -96,7 +96,7 @@ export function StepsRail({ keys, labels, navLabel, className }: StepsRailProps)
             <span
               className={cn(
                 "font-mono text-xs tabular-nums transition-colors duration-200",
-                index === active ? "text-foreground" : "text-muted-foreground/50",
+                index === active ? "text-foreground" : "text-muted-foreground",
               )}
             >
               {String(index + 1).padStart(2, "0")}
@@ -104,7 +104,7 @@ export function StepsRail({ keys, labels, navLabel, className }: StepsRailProps)
             <span
               className={cn(
                 "text-sm tracking-headline transition-colors duration-200",
-                index === active ? "font-medium text-foreground" : "text-muted-foreground/60",
+                index === active ? "font-medium text-foreground" : "text-muted-foreground",
               )}
             >
               {labels[index]}

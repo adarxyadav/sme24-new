@@ -16,15 +16,6 @@ export type RuledFieldProps = {
   readonly hero?: boolean;
   /** Where the content sits, so the rules are held back from the type: the left column or the middle. */
   readonly align?: "start" | "center";
-  /**
-   * Clips the rules with `overflow-clip` instead of `overflow-hidden`, so a `position: sticky`
-   * child of this field actually sticks. `hidden` gives the element a scrolling mechanism, and a
-   * sticky descendant anchors to that nearest scrolling ancestor rather than to the viewport, so
-   * it never moves (MDN, `position`); `clip` is deliberately excluded from that list and clips
-   * exactly the same. It is not the default only because every other field on the site has no
-   * sticky child and the two behave identically for them.
-   */
-  readonly stickyChildren?: boolean;
 };
 
 /**
@@ -40,16 +31,11 @@ export function RuledField({
   className,
   hero = false,
   align = "start",
-  stickyChildren = false,
 }: RuledFieldProps) {
   return (
     <div
       data-hero={hero || undefined}
-      className={cn(
-        "relative isolate",
-        stickyChildren ? "overflow-clip" : "overflow-hidden",
-        className,
-      )}
+      className={cn("relative isolate overflow-hidden", className)}
     >
       <div
         aria-hidden="true"
