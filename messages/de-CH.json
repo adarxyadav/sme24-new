@@ -349,27 +349,6 @@
         "sentence": "Ein Metallbaubetrieb im Aargau mit 120 Mitarbeitenden gibt <figure>rund CHF 148 000 pro Jahr</figure> für Unfälle aus, die sein Medianwettbewerber nicht hat."
       },
       "how": {
-        "eyebrow": "So funktioniert es",
-        "title": "Vier Schritte. Kein Kickoff.",
-        "steps": {
-          "lookup": {
-            "label": "Firma nachschlagen",
-            "body": "Namen eingeben. Wir recherchieren die öffentlichen Angaben im Hintergrund, nichts wird zweimal gefragt."
-          },
-          "benchmark": {
-            "label": "In Franken sehen",
-            "body": "Ihr Risiko im Vergleich zu Ihren Peers. Was Vorfälle Sie im Jahr kosten, bevor jemand vorbeikommt."
-          },
-          "package": {
-            "label": "Paket wählen",
-            "body": "Drei Festpreise auf der Seite. Oder das Retainer, im Gespräch."
-          },
-          "expert": {
-            "label": "Experte vor Ort",
-            "body": "Ein erfahrener Experte, in derselben Woche. Er begeht den Betrieb und schreibt den Bericht."
-          }
-        },
-        "navLabel": "Die vier Schritte",
         "visual": {
           "lookup": {
             "alt": "Ein marineblauer Arbeitsoverall mit orangen und silbernen Reflexstreifen"

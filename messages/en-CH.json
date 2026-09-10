@@ -349,27 +349,6 @@
         "sentence": "A 120 person metal fabricator in Aargau is spending <figure>about CHF 148 000 a year</figure> on accidents its median competitor does not have."
       },
       "how": {
-        "eyebrow": "How it works",
-        "title": "Four steps. No kickoff.",
-        "steps": {
-          "lookup": {
-            "label": "Look up your company",
-            "body": "Type the name. We research the public record in the background, so nothing is asked twice."
-          },
-          "benchmark": {
-            "label": "See it in francs",
-            "body": "Your risk against your peers. What incidents cost you a year, before anyone visits."
-          },
-          "package": {
-            "label": "Pick a package",
-            "body": "Three fixed prices on the page. Or the retainer, by conversation."
-          },
-          "expert": {
-            "label": "Get an expert on site",
-            "body": "A senior expert, the same week. They walk the site and write the report."
-          }
-        },
-        "navLabel": "The four steps",
         "visual": {
           "lookup": {
             "alt": "A navy work coverall with orange and silver reflective stripes"

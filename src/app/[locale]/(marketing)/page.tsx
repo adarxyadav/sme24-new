@@ -56,9 +56,15 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   const resolved = resolveLocale(locale);
   setRequestLocale(resolved);
-  const [t, meta] = await Promise.all([
+  const [t, meta, steps] = await Promise.all([
     getTranslations("marketing.landing"),
     getTranslations("marketing.landing.meta"),
+    // The steps section is one section, written once. It reads from the `/how-it-works` catalogue
+    // rather than from a landing copy of it, so the four steps are named the same way wherever the
+    // reader meets them and a wording change moves both pages or neither (owner decision,
+    // 2026-09-10). `marketing.landing.how` is gone; only its `visual.*` alt text survives, which
+    // `StepVisual` reads for itself.
+    getTranslations("marketing.howItWorks.steps"),
   ]);
   const lookup = {
     locale: resolved,
@@ -223,14 +229,14 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       </section>
 
       <StepsSection
-        eyebrow={t("how.eyebrow")}
-        title={t("how.title")}
+        eyebrow={steps("eyebrow")}
+        title={steps("title")}
         // Every step carries a still here: the two with a real screen are drawn from that
         // screen's own components, the two without take campaign photography (`StepVisual`).
         steps={STEPS.map((step) => ({
           key: step,
-          label: t(`how.steps.${step}.label`),
-          body: t(`how.steps.${step}.body`),
+          label: steps(`items.${step}.label`),
+          body: steps(`items.${step}.body`),
           visual: step,
         }))}
       />
