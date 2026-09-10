@@ -350,7 +350,11 @@
       "pointsLabel": "Where the number comes from",
       "points": {
         "heading": "What a benchmark shows",
-        "sentence": "A 120 person metal fabricator in Aargau is spending <figure>about CHF 148 000 a year</figure> on accidents its median competitor does not have."
+        "eyebrow": "The number",
+        "title": "Turn safety risk into a number your CFO recognises.",
+        "body": "An accident costs more than the claim. Lost days, cover, retraining, disruption and the paperwork that follows all land on the same year's accounts, and none of them appear on the insurance statement.",
+        "cta": "See what your risk costs",
+        "imageAlt": "Three safety specialists in helmets and high visibility jackets talking through a walkthrough on an industrial site"
       },
       "how": {
         "visual": {
@@ -366,6 +370,17 @@
           "expert": {
             "alt": "The step's picture"
           }
+        },
+        "benchmarkCard": {
+          "title": "Accident cost gap",
+          "description": "Against your size band and sector",
+          "action": "Sources",
+          "figure": "CHF 148 000",
+          "unit": "a year",
+          "progressLabel": "Your accident rate against the peer median",
+          "you": "You",
+          "peer": "Peer median",
+          "footer": "From public UVG figures. Every value shows its source."
         }
       },
       "packages": {
@@ -399,6 +414,29 @@
           "noOverhead": {
             "statement": "No overhead.",
             "alt": "Bald expert in a dark suit, smiling"
+          }
+        }
+      },
+      "experts": {
+        "eyebrow": "The people",
+        "title": "Who actually turns up. A senior expert who has run safety in Swiss industry, not a junior with a checklist.",
+        "listLabel": "Example expert profiles",
+        "experienceLabel": "Experience",
+        "standardsLabel": "Standards",
+        "note": "Example profiles, in the shape a real one takes. The network is being onboarded now.",
+        "viewProfile": "View profile",
+        "profiles": {
+          "manufacturing": {
+            "name": "M. Muster",
+            "experience": "22 years, ASA specialist"
+          },
+          "construction": {
+            "name": "A. Beispiel",
+            "experience": "18 years, site safety lead"
+          },
+          "chemical": {
+            "name": "R. Muster",
+            "experience": "25 years, EHS director"
           }
         }
       },
@@ -440,6 +478,35 @@
               "eu": "The site, email, payments and error monitoring run here.",
               "us": "Only the research and AI analysis steps, on the public company information we look up — never your stored figures."
             }
+          }
+        }
+      },
+      "faq": {
+        "title": "Questions.",
+        "items": {
+          "what": {
+            "question": "What does SME24 actually do?",
+            "answer": "We benchmark your safety figures against comparable Swiss companies, put a franc figure on the gap, and send a senior expert to your site to close it. The benchmark is free; the visit is a fixed price package."
+          },
+          "figures": {
+            "question": "Where do the peer figures come from?",
+            "answer": "Public Swiss sources — the UVG accident statistics by industry section and size band, and the published reports of comparable companies. Every value we show names the source it came from."
+          },
+          "free": {
+            "question": "Is the benchmark really free?",
+            "answer": "Yes. You name your company, we research the public record and show you where you stand, before anyone visits and before you pay anything."
+          },
+          "duration": {
+            "question": "How long does the benchmark take?",
+            "answer": "A few minutes. The run searches sustainability, annual and safety reports, extracts the KPIs for the latest three reporting years and checks every value against its source."
+          },
+          "experts": {
+            "question": "Who are the experts?",
+            "answer": "Senior EHS people who have run safety in Swiss industry for decades. The person who walks your site is the person who writes the report — there is no junior handover."
+          },
+          "price": {
+            "question": "What does a package cost?",
+            "answer": "From CHF 2 000 excluding VAT, and the price on the page is the price you pay. If the visit shows you need less than you thought, take the smaller package."
           }
         }
       },
