@@ -344,27 +344,23 @@
       "signIn": "Already a client? Sign in",
       "pointsLabel": "Where the number comes from",
       "points": {
-        "heading": "Where the number comes from.",
-        "lead": "Your own published figures, the national accident statistics every Swiss employer is measured by, and a register of senior experts. No proprietary black box.",
-        "disclosures": {
-          "label": "Your figure",
-          "figure": "Your public disclosures",
-          "note": "Annual reports, sustainability and safety reporting, read for what you already publish.",
-          "source": "Public sources"
-        },
-        "statistics": {
-          "label": "The comparison",
-          "figure": "Swiss accident statistics",
-          "note": "Recognised occupational accidents per 1 000 full time employees, by industry section.",
-          "source": "Suva, UVG-Statistik",
-          "sourceHint": " (PDF, opens in a new tab)"
-        },
-        "register": {
-          "label": "The fix",
-          "figure": "{count, number, integer} experts",
-          "note": "The SGAS register of senior EHS specialists, searchable by canton and speciality.",
-          "source": "Expert register"
-        }
+        "heading": "What you get back, in francs.",
+        "lead": "An example: a 120 person metal fabricator in Aargau, at the upper quartile of its industry. Every figure below follows the same model your own benchmark runs on.",
+        "exampleLabel": "Example company",
+        "rateLabel": "Its accident rate",
+        "rateValue": "66.4",
+        "rateUnit": "per 1 000 full time employees",
+        "rateNote": "Its own published figures. The industry median is 49.9.",
+        "costLabel": "What that costs, a year",
+        "costValue": "CHF 596 000",
+        "costUnit": "insured, wage and disruption cost",
+        "costNote": "Eight accidents a year at CHF 20 211 a case, indirect costs included.",
+        "gapLabel": "Above the median peer",
+        "gapValue": "CHF 148 000",
+        "gapUnit": "the part that is not the cost of doing business",
+        "gapNote": "What closing the gap to a median performer is worth, every year.",
+        "footnote": "Illustrative figures for a company at the upper quartile of UVG industry section C. Rates from the Suva UVG-Statistik, cost assumptions published in full with every benchmark.",
+        "sourceCta": "How the number is built"
       },
       "how": {
         "eyebrow": "How it works",

@@ -10,7 +10,6 @@ import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
-import { REGISTER } from "@/features/marketing/register";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CompanyLookupField } from "@/features/marketing/ui/company-lookup-field";
 import { HeroResearch } from "@/features/marketing/ui/hero-research";
@@ -22,16 +21,12 @@ import { TrustSection } from "@/features/marketing/ui/trust-section";
 import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
+import { cn } from "@/lib/utils";
 
-/** The three sources the landing page's franc figure is built from, in ledger order. */
-const SOURCES = ["disclosures", "statistics", "register"] as const;
+/** The three cells of the landing page's worked example, in ledger order: the rate, what it
+ * costs, and the part of that cost the median peer does not carry. */
+const EXAMPLE = ["rate", "cost", "gap"] as const;
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
-
-/**
- * The published Swiss accident statistics the peer comparison is seeded from
- * (`supabase/seed-data/benchmarks.csv` cites the same document on every row).
- */
-const UVG_STATISTICS_SOURCE = "https://www.unfallstatistik.ch/d/publik/unfstat/pdf/Ts24.pdf";
 
 /**
  * The campaign deck's objects (web sized under `public/campaign/`), in wall order. `grayscale`
@@ -56,8 +51,8 @@ export async function generateMetadata({
 }
 
 /**
- * The landing page (spec 0009, AC-5), top to bottom: the hero with the lookup field, the three
- * proof points, how it works, the packages overview, the campaign wall, the trust band and the
+ * The landing page (spec 0009, AC-5), top to bottom: the hero with the lookup field, the worked
+ * example, how it works, the packages overview, the campaign wall, the trust band and the
  * closing call to action with the same field. Prerendered in both languages; the `WebSite` structured data sits
  * next to the layout's `Organization`.
  */
@@ -184,27 +179,28 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       </div>
 
       {/*
-        Where the number comes from (docs/design.md, tier map: minor). Slot two answers the
-        question the hero's accusation raises -- "a franc figure on safety risk, from where?" --
-        because the two neighbours cannot: the hero object above already shows the product and
-        the steps below already give the mechanism.
+        What you get back, in francs (docs/design.md, tier map: minor). Slot two shows one worked
+        example of the output, because the reader at this point has seen the product (the hero
+        object above) and is about to be told the mechanism (the steps below) without ever having
+        been shown a result. Ingredients do not sell a dish: the band that stood here until
+        2026-09-10 listed the three data sources instead, which is a methodology answer to a
+        question nobody asks second.
 
-        It replaced a price/setup/start ledger on 2026-09-10. Two of that band's three entries
-        were already said on the page ("fixed price" in the hero lead, "Four steps." verbatim the
-        next section's heading), so the band summarised its own neighbours instead of adding
-        anything. Its one new fact, the same week, belongs with the steps.
-
-        Every cell is checkable and names its source. The register count is read from
-        `REGISTER` so it can never drift from the directory page it links to; the comparison
-        names Suva and the UVG-Statistik but deliberately carries no sample size, because the
-        seeded quartiles are derived across the 50 industry classes of Table 1.2 rather than
-        across companies (`supabase/seed-data/benchmarks.csv`, every row still `provisional`).
+        Every figure is computed by the real model rather than chosen for effect, so the example
+        can never contradict what a live benchmark would print for the same company. From
+        `supabase/seed-data/`: UVG section C carries p75 66.4 and median 49.9 accidents per 1 000
+        FTE; at 120 FTE that is 7.97 accidents a year, each costing
+        `direct_cost_per_case_chf` 4811 + 14 lost days x 1100 = CHF 20 211, times the middle
+        `indirect_multiplier` of 3.7 -- CHF 595 853, rounded down to the nearest thousand for
+        display. The same arithmetic at the median rate gives CHF 447 787, so the gap is
+        CHF 148 066. Changing an assumption CSV changes these numbers, which is why the footnote
+        marks them illustrative and the methodology link carries the detail.
       */}
-      <section aria-labelledby="provenance-heading" className="border-b">
+      <section aria-labelledby="example-heading" className="border-b">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20">
           <SectionHeader
             tier="minor"
-            id="provenance-heading"
+            id="example-heading"
             title={t("points.heading")}
             lead={t("points.lead")}
             className="mb-10 md:mb-14"
@@ -213,47 +209,52 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
               its own `border`: the section's `border-b` is full bleed and sits a band away, so it
               never closes these columns. */}
           <dl className="grid gap-px border bg-border sm:grid-cols-3">
-            {SOURCES.map((source) => (
-              // A subgrid of four rows, so a figure that wraps pushes every note and source line
-              // down together and the sources stay on one baseline across the three cells.
+            {EXAMPLE.map((cell) => (
+              // A subgrid of four rows, so a figure that wraps pushes every unit and note line
+              // down together and the notes stay on one baseline across the three cells.
               <div
-                key={source}
+                key={cell}
                 className="grid grid-rows-[auto_auto_auto_auto] gap-2.5 bg-background px-6 py-7 sm:row-span-4 sm:grid-rows-subgrid sm:py-8"
               >
-                <dt className="eyebrow text-muted-foreground">{t(`points.${source}.label`)}</dt>
-                {/* The working headline scale, not a display size: a minor's own heading is the
-                    opener above, and three display figures under it would flatten the tier. */}
-                <dd className="text-balance font-semibold text-heading-24">
-                  {t(`points.${source}.figure`, { count: REGISTER.length })}
-                </dd>
-                <dd className="text-copy-14 text-muted-foreground">{t(`points.${source}.note`)}</dd>
-                <dd className="eyebrow self-end text-muted-foreground">
-                  {source === "register" ? (
-                    <Link
-                      href="/expert-network/directory"
-                      className="underline underline-offset-4 hover:text-foreground"
-                    >
-                      {t(`points.${source}.source`)}
-                    </Link>
-                  ) : source === "statistics" ? (
-                    // The one link on the page that leaves the site, and it opens a PDF: named
-                    // as such for a screen reader, since the visible label is the publication.
-                    <a
-                      href={UVG_STATISTICS_SOURCE}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline underline-offset-4 hover:text-foreground"
-                    >
-                      <span translate="no">{t(`points.${source}.source`)}</span>
-                      <span className="sr-only">{t("points.statistics.sourceHint")}</span>
-                    </a>
-                  ) : (
-                    t(`points.${source}.source`)
+                <dt
+                  className={cn(
+                    "eyebrow",
+                    // The recoverable figure is the one the reader can act on, and the only one
+                    // the product changes, so its label sits at full strength while the two that
+                    // describe today's state stay muted. The figures themselves keep one size:
+                    // the emphasis is a step in colour, not a second type scale in one band.
+                    cell === "gap" ? "text-foreground" : "text-muted-foreground",
                   )}
+                >
+                  {t(`points.${cell}Label`)}
+                </dt>
+                {/* The one place on the landing page a figure is the content rather than a label,
+                    so it takes a display size: `display-sm` and no larger, because a minor's
+                    heading is capped there too and a cell may not outrank its own opener. The
+                    figures carry `tabular-nums` (docs/design.md, type rules) so the three sit on
+                    a common width rather than drifting against each other. */}
+                <dd className="font-semibold text-display-sm tabular-nums">
+                  {t(`points.${cell}Value`)}
+                </dd>
+                <dd className="text-copy-14 text-muted-foreground">{t(`points.${cell}Unit`)}</dd>
+                <dd className="self-end text-copy-14 text-muted-foreground">
+                  {t(`points.${cell}Note`)}
                 </dd>
               </div>
             ))}
           </dl>
+          {/* The provenance the previous band spent a whole section on, kept as the one line a
+              skeptic needs and a link to the detail: it belongs under the number it qualifies,
+              not ahead of it. */}
+          <p className="mt-5 max-w-3xl text-copy-14 text-muted-foreground">
+            {t("points.footnote")}{" "}
+            <Link
+              href="/how-it-works"
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              {t("points.sourceCta")}
+            </Link>
+          </p>
         </div>
       </section>
 

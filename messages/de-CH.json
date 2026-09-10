@@ -344,27 +344,23 @@
       "signIn": "Schon Kunde? Anmelden",
       "pointsLabel": "Woher die Zahl kommt",
       "points": {
-        "heading": "Woher die Zahl kommt.",
-        "lead": "Ihre eigenen veröffentlichten Zahlen, die nationale Unfallstatistik, an der jeder Schweizer Arbeitgeber gemessen wird, und ein Register erfahrener Fachleute. Keine Blackbox.",
-        "disclosures": {
-          "label": "Ihre Zahl",
-          "figure": "Ihre öffentlichen Angaben",
-          "note": "Geschäftsberichte, Nachhaltigkeits- und Sicherheitsberichte, gelesen auf das, was Sie bereits veröffentlichen.",
-          "source": "Öffentliche Quellen"
-        },
-        "statistics": {
-          "label": "Der Vergleich",
-          "figure": "Schweizer Unfallstatistik",
-          "note": "Anerkannte Berufsunfälle je 1 000 Vollzeitstellen, nach Wirtschaftsabschnitt.",
-          "source": "Suva, UVG-Statistik",
-          "sourceHint": " (PDF, öffnet in einem neuen Tab)"
-        },
-        "register": {
-          "label": "Die Umsetzung",
-          "figure": "{count, number, integer} Fachleute",
-          "note": "Das SGAS-Register erfahrener EHS-Fachleute, durchsuchbar nach Kanton und Fachgebiet.",
-          "source": "Expertenregister"
-        }
+        "heading": "Was dabei herauskommt, in Franken.",
+        "lead": "Ein Beispiel: ein Metallbaubetrieb im Aargau mit 120 Mitarbeitenden, im oberen Quartil seiner Branche. Jede Zahl unten folgt dem Modell, mit dem auch Ihr eigener Benchmark rechnet.",
+        "exampleLabel": "Beispielunternehmen",
+        "rateLabel": "Seine Unfallrate",
+        "rateValue": "66,4",
+        "rateUnit": "je 1 000 Vollbeschäftigte",
+        "rateNote": "Aus den eigenen publizierten Zahlen. Der Branchenmedian liegt bei 49,9.",
+        "costLabel": "Das kostet pro Jahr",
+        "costValue": "CHF 596 000",
+        "costUnit": "Versicherungs-, Lohn- und Ausfallkosten",
+        "costNote": "Acht Unfälle pro Jahr zu CHF 20 211 pro Fall, indirekte Kosten eingerechnet.",
+        "gapLabel": "Über dem Medianbetrieb",
+        "gapValue": "CHF 148 000",
+        "gapUnit": "der Teil, der nicht einfach zum Geschäft gehört",
+        "gapNote": "So viel ist es jedes Jahr wert, die Lücke zum Median zu schliessen.",
+        "footnote": "Illustrative Zahlen für einen Betrieb im oberen Quartil der UVG-Branchenklasse C. Raten aus der Suva UVG-Statistik, die Kostenannahmen werden zu jedem Benchmark vollständig ausgewiesen.",
+        "sourceCta": "Wie die Zahl entsteht"
       },
       "how": {
         "eyebrow": "So funktioniert es",
