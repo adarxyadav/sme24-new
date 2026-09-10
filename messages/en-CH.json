@@ -408,11 +408,11 @@
           },
           "noCosmetics": {
             "statement": "No cosmetics.",
-            "alt": "Heavily made up woman with oversized red lips"
+            "alt": "Expert with grey hair in a navy blazer, arms crossed"
           },
           "noOverhead": {
             "statement": "No overhead.",
-            "alt": "Man in a suit with champagne between a private jet, a convertible and a pool"
+            "alt": "Bald expert in a dark suit, smiling"
           }
         }
       },
@@ -1010,11 +1010,11 @@
         },
         "noCosmetics": {
           "statement": "No cosmetics.",
-          "alt": "Heavily made up woman with oversized red lips"
+          "alt": "Expert with grey hair in a navy blazer, arms crossed"
         },
         "noOverhead": {
           "statement": "No overhead.",
-          "alt": "Man in a suit with champagne between a private jet, a convertible and a pool"
+          "alt": "Bald expert in a dark suit, smiling"
         }
       }
     },

@@ -408,11 +408,11 @@
           },
           "noCosmetics": {
             "statement": "Keine Kosmetik.",
-            "alt": "Stark geschminkte Frau mit übergrossen roten Lippen"
+            "alt": "Expertin mit grauen Haaren im dunkelblauen Blazer, Arme verschränkt"
           },
           "noOverhead": {
             "statement": "Kein Overhead.",
-            "alt": "Mann im Anzug mit Champagner zwischen Privatjet, Cabrio und Pool"
+            "alt": "Experte mit Glatze im dunklen Anzug, lächelnd"
           }
         }
       },
@@ -1010,11 +1010,11 @@
         },
         "noCosmetics": {
           "statement": "Keine Kosmetik.",
-          "alt": "Stark geschminkte Frau mit übergrossen roten Lippen"
+          "alt": "Expertin mit grauen Haaren im dunkelblauen Blazer, Arme verschränkt"
         },
         "noOverhead": {
           "statement": "Kein Overhead.",
-          "alt": "Mann im Anzug mit Champagner zwischen Privatjet, Cabrio und Pool"
+          "alt": "Experte mit Glatze im dunklen Anzug, lächelnd"
         }
       }
     },

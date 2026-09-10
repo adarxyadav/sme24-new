@@ -94,6 +94,7 @@ export default async function AboutPage({ params }: PageProps<"/[locale]/about">
                   <CampaignImage
                     src="/campaign/philipp.webp"
                     alt={t("grid.philipp.alt")}
+                    grayscale
                     sizes="(min-width: 640px) 33vw, 100vw"
                     loading="lazy"
                   />
