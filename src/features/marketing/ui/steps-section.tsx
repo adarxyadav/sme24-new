@@ -77,39 +77,36 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
         style={{ "--steps-track": `${steps.length * 100}svh` } as React.CSSProperties}
       >
         {/*
-          The sticky box ends where the consent bar begins: the bar is fixed to the bottom of the
+          The sticky shell ends where the consent bar begins: the bar is fixed to the bottom of the
           viewport from the root layout and publishes its height as `--consent-bar-height`
           (docs/design.md, spec 0015), so anything sized to the viewport must reserve it or the
           opaque bar lands on top of it. `top-16` clears the sticky header the same way.
 
-          It is also the ruled frame (owner reference, 2026-09-10). From `lg` the section is drawn
-          as one bordered panel rather than as copy floating on the page ground: this rule closes
-          it top and bottom, the header's rule divides the head from the steps, and the right
-          column's left rule divides the labels from what they open. The three together are the
-          reference's own arrangement -- the frame is what makes a pinned section read as one
-          object the reader is inside, rather than as a heading followed by four rows. The frame
-          being the sticky box is the point: it is the part held still while the steps change.
-
-          Only from `lg`, where the frame is: below it the section is a plain stacked column and
-          an outer rule would box a page-width run of copy for no reason. `border-y` rather than
-          `border`, because the box spans the full viewport width -- a left and right rule would
-          sit hard against the window edge rather than reading as the sides of a panel.
+          This element only positions; the frame is the centred box inside it. The two are separate
+          because the shell has to be the full width of the viewport to be sized against it, and a
+          border here would run the whole way across the window rather than closing a panel.
         */}
-        <div className="lg:sticky lg:top-16 lg:flex lg:h-[calc(100svh-4rem-var(--consent-bar-height,0px))] lg:flex-col lg:overflow-hidden lg:border-y">
+        <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-4rem-var(--consent-bar-height,0px))] lg:px-4 lg:py-6 sm:lg:px-6">
           <StepsRail keys={steps.map((step) => step.key)} />
           {/*
-            The head, spanning both columns above them and closed by a hairline -- the reference's
-            own arrangement. It sat inside the left column before, where a section heading stood
-            directly above a step heading and the reader met two titles in one stack.
+            The frame (owner reference, 2026-09-10): from `lg` the section is one closed rectangle
+            at the content width, not copy floating on the page ground. `border` on all four sides
+            is the point -- the panel is a rectangle the reader is inside, and the head's rule and
+            the column rule divide it from within rather than reaching past it. An earlier pass put
+            `border-y` on the full-width shell instead, which drew two rules across the window and
+            read as the page being sliced rather than as a section being framed.
 
-            The rule is on the full-width wrapper and the copy is on the centred box inside it, so
-            the hairline reaches the frame's left and right edges rather than stopping at the
-            content width. On the centred box the head's rule and the frame's own rules were three
-            different lengths and the vertical rule below ran past the end of this one, which read
-            as a rule that had come loose rather than as the top of a panel.
+            Only from `lg`, where the pin is. Below it the section is a plain stacked column and a
+            rectangle would box a page-width run of copy for no reason.
           */}
-          <div className="shrink-0 lg:border-b">
-            <div className="mx-auto w-full max-w-6xl px-4 pt-16 pb-10 sm:px-6 md:pt-28 lg:px-12 lg:pt-10 lg:pb-10">
+          <div className="lg:mx-auto lg:flex lg:h-full lg:w-full lg:max-w-6xl lg:flex-col lg:overflow-hidden lg:rounded-lg lg:border">
+            {/*
+              The head, spanning both columns above them and closed by a hairline -- the reference's
+              own arrangement. It sat inside the left column before, where a section heading stood
+              directly above a step heading and the reader met two titles in one stack. The rule is
+              the frame's own inner division, so it runs edge to edge of the panel and stops there.
+            */}
+            <div className="w-full shrink-0 px-4 pt-16 pb-10 sm:px-6 md:pt-28 lg:border-b lg:px-10 lg:pt-8 lg:pb-8">
               <SectionHeader
                 tier="major"
                 id="steps-heading"
@@ -119,16 +116,15 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                 className="**:data-[slot=statement]:text-display-sm **:data-[slot=statement]:md:text-display"
               />
             </div>
-          </div>
-          {/*
-            Two columns from `lg`: the labels on the left, the open step's sentence and picture on
-            the right. The right column is the wider of the two and the picture inside it runs to
-            the frame's bottom edge, so the still is cropped by the viewport rather than sitting in
-            it. Below `lg` neither the grid nor the pin exists and the steps stack down the page,
-            which is the same information in the shape a phone can hold.
-          */}
-          <div className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 md:pb-28 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)] lg:items-stretch lg:gap-0 lg:px-12 lg:pb-0">
             {/*
+              Two columns from `lg`: the labels on the left, the open step's sentence and picture on
+              the right. The right column is the wider of the two and the picture inside it runs to
+              the frame's bottom edge, so the still is cropped by the panel rather than sitting in
+              it. Below `lg` neither the grid nor the pin exists and the steps stack down the page,
+              which is the same information in the shape a phone can hold.
+            */}
+            <div className="w-full px-4 pb-16 sm:px-6 md:pb-28 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)] lg:items-stretch lg:gap-0 lg:px-0 lg:pb-0">
+              {/*
               The labels. It is a real `ol`, so the numbering, the order and the count reach a
               screen reader from the markup rather than from any decoration -- which is why the
               visible ordinals could be dropped without the sequence losing its count.
@@ -138,110 +134,113 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
               column has. The active label also carries the hairline marker, a ground change
               rather than a colour, because the palette has no accent hue (docs/design.md, rule 3).
             */}
-            <ol className="flex flex-col border-border border-t lg:gap-1 lg:self-start lg:border-t-0 lg:pt-10 lg:pr-12">
-              {steps.map((step, index) => (
-                <li
-                  key={step.key}
-                  data-step={step.key}
-                  data-step-index={index}
-                  // Lit from the server, so without JavaScript every step stands open and the
-                  // section is the plain column of passages it is below `lg`.
-                  data-active="true"
-                  className="group flex scroll-mt-28 flex-col gap-4 border-border border-b py-6 lg:border-b-0 lg:py-0"
-                >
-                  <div className="flex items-center gap-4 lg:gap-5">
-                    <span
-                      aria-hidden="true"
-                      className="hidden h-6 w-px shrink-0 bg-transparent transition-colors duration-300 group-data-[active=true]:bg-foreground lg:block"
-                    />
-                    {/*
+              <ol className="flex flex-col border-border border-t lg:gap-1 lg:self-start lg:border-t-0 lg:py-8 lg:pr-10 lg:pl-10">
+                {steps.map((step, index) => (
+                  <li
+                    key={step.key}
+                    data-step={step.key}
+                    data-step-index={index}
+                    // Lit from the server, so without JavaScript every step stands open and the
+                    // section is the plain column of passages it is below `lg`.
+                    data-active="true"
+                    className="group flex scroll-mt-28 flex-col gap-4 border-border border-b py-6 lg:border-b-0 lg:py-0"
+                  >
+                    <div className="flex items-center gap-4 lg:gap-5">
+                      <span
+                        aria-hidden="true"
+                        className="hidden h-6 w-px shrink-0 bg-transparent transition-colors duration-300 group-data-[active=true]:bg-foreground lg:block"
+                      />
+                      {/*
                       The label at body scale, not display: four of them are stacked and the
                       passage opposite is the line that should carry the section's weight. The
                       inactive ones drop to the faded ground the reference uses, which is what
                       makes the column read as a path rather than as four equal links.
                     */}
-                    <span className="text-lg text-muted-foreground/50 transition-colors duration-300 group-data-[active=true]:text-foreground lg:text-xl">
-                      {step.label}
-                    </span>
-                  </div>
-                  {/*
+                      <span className="text-lg text-muted-foreground/50 transition-colors duration-300 group-data-[active=true]:text-foreground lg:text-xl">
+                        {step.label}
+                      </span>
+                    </div>
+                    {/*
                     The sentence and the still, below `lg` only. There is no second column at that
                     width, so the step carries its own; from `lg` both are hidden here and drawn on
                     the right instead, and exactly one copy of each string is ever displayed.
                   */}
-                  <div className="flex flex-col gap-4 lg:hidden">
-                    <Statement
-                      as="p"
-                      text={step.body}
-                      layout="flow"
-                      leadSentences={1}
-                      className="max-w-prose text-copy-18"
-                    />
-                    {step.visual ? <StepVisual step={step.visual} className="w-full" /> : null}
-                  </div>
-                </li>
-              ))}
-            </ol>
-            {/*
+                    <div className="flex flex-col gap-4 lg:hidden">
+                      <Statement
+                        as="p"
+                        text={step.body}
+                        layout="flow"
+                        leadSentences={1}
+                        className="max-w-prose text-copy-18"
+                      />
+                      {step.visual ? <StepVisual step={step.visual} className="w-full" /> : null}
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              {/*
               The right column: the open step's sentence over its still, cross fading with the
               label opposite. It is not `aria-hidden`: each still carries a `role="img"` whose
               label says what it is a picture of (docs/design.md, the steps rail), and hiding the
               column would drop that label from every desktop reader -- the mobile copy of the
               same still is `display:none` at this width, so nothing here is announced twice.
               Hidden entirely below `lg`, where each still travels with its own step instead.
+
+              It also carries the rule dividing it from the labels: a left border here rather than
+              a column in the grid, because a rule has to sit at a boundary and the gap that used
+              to hold the two apart had no edge to draw on. The gap is now this column's padding
+              and the labels' `pr`, so the rule falls exactly between them and runs the full
+              height of the panel (`items-stretch`) rather than stopping at the shorter column.
             */}
-            {/*
-              The right column carries the rule that divides it from the labels. It is a left
-              border here rather than a column in the grid, because a rule has to sit at the
-              boundary and the gap that used to hold the two apart had no edge to draw on: the
-              gap is now this column's padding and the labels' `pr`, so the rule falls exactly
-              between them and runs the full height of the frame (`items-stretch`) rather than
-              stopping where the shorter column ends.
-            */}
-            <div className="relative hidden lg:block lg:border-l lg:pl-12">
-              {steps.map((step, index) => (
-                <div
-                  key={step.key}
-                  data-step-visual={step.key}
-                  data-active="true"
-                  className={cn(
-                    "flex h-full flex-col gap-8 pt-10 opacity-0 transition-opacity duration-500 data-[active=true]:opacity-100",
-                    index === 0 ? "relative" : "absolute inset-0",
-                  )}
-                >
-                  {/*
+              <div className="relative hidden lg:block lg:border-l">
+                {steps.map((step, index) => (
+                  <div
+                    key={step.key}
+                    data-step-visual={step.key}
+                    data-active="true"
+                    className={cn(
+                      // The panel's inner padding lives on each step rather than on the column,
+                      // because the stacked steps are `absolute inset-0` and so resolve against the
+                      // column's padding box: padding set there is escaped by every step but the
+                      // first, and the still runs under the frame's own border.
+                      "flex h-full flex-col gap-8 px-10 pt-8 opacity-0 transition-opacity duration-500 data-[active=true]:opacity-100",
+                      index === 0 ? "relative" : "absolute inset-0",
+                    )}
+                  >
+                    {/*
                     The step's own sentence, two tone: the claim in the heading colour and the
                     rest running on muted, as one passage rather than a grey block. It is the same
                     string the row opposite renders below `lg`. The row is drawn whether or not the
                     step has a still, so a page that pictures nothing (`/how-it-works`) still has
                     its sentences here rather than losing them with the picture.
                   */}
-                  <Statement
-                    as="p"
-                    text={step.body}
-                    layout="flow"
-                    leadSentences={1}
-                    className="max-w-xl text-balance text-2xl leading-snug tracking-headline"
-                  />
-                  {/*
+                    <Statement
+                      as="p"
+                      text={step.body}
+                      layout="flow"
+                      leadSentences={1}
+                      className="max-w-xl text-balance text-2xl leading-snug tracking-headline"
+                    />
+                    {/*
                     The still runs to the frame's bottom edge and is cropped there, which is what
                     makes it read as a window onto a real screen rather than as a thumbnail of one.
                     `min-h-0` is what lets the flex child actually be shorter than its content so
                     the crop happens; the overflow is clipped by the sticky frame above.
                   */}
-                  {step.visual ? (
-                    <div
-                      className={cn(
-                        // A photograph takes the rest of the frame and is cropped by its bottom
-                        // edge; a card takes only the height its rows need.
-                        stepVisualBleeds(step.visual) && "min-h-0 flex-1 overflow-hidden",
-                      )}
-                    >
-                      <StepVisual step={step.visual} className="w-full" />
-                    </div>
-                  ) : null}
-                </div>
-              ))}
+                    {step.visual ? (
+                      <div
+                        className={cn(
+                          // A photograph takes the rest of the frame and is cropped by its bottom
+                          // edge; a card takes only the height its rows need.
+                          stepVisualBleeds(step.visual) && "min-h-0 flex-1 overflow-hidden",
+                        )}
+                      >
+                        <StepVisual step={step.visual} className="w-full" />
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

@@ -106,7 +106,7 @@ export async function StepVisual({ step, className }: StepVisualProps) {
           // Wide and open ended: the still fills the column and runs past the frame's bottom
           // edge, so it is cropped by the viewport rather than sitting inside a square. `h-full`
           // with `min-h-80` keeps it tall on a short viewport, where the frame has little to give.
-          "flex h-full min-h-80 items-end justify-center overflow-hidden border border-b-0 bg-pure-white px-10 pt-10",
+          "flex h-full min-h-80 items-end justify-center overflow-hidden border-t bg-pure-white px-10 pt-10",
           className,
         )}
       >
@@ -131,7 +131,10 @@ export async function StepVisual({ step, className }: StepVisualProps) {
         inert
         role="img"
         aria-label={t("benchmark.alt")}
-        className={cn("flex flex-col gap-6 border bg-background p-8", className)}
+        // No border of its own: from `lg` this sits inside the section's framed panel, and a card
+        // outline a few pixels in from the frame's own reads as a box drawn twice. The card is
+        // held by the panel and separated from the sentence above it by its own top rule instead.
+        className={cn("flex flex-col gap-6 border-t bg-background py-8", className)}
       >
         <div className="flex flex-col gap-1">
           <p className="font-medium text-sm">{card("title")}</p>
@@ -178,16 +181,18 @@ export async function StepVisual({ step, className }: StepVisualProps) {
       inert
       role="img"
       aria-label={t("package.alt")}
-      className={cn("flex flex-col divide-y border bg-background", className)}
+      // Same as the benchmark card: the panel frames it, so the ladder keeps only the rules that
+      // divide one rung from the next and the top rule that divides it from the sentence.
+      className={cn("flex flex-col divide-y border-t bg-background", className)}
     >
       {priced.map((entry, index) => (
         <div
           key={entry.key}
           className={cn(
-            "flex items-baseline justify-between gap-4 px-8 py-6",
+            "flex items-baseline justify-between gap-4 py-6",
             // The middle rung sits in the accent-free equivalent of a highlight: the palette has
             // no accent hue (docs/design.md, rule 3), so "picked" is a ground change, not a colour.
-            index === 1 && "bg-muted",
+            index === 1 && "bg-muted px-4",
           )}
         >
           <span className="font-medium text-base">{packages(`${entry.key}.shortName`)}</span>
