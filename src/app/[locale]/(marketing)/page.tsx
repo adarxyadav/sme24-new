@@ -198,7 +198,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         Changing an assumption CSV changes this number, which is why the sentence says "about" and
         `/how-it-works` carries the detail.
       */}
-      <section aria-labelledby="example-heading" className="border-b">
+      <section aria-labelledby="example-heading">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16">
           {/* The band's accessible name, and the only heading it has: visually hidden, because a
               minor's opener would reinstate the stack this pass removed, while the landmark still
@@ -232,7 +232,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         }))}
       />
 
-      <section aria-labelledby="packages-heading" className="border-b">
+      <section aria-labelledby="packages-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
           {/*
             The packages opener takes the emphasis shape: the label as a pill and one heading that
@@ -251,7 +251,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         </div>
       </section>
 
-      <section aria-labelledby="wall-heading" className="border-b">
+      <section aria-labelledby="wall-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-24">
           <div className="flex flex-col gap-3">
             <p className="eyebrow text-muted-foreground">{t("wall.eyebrow")}</p>

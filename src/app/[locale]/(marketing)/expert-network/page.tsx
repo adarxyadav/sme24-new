@@ -50,7 +50,7 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
         })}
       />
 
-      <section className="border-b">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
           <SectionHeader
             tier="anchor"
@@ -62,7 +62,7 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
         </div>
       </section>
 
-      <section aria-labelledby="standard-heading" className="border-b">
+      <section aria-labelledby="standard-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
           <SectionHeader
             tier="major"
@@ -89,7 +89,7 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
 
       {/* The page's one ruled ground: vetting is the section that turns the argument. */}
       <RuledField>
-        <section aria-labelledby="vetting-heading" className="border-b">
+        <section aria-labelledby="vetting-heading">
           <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
             <SectionHeader
               tier="major"
@@ -118,7 +118,7 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
         </section>
       </RuledField>
 
-      <section aria-labelledby="matching-heading coverage-heading" className="border-b">
+      <section aria-labelledby="matching-heading coverage-heading">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-2">
           <div className="flex flex-col gap-4">
             <SectionHeader

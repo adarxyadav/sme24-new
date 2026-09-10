@@ -23,7 +23,7 @@ export type StepsSectionProps = {
 export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
   return (
     <RuledField>
-      <section aria-labelledby="steps-heading" className="border-b">
+      <section aria-labelledby="steps-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
           <SectionHeader tier="major" id="steps-heading" eyebrow={eyebrow} title={title} />
           <ol className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-4">

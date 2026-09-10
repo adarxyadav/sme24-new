@@ -59,7 +59,7 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         for -- as the only major section on the site with no heading of its own: the h1 was doing
         both jobs, so the prices arrived with nothing said about how they relate.
       */}
-      <section className="border-b">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
           <SectionHeader
             tier="anchor"
@@ -71,7 +71,7 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         </div>
       </section>
 
-      <section aria-labelledby="packages-heading" className="border-b">
+      <section aria-labelledby="packages-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
           <SectionHeader
             tier="major"
@@ -84,7 +84,7 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         </div>
       </section>
 
-      <section aria-labelledby="included-heading" className="border-b">
+      <section aria-labelledby="included-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
           <SectionHeader tier="minor" id="included-heading" title={t("included.title")} />
           <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -97,7 +97,7 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         </div>
       </section>
 
-      <section aria-labelledby="faq-heading" className="border-b">
+      <section aria-labelledby="faq-heading">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
           <SectionHeader
             tier="minor"
