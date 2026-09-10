@@ -73,7 +73,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
       */}
       <div
         data-steps-track
-        className="relative lg:h-(--steps-track)"
+        className="relative lg:motion-safe:h-(--steps-track)"
         style={{ "--steps-track": `${steps.length * 100}svh` } as React.CSSProperties}
       >
         {/*
@@ -85,8 +85,14 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
           This element only positions; the frame is the centred box inside it. The two are separate
           because the shell has to be the full width of the viewport to be sized against it, and a
           border here would run the whole way across the window rather than closing a panel.
+
+          `motion-safe` on the sticking and the viewport height, because both only exist to serve
+          the pin: under `prefers-reduced-motion` the track above collapses to `auto`, and a frame
+          still sized to one viewport inside an auto height track would crop three steps out of the
+          panel with no scrolling left to reveal them. Dropped together, the section becomes the
+          plain stacked panel it already is below `lg` -- every step open, nothing pinned.
         */}
-        <div className="lg:sticky lg:top-16 lg:h-[calc(100svh-4rem-var(--consent-bar-height,0px))] lg:px-4 lg:py-6 sm:lg:px-6">
+        <div className="lg:motion-safe:sticky lg:motion-safe:top-16 lg:motion-safe:h-[calc(100svh-4rem-var(--consent-bar-height,0px))] lg:px-4 lg:py-6 sm:lg:px-6">
           <StepsRail keys={steps.map((step) => step.key)} />
           {/*
             The frame (owner reference, 2026-09-10): from `lg` the section is one closed rectangle
@@ -97,23 +103,34 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
             read as the page being sliced rather than as a section being framed.
 
             Only from `lg`, where the pin is. Below it the section is a plain stacked column and a
-            rectangle would box a page-width run of copy for no reason.
+            rectangle would box a page-width run of copy for no reason. The frame itself survives
+            reduced motion -- it is drawing, not movement -- but its `h-full` and the `overflow-hidden`
+            that crops the still do not: both size the panel to the viewport the pin gave it, and
+            with the pin gone they would clip the steps instead of framing them.
           */}
-          <div className="lg:mx-auto lg:flex lg:h-full lg:w-full lg:max-w-6xl lg:flex-col lg:overflow-hidden lg:rounded-lg lg:border">
+          <div className="lg:mx-auto lg:flex lg:w-full lg:max-w-6xl lg:flex-col lg:rounded-lg lg:border lg:motion-safe:h-full lg:motion-safe:overflow-hidden">
             {/*
               The head, spanning both columns above them and closed by a hairline -- the reference's
               own arrangement. It sat inside the left column before, where a section heading stood
               directly above a step heading and the reader met two titles in one stack. The rule is
               the frame's own inner division, so it runs edge to edge of the panel and stops there.
             */}
-            <div className="w-full shrink-0 px-4 pt-16 pb-10 sm:px-6 md:pt-28 lg:border-b lg:px-10 lg:pt-8 lg:pb-8">
+            <div className="w-full shrink-0 px-4 pt-16 pb-8 sm:px-6 md:pt-28 lg:border-b lg:motion-safe:px-10 lg:motion-safe:pt-8 lg:motion-safe:pb-8">
               {/*
-                Display scale below `lg`, where the head opens a page-width column and has the
-                room to. Inside the frame it drops to headline scale: the panel is one viewport
-                tall and everything in it competes for that height, so a two sentence statement at
-                `text-display` took roughly two fifths of the frame and pushed the still it is
-                introducing under the fold. The head labels the panel; the step's own sentence
-                opposite is the line that carries the section.
+                Headline scale, not display, at every width. Inside the pinned frame the reason is
+                height: the panel is one viewport tall and everything in it competes for that
+                height, so a two sentence statement at `text-display` took roughly two fifths of
+                the frame and pushed the still it introduces under the fold.
+
+                A phone has the same problem for the same reason and did not get the same answer
+                until 2026-09-10: the cap was written `lg:text-3xl`, so below `lg` the head kept
+                the full 40px display scale and ran to 216px of heading inside a 366px head -- 43%
+                of a 390x844 screen spent on the label of a section whose first step had not
+                started. The head labels the panel; the step's own sentence is the line that
+                carries the section, and it should be what the reader meets first.
+
+                `md` keeps a step up, where the viewport is wide enough that the head is a band
+                rather than a screen.
               */}
               <SectionHeader
                 tier="major"
@@ -121,7 +138,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                 eyebrow={eyebrow}
                 title={title}
                 emphasis={{ leadSentences: 1 }}
-                className="**:data-[slot=statement]:text-display-sm **:data-[slot=statement]:md:text-display **:data-[slot=statement]:lg:text-3xl **:data-[slot=statement]:lg:leading-tight"
+                className="**:data-[slot=statement]:text-2xl **:data-[slot=statement]:leading-tight **:data-[slot=statement]:md:text-3xl"
               />
             </div>
             {/*
@@ -129,9 +146,11 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
               the right. The right column is the wider of the two and the picture inside it runs to
               the frame's bottom edge, so the still is cropped by the panel rather than sitting in
               it. Below `lg` neither the grid nor the pin exists and the steps stack down the page,
-              which is the same information in the shape a phone can hold.
+              which is the same information in the shape a phone can hold. Reduced motion takes that
+              same stacked shape at every width: the two columns only make sense while one step at a
+              time is open, and what opens them is the pin.
             */}
-            <div className="w-full px-4 pb-16 sm:px-6 md:pb-28 lg:grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)] lg:items-stretch lg:gap-0 lg:px-0 lg:pb-0">
+            <div className="w-full px-4 pb-16 sm:px-6 md:pb-28 lg:motion-safe:grid lg:motion-safe:min-h-0 lg:motion-safe:flex-1 lg:motion-safe:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)] lg:motion-safe:items-stretch lg:motion-safe:gap-0 lg:motion-safe:px-0 lg:motion-safe:pb-0">
               {/*
               The labels. It is a real `ol`, so the numbering, the order and the count reach a
               screen reader from the markup rather than from any decoration -- which is why the
@@ -142,7 +161,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
               column has. The active label also carries the hairline marker, a ground change
               rather than a colour, because the palette has no accent hue (docs/design.md, rule 3).
             */}
-              <ol className="flex flex-col border-border border-t lg:gap-1 lg:self-start lg:border-t-0 lg:py-8 lg:pr-10 lg:pl-10">
+              <ol className="flex flex-col border-border border-t lg:motion-safe:gap-1 lg:motion-safe:self-start lg:motion-safe:border-t-0 lg:motion-safe:py-8 lg:motion-safe:pr-10 lg:motion-safe:pl-10">
                 {steps.map((step, index) => (
                   <li
                     key={step.key}
@@ -151,9 +170,9 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                     // Lit from the server, so without JavaScript every step stands open and the
                     // section is the plain column of passages it is below `lg`.
                     data-active="true"
-                    className="group flex scroll-mt-28 flex-col gap-4 border-border border-b py-6 lg:border-b-0 lg:py-0"
+                    className="group flex scroll-mt-28 flex-col gap-4 border-border border-b py-6 lg:motion-safe:border-b-0 lg:motion-safe:py-0"
                   >
-                    <div className="relative flex items-center gap-4 lg:gap-0">
+                    <div className="relative flex items-center gap-3 lg:motion-safe:gap-0">
                       {/*
                         The open step's marker, against the frame's left border rather than beside
                         the label (owner reference, 2026-09-10). `-ml-10` pulls it back through the
@@ -165,10 +184,19 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                         3): the marker and the eyebrow pill are the same voice, and colour is not
                         the only carrier here -- the open label also goes to full foreground while
                         the rest stay muted.
+
+                        Wherever there is no pin -- below `lg`, and at every width under reduced
+                        motion -- every step is open at once, so an "open step" marker would light
+                        all four and tell the reader nothing. There it is drawn on every step
+                        instead, in the same accent and the same place, which is what gives four
+                        equally lit steps an edge each to begin at: until 2026-09-10 it was
+                        `lg:block` and a phone got no marker at all, so the four steps ran together
+                        as one undifferentiated column of copy. It stays `aria-hidden` in both
+                        roles -- the `ol` is what carries the count to a screen reader.
                       */}
                       <span
                         aria-hidden="true"
-                        className="-ml-8 hidden h-6 w-0.5 shrink-0 bg-transparent transition-colors duration-300 group-data-[active=true]:bg-brand-accent lg:absolute lg:block"
+                        className="-ml-3 h-6 w-0.5 shrink-0 bg-brand-accent transition-colors duration-300 sm:-ml-4 lg:motion-safe:-ml-8 lg:motion-safe:absolute lg:motion-safe:bg-transparent lg:motion-safe:group-data-[active=true]:bg-brand-accent"
                       />
                       {/*
                       The label at body scale, not display: four of them are stacked and the
@@ -186,7 +214,15 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                         hairline marker beside it, which is contrast enough without pushing the
                         others out of sight.
                       */}
-                      <span className="text-lg text-muted-foreground transition-colors duration-300 group-data-[active=true]:text-foreground lg:text-xl">
+                      {/*
+                        Where every step stands open the label is the step's own title and has to
+                        look like one: `font-semibold` at the headline's tracking, in the heading
+                        colour. Inside the pin it goes back to being one of four entries in a path,
+                        where weight would fight the open step's own sentence opposite, so the
+                        semibold and the tracking are dropped from `lg` and the colour goes back to
+                        following `data-active`.
+                      */}
+                      <span className="font-semibold text-foreground text-lg tracking-headline transition-colors duration-300 lg:motion-safe:font-normal lg:motion-safe:text-muted-foreground lg:motion-safe:text-xl lg:motion-safe:tracking-normal lg:motion-safe:group-data-[active=true]:text-foreground">
                         {step.label}
                       </span>
                     </div>
@@ -195,7 +231,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                     width, so the step carries its own; from `lg` both are hidden here and drawn on
                     the right instead, and exactly one copy of each string is ever displayed.
                   */}
-                    <div className="flex flex-col gap-4 lg:hidden">
+                    <div className="flex flex-col gap-4 lg:motion-safe:hidden">
                       <Statement
                         as="p"
                         text={step.body}
@@ -203,7 +239,9 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                         leadSentences={1}
                         className="max-w-prose text-copy-18"
                       />
-                      {step.visual ? <StepVisual step={step.visual} className="w-full" /> : null}
+                      {step.visual ? (
+                        <StepVisual step={step.visual} className="w-full" stacked />
+                      ) : null}
                     </div>
                   </li>
                 ))}
@@ -222,7 +260,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
               and the labels' `pr`, so the rule falls exactly between them and runs the full
               height of the panel (`items-stretch`) rather than stopping at the shorter column.
             */}
-              <div className="relative hidden lg:block lg:border-l">
+              <div className="relative hidden lg:motion-safe:block lg:motion-safe:border-l">
                 {steps.map((step, index) => (
                   <div
                     key={step.key}

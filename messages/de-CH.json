@@ -121,7 +121,11 @@
             "body": "Wer Ihren Betrieb begeht, schreibt den Bericht. Er hat jahrzehntelang Sicherheit in der Industrie verantwortet."
           }
         },
-        "navLabel": "Die vier Schritte"
+        "navLabel": "Die vier Schritte",
+        "panel": {
+          "eyebrow": "Schritt für Schritt",
+          "title": "Es beginnt mit einem Namen und endet auf Ihrem Schreibtisch."
+        }
       },
       "split": {
         "eyebrow": "Aufgabenteilung",

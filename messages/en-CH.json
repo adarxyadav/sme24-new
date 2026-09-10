@@ -121,7 +121,11 @@
             "body": "The person who walks your site writes the report. They have run safety in industry for decades."
           }
         },
-        "navLabel": "The four steps"
+        "navLabel": "The four steps",
+        "panel": {
+          "eyebrow": "Step by step",
+          "title": "It starts with a name and ends on your desk."
+        }
       },
       "split": {
         "eyebrow": "Division of labour",

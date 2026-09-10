@@ -7,8 +7,12 @@ export type StepsRailProps = {
   readonly keys: readonly string[];
 };
 
-/** Below this width the section is not pinned, so every step stands open. */
-const PINNED = "(min-width: 1024px)";
+/**
+ * Below this width the section is not pinned, so every step stands open. It is the same
+ * `1024px` the section's own `lg:` utilities use, and the two have to agree: this query decides
+ * whether the driver measures, those utilities decide whether there is a pin to measure.
+ */
+const PINNED = "(min-width: 1024px) and (prefers-reduced-motion: no-preference)";
 
 /**
  * The scroll driver behind the steps. It renders nothing: it reads the reader's progress through
@@ -25,6 +29,15 @@ const PINNED = "(min-width: 1024px)";
  * one. When it never runs -- no JavaScript, no `matchMedia` -- every row keeps the
  * `data-active="true"` the server rendered and the section is the plain open column it is below
  * `lg`, rather than four collapsed rows. Browser.
+ *
+ * Reduced motion drops the pin rather than shortening it (2026-09-10). The global rule in
+ * `globals.css` clamps every transition to 1ms, which took the cross fade away and left the
+ * scroll pin itself untouched -- so the reader who asked for less motion got the four viewports
+ * of scroll hijacking with none of the fading that explained what it was for, which is worse than
+ * either end of the choice. The pin is the motion here: it takes the page's own scrolling away
+ * and spends it on the section. `PINNED` therefore carries `prefers-reduced-motion` as well as the
+ * width, and the section's track and sticky shell are dropped by the same query in CSS, so the
+ * whole mechanism goes rather than half of it.
  */
 export function StepsRail({ keys }: StepsRailProps) {
   useEffect(() => {
