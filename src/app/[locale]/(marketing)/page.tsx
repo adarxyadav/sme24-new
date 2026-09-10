@@ -26,14 +26,18 @@ import { resolveLocale } from "@/i18n/routing";
 const POINTS = ["price", "setup", "start"] as const;
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
 
-/** The campaign deck's objects (web sized under `public/campaign/`), in wall order. */
+/**
+ * The campaign deck's objects (web sized under `public/campaign/`), in wall order. `grayscale`
+ * carries the imagery rule (docs/design.md, Brand): photographs of people and places are black
+ * and white, cut out objects keep their colour.
+ */
 const WALL = [
-  { key: "teamevent", src: "/campaign/teamevent.jpg" },
-  { key: "firmenwagen", src: "/campaign/firmenwagen.webp" },
-  { key: "dresscode", src: "/campaign/dresscode.jpg" },
-  { key: "jahresbonus", src: "/campaign/jahresbonus.webp" },
-  { key: "noCosmetics", src: "/campaign/no-cosmetics.jpg" },
-  { key: "noOverhead", src: "/campaign/no-overhead.webp" },
+  { key: "teamevent", src: "/campaign/teamevent.jpg", grayscale: false },
+  { key: "firmenwagen", src: "/campaign/firmenwagen.webp", grayscale: false },
+  { key: "dresscode", src: "/campaign/dresscode.jpg", grayscale: false },
+  { key: "jahresbonus", src: "/campaign/jahresbonus.webp", grayscale: true },
+  { key: "noCosmetics", src: "/campaign/graue-haare.jpg", grayscale: true },
+  { key: "noOverhead", src: "/campaign/keine-haare.jpg", grayscale: true },
 ] as const;
 
 /** Title, description, alternates and social fields of the landing page (spec 0009, AC-1, AC-2). */
@@ -267,6 +271,7 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
                   <CampaignImage
                     src={item.src}
                     alt={t(`wall.items.${item.key}.alt`)}
+                    grayscale={item.grayscale}
                     sizes="(min-width: 640px) 20rem, 80vw"
                     loading={index === 0 ? "lazy" : undefined}
                   />

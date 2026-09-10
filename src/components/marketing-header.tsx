@@ -21,6 +21,17 @@ import { cn } from "@/lib/utils";
 
 export type MarketingLink = { readonly href: StaticPathname; readonly label: string };
 
+export type MarketingHeaderProps = {
+  readonly links: readonly MarketingLink[];
+  /**
+   * The one filled button in the bar. Its label is passed in already resolved, the same way the
+   * nav labels are: `marketing` is not a shared client namespace (`SHARED_NAMESPACES`), so reading
+   * it here would either render the raw key or force the whole marketing catalog into every
+   * client bundle and onto the first load budget.
+   */
+  readonly cta: MarketingLink;
+};
+
 /**
  * Routes whose first section forces the jet ground in both themes. None does since the landing
  * hero moved onto the page ground (2026-09-07): every page opens on the page background, so the
@@ -87,7 +98,12 @@ function useBarState(overDarkHero: boolean): BarState {
 
 /**
  * Public site header (spec 0003; spec 0009, AC-7): wordmark, navigation links with
- * `aria-current="page"` on the active one, the language switch and sign in. The bar sticks to the
+ * `aria-current="page"` on the active one, the language switch, then sign in as a quiet link and
+ * the one filled button in the chrome. That button (`cta`) carries `/sign-up` under the same label
+ * the footer and every page's closing call to action use (`marketing.nav.riskCost`), because the
+ * strongest element in the bar has to offer the thing a first time reader came for; sign in is
+ * for someone who already has an account and who looks for it rather than needing to be sold it.
+ * Below `md` both live in the sheet, filled then outline, in the same order. The bar sticks to the
  * top and is fully transparent until the page scrolls, so whatever the page opens with shows
  * through it in both themes and there is no seam; once the page proper is under it, it takes a
  * hairline and a frosted ground (`bg-background/85` plus a backdrop blur). On a page that opens
@@ -100,7 +116,7 @@ function useBarState(overDarkHero: boolean): BarState {
  * together. The theme control lives in the footer on desktop, and in the sheet below `md` where
  * the links also collapse. Runs in the browser; the marketing layout passes the links.
  */
-export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) {
+export function MarketingHeader({ links, cta }: MarketingHeaderProps) {
   const t = useTranslations();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -127,7 +143,7 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
 
         <nav
           aria-label={t("shell.mainNavigation")}
-          className="hidden flex-1 items-center justify-center gap-8 md:flex"
+          className="hidden min-w-0 flex-1 items-center justify-center gap-5 whitespace-nowrap md:flex lg:gap-8"
         >
           {links.map((link) => (
             <Link
@@ -141,10 +157,18 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
           ))}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-3 md:flex">
+        <div className="ml-auto hidden shrink-0 items-center gap-3 md:flex lg:gap-4">
           <LocaleSwitcher />
+          <Link
+            href="/sign-in"
+            className="hidden whitespace-nowrap font-medium text-muted-foreground text-sm underline-offset-4 transition-colors hover:text-foreground hover:underline lg:inline"
+          >
+            {t("common.signIn")}
+          </Link>
           <Button asChild>
-            <Link href="/sign-in">{t("common.signIn")}</Link>
+            <Link href={cta.href} className="whitespace-nowrap">
+              {cta.label}
+            </Link>
           </Button>
         </div>
 
@@ -185,6 +209,11 @@ export function MarketingHeader({ links }: { links: readonly MarketingLink[] }) 
                 <ThemeToggle />
               </div>
               <Button asChild className="w-full" size="lg">
+                <Link href={cta.href} onClick={() => setOpen(false)}>
+                  {cta.label}
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full" size="lg">
                 <Link href="/sign-in" onClick={() => setOpen(false)}>
                   {t("common.signIn")}
                 </Link>

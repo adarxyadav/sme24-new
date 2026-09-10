@@ -408,11 +408,11 @@
           },
           "noCosmetics": {
             "statement": "No cosmetics.",
-            "alt": "Heavily made up woman with oversized red lips"
+            "alt": "Expert with grey hair in a navy blazer, arms crossed"
           },
           "noOverhead": {
             "statement": "No overhead.",
-            "alt": "Man in a suit with champagne between a private jet, a convertible and a pool"
+            "alt": "Bald expert in a dark suit, smiling"
           }
         }
       },
@@ -477,6 +477,11 @@
       "title": "Fixed price. No surprises.",
       "lead": "Every package is one price, one senior expert, one report. Prices exclude 8.1% VAT.",
       "packagesLabel": "The packages",
+      "packagesHeading": {
+        "eyebrow": "The packages",
+        "title": "Three snapshots, each building on the one below.",
+        "lead": "Start where your questions are. Moving up a rung is a step, not a fresh start — and the partner picks up the work that follows."
+      },
       "vatNote": "excl. 8.1% VAT",
       "onDemand": "On demand",
       "bestForLabel": "Best for",
@@ -591,10 +596,17 @@
       "eyebrow": "Contact",
       "title": "Talk to a person. Not to a form.",
       "lead": "For the retainer, a question about a package, or anything else: write to us or use the form. A senior expert answers within one working day.",
+      "reach": {
+        "eyebrow": "Two ways",
+        "title": "Write to us directly, or send the form.",
+        "lead": "The form reaches the same inbox and tells us what you need before we answer, so the first reply is an answer rather than a question back."
+      },
       "facts": {
         "heading": "Reach us",
         "email": "Email",
-        "phone": "Phone"
+        "phone": "Phone",
+        "response": "Answer time",
+        "responseValue": "Within one working day"
       },
       "form": {
         "heading": "Your enquiry",
@@ -644,6 +656,10 @@
         "title": "Thank you. Your enquiry has reached us.",
         "body": "You will get a short confirmation by email. A person answers within one working day.",
         "back": "Back to the start"
+      },
+      "closing": {
+        "title": "Or skip the wait. See the figure yourself.",
+        "cta": "See what your risk costs"
       }
     },
     "packages": {
@@ -1010,11 +1026,11 @@
         },
         "noCosmetics": {
           "statement": "No cosmetics.",
-          "alt": "Heavily made up woman with oversized red lips"
+          "alt": "Expert with grey hair in a navy blazer, arms crossed"
         },
         "noOverhead": {
           "statement": "No overhead.",
-          "alt": "Man in a suit with champagne between a private jet, a convertible and a pool"
+          "alt": "Bald expert in a dark suit, smiling"
         }
       }
     },

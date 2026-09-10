@@ -211,10 +211,11 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     { href: "/about", label: "Über uns" },
     { href: "/contact", label: "Kontakt" },
   ] as const;
+  const cta = { href: "/sign-up", label: de.marketing.nav.riskCost } as const;
 
   it("marks the current page on the localized slug and links the others without the mark", () => {
     boundary.pathname = "/de/preise";
-    renderIn("de-CH", <MarketingHeader links={links} />);
+    renderIn("de-CH", <MarketingHeader links={links} cta={cta} />);
     const nav = screen.getByRole("navigation", { name: de.shell.mainNavigation });
     const pricing = screen.getByRole("link", { name: "Preise" });
     expect(nav).toContainElement(pricing);
@@ -227,11 +228,17 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
       "href",
       "/de/sign-in",
     );
+    // The one filled button in the chrome carries the conversion, under the same label the footer
+    // and every page's closing call to action use; sign in sits beside it as a quiet link.
+    expect(screen.getByRole("link", { name: de.marketing.nav.riskCost })).toHaveAttribute(
+      "href",
+      "/de/sign-up",
+    );
   });
 
   it("marks nothing on the landing page", () => {
     boundary.pathname = "/de";
-    renderIn("de-CH", <MarketingHeader links={links} />);
+    renderIn("de-CH", <MarketingHeader links={links} cta={cta} />);
     for (const link of links) {
       expect(screen.getByRole("link", { name: link.label })).not.toHaveAttribute("aria-current");
     }
@@ -247,7 +254,7 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
 
   it("sticks to the top, transparent until the bar's own height and frosted with a hairline past it", () => {
     boundary.pathname = "/de/preise";
-    const { container } = renderIn("de-CH", <MarketingHeader links={links} />);
+    const { container } = renderIn("de-CH", <MarketingHeader links={links} cta={cta} />);
     const header = container.querySelector("header") as HTMLElement;
     expect(header.className).toContain("sticky");
     expect(header.className).toContain("top-0");
@@ -272,7 +279,7 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     // The landing hero sits on the page ground since 2026-09-07 (white in light, jet in dark),
     // so the bar must not carry `dark` over it: inverting would hide the lockup in light mode.
     boundary.pathname = "/de";
-    const { container, unmount } = renderIn("de-CH", <MarketingHeader links={links} />);
+    const { container, unmount } = renderIn("de-CH", <MarketingHeader links={links} cta={cta} />);
     const header = container.querySelector("header") as HTMLElement;
     expect(header.className).not.toContain("dark");
 
@@ -300,7 +307,7 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
 
     scrollTo(0);
     boundary.pathname = "/de/kontakt";
-    const plain = renderIn("de-CH", <MarketingHeader links={links} />);
+    const plain = renderIn("de-CH", <MarketingHeader links={links} cta={cta} />);
     expect((plain.container.querySelector("header") as HTMLElement).className).not.toContain(
       "dark",
     );
@@ -309,7 +316,7 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
   it("opens the small screen menu from a labelled button and repeats the links with the current mark", async () => {
     const user = userEvent.setup();
     boundary.pathname = "/de/kontakt";
-    renderIn("de-CH", <MarketingHeader links={links} />);
+    renderIn("de-CH", <MarketingHeader links={links} cta={cta} />);
     await user.click(screen.getByRole("button", { name: de.shell.openMenu }));
     const dialog = await screen.findByRole("dialog", { name: de.common.appName });
     expect(dialog).toHaveTextContent(de.shell.menuDescription);
@@ -321,6 +328,10 @@ describe("MarketingHeader (spec 0009, AC-7)", () => {
     expect(sheet.getByRole("link", { name: de.common.signIn })).toHaveAttribute(
       "href",
       "/de/sign-in",
+    );
+    expect(sheet.getByRole("link", { name: de.marketing.nav.riskCost })).toHaveAttribute(
+      "href",
+      "/de/sign-up",
     );
   });
 });

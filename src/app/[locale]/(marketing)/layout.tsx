@@ -10,7 +10,7 @@ import { clientEnv } from "@/lib/env";
 
 /**
  * Public pages (spec 0009): statically rendered (`setRequestLocale` in every layout and page on
- * this path), the header with the three site links, the footer with the link groups (its legal
+ * this path), the header with the three site links and the one filled call to action, the footer with the link groups (its legal
  * group filled by spec 0015, AC-9) and the `Organization` structured data on every page.
  */
 export default async function MarketingLayout({ children, params }: LayoutProps<"/[locale]">) {
@@ -49,6 +49,7 @@ export default async function MarketingLayout({ children, params }: LayoutProps<
           { href: "/expert-network", label: t("expertNetwork") },
           { href: "/pricing", label: t("pricing") },
         ]}
+        cta={{ href: "/sign-up", label: t("riskCost") }}
       />
       <main id="main" tabIndex={-1} className="outline-none">
         {children}

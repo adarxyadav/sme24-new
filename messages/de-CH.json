@@ -408,11 +408,11 @@
           },
           "noCosmetics": {
             "statement": "Keine Kosmetik.",
-            "alt": "Stark geschminkte Frau mit übergrossen roten Lippen"
+            "alt": "Expertin mit grauen Haaren im dunkelblauen Blazer, Arme verschränkt"
           },
           "noOverhead": {
             "statement": "Kein Overhead.",
-            "alt": "Mann im Anzug mit Champagner zwischen Privatjet, Cabrio und Pool"
+            "alt": "Experte mit Glatze im dunklen Anzug, lächelnd"
           }
         }
       },
@@ -477,6 +477,11 @@
       "title": "Fixpreis. Keine Überraschungen.",
       "lead": "Jedes Paket ist ein Preis, ein Senior-Experte, ein Bericht. Preise exkl. 8.1% MWST.",
       "packagesLabel": "Die Pakete",
+      "packagesHeading": {
+        "eyebrow": "Die Pakete",
+        "title": "Drei Snapshots, die aufeinander aufbauen.",
+        "lead": "Starten Sie dort, wo Ihre Fragen sind. Eine Stufe höher ist ein Schritt, kein Neuanfang — und der Partner übernimmt die Umsetzung danach."
+      },
       "vatNote": "exkl. 8.1% MWST",
       "onDemand": "Auf Anfrage",
       "bestForLabel": "Ideal für",
@@ -591,10 +596,17 @@
       "eyebrow": "Kontakt",
       "title": "Reden Sie mit einem Menschen. Nicht mit einem Formular.",
       "lead": "Für den Retainer, eine Frage zu einem Paket oder alles andere: Schreiben Sie uns oder nutzen Sie das Formular. Ein Senior-Experte antwortet innerhalb eines Arbeitstags.",
+      "reach": {
+        "eyebrow": "Zwei Wege",
+        "title": "Schreiben Sie direkt oder senden Sie das Formular.",
+        "lead": "Das Formular landet im selben Postfach und sagt uns vorab, worum es geht, damit die erste Antwort eine Antwort ist und keine Rückfrage."
+      },
       "facts": {
         "heading": "So erreichen Sie uns",
         "email": "E-Mail",
-        "phone": "Telefon"
+        "phone": "Telefon",
+        "response": "Antwortzeit",
+        "responseValue": "Innerhalb eines Arbeitstags"
       },
       "form": {
         "heading": "Ihre Anfrage",
@@ -644,6 +656,10 @@
         "title": "Danke. Ihre Anfrage ist bei uns.",
         "body": "Sie erhalten eine kurze Bestätigung per E-Mail. Ein Mensch antwortet innerhalb eines Arbeitstags.",
         "back": "Zurück zum Start"
+      },
+      "closing": {
+        "title": "Oder warten Sie nicht. Sehen Sie die Zahl selbst.",
+        "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
     "packages": {
@@ -1010,11 +1026,11 @@
         },
         "noCosmetics": {
           "statement": "Keine Kosmetik.",
-          "alt": "Stark geschminkte Frau mit übergrossen roten Lippen"
+          "alt": "Expertin mit grauen Haaren im dunkelblauen Blazer, Arme verschränkt"
         },
         "noOverhead": {
           "statement": "Kein Overhead.",
-          "alt": "Mann im Anzug mit Champagner zwischen Privatjet, Cabrio und Pool"
+          "alt": "Experte mit Glatze im dunklen Anzug, lächelnd"
         }
       }
     },
