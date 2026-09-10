@@ -226,11 +226,14 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         eyebrow={t("how.eyebrow")}
         title={t("how.title")}
         navLabel={t("how.navLabel")}
+        // Every step carries a still here: the two with a real screen are drawn from that
+        // screen's own components, the two without take campaign photography (`StepVisual`).
         steps={STEPS.map((step) => ({
           key: step,
           title: t(`how.steps.${step}.title`),
           body: t(`how.steps.${step}.body`),
           label: t(`how.steps.${step}.rail`),
+          visual: step,
         }))}
       />
 

@@ -1,6 +1,8 @@
 import { Statement } from "@/components/brand/statement";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
+import { StepVisual, type StepVisualKey } from "@/features/marketing/ui/step-visual";
 import { StepsRail } from "@/features/marketing/ui/steps-rail";
+import { cn } from "@/lib/utils";
 
 export type Step = {
   readonly key: string;
@@ -8,6 +10,11 @@ export type Step = {
   readonly body: string;
   /** The two or three word name this step takes in the rail. Falls back to the title. */
   readonly label?: string;
+  /**
+   * The still to set beside this step. Omit it and the step is type only, which is what the
+   * steps of a page that pictures nothing take.
+   */
+  readonly visual?: StepVisualKey;
 };
 
 export type StepsSectionProps = {
@@ -73,20 +80,43 @@ export function StepsSection({ eyebrow, title, steps, navLabel }: StepsSectionPr
                 <span className="font-mono text-muted-foreground text-xs tabular-nums md:w-12 md:shrink-0 md:pt-2">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <div className="flex min-w-0 flex-col gap-4">
-                  {/*
-                    Display sized, which is the whole point of the pass: at `text-xl` in a cell
-                    the step titles were captions under a number. At this size the four titles
-                    are the section's argument and the section header above them introduces it.
-                    A step title is one or two short sentences, so `line` keeps the campaign
-                    format and each sentence takes its own line and square stop.
-                  */}
-                  <Statement
-                    as="h3"
-                    text={step.title}
-                    className="text-2xl tracking-headline md:text-display-sm"
-                  />
-                  <p className="max-w-prose text-copy-18 text-muted-foreground">{step.body}</p>
+                {/*
+                  The copy and the still share the step's row from `md`, and the still changes
+                  side on every other step. Alternating is not decoration: four stills all down
+                  the same edge turn the column into a two column table the eye reads across
+                  instead of a sequence it reads down, and the zig zag is what keeps the reader
+                  travelling. Below `md` the still simply follows its copy.
+                */}
+                <div className="flex min-w-0 flex-1 flex-col gap-6 md:flex-row md:items-center md:gap-10">
+                  <div
+                    className={cn(
+                      "flex min-w-0 flex-col gap-4 md:flex-1",
+                      step.visual && index % 2 === 1 && "md:order-2",
+                    )}
+                  >
+                    {/*
+                      Display sized, which is the whole point of the pass: at `text-xl` in a cell
+                      the step titles were captions under a number. At this size the four titles
+                      are the section's argument and the section header above them introduces it.
+                      A step title is one or two short sentences, so `line` keeps the campaign
+                      format and each sentence takes its own line and square stop.
+                    */}
+                    <Statement
+                      as="h3"
+                      text={step.title}
+                      className="text-2xl tracking-headline lg:text-display-sm"
+                    />
+                    <p className="max-w-prose text-copy-18 text-muted-foreground">{step.body}</p>
+                  </div>
+                  {step.visual ? (
+                    <StepVisual
+                      step={step.visual}
+                      className={cn(
+                        "w-full md:max-w-sm md:flex-1",
+                        index % 2 === 1 && "md:order-1",
+                      )}
+                    />
+                  ) : null}
                 </div>
               </li>
             ))}
