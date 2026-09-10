@@ -320,7 +320,14 @@ test("every package card's action contrasts, meets the target size, and no name 
 }) => {
   for (const path of ["/en/pricing", "/de/preise", "/en", "/de"]) {
     await page.goto(path);
-    const cards = page.locator('[data-slot="package-card"]');
+    // Scoped to the packages section, not the whole page: the landing page's steps section
+    // pictures the three fixed price packages inside its third step (`PackagesCard`), and it
+    // renders that still twice -- once stacked for a phone, once in the pinned panel -- so an
+    // unscoped locator counts ten cards on a page that offers four. The still's cards are the
+    // same component and are checked on their own below.
+    const cards = page
+      .locator('section[aria-labelledby="packages-heading"]')
+      .locator('[data-slot="package-card"]');
     await expect(cards).toHaveCount(4);
 
     for (const card of await cards.all()) {
@@ -377,6 +384,24 @@ test("every package card's action contrasts, meets the target size, and no name 
         { sel: selector, side: edge },
       );
       expect(new Set(offsets).size, `${selector} (${edge} edge)`).toBe(1);
+    }
+
+    // The same cards inside the landing page's third step, where `PackagesCard` shows the three
+    // fixed price packages as that step's still. It declares the `overview` row tracks itself,
+    // because `PackageCard` is a `grid-rows-subgrid` child and takes its rows from the list above
+    // it -- get those tracks wrong and the name, the price and the button collapse to whatever
+    // their content wants. The step renders twice (stacked, and inside the pinned panel), so the
+    // count is per copy rather than absolute.
+    const stillCards = page.locator("[data-steps]").locator('[data-slot="package-card"]');
+    const stillCount = await stillCards.count();
+    if (stillCount > 0) {
+      expect(stillCount % 3, "packages still renders whole copies of three cards").toBe(0);
+      // The still is `inert`, so nothing in it may take focus or answer a click: it pictures the
+      // packages, and a visitor must never mistake it for the live cards further down the page.
+      const reachable = await stillCards
+        .first()
+        .evaluate((node) => node.closest("[inert]") !== null);
+      expect(reachable, "the packages still sits inside an inert subtree").toBe(true);
     }
   }
 });
