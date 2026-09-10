@@ -65,6 +65,52 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
   return (
     <section aria-labelledby="steps-heading" data-steps>
       {/*
+        The head, above the track rather than the first row inside the pinned frame (owner decision,
+        2026-09-10). It used to ride the pin, so the eyebrow and the heading held their band of a
+        viewport tall panel for the whole four viewports of scrolling -- the reader was still being
+        told the name of the section three steps into it, in the space the step's own still wanted.
+        It now opens the section, scrolls away like any other section head, and the pin catches on
+        the two columns alone.
+
+        Hoisting it is also what keeps the rail's measurement honest. The driver reads the track's
+        own top against the viewport and divides by one viewport per step, so the track has to begin
+        exactly where the pinning begins: with the head inside it, the track top passed the viewport
+        top while the head was still on screen and step two lit before the columns had pinned.
+
+        The frame's rectangle is drawn across both parts from `lg`: this half is closed on all four
+        sides and rounded at the top, the columns below are closed and rounded at the bottom, and
+        their two hairlines meet at the seam. That seam is the rule the head used to draw as the
+        frame's own inner division (`border-b`) while it was the panel's first row -- with the head
+        hoisted out, the rule has to be its own bottom edge instead, or the heading floats over the
+        columns with nothing dividing it from them.
+      */}
+      <div className="mx-auto w-full max-w-6xl px-4 pt-32 pb-12 sm:px-6 md:pt-44 md:pb-16 lg:mt-6 lg:rounded-t-lg lg:border lg:px-10 lg:pt-20 lg:pb-14">
+        {/*
+            Headline scale, not display, at every width. Inside the pinned frame the reason is
+            height: the panel is one viewport tall and everything in it competes for that
+            height, so a two sentence statement at `text-display` took roughly two fifths of
+            the frame and pushed the still it introduces under the fold.
+
+            A phone has the same problem for the same reason and did not get the same answer
+            until 2026-09-10: the cap was written `lg:text-3xl`, so below `lg` the head kept
+            the full 40px display scale and ran to 216px of heading inside a 366px head -- 43%
+            of a 390x844 screen spent on the label of a section whose first step had not
+            started. The head labels the panel; the step's own sentence is the line that
+            carries the section, and it should be what the reader meets first.
+
+            `md` keeps a step up, where the viewport is wide enough that the head is a band
+            rather than a screen.
+          */}
+        <SectionHeader
+          tier="major"
+          id="steps-heading"
+          eyebrow={eyebrow}
+          title={title}
+          emphasis={{ leadSentences: 1 }}
+          className="**:data-[slot=statement]:max-w-3xl **:data-[slot=statement]:text-2xl **:data-[slot=statement]:leading-tight **:data-[slot=statement]:md:text-3xl"
+        />
+      </div>
+      {/*
         The scroll track. One viewport of scrolling per step, so each step gets an equal share of
         the reader's travel and the last one is fully read before the section releases. The height
         is inline because it counts the steps, which Tailwind cannot know at build time.
@@ -92,15 +138,15 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
           panel with no scrolling left to reveal them. Dropped together, the section becomes the
           plain stacked panel it already is below `lg` -- every step open, nothing pinned.
         */}
-        <div className="lg:motion-safe:sticky lg:motion-safe:top-16 lg:motion-safe:h-[calc(100svh-4rem-var(--consent-bar-height,0px))] lg:px-4 lg:py-6 sm:lg:px-6">
+        <div className="lg:motion-safe:sticky lg:motion-safe:top-16 lg:motion-safe:h-[calc(100svh-4rem-var(--consent-bar-height,0px))] lg:px-4 lg:pb-6 sm:lg:px-6">
           <StepsRail keys={steps.map((step) => step.key)} />
           {/*
             The frame (owner reference, 2026-09-10): from `lg` the section is one closed rectangle
-            at the content width, not copy floating on the page ground. `border` on all four sides
-            is the point -- the panel is a rectangle the reader is inside, and the head's rule and
-            the column rule divide it from within rather than reaching past it. An earlier pass put
-            `border-y` on the full-width shell instead, which drew two rules across the window and
-            read as the page being sliced rather than as a section being framed.
+            at the content width, not copy floating on the page ground. `border` on the sides and
+            the bottom is the point -- the panel is a rectangle the reader is inside, and the column
+            rule divides it from within rather than reaching past it. The top edge is the head's own
+            border above, which this meets: the head is bordered and open at the bottom, this is
+            bordered and open at the top, so the two draw one rectangle across the seam.
 
             Only from `lg`, where the pin is. Below it the section is a plain stacked column and a
             rectangle would box a page-width run of copy for no reason. The frame itself survives
@@ -108,39 +154,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
             that crops the still do not: both size the panel to the viewport the pin gave it, and
             with the pin gone they would clip the steps instead of framing them.
           */}
-          <div className="lg:mx-auto lg:flex lg:w-full lg:max-w-6xl lg:flex-col lg:rounded-lg lg:border lg:motion-safe:h-full lg:motion-safe:overflow-hidden">
-            {/*
-              The head, spanning both columns above them and closed by a hairline -- the reference's
-              own arrangement. It sat inside the left column before, where a section heading stood
-              directly above a step heading and the reader met two titles in one stack. The rule is
-              the frame's own inner division, so it runs edge to edge of the panel and stops there.
-            */}
-            <div className="w-full shrink-0 px-4 pt-16 pb-8 sm:px-6 md:pt-28 lg:border-b lg:motion-safe:px-10 lg:motion-safe:pt-8 lg:motion-safe:pb-8">
-              {/*
-                Headline scale, not display, at every width. Inside the pinned frame the reason is
-                height: the panel is one viewport tall and everything in it competes for that
-                height, so a two sentence statement at `text-display` took roughly two fifths of
-                the frame and pushed the still it introduces under the fold.
-
-                A phone has the same problem for the same reason and did not get the same answer
-                until 2026-09-10: the cap was written `lg:text-3xl`, so below `lg` the head kept
-                the full 40px display scale and ran to 216px of heading inside a 366px head -- 43%
-                of a 390x844 screen spent on the label of a section whose first step had not
-                started. The head labels the panel; the step's own sentence is the line that
-                carries the section, and it should be what the reader meets first.
-
-                `md` keeps a step up, where the viewport is wide enough that the head is a band
-                rather than a screen.
-              */}
-              <SectionHeader
-                tier="major"
-                id="steps-heading"
-                eyebrow={eyebrow}
-                title={title}
-                emphasis={{ leadSentences: 1 }}
-                className="**:data-[slot=statement]:text-2xl **:data-[slot=statement]:leading-tight **:data-[slot=statement]:md:text-3xl"
-              />
-            </div>
+          <div className="lg:mx-auto lg:flex lg:w-full lg:max-w-6xl lg:flex-col lg:rounded-b-lg lg:border lg:border-t-0 lg:motion-safe:h-full lg:motion-safe:overflow-hidden">
             {/*
               Two columns from `lg`: the labels on the left, the open step's sentence and picture on
               the right. The right column is the wider of the two and the picture inside it runs to
@@ -161,7 +175,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
               column has. The active label also carries the hairline marker, a ground change
               rather than a colour, because the palette has no accent hue (docs/design.md, rule 3).
             */}
-              <ol className="flex flex-col border-border border-t lg:motion-safe:gap-1 lg:motion-safe:self-start lg:motion-safe:border-t-0 lg:motion-safe:py-8 lg:motion-safe:pr-10 lg:motion-safe:pl-10">
+              <ol className="flex flex-col border-border border-t lg:motion-safe:gap-1 lg:motion-safe:self-start lg:motion-safe:border-t-0 lg:motion-safe:pt-14 lg:motion-safe:pr-10 lg:motion-safe:pb-8 lg:motion-safe:pl-10">
                 {steps.map((step, index) => (
                   <li
                     key={step.key}
@@ -271,7 +285,7 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                       // because the stacked steps are `absolute inset-0` and so resolve against the
                       // column's padding box: padding set there is escaped by every step but the
                       // first, and the still runs under the frame's own border.
-                      "flex h-full flex-col gap-8 px-10 pt-8 opacity-0 transition-opacity duration-500 data-[active=true]:opacity-100",
+                      "flex h-full flex-col gap-8 px-10 pt-14 pb-14 opacity-0 transition-opacity duration-500 data-[active=true]:opacity-100",
                       index === 0 ? "relative" : "absolute inset-0",
                     )}
                   >
@@ -290,10 +304,12 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                       className="max-w-xl text-balance text-2xl leading-snug tracking-headline"
                     />
                     {/*
-                    The still runs to the frame's bottom edge and is cropped there, which is what
-                    makes it read as a window onto a real screen rather than as a thumbnail of one.
-                    `min-h-0` is what lets the flex child actually be shorter than its content so
-                    the crop happens; the overflow is clipped by the sticky frame above.
+                    The still is cropped rather than fitted, which is what makes it read as a window
+                    onto a real screen rather than as a thumbnail of one. The crop line is the step's
+                    own bottom padding, not the frame's edge: it stopped at the border until
+                    2026-09-10, so the picture ran into the rule and the panel had no floor. `min-h-0`
+                    is what lets the flex child actually be shorter than its content so the crop
+                    happens; the overflow is clipped by the sticky frame above.
                   */}
                     {step.visual ? (
                       <div
