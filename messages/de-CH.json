@@ -351,18 +351,16 @@
       "how": {
         "visual": {
           "lookup": {
-            "alt": "Ein marineblauer Arbeitsoverall mit orangen und silbernen Reflexstreifen"
+            "alt": "Das Bild zum Schritt"
           },
           "benchmark": {
-            "alt": "Die Karte der jährlichen Unfallkosten: CHF 595 853 pro Jahr, und die Unfallrate der Firma über den Quartilen der Peers",
-            "kpi": "Unfälle pro 1 000 Vollzeitstellen",
-            "quartiles": "p25 {p25} · Median {median} · p75 {p75}"
+            "alt": "Das Bild zum Schritt"
           },
           "package": {
-            "alt": "Die drei Fixpreis-Pakete mit ihren Preisen"
+            "alt": "Das Bild zum Schritt"
           },
           "expert": {
-            "alt": "Ein Senior-EHS-Experte mit grauen Haaren im marineblauen Sakko"
+            "alt": "Das Bild zum Schritt"
           }
         }
       },

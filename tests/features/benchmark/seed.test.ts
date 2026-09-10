@@ -17,7 +17,6 @@ import {
   parseCsv,
   parseSeedRows,
 } from "@/features/benchmark/seed-schema";
-import { COMPANY_RATE, PEER_ROW, PEERS } from "@/features/marketing/ui/step-visual";
 
 const SEED_DIR = join(process.cwd(), "supabase/seed-data");
 const MIGRATIONS_DIR = join(process.cwd(), "supabase/migrations");
@@ -196,27 +195,5 @@ describe("the seed migration generator (spec 0008, AC-2)", () => {
     ).toBe(true);
     const sql = readFileSync(join(MIGRATIONS_DIR, seed as string), "utf8");
     for (const key of ASSUMPTION_KEYS) expect(sql).toContain(`'${key}'`);
-  });
-});
-
-describe("the landing page's step still (2026-09-10)", () => {
-  it("prints the section C row of the seed CSV, so the picture cannot drift from the data", () => {
-    const table = parseCsv(readFileSync(join(SEED_DIR, "benchmarks.csv"), "utf8"));
-    const row = table.records.find(
-      (record) =>
-        record.fields.kpi_key === PEER_ROW.kpi_key &&
-        record.fields.industry_section === PEER_ROW.industry_section &&
-        record.fields.size_band === PEER_ROW.size_band &&
-        record.fields.period_year === String(PEER_ROW.period_year),
-    );
-    expect(row, "the row the still quotes must still exist in the seed data").toBeDefined();
-    expect({
-      p25: Number(row?.fields.p25),
-      median: Number(row?.fields.median),
-      p75: Number(row?.fields.p75),
-    }).toEqual({ p25: PEERS.p25, median: PEERS.median, p75: PEERS.p75 });
-    // The marked company value is that row's own p75, which is the rate the worked example
-    // sentence one section above is computed at. The two must stay one company.
-    expect(COMPANY_RATE).toBe(PEERS.p75);
   });
 });

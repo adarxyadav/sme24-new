@@ -230,8 +230,10 @@ export function StepsSection({ eyebrow, title, steps }: StepsSectionProps) {
                     {step.visual ? (
                       <div
                         className={cn(
-                          // A photograph takes the rest of the frame and is cropped by its bottom
-                          // edge; a card takes only the height its rows need.
+                          // A still that runs past the frame's bottom edge is cropped by it; one
+                          // sized to its own rows takes only the height it needs. Every
+                          // placeholder bleeds today, but the call stays per step so real artwork
+                          // can go back to deciding for itself.
                           stepVisualBleeds(step.visual) && "min-h-0 flex-1 overflow-hidden",
                         )}
                       >

@@ -351,18 +351,16 @@
       "how": {
         "visual": {
           "lookup": {
-            "alt": "A navy work coverall with orange and silver reflective stripes"
+            "alt": "The step's picture"
           },
           "benchmark": {
-            "alt": "The annual incident cost card: CHF 595 853 a year, and the company's accident rate marked above the peer quartiles",
-            "kpi": "Accidents per 1 000 full time equivalents",
-            "quartiles": "p25 {p25} · median {median} · p75 {p75}"
+            "alt": "The step's picture"
           },
           "package": {
-            "alt": "The three fixed price packages with their prices"
+            "alt": "The step's picture"
           },
           "expert": {
-            "alt": "A senior EHS expert with grey hair in a navy blazer"
+            "alt": "The step's picture"
           }
         }
       },
