@@ -594,7 +594,9 @@
       "facts": {
         "heading": "Reach us",
         "email": "Email",
-        "phone": "Phone"
+        "phone": "Phone",
+        "response": "Answer time",
+        "responseValue": "Within one working day"
       },
       "form": {
         "heading": "Your enquiry",
@@ -644,6 +646,10 @@
         "title": "Thank you. Your enquiry has reached us.",
         "body": "You will get a short confirmation by email. A person answers within one working day.",
         "back": "Back to the start"
+      },
+      "closing": {
+        "title": "Or skip the wait. See the figure yourself.",
+        "cta": "See what your risk costs"
       }
     },
     "packages": {

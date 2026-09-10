@@ -11,10 +11,17 @@ export type ClosingCtaProps = {
  * The closing call to action of a marketing page (spec 0009, page composition; docs/design.md,
  * tier map): an anchor on the inverse block with the action under it, so every page ends on the
  * same weight it opened with rather than on another major. Server component.
+ *
+ * The full width hairline is what makes the block a bookend in dark mode: the inverse ground is jet
+ * in both themes, so on a jet page it equals the page ground and the block would otherwise have no
+ * edge at all. It is drawn inside the `dark` element rather than on it, because the `dark` variant
+ * is descendant only (`&:is(.dark *)` in `globals.css`), so a border on the section itself would
+ * take the outer theme's `--border` and disappear into the light page instead.
  */
 export function ClosingCta({ title, lead, children }: ClosingCtaProps) {
   return (
     <section aria-labelledby="closing-heading" className="dark bg-background text-foreground">
+      <div className="border-t" />
       <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 py-24 sm:px-6 md:py-40">
         <Statement
           as="h2"

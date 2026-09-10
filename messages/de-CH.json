@@ -594,7 +594,9 @@
       "facts": {
         "heading": "So erreichen Sie uns",
         "email": "E-Mail",
-        "phone": "Telefon"
+        "phone": "Telefon",
+        "response": "Antwortzeit",
+        "responseValue": "Innerhalb eines Arbeitstags"
       },
       "form": {
         "heading": "Ihre Anfrage",
@@ -644,6 +646,10 @@
         "title": "Danke. Ihre Anfrage ist bei uns.",
         "body": "Sie erhalten eine kurze Bestätigung per E-Mail. Ein Mensch antwortet innerhalb eines Arbeitstags.",
         "back": "Zurück zum Start"
+      },
+      "closing": {
+        "title": "Oder warten Sie nicht. Sehen Sie die Zahl selbst.",
+        "cta": "Sehen, was Ihr Risiko kostet"
       }
     },
     "packages": {
