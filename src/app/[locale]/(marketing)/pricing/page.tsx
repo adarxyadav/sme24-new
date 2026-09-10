@@ -52,15 +52,33 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         )}
       />
 
-      {/* Anchor opener and the packages in one band, so the prices sit under their own heading. */}
-      <section aria-label={t("packagesLabel")} className="border-b">
-        <div className="mx-auto flex max-w-6xl flex-col gap-12 px-4 py-24 sm:px-6 md:gap-16 md:py-40">
+      {/*
+        The anchor opener stands alone in its own band, at the `py-24 md:py-40` every other
+        marketing page gives its opener. It shared a band with the packages until 2026-09-10,
+        which cost the opener its clearance and left the packages -- the one thing this page is
+        for -- as the only major section on the site with no heading of its own: the h1 was doing
+        both jobs, so the prices arrived with nothing said about how they relate.
+      */}
+      <section className="border-b">
+        <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
           <SectionHeader
             tier="anchor"
             as="h1"
             eyebrow={t("eyebrow")}
             title={t("title")}
             lead={t("lead")}
+          />
+        </div>
+      </section>
+
+      <section aria-labelledby="packages-heading" className="border-b">
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
+          <SectionHeader
+            tier="major"
+            id="packages-heading"
+            eyebrow={t("packagesHeading.eyebrow")}
+            title={t("packagesHeading.title")}
+            lead={t("packagesHeading.lead")}
           />
           <PackagesGrid variant="full" />
         </div>

@@ -477,6 +477,11 @@
       "title": "Fixpreis. Keine Überraschungen.",
       "lead": "Jedes Paket ist ein Preis, ein Senior-Experte, ein Bericht. Preise exkl. 8.1% MWST.",
       "packagesLabel": "Die Pakete",
+      "packagesHeading": {
+        "eyebrow": "Die Pakete",
+        "title": "Drei Snapshots, die aufeinander aufbauen.",
+        "lead": "Starten Sie dort, wo Ihre Fragen sind. Eine Stufe höher ist ein Schritt, kein Neuanfang — und der Partner übernimmt die Umsetzung danach."
+      },
       "vatNote": "exkl. 8.1% MWST",
       "onDemand": "Auf Anfrage",
       "bestForLabel": "Ideal für",
