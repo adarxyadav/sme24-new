@@ -70,10 +70,15 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
       <StepsSection
         eyebrow={t("steps.eyebrow")}
         title={t("steps.title")}
+        // The same four stills the landing page carries: the two steps with a real screen are
+        // drawn from that screen's own components, the two without take campaign photography
+        // (`StepVisual`). The keys are the same four, so one step is pictured the same way on
+        // both pages rather than the section arriving here as type only.
         steps={STEPS.map((step) => ({
           key: step,
           label: t(`steps.items.${step}.label`),
           body: t(`steps.items.${step}.body`),
+          visual: step,
         }))}
       />
 
