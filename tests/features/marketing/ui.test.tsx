@@ -140,48 +140,58 @@ describe("CompanyLookupField (spec 0009, AC-5)", () => {
 
 describe("StepsSection (spec 0009, AC-5)", () => {
   const steps = [
-    { key: "a", title: "Look up.", body: "A", label: "Look up" },
-    { key: "b", title: "Benchmark.", body: "B", label: "Benchmark" },
+    { key: "a", label: "Look up your company", body: "Type the name. We do the rest." },
+    {
+      key: "b",
+      label: "See it in francs",
+      body: "Your risk against your peers. Before anyone visits.",
+    },
   ];
 
-  it("renders an ordered list of numbered steps under one h2", () => {
+  it("names every step in the left column, under one h2", () => {
     renderIn(
       "en-CH",
-      <StepsSection
-        eyebrow="How it works"
-        title="Four steps. No kickoff."
-        navLabel="The steps"
-        steps={steps}
-      />,
+      <StepsSection eyebrow="How it works" title="Four steps. No kickoff." steps={steps} />,
     );
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Four steps");
-    // The panels are the only list a screen reader sees: the rail is `aria-hidden`, so its own
-    // `ol` never reaches the accessibility tree and this stays the single list in the section.
+    // One list, and it is the ordered one: the order and the count reach a screen reader from the
+    // markup, which is what let the visible ordinals go.
     expect(screen.getByRole("list").tagName).toBe("OL");
-    expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
-    // Twice on purpose: the panel's own marker and the rail's copy of it. The panel's is the one
-    // that has to be there, so it is asserted through the panel rather than by text alone.
-    expect(document.querySelector('[data-step="a"]')).toHaveTextContent("01");
+    // The label is the whole of the left column (owner decision of 2026-09-10, matching the
+    // reference): every step is named at every moment, so the reader can see the whole path.
+    for (const step of steps) {
+      expect(document.querySelector(`[data-step="${step.key}"]`)).toHaveTextContent(step.label);
+    }
   });
 
-  it("names the rail landmark and hides its duplicate labels from assistive tech", () => {
+  it("states each step once and carries no visible ordinal", () => {
     renderIn(
       "en-CH",
-      <StepsSection
-        eyebrow="How it works"
-        title="Four steps. No kickoff."
-        navLabel="The steps"
-        steps={steps}
-      />,
+      <StepsSection eyebrow="How it works" title="Four steps. No kickoff." steps={steps} />,
     );
-    const rail = screen.getByRole("navigation", { name: "The steps" });
-    expect(rail).toBeInTheDocument();
-    expect(rail.querySelector("ol")).toHaveAttribute("aria-hidden", "true");
-    // Every panel carries the key the rail observes, so the highlight can never point at a step
-    // that is not on the page.
-    for (const step of steps) {
-      expect(document.querySelector(`[data-step="${step.key}"]`)).toBeInTheDocument();
-    }
+    // The rail and the passage were two components naming the same step, so they are one row now.
+    expect(screen.queryByRole("navigation")).toBeNull();
+    const first = document.querySelector('[data-step="a"]');
+    // No "01": the number was the second name a step carried, and the ordered list already counts.
+    expect(first).not.toHaveTextContent("01");
+    expect(first).toHaveTextContent("Look up your company");
+    // Open from the server, so the steps read as a plain column without JavaScript.
+    expect(first).toHaveAttribute("data-active", "true");
+  });
+
+  it("puts the step's sentence opposite the label, with its claim lit", () => {
+    renderIn(
+      "en-CH",
+      <StepsSection eyebrow="How it works" title="Four steps. No kickoff." steps={steps} />,
+    );
+    // The desktop column carries the same sentence the row does below `lg`; exactly one of the two
+    // is ever displayed, so nothing is announced twice.
+    const visual = document.querySelector('[data-step-visual="a"]');
+    expect(visual).toHaveTextContent("Type the name");
+    expect(visual).toHaveAttribute("data-active", "true");
+    // Two tone: the opening sentence keeps the heading colour, the rest drops to muted.
+    const muted = visual?.querySelectorAll(".text-muted-foreground") ?? [];
+    expect(muted.length).toBeGreaterThan(0);
   });
 });
 

@@ -55,6 +55,16 @@ const PHOTOS = {
   },
 } as const;
 
+/**
+ * The steps whose still is a photograph, and so runs past the frame's bottom edge rather than
+ * ending in a border. A card still (the benchmark, the packages) is a fixed set of rows and must
+ * size to them: stretched to the frame it would show a large empty floor inside its own border,
+ * which reads as a fault rather than as a crop. Pure.
+ */
+export function stepVisualBleeds(step: StepVisualKey): boolean {
+  return step === "lookup" || step === "expert";
+}
+
 export type StepVisualProps = {
   readonly step: StepVisualKey;
   readonly className?: string;
@@ -93,7 +103,10 @@ export async function StepVisual({ step, className }: StepVisualProps) {
         // halo. `text-jet` is inherited by nothing here but keeps the block honest if copy is
         // ever added to it.
         className={cn(
-          "flex aspect-square items-center justify-center overflow-hidden border bg-pure-white p-4",
+          // Wide and open ended: the still fills the column and runs past the frame's bottom
+          // edge, so it is cropped by the viewport rather than sitting inside a square. `h-full`
+          // with `min-h-80` keeps it tall on a short viewport, where the frame has little to give.
+          "flex h-full min-h-80 items-end justify-center overflow-hidden border border-b-0 bg-pure-white px-10 pt-10",
           className,
         )}
       >
@@ -102,9 +115,11 @@ export async function StepVisual({ step, className }: StepVisualProps) {
           alt=""
           width={photo.width}
           height={photo.height}
-          sizes="(min-width: 1024px) 24rem, (min-width: 768px) 40vw, 90vw"
+          sizes="(min-width: 1024px) 44rem, (min-width: 768px) 60vw, 90vw"
           loading="lazy"
-          className={cn("size-full object-contain", photo.grayscale && "grayscale")}
+          // `object-top` with `object-contain`: when the frame is shorter than the photograph the
+          // crop takes the feet, not the face.
+          className={cn("size-full object-contain object-top", photo.grayscale && "grayscale")}
         />
       </div>
     );
@@ -116,11 +131,11 @@ export async function StepVisual({ step, className }: StepVisualProps) {
         inert
         role="img"
         aria-label={t("benchmark.alt")}
-        className={cn("flex flex-col gap-5 border bg-background p-6", className)}
+        className={cn("flex flex-col gap-6 border bg-background p-8", className)}
       >
         <div className="flex flex-col gap-1">
           <p className="font-medium text-sm">{card("title")}</p>
-          <p className="font-semibold text-3xl tabular-nums tracking-headline">
+          <p className="font-semibold text-4xl tabular-nums tracking-headline lg:text-5xl">
             {format.number(EXAMPLE_COST_CHF, {
               style: "currency",
               currency: "CHF",
@@ -169,14 +184,14 @@ export async function StepVisual({ step, className }: StepVisualProps) {
         <div
           key={entry.key}
           className={cn(
-            "flex items-baseline justify-between gap-4 px-6 py-4",
+            "flex items-baseline justify-between gap-4 px-8 py-6",
             // The middle rung sits in the accent-free equivalent of a highlight: the palette has
             // no accent hue (docs/design.md, rule 3), so "picked" is a ground change, not a colour.
             index === 1 && "bg-muted",
           )}
         >
-          <span className="font-medium text-sm">{packages(`${entry.key}.shortName`)}</span>
-          <span className="font-semibold text-sm tabular-nums">
+          <span className="font-medium text-base">{packages(`${entry.key}.shortName`)}</span>
+          <span className="font-semibold text-base tabular-nums">
             {format.number(entry.priceChf ?? 0, {
               style: "currency",
               currency: "CHF",

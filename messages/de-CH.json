@@ -102,27 +102,23 @@
       "lead": "Keine Discovery-Phase, kein Scoping-Workshop. Sie nennen uns die Firma; wir sagen Ihnen, wo Sie stehen und was zuerst zu tun ist.",
       "steps": {
         "eyebrow": "Der Ablauf",
-        "title": "Was passiert, der Reihe nach.",
+        "title": "Was passiert, der Reihe nach. Vier Schritte, vom Namen bis zum Bericht.",
         "items": {
           "lookup": {
-            "title": "Sie nennen die Firma.",
-            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse, damit nichts zweimal gefragt wird.",
-            "rail": "Sie nennen"
+            "label": "Sie nennen die Firma",
+            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse."
           },
           "benchmark": {
-            "title": "Wir vergleichen sie.",
-            "body": "Öffentliche Angaben und Zahlen vergleichbarer Schweizer Firmen ergeben eine erste Einordnung. Kostenlos, bevor jemand vorbeikommt.",
-            "rail": "Wir vergleichen"
+            "label": "Wir vergleichen",
+            "body": "Eine erste Einordnung gegenüber vergleichbaren Schweizer Firmen. Kostenlos, bevor jemand vorbeikommt."
           },
           "package": {
-            "title": "Sie wählen das Paket.",
-            "body": "Der Preis steht auf der Seite, und er gilt. Zeigt der Benchmark, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere.",
-            "rail": "Sie wählen"
+            "label": "Sie wählen das Paket",
+            "body": "Der Preis steht auf der Seite und das ist der Preis. Weniger nötig als gedacht? Nehmen Sie das kleinere."
           },
           "expert": {
-            "title": "Ein Senior kommt vorbei.",
-            "body": "Wer durch Ihren Betrieb geht, schreibt auch den Bericht. Diese Leute haben jahrzehntelang Arbeitssicherheit in der Industrie verantwortet.",
-            "rail": "Wir kommen"
+            "label": "Ein Experte kommt",
+            "body": "Wer Ihren Betrieb begeht, schreibt den Bericht. Er hat jahrzehntelang Sicherheit in der Industrie verantwortet."
           }
         },
         "navLabel": "Die vier Schritte"
@@ -357,24 +353,20 @@
         "title": "Vier Schritte. Kein Kickoff.",
         "steps": {
           "lookup": {
-            "title": "Unternehmen suchen.",
-            "body": "Name eingeben. Wir recherchieren öffentliche Angaben im Hintergrund.",
-            "rail": "Suchen"
+            "label": "Firma nachschlagen",
+            "body": "Namen eingeben. Wir recherchieren die öffentlichen Angaben im Hintergrund, nichts wird zweimal gefragt."
           },
           "benchmark": {
-            "title": "Benchmark in CHF sehen.",
-            "body": "Ihr Risikoprofil im Vergleich zu Ihren Peers, und was Unfälle Sie pro Jahr kosten.",
-            "rail": "Benchmark"
+            "label": "In Franken sehen",
+            "body": "Ihr Risiko im Vergleich zu Ihren Peers. Was Vorfälle Sie im Jahr kosten, bevor jemand vorbeikommt."
           },
           "package": {
-            "title": "Paket wählen.",
-            "body": "Drei Fixpreise. Oder der Retainer, im Gespräch.",
-            "rail": "Paket"
+            "label": "Paket wählen",
+            "body": "Drei Festpreise auf der Seite. Oder das Retainer, im Gespräch."
           },
           "expert": {
-            "title": "Experte vor Ort.",
-            "body": "Ein Senior-Experte, in derselben Woche. Bericht, Massnahmen, erledigt.",
-            "rail": "Experte"
+            "label": "Experte vor Ort",
+            "body": "Ein erfahrener Experte, in derselben Woche. Er begeht den Betrieb und schreibt den Bericht."
           }
         },
         "navLabel": "Die vier Schritte",

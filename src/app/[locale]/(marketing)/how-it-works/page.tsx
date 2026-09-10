@@ -49,7 +49,7 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
           url: absoluteUrl("/how-it-works", resolved),
           inLanguage: resolved,
           steps: STEPS.map((step) => ({
-            name: t(`steps.items.${step}.title`),
+            name: t(`steps.items.${step}.label`),
             text: t(`steps.items.${step}.body`),
           })),
         })}
@@ -70,12 +70,10 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
       <StepsSection
         eyebrow={t("steps.eyebrow")}
         title={t("steps.title")}
-        navLabel={t("steps.navLabel")}
         steps={STEPS.map((step) => ({
           key: step,
-          title: t(`steps.items.${step}.title`),
+          label: t(`steps.items.${step}.label`),
           body: t(`steps.items.${step}.body`),
-          label: t(`steps.items.${step}.rail`),
         }))}
       />
 

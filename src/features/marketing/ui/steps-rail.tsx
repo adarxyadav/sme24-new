@@ -1,61 +1,74 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 export type StepsRailProps = {
-  /** The step keys in order, the same ids the panels carry as `data-step`. */
+  /** The step keys in order, the same ids the rows carry as `data-step`. */
   readonly keys: readonly string[];
-  /** The short rail label per key, in the same order. */
-  readonly labels: readonly string[];
-  /** The `aria-label` of the rail's navigation landmark. */
-  readonly navLabel: string;
-  readonly className?: string;
 };
 
+/** Below this width the section is not pinned, so every step stands open. */
+const PINNED = "(min-width: 1024px)";
+
 /**
- * The sticky rail beside the steps: the list of step names, the one the reader is currently level
- * with set in the foreground colour, the rest muted. Purely a position indicator for a sequence
- * the page has already rendered in full, so it adds no content and hides from assistive tech --
- * the panels themselves are the real headings, and a screen reader reads them in order without
- * needing to know which one a sighted reader's viewport happens to be crossing.
+ * The scroll driver behind the steps. It renders nothing: it reads the reader's progress through
+ * the pinned track and writes `data-active` onto the step rows and the stills opposite them, which
+ * is what opens one step and closes the rest.
  *
- * It degrades to the first item highlighted whenever the measuring never runs -- no JavaScript, no
- * `IntersectionObserver` -- because the panels it indexes are server rendered either way. Browser.
+ * It was a visible rail until 2026-09-10 (owner decision): the rail named every step and the step's
+ * own title named it again below, so the reader met one step under two names in two components.
+ * The list is now one object per step -- number, title and body in one row -- and what is left of
+ * this component is only the measuring, which still has to happen in the browser.
+ *
+ * Deliberately headless rather than deleted: the measurement is the one piece of this section that
+ * cannot be a server component, and keeping it in its own file is what lets the section itself stay
+ * one. When it never runs -- no JavaScript, no `matchMedia` -- every row keeps the
+ * `data-active="true"` the server rendered and the section is the plain open column it is below
+ * `lg`, rather than four collapsed rows. Browser.
  */
-export function StepsRail({ keys, labels, navLabel, className }: StepsRailProps) {
-  const [active, setActive] = useState(0);
-  const ref = useRef<HTMLElement>(null);
-
+export function StepsRail({ keys }: StepsRailProps) {
   useEffect(() => {
-    // The rail is an enhancement over content the server already rendered, so anything missing
-    // here leaves the first step highlighted rather than breaking the section. `IntersectionObserver`
-    // is checked rather than assumed: jsdom has none, and neither does an old browser.
-    if (typeof IntersectionObserver === "undefined") return;
-    const root = ref.current?.closest("[data-steps]");
-    if (!root) return;
-    const panels = keys
+    const root = document.querySelector("[data-steps]");
+    const track = root?.querySelector("[data-steps-track]");
+    if (!root || !track) return;
+    const rows = keys
       .map((key) => root.querySelector(`[data-step="${key}"]`))
-      .filter((node): node is Element => node !== null);
-    if (panels.length === 0) return;
+      .filter((node): node is HTMLElement => node !== null);
+    if (rows.length === 0) return;
+    // The stills live in their own column, keyed the same way. A step without one simply has none
+    // -- `/how-it-works` passes no visuals at all.
+    const visuals = keys
+      .map((key) => root.querySelector(`[data-step-visual="${key}"]`))
+      .filter((node): node is HTMLElement => node !== null);
 
-    // The active step is the last panel whose top has passed the reading line, so the rail
-    // changes as a panel arrives rather than when it is centred: the reader's eye is at the top
-    // of the block they have just reached, not its middle. The observer is only the trigger --
-    // it says "something crossed, look again" -- and the tops decide, because with four short
-    // panels several are on screen at once and "which one is intersecting" has no single answer.
+    const pinned = window.matchMedia(PINNED);
+
+    // The active step is the reader's progress through the track, not any row's position: the rows
+    // are pinned and never move, so there is nothing about them left to measure. The track is
+    // `steps.length` viewports tall and its top passes the viewport top as the section pins, so the
+    // distance travelled divided by one viewport is the index, clamped to the last step for the
+    // final viewport of travel that scrolls the section away.
     const measure = () => {
-      const line = window.innerHeight * 0.4;
-      let passed = 0;
-      panels.forEach((panel, index) => {
-        if (panel.getBoundingClientRect().top <= line) passed = index;
+      if (!pinned.matches) {
+        for (const row of rows) row.dataset.active = "true";
+        for (const visual of visuals) visual.dataset.active = "true";
+        return;
+      }
+      const travelled = -track.getBoundingClientRect().top;
+      const index = Math.min(
+        keys.length - 1,
+        Math.max(0, Math.floor(travelled / window.innerHeight)),
+      );
+      rows.forEach((row, rowIndex) => {
+        row.dataset.active = String(rowIndex === index);
       });
-      setActive(passed);
+      visuals.forEach((visual, visualIndex) => {
+        visual.dataset.active = String(visualIndex === index);
+      });
     };
 
-    // Coalesced to one measurement per frame: a scroll event can fire several times between
-    // paints, and every call reads four rects, so an unthrottled handler does the layout work
-    // repeatedly for a highlight that can only change once per frame anyway.
+    // Coalesced to one measurement per frame: a scroll event can fire several times between paints,
+    // and the open step can only change once per frame anyway.
     let frame = 0;
     const onScroll = () => {
       if (frame !== 0) return;
@@ -65,53 +78,21 @@ export function StepsRail({ keys, labels, navLabel, className }: StepsRailProps)
       });
     };
 
-    const observer = new IntersectionObserver(onScroll, {
-      // A band of thresholds, so a panel taller than the viewport still reports as it travels
-      // rather than only at its two edges.
-      threshold: [0, 0.25, 0.5, 0.75, 1],
-    });
-    for (const panel of panels) observer.observe(panel);
-    // The observer fires on its own at mount, but not on a plain scroll that crosses no
-    // threshold, which is exactly the case between two tall panels.
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    pinned.addEventListener("change", onScroll);
     measure();
     return () => {
-      observer.disconnect();
       window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      pinned.removeEventListener("change", onScroll);
       if (frame !== 0) cancelAnimationFrame(frame);
+      // The rows outlive this effect, so hand them back open: an unmounted driver must never leave
+      // three steps collapsed behind it.
+      for (const row of rows) row.dataset.active = "true";
+      for (const visual of visuals) visual.dataset.active = "true";
     };
   }, [keys]);
 
-  return (
-    <nav ref={ref} aria-label={navLabel} className={className}>
-      {/*
-        Hidden from assistive tech: it duplicates the panel headings below it and says nothing a
-        screen reader user can act on. The landmark keeps its name for the same reason every
-        landmark does -- so a sighted keyboard user landing here in the tab order is not in an
-        unnamed region -- but nothing inside is focusable, so it never receives focus.
-      */}
-      <ol aria-hidden="true" className="flex flex-col gap-4">
-        {keys.map((key, index) => (
-          <li key={key} className="flex items-baseline gap-3">
-            <span
-              className={cn(
-                "font-mono text-xs tabular-nums transition-colors duration-200",
-                index === active ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <span
-              className={cn(
-                "text-sm tracking-headline transition-colors duration-200",
-                index === active ? "font-medium text-foreground" : "text-muted-foreground",
-              )}
-            >
-              {labels[index]}
-            </span>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  );
+  return null;
 }
