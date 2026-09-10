@@ -40,10 +40,20 @@ change, that is its own change on its own branch, reviewed across all four areas
 Check before every PR — additive shows as pure `+` lines:
 
 ```
-git diff main -- src/app/globals.css docs/design.md
+git diff main -- src/app/globals.css docs/design.md src/components/
 ```
 
-Any `-` line touching an existing token is the thing to challenge.
+`src/components/` is in the command because the token files alone do not catch
+the second half of the rule: a shared primitive restyled in place changes
+`/app`, `/expert` and `/admin` without touching a token. The weight cap of
+2026-09-10 is the worked example — it landed as four `-` lines under
+`src/components/` (`app-sidebar`, `page-header`, `signature`, `logo`) and none
+in `globals.css`.
+
+Any `-` line touching an existing token or a primitive's default styling is the
+thing to challenge. A deliberate exception answers with the decision behind it
+and the gate that holds it — the weight cap answers with the owner decision and
+`tests/font-weight.test.ts`.
 
 ## Naming
 
