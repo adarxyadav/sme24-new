@@ -344,11 +344,8 @@
       "signIn": "Already a client? Sign in",
       "pointsLabel": "Where the number comes from",
       "points": {
-        "heading": "One number, before you spend a franc.",
-        "lead": "A 120 person metal fabricator in Aargau, running the same model your own benchmark runs on. Its accident rate is 66.4 per 1 000 employees, against an industry median of 49.9 — and that difference is what the figure prices.",
-        "figure": "CHF 148 000",
-        "caption": "a year, spent on accidents its median competitor does not have",
-        "footnote": "Illustrative figures for the upper quartile of UVG industry section C. Rates from the Suva UVG-Statistik; every cost assumption is published with your benchmark.",
+        "heading": "What a benchmark shows",
+        "sentence": "A 120 person metal fabricator in Aargau is spending <figure>about CHF 148 000 a year</figure> on accidents its median competitor does not have.",
         "sourceCta": "How the number is built"
       },
       "how": {

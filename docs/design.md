@@ -154,6 +154,8 @@ The opener follows from the tier, so there is nothing extra to decide per sectio
 
 `SectionHeader` in `src/features/marketing/ui/` renders all three from a `tier` prop; a page composes it rather than hand rolling the markup. A section that is deliberately different (the campaign wall, the packages grid) may still open with its own markup, but it picks one of the three shapes.
 
+One band is deliberately openerless: the landing page's worked figure, the passage between the hero and the steps (2026-09-10). It is one sentence with the figure set inside it, and it carries an `sr-only` `h2` so the landmark is still named. A minor opener above one sentence re-created the stack -- heading, lead, figure, footnote -- that three passes had already been spent removing, on a band a reader crosses rather than stops at. A section may drop its opener only when it is a single sentence long; anything with two blocks takes one of the three shapes above.
+
 ### Hero object
 
 The hero is the statement, one lead, one control and one utility line, on the page ground (white in light, jet in dark) behind the ruled field, so the header never inverts on it; the headline is a `Statement` in `layout="flow"`. The hero's own controls take the `xl` button size and an `h-11` input (`CompanyLookupField size="hero"`); nothing else on the site uses that size.

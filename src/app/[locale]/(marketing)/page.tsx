@@ -175,63 +175,52 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       </div>
 
       {/*
-        The one number, before the mechanism (docs/design.md, tier map: minor). Slot two shows a
-        single worked result, because the reader has just seen the product (the hero object above)
-        and is about to be told the steps below without ever having been shown an outcome.
-        Ingredients do not sell a dish: the band that stood here until 2026-09-10 listed the three
-        data sources, which answers a methodology question nobody asks second.
+        The bridge between the hero and the steps (docs/design.md, tier map: minor). It exists to
+        show one result before the mechanism is explained, because the reader has just seen the
+        product (the hero object above) and is about to be told the four steps below without ever
+        having been shown an outcome. Ingredients do not sell a dish.
 
-        Why one figure and not three: the ledger that replaced that band on 2026-09-10 printed the
-        rate, the total cost and the recoverable gap at one size in three boxed cells, so the only
-        number the reader can act on -- and the only one the product changes -- arrived third and
-        unranked, behind a rate that means nothing to a CFO and a total that is mostly the cost of
-        doing business. The rate and the median now serve as the sentence of provenance under the
-        figure, which is the job they were always doing.
+        Why it carries no heading, no lead and no footnote: this is a passage, not a destination.
+        The band that stood here until 2026-09-10 listed three data sources; the ledger that
+        replaced it printed three figures in three boxed cells; the version after that still spent
+        a heading, a lead and a footnote on one number. All three asked a reader two screens into
+        the page to stop and study. One sentence with the figure inside it can be read at a glance
+        and does the same work, and the methodology it used to footnote already has a whole page
+        (`/how-it-works`), which the link beside it goes to.
 
-        Every figure is computed by the real model rather than chosen for effect, so the example
-        can never contradict what a live benchmark would print for the same company. From
+        The figure is computed by the real model rather than chosen for effect, so the example can
+        never contradict what a live benchmark would print for the same company. From
         `supabase/seed-data/`: UVG section C carries p75 66.4 and median 49.9 accidents per 1 000
         FTE; at 120 FTE that is 7.97 accidents a year, each costing
         `direct_cost_per_case_chf` 4811 + 14 lost days x 1100 = CHF 20 211, times the middle
         `indirect_multiplier` of 3.7 -- CHF 595 853. The same arithmetic at the median rate gives
         CHF 447 787, so the gap is CHF 148 066, rounded down to the nearest thousand for display.
-        Changing an assumption CSV changes this number, which is why the footnote marks it
-        illustrative and the methodology link carries the detail.
+        Changing an assumption CSV changes this number, which is why the sentence says "about" and
+        the link carries the detail.
       */}
       <section aria-labelledby="example-heading" className="border-b">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-20">
-          <SectionHeader
-            tier="minor"
-            id="example-heading"
-            title={t("points.heading")}
-            lead={t("points.lead")}
-            className="mb-8 md:mb-12"
-          />
-          {/* No cells and no rules: the figure with its caption under it, on the same column the
-              heading opened, so the eye runs heading -> number down one edge. A single number
-              needs no grid to be read, and a hairline box would only reinstate the ledger this
-              band replaced. The basis sentence rides in the minor opener's own lead (above), not
-              in a second column here: two paragraphs of the same job in the same column left a
-              dead band between them at `md` and up. */}
-          <p>
-            {/* The one place on the landing page a figure is the content rather than a label. It
-                takes `display` rather than the minor's own `display-sm` cap, which governs
-                headings: this is the band's subject, and at one number there is nothing beside it
-                to outrank. `tabular-nums` per docs/design.md, type rules. */}
-            <span className="block whitespace-nowrap font-semibold text-display-sm tabular-nums md:text-display">
-              {t("points.figure")}
-            </span>
-            <span className="mt-3 block max-w-md text-balance text-copy-16 text-muted-foreground">
-              {t("points.caption")}
-            </span>
-          </p>
-          {/* The provenance a skeptic needs, and a link to the detail: under the number it
-              qualifies, never ahead of it. */}
-          <p className="mt-10 max-w-3xl text-copy-14 text-muted-foreground md:mt-14">
-            {t("points.footnote")}{" "}
+        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16">
+          {/* The band's accessible name, and the only heading it has: visually hidden, because a
+              minor's opener would reinstate the stack this pass removed, while the landmark still
+              owes a name (docs/design.md, accessibility). */}
+          <h2 id="example-heading" className="sr-only">
+            {t("points.heading")}
+          </h2>
+          {/* One sentence, at a size between the body copy around it and a display figure, with
+              the number set in the foreground colour so the eye lands on it first and reads
+              outward. `tabular-nums` per docs/design.md, type rules; `whitespace-nowrap` so the
+              figure never breaks across lines. */}
+          <p className="max-w-5xl text-pretty text-copy-18 text-muted-foreground leading-snug md:text-2xl">
+            {t.rich("points.sentence", {
+              figure: (chunks) => (
+                <span className="whitespace-nowrap font-semibold text-foreground text-xl tabular-nums md:text-3xl">
+                  {chunks}
+                </span>
+              ),
+            })}{" "}
             <Link
               href="/how-it-works"
-              className="rounded-xs underline underline-offset-4 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+              className="whitespace-nowrap rounded-xs text-copy-16 underline underline-offset-4 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2 md:text-copy-18"
             >
               {t("points.sourceCta")}
             </Link>

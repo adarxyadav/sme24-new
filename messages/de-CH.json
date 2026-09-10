@@ -344,11 +344,8 @@
       "signIn": "Schon Kunde? Anmelden",
       "pointsLabel": "Woher die Zahl kommt",
       "points": {
-        "heading": "Eine Zahl, bevor Sie einen Franken ausgeben.",
-        "lead": "Ein Metallbaubetrieb im Aargau mit 120 Mitarbeitenden, gerechnet mit demselben Modell wie Ihr eigener Benchmark. Seine Unfallrate liegt bei 66,4 je 1 000 Mitarbeitende, der Branchenmedian bei 49,9 — und diese Differenz beziffert die Zahl.",
-        "figure": "CHF 148 000",
-        "caption": "pro Jahr für Unfälle, die sein Medianwettbewerber nicht hat",
-        "footnote": "Illustrative Zahlen für das obere Quartil der UVG-Branchenklasse C. Raten aus der Suva UVG-Statistik; jede Kostenannahme wird zu Ihrem Benchmark ausgewiesen.",
+        "heading": "Was ein Benchmark zeigt",
+        "sentence": "Ein Metallbaubetrieb im Aargau mit 120 Mitarbeitenden gibt <figure>rund CHF 148 000 pro Jahr</figure> für Unfälle aus, die sein Medianwettbewerber nicht hat.",
         "sourceCta": "Wie die Zahl entsteht"
       },
       "how": {
