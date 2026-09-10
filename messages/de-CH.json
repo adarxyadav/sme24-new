@@ -106,21 +106,26 @@
         "items": {
           "lookup": {
             "title": "Sie nennen die Firma.",
-            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse, damit nichts zweimal gefragt wird."
+            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse, damit nichts zweimal gefragt wird.",
+            "rail": "Sie nennen"
           },
           "benchmark": {
             "title": "Wir vergleichen sie.",
-            "body": "Öffentliche Angaben und Zahlen vergleichbarer Schweizer Firmen ergeben eine erste Einordnung. Kostenlos, bevor jemand vorbeikommt."
+            "body": "Öffentliche Angaben und Zahlen vergleichbarer Schweizer Firmen ergeben eine erste Einordnung. Kostenlos, bevor jemand vorbeikommt.",
+            "rail": "Wir vergleichen"
           },
           "package": {
             "title": "Sie wählen das Paket.",
-            "body": "Der Preis steht auf der Seite, und er gilt. Zeigt der Benchmark, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere."
+            "body": "Der Preis steht auf der Seite, und er gilt. Zeigt der Benchmark, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere.",
+            "rail": "Sie wählen"
           },
           "expert": {
             "title": "Ein Senior kommt vorbei.",
-            "body": "Wer durch Ihren Betrieb geht, schreibt auch den Bericht. Diese Leute haben jahrzehntelang Arbeitssicherheit in der Industrie verantwortet."
+            "body": "Wer durch Ihren Betrieb geht, schreibt auch den Bericht. Diese Leute haben jahrzehntelang Arbeitssicherheit in der Industrie verantwortet.",
+            "rail": "Wir kommen"
           }
-        }
+        },
+        "navLabel": "Die vier Schritte"
       },
       "split": {
         "eyebrow": "Aufgabenteilung",
@@ -353,21 +358,26 @@
         "steps": {
           "lookup": {
             "title": "Unternehmen suchen.",
-            "body": "Name eingeben. Wir recherchieren öffentliche Angaben im Hintergrund."
+            "body": "Name eingeben. Wir recherchieren öffentliche Angaben im Hintergrund.",
+            "rail": "Suchen"
           },
           "benchmark": {
             "title": "Benchmark in CHF sehen.",
-            "body": "Ihr Risikoprofil im Vergleich zu Ihren Peers, und was Unfälle Sie pro Jahr kosten."
+            "body": "Ihr Risikoprofil im Vergleich zu Ihren Peers, und was Unfälle Sie pro Jahr kosten.",
+            "rail": "Benchmark"
           },
           "package": {
             "title": "Paket wählen.",
-            "body": "Drei Fixpreise. Oder der Retainer, im Gespräch."
+            "body": "Drei Fixpreise. Oder der Retainer, im Gespräch.",
+            "rail": "Paket"
           },
           "expert": {
             "title": "Experte vor Ort.",
-            "body": "Ein Senior-Experte, in derselben Woche. Bericht, Massnahmen, erledigt."
+            "body": "Ein Senior-Experte, in derselben Woche. Bericht, Massnahmen, erledigt.",
+            "rail": "Experte"
           }
-        }
+        },
+        "navLabel": "Die vier Schritte"
       },
       "packages": {
         "eyebrow": "Pakete",

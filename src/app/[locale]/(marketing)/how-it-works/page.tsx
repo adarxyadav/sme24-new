@@ -70,10 +70,12 @@ export default async function HowItWorksPage({ params }: PageProps<"/[locale]/ho
       <StepsSection
         eyebrow={t("steps.eyebrow")}
         title={t("steps.title")}
+        navLabel={t("steps.navLabel")}
         steps={STEPS.map((step) => ({
           key: step,
           title: t(`steps.items.${step}.title`),
           body: t(`steps.items.${step}.body`),
+          label: t(`steps.items.${step}.rail`),
         }))}
       />
 

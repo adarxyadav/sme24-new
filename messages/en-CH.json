@@ -106,21 +106,26 @@
         "items": {
           "lookup": {
             "title": "You name the company.",
-            "body": "One field on the landing page. We find the public record, the industry and the size band, so nothing is asked twice."
+            "body": "One field on the landing page. We find the public record, the industry and the size band, so nothing is asked twice.",
+            "rail": "You name it"
           },
           "benchmark": {
             "title": "We benchmark it.",
-            "body": "Public disclosures and peer figures give you a first read against comparable Swiss companies. Free, before anyone visits."
+            "body": "Public disclosures and peer figures give you a first read against comparable Swiss companies. Free, before anyone visits.",
+            "rail": "We benchmark"
           },
           "package": {
             "title": "You pick the package.",
-            "body": "The price is on the page and it is the price. If the benchmark shows you need less than you thought, take the smaller one."
+            "body": "The price is on the page and it is the price. If the benchmark shows you need less than you thought, take the smaller one.",
+            "rail": "You pick"
           },
           "expert": {
             "title": "A senior expert visits.",
-            "body": "The person who walks your site is the person who writes the report. They have run safety in industry for decades."
+            "body": "The person who walks your site is the person who writes the report. They have run safety in industry for decades.",
+            "rail": "We visit"
           }
-        }
+        },
+        "navLabel": "The four steps"
       },
       "split": {
         "eyebrow": "Division of labour",
@@ -353,21 +358,26 @@
         "steps": {
           "lookup": {
             "title": "Look up your company.",
-            "body": "Type the name. We research public disclosures in the background."
+            "body": "Type the name. We research public disclosures in the background.",
+            "rail": "Look up"
           },
           "benchmark": {
             "title": "See your benchmark in CHF.",
-            "body": "Your risk profile against your peers, and what incidents cost you a year."
+            "body": "Your risk profile against your peers, and what incidents cost you a year.",
+            "rail": "Benchmark"
           },
           "package": {
             "title": "Pick a package.",
-            "body": "Three fixed prices. Or the retainer, by conversation."
+            "body": "Three fixed prices. Or the retainer, by conversation.",
+            "rail": "Package"
           },
           "expert": {
             "title": "Expert on site.",
-            "body": "A senior expert, the same week. Report, actions, done."
+            "body": "A senior expert, the same week. Report, actions, done.",
+            "rail": "Expert"
           }
-        }
+        },
+        "navLabel": "The four steps"
       },
       "packages": {
         "eyebrow": "Packages",

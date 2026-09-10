@@ -139,22 +139,49 @@ describe("CompanyLookupField (spec 0009, AC-5)", () => {
 });
 
 describe("StepsSection (spec 0009, AC-5)", () => {
+  const steps = [
+    { key: "a", title: "Look up.", body: "A", label: "Look up" },
+    { key: "b", title: "Benchmark.", body: "B", label: "Benchmark" },
+  ];
+
   it("renders an ordered list of numbered steps under one h2", () => {
     renderIn(
       "en-CH",
       <StepsSection
         eyebrow="How it works"
         title="Four steps. No kickoff."
-        steps={[
-          { key: "a", title: "Look up.", body: "A" },
-          { key: "b", title: "Benchmark.", body: "B" },
-        ]}
+        navLabel="The steps"
+        steps={steps}
       />,
     );
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Four steps");
+    // The panels are the only list a screen reader sees: the rail is `aria-hidden`, so its own
+    // `ol` never reaches the accessibility tree and this stays the single list in the section.
     expect(screen.getByRole("list").tagName).toBe("OL");
     expect(screen.getAllByRole("heading", { level: 3 })).toHaveLength(2);
-    expect(screen.getByText("01")).toBeInTheDocument();
+    // Twice on purpose: the panel's own marker and the rail's copy of it. The panel's is the one
+    // that has to be there, so it is asserted through the panel rather than by text alone.
+    expect(document.querySelector('[data-step="a"]')).toHaveTextContent("01");
+  });
+
+  it("names the rail landmark and hides its duplicate labels from assistive tech", () => {
+    renderIn(
+      "en-CH",
+      <StepsSection
+        eyebrow="How it works"
+        title="Four steps. No kickoff."
+        navLabel="The steps"
+        steps={steps}
+      />,
+    );
+    const rail = screen.getByRole("navigation", { name: "The steps" });
+    expect(rail).toBeInTheDocument();
+    expect(rail.querySelector("ol")).toHaveAttribute("aria-hidden", "true");
+    // Every panel carries the key the rail observes, so the highlight can never point at a step
+    // that is not on the page.
+    for (const step of steps) {
+      expect(document.querySelector(`[data-step="${step.key}"]`)).toBeInTheDocument();
+    }
   });
 });
 

@@ -225,10 +225,12 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
       <StepsSection
         eyebrow={t("how.eyebrow")}
         title={t("how.title")}
+        navLabel={t("how.navLabel")}
         steps={STEPS.map((step) => ({
           key: step,
           title: t(`how.steps.${step}.title`),
           body: t(`how.steps.${step}.body`),
+          label: t(`how.steps.${step}.rail`),
         }))}
       />
 
