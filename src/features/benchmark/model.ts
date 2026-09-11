@@ -8,6 +8,7 @@ import {
 } from "./catalogue";
 import {
   type AssumptionUsedV3,
+  type CostSkipped,
   type DerivedCount,
   type DerivedFromKey,
   type InputKpi,
@@ -19,7 +20,7 @@ import {
   type SnapshotGap,
   type SnapshotPeer,
   type SnapshotPeerV3,
-  type SnapshotResultV3,
+  type SnapshotResultV4,
 } from "./snapshot";
 
 /**
@@ -102,6 +103,34 @@ export function roundChfRange(
     low: Math.floor(low / stepOf(low)) * stepOf(low),
     high: Math.ceil(high / stepOf(high)) * stepOf(high),
   };
+}
+
+/** The denominator of the Eurostat fatal accident rate: deaths per 100 000 employed persons. */
+export const FATALITY_RATE_PER = 100_000;
+
+/**
+ * The company's fatality count as a rate per 100 000 employed persons, the unit the peer row is
+ * stored in (spec 0016 amendment, D3). Null without a positive headcount: a count cannot become a
+ * rate without exposure, so the KPI is then not compared at all rather than compared wrongly. Pure.
+ */
+export function fatalityRateOf(count: number, fte: number | null): number | null {
+  return fte !== null && fte > 0 ? (count / fte) * FATALITY_RATE_PER : null;
+}
+
+/**
+ * The value a KPI's position is judged on (spec 0016 amendment, AC-22, AC-23): the stored value
+ * for every KPI but `fatalities`, whose count is converted to the peer row's rate. `converted`
+ * says whether the value differs from the stored one, so the snapshot records it only then.
+ * Null means the KPI cannot be compared at all (a fatality count with no headcount). Pure.
+ */
+export function comparedValueOf(
+  key: KpiKey,
+  value: number,
+  fte: number | null,
+): { readonly value: number; readonly converted: boolean } | null {
+  if (key !== "fatalities") return { value, converted: false };
+  const rate = fatalityRateOf(value, fte);
+  return rate === null ? null : { value: rate, converted: true };
 }
 
 /** The KPI's newest row: the highest `period_year` wins (AC-4 rule 1). Pure. */
@@ -257,6 +286,24 @@ function costAt(
   return { incidents, lostDays, costPerCase, annual: incidents * costPerCase * multiplier };
 }
 
+/**
+ * The first assumption the cost arm needs that is absent or not finite (spec 0016 amendment,
+ * AC-20). `values` is built from whatever rows the database returned, so a key can read back
+ * `undefined` at runtime while its type says `number`; this guard is what keeps `NaN` out of the
+ * CHF figure, and it must not be simplified away on the strength of the type. Pure.
+ */
+function missingAssumption(
+  keys: readonly AssumptionKey[],
+  values: Partial<Record<AssumptionKey, number>>,
+): AssumptionKey | null {
+  return (
+    keys.find((key) => {
+      const value = values[key];
+      return typeof value !== "number" || !Number.isFinite(value);
+    }) ?? null
+  );
+}
+
 /** Sorts by a numeric key descending with `null` last, ties and nulls by catalogue sort order. Pure. */
 function rankBy<T extends { readonly key: KpiKey }>(
   items: readonly T[],
@@ -308,10 +355,14 @@ export function computeBenchmark({
     researchRunId: row.researchRunId,
   }));
 
-  // (2) to (4) and (7) per KPI: peer, position, gap, confidence.
-  const results: SnapshotResultV3[] = inputKpis.map((input) => {
-    const peer = selectPeer(peers, input.key, section, sizeBand, input.periodYear);
-    if (!peer) {
+  // (2) to (4) and (7) per KPI: peer, position, gap, confidence. A fatality count is judged as a
+  // rate per 100 000 employed persons (D3); with no headcount it has no comparison at all.
+  const results: SnapshotResultV4[] = inputKpis.map((input) => {
+    const compared = comparedValueOf(input.key, input.value, fte);
+    const peer = compared
+      ? selectPeer(peers, input.key, section, sizeBand, input.periodYear)
+      : null;
+    if (!peer || !compared) {
       return {
         key: input.key,
         peer: null,
@@ -319,27 +370,28 @@ export function computeBenchmark({
         gapToMedian: null,
         gapRelative: null,
         confidence: input.confidence,
+        comparedValue: null,
       };
     }
-    const gap = gapOf(input.key, direction(input.key), input.value, peer.median);
+    const gap = gapOf(input.key, direction(input.key), compared.value, peer.median);
     return {
       key: input.key,
       peer,
-      position: positionOf(input.key, direction(input.key), input.value, peer),
+      position: positionOf(input.key, direction(input.key), compared.value, peer),
       gapToMedian: gap.gapToMedian,
       gapRelative: gap.gapRelative,
       confidence: input.confidence,
+      comparedValue: compared.converted ? compared.value : null,
     };
   });
   const resultOf = (key: KpiKey) => results.find((result) => result.key === key);
   const inputOf = (key: KpiKey) => inputKpis.find((input) => input.key === key);
 
   // (5) Cost.
-  // The cast lies: `assumptions` holds whatever rows the database returned, so any key whose row
-  // is absent reads back `undefined` at runtime while TypeScript still types it `number`. Every
-  // `typeof … === "number"` guard below is therefore load bearing and must not be "simplified"
-  // away on the strength of the type. See the deferred item in docs/scope/index.md: `costAt`
-  // still reads `values.hours_per_fte` unguarded and yields NaN when that row is missing.
+  // `assumptions` holds whatever rows the database returned, so any key whose row is absent reads
+  // back `undefined` at runtime. `missingAssumption` checks every key an arm needs before the
+  // arithmetic runs (AC-20), and the derived block keeps its own `typeof` guard below; neither
+  // may be "simplified" away on the strength of the cast.
   const values = Object.fromEntries(
     assumptions.map((assumption) => [assumption.key, assumption.value]),
   ) as Record<AssumptionKey, number>;
@@ -354,7 +406,24 @@ export function computeBenchmark({
   const lostDaysInput = inputOf("lost_days_per_incident");
   const usedAssumptionKeys = new Set<AssumptionKey>();
   let cost: SnapshotCost | null = null;
-  if (fte && fte > 0 && incidentInput && incidentKpi) {
+  let costSkipped: CostSkipped | null = null;
+  // The assumptions this arm reads: the hours only on the LTIFR arm, the default lost days only
+  // without a lost days row. One missing or non finite value means no cost and a named reason.
+  const neededAssumptions: readonly AssumptionKey[] = [
+    "direct_cost_per_case_chf",
+    "cost_per_absence_day_chf",
+    "indirect_multiplier_low",
+    "indirect_multiplier",
+    "indirect_multiplier_high",
+    ...(incidentKpi === "ltifr" ? (["hours_per_fte"] as const) : []),
+    ...(lostDaysInput ? [] : (["lost_days_per_incident_default"] as const)),
+  ];
+  const missing =
+    fte && fte > 0 && incidentInput && incidentKpi
+      ? missingAssumption(neededAssumptions, values)
+      : null;
+  if (missing) costSkipped = { reason: "missing_assumption", key: missing };
+  if (fte && fte > 0 && incidentInput && incidentKpi && !missing) {
     const lostDays = lostDaysInput ? lostDaysInput.value : values.lost_days_per_incident_default;
     const lostDaysSource: SnapshotCost["lostDaysSource"] = lostDaysInput ? "kpi" : "default";
     const at = (rate: number, days: number, multiplier: number) =>
@@ -364,8 +433,10 @@ export function computeBenchmark({
     const high = at(incidentInput.value, lostDays, values.indirect_multiplier_high).annual;
     const incidentPeer = resultOf(incidentKpi)?.peer ?? null;
     const lostDaysPeer = resultOf("lost_days_per_incident")?.peer ?? null;
+    // Null only without a peer row (spec 0016 amendment, D1): a peer value of 0 is a real
+    // reference that prices to zero incidents, so the saving is then the whole annual cost.
     const reference = (quartile: "median" | "p25"): number | null => {
-      if (!incidentPeer || incidentPeer[quartile] === 0) return null;
+      if (!incidentPeer) return null;
       const days = lostDaysPeer ? lostDaysPeer[quartile] : lostDays;
       return at(incidentPeer[quartile], days, values.indirect_multiplier).annual;
     };
@@ -533,5 +604,6 @@ export function computeBenchmark({
     costHighChf: cost?.high ?? null,
     savingMedianChf: cost?.savingMedian ?? null,
     savingTopChf: cost?.savingTop ?? null,
+    costSkipped,
   };
 }

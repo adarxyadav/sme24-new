@@ -351,7 +351,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       company_id: COMPANY,
       research_run_id: RUN,
       trigger_kind: "research",
-      model_version: "benchmark-model@3",
+      model_version: "benchmark-model@4",
       peer_provisional: true,
       kpis_compared: 2,
       confidence: 0.9,

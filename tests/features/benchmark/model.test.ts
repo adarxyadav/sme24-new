@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { MODEL_VERSION } from "@/features/benchmark/catalogue";
 import {
+  comparedValueOf,
   computeBenchmark,
   exposureCount,
+  fatalityRateOf,
   gapOf,
   type ModelAssumption,
   type ModelCatalogueEntry,
@@ -170,6 +172,7 @@ describe("computeBenchmark inputs, peers, positions and gaps (spec 0008, AC-4)",
       gapToMedian: null,
       gapRelative: null,
       confidence: 0.9,
+      comparedValue: null,
     });
     expect(body.kpisCompared).toBe(5);
   });
@@ -293,7 +296,10 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
     expect(body.cost).toBeNull();
   });
 
-  it("leaves the saving null on a peer median of 0", () => {
+  // A peer value of 0 is a real reference, not a gap in the data (spec 0016 amendment, D1): it
+  // prices to zero incidents, so the saving is the whole annual cost. Before the amendment the
+  // rule went quiet in exactly the case with the largest opportunity.
+  it("prices a peer median of 0 as zero incidents, so the saving is the whole annual cost", () => {
     const body = compute({
       peers: peers.map((row) =>
         row.kpiKey === "accident_rate_per_1000_fte" && row.industrySection === "C"
@@ -301,11 +307,91 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
           : row,
       ),
     });
-    expect(body.cost?.atMedian).toBeNull();
-    expect(body.cost?.savingMedian).toBeNull();
-    expect(body.savingMedianChf).toBeNull();
+    expect(body.cost?.atMedian).toBe(0);
+    expect(body.cost?.atTop).toBe(0);
+    expect(body.cost?.savingMedian).toBeCloseTo(body.cost?.annual ?? -1, 6);
+    expect(body.cost?.savingTop).toBeCloseTo(body.cost?.annual ?? -1, 6);
+    expect(body.savingMedianChf).toBe(body.cost?.savingMedian);
+    // The relative gap keeps its own rule: a division by a median of 0 stays null.
     const accident = body.results.find((entry) => entry.key === "accident_rate_per_1000_fte");
     expect(accident?.gapRelative).toBeNull();
+    expect(accident?.gapToMedian).toBe(68);
+  });
+
+  it("prices a peer p25 of 0 with a positive median as the whole annual cost at the top", () => {
+    const body = compute({
+      peers: peers.map((row) =>
+        row.kpiKey === "accident_rate_per_1000_fte" && row.industrySection === "C"
+          ? { ...row, p25: 0, median: 49.9, p75: 66.4 }
+          : row,
+      ),
+    });
+    expect(body.cost?.atTop).toBe(0);
+    expect(body.cost?.savingTop).toBeCloseTo(body.cost?.annual ?? -1, 6);
+    // The median reference is untouched by the top quarter being 0.
+    const atMedian = ((49.9 * 420) / 1000) * (4811 + 10 * 1100) * 3.7;
+    expect(body.cost?.atMedian).toBeCloseTo(atMedian, 3);
+  });
+
+  // The saving is null only without a peer row at all.
+  it("leaves both savings null only when the incident KPI has no peer row", () => {
+    const body = compute({
+      peers: peers.filter((row) => row.kpiKey !== "accident_rate_per_1000_fte"),
+    });
+    expect(body.cost).not.toBeNull();
+    expect(body.cost?.atMedian).toBeNull();
+    expect(body.cost?.atTop).toBeNull();
+    expect(body.cost?.savingMedian).toBeNull();
+    expect(body.cost?.savingTop).toBeNull();
+  });
+
+  // `assumptions` holds whatever rows the database returned, so a missing row used to reach the
+  // arithmetic as `undefined` and yield `NaN` in the CHF figure (spec 0016 amendment, AC-20).
+  it("gives no cost and names the missing assumption instead of NaN, on both arms", () => {
+    const without = (key: ModelAssumption["key"]) =>
+      assumptions.filter((assumption) => assumption.key !== key);
+    // The Suva arm does not need the hours, so that row may go missing without effect.
+    const suvaArm = compute({ assumptions: without("hours_per_fte") });
+    expect(suvaArm.cost).not.toBeNull();
+    expect(suvaArm.costSkipped).toBeNull();
+    expect(Number.isFinite(suvaArm.costChf)).toBe(true);
+    // The LTIFR arm needs it: null cost, a named reason, and nothing NaN anywhere.
+    const ltifrArm = compute({
+      kpis: kpis.filter((row) => row.kpiKey !== "accident_rate_per_1000_fte"),
+      assumptions: without("hours_per_fte"),
+    });
+    expect(ltifrArm.cost).toBeNull();
+    expect(ltifrArm.costChf).toBeNull();
+    expect(ltifrArm.costSkipped).toEqual({ reason: "missing_assumption", key: "hours_per_fte" });
+    // Positions and gaps are untouched by a missing cost assumption (four compared without the
+    // accident rate row).
+    expect(ltifrArm.kpisCompared).toBe(4);
+    // Every arm needs the multiplier; a non finite value counts as missing too.
+    const broken = compute({
+      assumptions: assumptions.map((assumption) =>
+        assumption.key === "indirect_multiplier"
+          ? { ...assumption, value: Number.NaN }
+          : assumption,
+      ),
+    });
+    expect(broken.cost).toBeNull();
+    expect(broken.costSkipped).toEqual({
+      reason: "missing_assumption",
+      key: "indirect_multiplier",
+    });
+    // The default lost days are needed only without a lost days row.
+    const defaultUnused = compute({ assumptions: without("lost_days_per_incident_default") });
+    expect(defaultUnused.cost).not.toBeNull();
+    const defaultNeeded = compute({
+      kpis: kpis.filter((row) => row.kpiKey !== "lost_days_per_incident"),
+      assumptions: without("lost_days_per_incident_default"),
+    });
+    expect(defaultNeeded.cost).toBeNull();
+    expect(defaultNeeded.costSkipped?.key).toBe("lost_days_per_incident_default");
+    // The body still parses under the write schema: `costSkipped` is not a block.
+    expect(parseSnapshotBlocks({ model_version: MODEL_VERSION, ...ltifrArm }).error).toBeNull();
+    // The nothing-to-price cases carry no reason: they are documented states, not skips.
+    expect(compute({ company: { ...company, employeesCount: null } }).costSkipped).toBeNull();
   });
 
   it("ranks cost linked gaps by their solo move saving, then the rest by relative gap", () => {
@@ -323,6 +409,63 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
     expect(body.gaps[1]?.savingMedianChf).toBeCloseTo(lostDaysSolo, 3);
     expect(body.gaps[2]?.savingMedianChf).toBeNull();
     expect(body.gaps[3]?.gapRelative).toBeCloseTo(0.3 / 3.5);
+  });
+
+  // A fatality count is judged as a rate per 100 000 employed persons against the Eurostat row
+  // (spec 0016 amendment, D3): the stored count stays a count, the snapshot records the rate.
+  it("compares fatalities as a rate per 100 000 employed persons and records the compared value", () => {
+    expect(fatalityRateOf(1, 420)).toBeCloseTo(238.095, 3);
+    expect(fatalityRateOf(0, 420)).toBe(0);
+    expect(fatalityRateOf(1, 0)).toBeNull();
+    expect(fatalityRateOf(1, null)).toBeNull();
+    expect(comparedValueOf("ltifr", 2.4, null)).toEqual({ value: 2.4, converted: false });
+    expect(comparedValueOf("fatalities", 1, 420)).toEqual({
+      value: (1 / 420) * 100_000,
+      converted: true,
+    });
+    expect(comparedValueOf("fatalities", 1, null)).toBeNull();
+
+    const rows = [...peers, peer("fatalities", "C", "all", [1.13, 1.13, 1.13])];
+    const zero = compute({ peers: rows }).results.find((entry) => entry.key === "fatalities");
+    expect(zero?.peer?.shape).toBe("point");
+    expect(zero?.position).toBe("above_average");
+    expect(zero?.comparedValue).toBe(0);
+    expect(zero?.gapToMedian).toBeCloseTo(-1.13);
+    // The stored input keeps the count.
+    expect(compute({ peers: rows }).inputs.kpis.find((k) => k.key === "fatalities")?.value).toBe(0);
+
+    const one = compute({
+      peers: rows,
+      kpis: kpis.map((row) => (row.kpiKey === "fatalities" ? { ...row, value: 1 } : row)),
+    });
+    const result = one.results.find((entry) => entry.key === "fatalities");
+    expect(result?.position).toBe("below_average");
+    expect(result?.comparedValue).toBeCloseTo(238.095, 3);
+    expect(result?.gapToMedian).toBeCloseTo(238.095 - 1.13, 3);
+    // The ranking rule is untouched: a count above 0 is rank 1, with the rate's relative gap.
+    expect(one.gaps[0]?.key).toBe("fatalities");
+    expect(one.gaps[0]?.reason).toBe("fatality");
+    expect(one.gaps[0]?.gapRelative).toBeCloseTo((238.095 - 1.13) / 1.13, 2);
+    // Every other KPI records no compared value: it was judged on its stored value.
+    expect(
+      one.results
+        .filter((entry) => entry.key !== "fatalities")
+        .every((entry) => entry.comparedValue === null),
+    ).toBe(true);
+  });
+
+  it("does not compare fatalities without a headcount, and does not count them", () => {
+    const rows = [...peers, peer("fatalities", "C", "all", [1.13, 1.13, 1.13])];
+    const withFte = compute({ peers: rows });
+    expect(withFte.kpisCompared).toBe(6);
+    for (const employeesCount of [null, 0]) {
+      const body = compute({ peers: rows, company: { ...company, employeesCount } });
+      const result = body.results.find((entry) => entry.key === "fatalities");
+      expect(result?.peer).toBeNull();
+      expect(result?.position).toBeNull();
+      expect(result?.comparedValue).toBeNull();
+      expect(body.kpisCompared).toBe(5);
+    }
   });
 
   it("puts a fatality first even without a peer row", () => {
@@ -603,14 +746,15 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
   // and version 1 is never widened to carry a derived key. Getting this wrong fails quietly,
   // every stored snapshot becomes unreadable and the dashboard drops to its waiting state, so
   // pin the shape rather than trusting a future edit to notice (AC-12).
-  it("keeps every version in the map and leaves version 1 unwidened (spec 0012, AC-12; spec 0016, AC-12)", () => {
+  it("keeps every version in the map and leaves version 1 unwidened (spec 0012, AC-12; spec 0016, AC-12, amendment AC-22)", () => {
     expect(Object.keys(SNAPSHOT_SCHEMAS).sort()).toEqual([
       "benchmark-model@1",
       "benchmark-model@2",
       "benchmark-model@3",
+      "benchmark-model@4",
     ]);
     // The live write time version is one of them, and it is the newest one.
-    expect(MODEL_VERSION).toBe("benchmark-model@3");
+    expect(MODEL_VERSION).toBe("benchmark-model@4");
 
     // A version 1 row that somehow carries a derived block drops it: the schema has no such key,
     // so the reader sees an absent block rather than an unvalidated one.
@@ -640,7 +784,7 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
   it("parses a stored version 2 row whose peer block carries no shape (spec 0016, AC-12)", () => {
     const stripped = {
       ...valid,
-      results: valid.results.map((result) =>
+      results: valid.results.map(({ comparedValue: _compared, ...result }) =>
         result.peer === null
           ? result
           : {
@@ -674,6 +818,22 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
     expect(
       parseSnapshotBlocks({ model_version: "benchmark-model@3", ...stripped }).blocks,
     ).toBeNull();
+  });
+
+  // A stored @3 row predates `comparedValue` (spec 0016 amendment, AC-22): it keeps parsing under
+  // its own key, a reader sees the field absent, and the same row is not a valid @4 row.
+  it("parses a stored version 3 row without a compared value and requires it on version 4", () => {
+    const v3Row = {
+      ...valid,
+      results: valid.results.map(({ comparedValue: _compared, ...result }) => result),
+    };
+    const v3 = parseSnapshotBlocks({ model_version: "benchmark-model@3", ...v3Row });
+    expect(v3.error).toBeNull();
+    expect(v3.blocks?.results[0]?.comparedValue).toBeUndefined();
+    expect(parseSnapshotBlocks({ model_version: "benchmark-model@4", ...v3Row }).blocks).toBeNull();
+    const v4 = parseSnapshotBlocks({ model_version: "benchmark-model@4", ...valid });
+    expect(v4.error).toBeNull();
+    expect(v4.blocks?.results.every((result) => result.comparedValue === null)).toBe(true);
   });
 });
 

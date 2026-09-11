@@ -139,6 +139,9 @@ export const benchmarkCompanyTask = schemaTask({
       kpisCompared: body.kpisCompared,
       gaps: blocks.gaps.length,
       costChf: body.costChf,
+      // Why a company with a headcount and a rate still has no cost: an assumption row is missing
+      // or not a number (spec 0016 amendment, AC-20). Logged, never stored.
+      costSkipped: body.costSkipped,
       confidence: body.confidence,
       peerProvisional: body.peerProvisional,
     });
