@@ -393,6 +393,47 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     expect(derived.fte).toBe(420);
   });
 
+  // A missing assumption row gives a null cost with a named cause on the computed step, never NaN
+  // in the row (spec 0016 amendment, AC-20). The LTIFR arm needs `hours_per_fte`, so drop the Suva
+  // rate and the hours row: the model names the key, the task logs it and never stores it.
+  it("logs the missing assumption on the computed step and stores a null cost instead of NaN (amendment AC-20)", async () => {
+    seedComputation();
+    (state.tables.companies?.[0] as Row).employees_count = 420;
+    state.tables.company_kpi_current = (state.tables.company_kpi_current as Row[]).filter(
+      (row) => row.kpi_key !== "accident_rate_per_1000_fte",
+    );
+    state.tables.benchmark_assumptions = (state.tables.benchmark_assumptions as Row[]).filter(
+      (row) => row.key !== "hours_per_fte",
+    );
+    // The structured logger writes one JSON line per step to stdout; read the computed step back.
+    const stdout = vi.spyOn(console, "log").mockImplementation(() => {});
+    try {
+      const task = await loadTask();
+      const outcome = await task.run(payload, { ctx });
+      expect(outcome).toMatchObject({ status: "stored" });
+      const stored = state.tables.benchmark_snapshots?.[0] as Row;
+      expect(stored.cost_chf).toBeNull();
+      expect(stored.cost).toBeNull();
+      expect(stored.derived).toBeNull();
+      expect(stored).not.toHaveProperty("costSkipped");
+      const computed = stdout.mock.calls
+        .map(([line]) => {
+          try {
+            return JSON.parse(String(line)) as Record<string, unknown>;
+          } catch {
+            return null;
+          }
+        })
+        .find((entry) => entry?.msg === "benchmark computed");
+      expect(computed).toMatchObject({
+        costChf: null,
+        costSkipped: { reason: "missing_assumption", key: "hours_per_fte" },
+      });
+    } finally {
+      stdout.mockRestore();
+    }
+  });
+
   it("stores no research run on a client edit and a recompute", async () => {
     seedComputation();
     const task = await loadTask();

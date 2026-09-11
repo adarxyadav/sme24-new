@@ -199,3 +199,32 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
     }
   });
 });
+
+// The frame around the distribution rows (spec 0016 amendment, AC-30, decided 12 Sep 2026): the
+// rows keep the quartile vocabulary, the section description no longer implies a sample of
+// companies and points the reader at the disclosure, where each row's `basis` lives, by that
+// disclosure's own title; and the provisional note no longer claims the peer values are
+// provisional, since no seeded peer row is.
+describe("the copy around the distribution rows (spec 0016 amendment, AC-30)", () => {
+  const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
+  const catalogs = [
+    ["de", de],
+    ["en", en],
+  ] as const;
+
+  it("has the positions description point at the disclosure by its own title and name no quartiles", () => {
+    for (const [locale, messages] of catalogs) {
+      const { positions, disclosure } = messages.benchmark;
+      expect(positions.description, `${locale}: description`).toContain(disclosure.title);
+      expect(positions.description, `${locale}: description`).not.toMatch(QUARTILE_WORDING);
+    }
+  });
+
+  it("has the provisional note stop calling the peer values provisional", () => {
+    for (const [locale, messages] of catalogs) {
+      expect(messages.benchmark.provisionalNote, `${locale}: provisionalNote`).not.toMatch(
+        /peer values|Vergleichswerte/i,
+      );
+    }
+  });
+});

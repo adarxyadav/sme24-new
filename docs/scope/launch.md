@@ -86,7 +86,7 @@ spec [0016](../specs/0016-peer-data-curation-launch-gate/index.md), the amendmen
   - [x] Block B, the data: the 22 Suva rows re read from UVG-Statistik 2026 with `source_key` and `basis`, the Eurostat lost days, fatality and size band rows under D3 and D4, absenteeism resolved, the generated migration with the flipped pgTAP expectations (AC-23 to AC-29)
   - [x] Block C, what the client sees: `basis` and `source_key` confirmed on a real card in both languages, the lost time only disclosure line, the distribution wording decided with the copy (AC-30, AC-31)
 - [x] Verify it: `/check verify peer data refresh`
-- [ ] Test it: `/test peer data refresh`
+- [x] Test it: `/test peer data refresh`
 - [ ] Review it (fresh model): `/check review peer data refresh`
 - [ ] Close: the staging version query, one watched recompute, both gate queries, the recompute boxes in spec 0012 `verify.md` and spec 0016 ticked (AC-32)
 

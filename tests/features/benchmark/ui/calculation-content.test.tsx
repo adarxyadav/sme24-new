@@ -247,6 +247,53 @@ describe("CalculationContent (AC-10)", () => {
     });
   });
 
+  // The inputs list names the value the fatality position was judged on, in the peer row's unit,
+  // while the count itself keeps its integer format (spec 0016 amendment, AC-23). The line is for
+  // `fatalities` only and only when the row carries a compared value.
+  describe("the compared fatality rate (spec 0016 amendment, AC-23)", () => {
+    const fatalityPeer = peer([0.55, 0.55, 0.55], { sizeBand: "all", periodYear: 2023 });
+    const withFatalities = (comparedValue?: number) => {
+      const base = parsedSnapshot().blocks;
+      return {
+        results: base.results.map((entry) =>
+          entry.key === "fatalities"
+            ? {
+                ...result("fatalities", { peer: fatalityPeer, position: "below_average" }),
+                ...(comparedValue === undefined ? {} : { comparedValue }),
+              }
+            : entry,
+        ),
+      };
+    };
+
+    it("adds the compared rate to the fatalities line and keeps the count's integer format", async () => {
+      const { container } = await renderContent(withFatalities(238.1));
+      const line = container.querySelector('[data-input-kpi="fatalities"]') as HTMLElement;
+      expect(line).toHaveTextContent("1 (2025, from the research)");
+      expect(line).toHaveTextContent("peer: Manufacturing · all sizes · 2023");
+      expect(line).toHaveTextContent("compared as 238.10 per 100 000 employed persons");
+    });
+
+    it("adds no compared line on a stored version 3 result, which carries no compared value", async () => {
+      const { container } = await renderContent(withFatalities());
+      const line = container.querySelector('[data-input-kpi="fatalities"]') as HTMLElement;
+      expect(line).toHaveTextContent("peer: Manufacturing · all sizes · 2023");
+      expect(line).not.toHaveTextContent("compared as");
+    });
+
+    it("adds no compared line to any other KPI, even when a compared value is stored on it", async () => {
+      const base = parsedSnapshot().blocks;
+      const { container } = await renderContent({
+        results: base.results.map((entry) =>
+          entry.key === "accident_rate_per_1000_fte" ? { ...entry, comparedValue: 68 } : entry,
+        ),
+      });
+      expect(
+        container.querySelector('[data-input-kpi="accident_rate_per_1000_fte"]'),
+      ).not.toHaveTextContent("compared as");
+    });
+  });
+
   it("says the headcount and the industry are not known when the inputs lack them", async () => {
     await renderContent({
       inputs: {

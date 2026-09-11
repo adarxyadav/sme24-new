@@ -575,6 +575,123 @@ describe("the positions (AC-9, AC-14)", () => {
     expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
     expect(trifr).toHaveAttribute("data-position", "");
   });
+
+  // A fatality count is judged as a rate per 100 000 employed persons against Eurostat's point
+  // row (spec 0016 amendment, D3, AC-23): the row shows the sector rate in that unit and the value
+  // the position was judged on, while the count itself keeps its integer format.
+  it("compares a fatality count as a rate and says which value it judged (amendment AC-23)", async () => {
+    const base = parsedSnapshot().blocks;
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot(
+        { modelVersion: "benchmark-model@4" },
+        {
+          results: base.results.map((entry) =>
+            entry.key === "fatalities"
+              ? {
+                  ...result("fatalities", {
+                    peer: peer([0.55, 0.55, 0.55], {
+                      sizeBand: "all",
+                      periodYear: 2023,
+                      yearMatch: "nearest",
+                      sourceKey: "Eurostat hsw_n2_02 · NACE C",
+                    }),
+                    position: "below_average",
+                    gapToMedian: 237.55,
+                    confidence: 0.95,
+                  }),
+                  // 1 death over 420 FTE, as the model converts it.
+                  comparedValue: 238.1,
+                }
+              : entry,
+          ),
+        },
+      ),
+    });
+    const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
+    expect(row).toHaveAttribute("data-peer-shape", "point");
+    expect(row).toHaveAttribute("data-position", "below_average");
+    expect(row.querySelector("[data-value]")).toHaveTextContent(/^1$/);
+    expect(
+      within(row).getByText("Sector figure 0.55 per 100 000 employed persons"),
+    ).toBeInTheDocument();
+    expect(row.querySelector("[data-compared-value]")).toHaveAttribute(
+      "data-compared-value",
+      "238.1",
+    );
+    expect(
+      within(row).getByText("Your count as a rate: 238.10 per 100 000 employed persons"),
+    ).toBeInTheDocument();
+    expect(within(row).getByText(b.positions.band.below_average)).toBeInTheDocument();
+    expect(
+      within(row).getByText(/Eurostat hsw_n2_02 · NACE C · all sizes · 2023 \(nearest year\)/),
+    ).toBeInTheDocument();
+    expect(row.querySelector('[data-slot="quartile-band"]')).not.toBeInTheDocument();
+    expect(row.textContent).not.toMatch(/quarter|quartile|median|p25|p75/i);
+  });
+
+  // A stored version 3 row carries no compared value; the reader treats its absence as null and
+  // draws no rate line rather than breaking (amendment AC-22).
+  it("shows no compared rate on a stored version 3 row, which carries none (amendment AC-22)", async () => {
+    const base = parsedSnapshot().blocks;
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot(
+        { modelVersion: "benchmark-model@3" },
+        {
+          results: base.results.map((entry) =>
+            entry.key === "fatalities"
+              ? result("fatalities", {
+                  peer: peer([0.55, 0.55, 0.55], { sizeBand: "all", periodYear: 2023 }),
+                  position: "below_average",
+                  confidence: 0.95,
+                })
+              : entry,
+          ),
+        },
+      ),
+    });
+    const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
+    expect(row.querySelector("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "0.55");
+    expect(row.querySelector("[data-compared-value]")).not.toBeInTheDocument();
+    expect(within(row).queryByText(/Your count as a rate/)).not.toBeInTheDocument();
+  });
+
+  // Without a headcount the count cannot become a rate, so the model compared nothing; the row
+  // must say what is missing rather than "no peer data" (amendment D3, AC-23).
+  it("asks for the headcount on the fatalities row when the count could not become a rate (amendment AC-23)", async () => {
+    const base = parsedSnapshot().blocks;
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot(
+        {
+          costChf: null,
+          costLowChf: null,
+          costHighChf: null,
+          savingMedianChf: null,
+          savingTopChf: null,
+          confidence: null,
+        },
+        { inputs: { ...base.inputs, fte: null }, cost: null, assumptions: [] },
+      ),
+    });
+    const row = container.querySelector(
+      '[data-position-kpi="fatalities"] [data-no-peer]',
+    ) as HTMLElement;
+    expect(within(row).getByText(b.positions.noPeer)).toBeInTheDocument();
+    expect(row.querySelector("[data-fatality-needs-headcount]")).toHaveTextContent(
+      b.positions.fatalityNeedsHeadcount,
+    );
+    expect(row.querySelector("[data-peer-status]")).not.toBeInTheDocument();
+  });
+
+  it("keeps the source note, not the headcount sentence, on a fatalities row that has a headcount", async () => {
+    const { container } = await renderSegment();
+    const row = container.querySelector(
+      '[data-position-kpi="fatalities"] [data-no-peer]',
+    ) as HTMLElement;
+    expect(row.querySelector("[data-fatality-needs-headcount]")).not.toBeInTheDocument();
+    expect(row.querySelector('[data-peer-status="sourced"]')).toHaveTextContent(
+      b.positions.peerNote.fatalities,
+    );
+  });
 });
 
 describe("confidenceDriver (AC-9)", () => {
