@@ -1,34 +1,26 @@
 import { z } from "zod";
+import { ANALYTICS_EVENTS, type AnalyticsEvent } from "@/lib/analytics/events";
 
 /**
- * The analytics vocabulary (spec 0017, AC-1, AC-2, AC-3): one exported list names every event the
- * app may capture, and one schema per event names the properties it must carry. Mirrors the shape
- * of `ALERT_KINDS` and `alertFields` in `src/lib/alerts/schema.ts` deliberately, so events and
- * alerts share one mental model. Pure data, runs anywhere.
+ * The analytics vocabulary (spec 0017, AC-1, AC-2, AC-3): `ANALYTICS_EVENTS` in
+ * `@/lib/analytics/events` names every event the app may capture, and this module gives each one
+ * the schema of the properties it must carry. Mirrors the shape of `ALERT_KINDS` and `alertFields`
+ * in `src/lib/alerts/schema.ts` deliberately, so events and alerts share one mental model. Pure
+ * data, runs anywhere.
  *
- * Names follow `object.verb_past` with a dot. A name that is not in this list cannot reach
- * `captureServerEvent`, and a name without a schema fails the `satisfies` check below, so the
- * drift this spec cleans up (`enquiry_sent` beside a promised `benchmark.viewed`) cannot recur.
+ * The names live in their own zod-free module so browser code can import an event name without
+ * pulling the zod runtime into a marketing first load (spec 0009, AC-16); see the note there. They
+ * are re-exported here so a server side caller still has one import for the whole vocabulary.
+ *
+ * A name that is not in the list cannot reach `captureServerEvent`, and a name without a schema
+ * fails the `satisfies` check below, so the drift this spec cleans up (`enquiry_sent` beside a
+ * promised `benchmark.viewed`) cannot recur.
  *
  * Events carry ids and codes, never personal content: no email address, no contact name, no
  * company name and no free text. `organizationId` and `companyId` are opaque UUIDs, useless
  * without database access. This mirrors the rule already stated for alerts.
  */
-export const ANALYTICS_EVENTS = [
-  "lookup.started",
-  "research.finished",
-  "benchmark.computed",
-  "benchmark.viewed",
-  "kpi.client_saved",
-  "kpi.client_cleared",
-  "checkout.started",
-  "payment.completed",
-  "enquiry.sent",
-  "expert.profile_completed",
-  "expert.assigned",
-  "scaffold.test_event",
-] as const;
-export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];
+export { ANALYTICS_EVENTS, type AnalyticsEvent };
 
 /**
  * The short language code every event carries (AC-2), matching `docs/localization.md`: the

@@ -93,7 +93,11 @@
               "options": {
                 "paths": {
                   "@/lib/supabase/service": "The service client bypasses RLS. Use it only from src/trigger and server only code in src/features/*/actions.ts.",
-                  "@/lib/env": "zod must not reach the browser; read public variables through @/lib/env.public"
+                  "@/lib/env": "zod must not reach the browser; read public variables through @/lib/env.public",
+                  "@/lib/analytics/catalogue": {
+                    "allowImportNames": ["AnalyticsProperties"],
+                    "message": "zod must not reach the browser: catalogue.ts imports zod and this module is in the root layout, so a value import puts the zod runtime in every marketing first load (spec 0009, AC-16). Event names come from @/lib/analytics/events; only the AnalyticsProperties type may come from here, and only as `import type`."
+                  }
                 }
               }
             }
