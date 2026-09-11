@@ -284,12 +284,12 @@ describe("submitEnquiry stores the row and fires the rails (AC-9)", () => {
     });
   });
 
-  it("captures the enquiry_sent event with the id, the topic and the language", async () => {
+  it("captures the enquiry.sent event with the id, the topic and the language", async () => {
     const result = await submitEnquiry(null, input);
     const id = result.ok ? result.data.id : "";
     expect(boundary.capture).toHaveBeenCalledWith({
       distinctId: id,
-      event: "enquiry_sent",
+      event: "enquiry.sent",
       properties: { topic: "retainer", locale: "de" },
     });
   });
