@@ -51,3 +51,39 @@ Each of these exercises where a displayed value comes from, so a mis sourced val
 - AC-9 the card step + the 10 000 boundary step · AC-10 the disclosure step + the `is_assumption` step · AC-11 the `basis` step
 - AC-12 the stored `@1`/`@2` step + the recompute step · AC-13 the email test + the Mailpit step · AC-13b catalogue completeness test + the locale step
 - AC-14 the marketing example test · AC-15 the point row Playwright thread with axe · AC-16 the gallery step · AC-17 the runbook step
+
+## Amendment of 2026-09-12: peer data refresh (AC-18 to AC-32) · verified 2026-09-12
+
+Local stack, `pnpm dev` on 3000 and `RESEARCH_PROVIDER=fixture pnpm trigger:dev` with `TRIGGER_DEV_RUNNING=1`. A step is ticked only where it was run and passed on that day.
+
+### Commands
+
+- [x] `pnpm vitest run tests/features/benchmark/runbook.test.ts` → names the live model version and every key of the version map, and computes the worked example from the committed CSVs → AC-18
+- [x] `pnpm vitest run tests/features/benchmark/model.test.ts` → "gives no cost and names the missing assumption instead of NaN, on both arms", "prices a peer median of 0 as zero incidents", "prices a peer p25 of 0", "compares fatalities as a rate per 100 000 employed persons and records the compared value", "does not compare fatalities without a headcount", "puts a fatality first even without a peer row", "parses a stored version 3 row without a compared value and requires it on version 4" → AC-20, AC-21, AC-22, AC-23
+- [x] `pnpm vitest run tests/features/marketing/benchmark-example.test.ts` → the landing page literal matches the model over the refreshed CSVs, in both catalogs → AC-27
+- [x] `pnpm test:db` after `pnpm db:reset` → 661 pgTAP tests pass, `benchmarks.test.sql` asserts "no seeded peer row is provisional" → AC-29
+- [x] `pnpm test` → the whole Vitest suite green (2 064 tests) → AC-19, AC-22
+- [x] `PLAYWRIGHT_BASE_URL=http://localhost:3000 TRIGGER_DEV_RUNNING=1 pnpm test:e2e e2e/benchmark.spec.ts` → both threads pass: 4 of 8 compared, the 250+ band row on the source key label, the basis sentence, the compared fatality rate, the 48.9 point row → AC-23, AC-30
+- [x] Live schema, `select count(*), count(*) filter (where provisional) from benchmarks` → 122 and 0; no null `source_key`, no null `basis` in either language; 22 Suva `all` rows for 2024 with `sample_size` empty and the `ALL` median 58.2; 21 lost days and 22 fatality point rows for 2023; 20 absence point rows for 2025; 37 band rows (13, 13, 11) with D, E, L and R partial exactly as the runbook's floor rule says → AC-24, AC-25, AC-26, AC-27, AC-28
+- [x] Both gate queries → zero provisional peer rows and four provisional assumptions (the cost rows, still owed by the launch gate); the second query answers exactly the three `indirect_multiplier*` rows → AC-3, AC-29
+- [x] `docs/benchmark.md` → "What is readable, and where" names `hsw_n2_02`, `hsw_n2_04`, `hsw_n2_05` and the BFS AVOL table; the source table names UVG-Statistik 2026 and Eurostat; every version sentence says `benchmark-model@4` and the map sentence lists `@1` to `@4`; the "owed after deploy" paragraph is the refresh one → AC-18, AC-28
+- [x] `src/features/research/catalogue.ts` → `fatalities`, `lost_days_per_incident`, `absenteeism_rate` and `accident_rate_per_1000_fte` are `sourced`, `ltifr`, `trifr` and `iso_45001_certified` `pending`, `near_miss_rate` `no_source`; the lost days note in both catalogs says the figure is read from Eurostat, never derivable from Suva → AC-19
+
+### UI / manual (worker)
+
+- [x] Sign in as `client@example.com`, start the fixture research (section C, 420 FTE) → the accident rate row reads `Suva Tab. 1.2 · NOGA 10–33 · 250 and more employees · 2024 (nearest year)`, `Bottom quarter`, p25 17.00 · median 27.30 · p75 38.20; the card shows CHF 1 961 000 with the saving at the median CHF 1 081 000 and "4 of 8 KPIs compared" → AC-30
+- [x] Same company at 120 FTE through the facts form → the row moves to the `50-249` band (p25 34.00 · median 54.60 · p75 76.30), in German `… · 50 bis 249 Mitarbeitende · 2024 (nächstes Jahr)` → AC-30, D4
+- [x] Sign in as `client2@example.com`, research, then division 41 at 120 FTE → `Suva Tab. 1.2 · NOGA 41–43 · 50 to 249 employees · 2024 (nearest year)`, `Top quarter` against 137.30 · 139.80 · 142.40, no gap and a saving of CHF 0 → AC-30
+- [x] Open "How this is calculated" on each → four `data-peer-basis` sentences, one under every compared input, in both languages, the scaled band row saying "A scaled estimate, not a measurement … times 0.58" / "Geschätzt, nicht gemessen … mal 0,58" → AC-30, AC-11
+- [x] The fatalities row → `Sector figure 0.55 per 100 000 employed persons`, `Your count as a rate: 0.00 per 100 000 employed persons`, and the disclosure line "compared as 0.00 per 100 000 employed persons"; German `0.55 je 100 000 Erwerbstätige`, `Ihre Anzahl als Rate: 0.00 je 100 000 Erwerbstätige` → AC-23
+- [x] Under the derived counts → "The franc figure prices lost time accidents only. Recordable injuries are shown for context and are not priced." / "Der Frankenbetrag bewertet nur Unfälle mit Ausfallzeit. Meldepflichtige Unfälle dienen der Einordnung und werden nicht bewertet." → AC-31
+- [x] The positions description and the provisional note → the new copy resolves in both languages with no raw key → AC-30 (C3)
+- [ ] The fatalities row on a company with no headcount → "The sector rate is per 100 000 employed persons, so the comparison needs your headcount." (covered by the Vitest case and the segment test; not driven in the browser) → AC-23
+- [ ] The `benchmark_ready` email for a refreshed snapshot → the worker's Trigger.dev environment skips the test address on the Resend transport locally, so the range was not read in Mailpit this pass → AC-13
+
+### After merge (AC-32)
+
+- [ ] Staging: `select model_version, count(*) from public.benchmark_snapshots group by 1 order by 1`
+- [ ] One `pnpm benchmarks:recompute`, watched on the Trigger.dev dashboard to completion
+- [ ] Both gate queries on staging
+- [ ] The recompute boxes in spec 0012 `verify.md` and this spec's follow up ticked
