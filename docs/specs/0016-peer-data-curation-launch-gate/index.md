@@ -1,7 +1,7 @@
 # 0016. Peer data curation and model honesty
 
 **Date**: 2026-09-11
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -166,16 +166,16 @@ Neither table changes its primary key, its unique constraint, its policies or it
 
 Tracer Bullet, and the thread here runs from the seed through the model to the screen. The first slice deliberately takes one honesty problem end to end (the point row, which is the live misrepresentation) rather than landing all five schema columns first, so a reviewable, shippable improvement exists after slice one.
 
-1. Migration for all five columns with the flag values seeded, the CSV columns and their Zod rules, the regenerated seed migration, `db:types`, and the pgTAP flag assertions, satisfies **AC-1**, **AC-2**, **AC-3**
-2. Shape derivation in `seed-migration.ts`, `peer.shape` on the snapshot, the two new positions and the `positionOf` branch, with the Vitest model table covering both paths, satisfies **AC-4**, **AC-5**
-3. The point row rendering: no band, the sector figure, the reworded labels and narration in both catalogs, the broadened group note on a rung 3 or 4 match, the `POSITIONS` catalogue completeness test, the second fixture, and the Playwright assertion with axe, satisfies **AC-6**, **AC-6b**, **AC-13b**, **AC-15**
-4. The `@3` schema and `SNAPSHOT_SCHEMAS` key, `MODEL_VERSION` bumped, the task looking its schema up by version, satisfies **AC-12**
-5. The range led card with the outward rounding function, and the gallery states, satisfies **AC-9**, **AC-16**
-6. The assumption and peer caveats through to the disclosure: `note` and `isAssumption` on the assumption block, `sourceKey` and `basis` on the peer block, the multiplier wording in the seed, satisfies **AC-10**, **AC-11**
-7. Per KPI peer status and notes in the catalogue with the extended equality test, and the reworded sourceless and pending states, satisfies **AC-7**, **AC-8**
-8. The `benchmark_ready` range line and its schema fields, satisfies **AC-13**
-9. The marketing example test computing from the CSVs, satisfies **AC-14**
-10. `docs/benchmark.md`: the two flags, the two gate queries, the shape rule, the source columns, the KPI status table and the confirmed dead ends, satisfies **AC-17**
+1. [x] Migration for all five columns with the flag values seeded, the CSV columns and their Zod rules, the regenerated seed migration, `db:types`, and the pgTAP flag assertions, satisfies **AC-1**, **AC-2**, **AC-3**
+2. [x] Shape derivation in `seed-migration.ts`, `peer.shape` on the snapshot, the two new positions and the `positionOf` branch, with the Vitest model table covering both paths, satisfies **AC-4**, **AC-5**
+3. [x] The point row rendering: no band, the sector figure, the reworded labels and narration in both catalogs, the broadened group note on a rung 3 or 4 match, the `POSITIONS` catalogue completeness test, the second fixture, and the Playwright assertion with axe, satisfies **AC-6**, **AC-6b**, **AC-13b**, **AC-15**
+4. [x] The `@3` schema and `SNAPSHOT_SCHEMAS` key, `MODEL_VERSION` bumped, the task looking its schema up by version, satisfies **AC-12**
+5. [x] The range led card with the outward rounding function, and the gallery states, satisfies **AC-9**, **AC-16**
+6. [x] The assumption and peer caveats through to the disclosure: `note` and `isAssumption` on the assumption block, `sourceKey` and `basis` on the peer block, the multiplier wording in the seed, satisfies **AC-10**, **AC-11**
+7. [x] Per KPI peer status and notes in the catalogue with the extended equality test, and the reworded sourceless and pending states, satisfies **AC-7**, **AC-8**
+8. [x] The `benchmark_ready` range line and its schema fields, satisfies **AC-13**
+9. [x] The marketing example test computing from the CSVs, satisfies **AC-14**
+10. [x] `docs/benchmark.md`: the two flags, the two gate queries, the shape rule, the source columns, the KPI status table and the confirmed dead ends, satisfies **AC-17**
 
 ## Consequences
 

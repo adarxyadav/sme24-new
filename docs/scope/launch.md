@@ -47,13 +47,14 @@ Carried over from earlier specs: `benchmark.viewed` and `benchmark.computed` wit
 The first peer seed is provisional by design (spec 0008), and the plan was to read the published tables and clear the flags. Research for spec 0016 found that premise does not hold: no Swiss or European body publishes the indirect to direct accident cost ratio the CHF figure multiplies by, no Swiss source publishes safety outcomes by company size band, and the Suva accident tables use their own premium class scheme rather than NOGA sections. On top of that, eleven of the twenty two seeded rows carry one number repeated as all three quartiles, so a client in those sectors is told they sit in the "Top quarter" of a distribution nobody measured. So this feature changes what the product claims rather than the arithmetic behind it, and leaves the values themselves for you to replace afterwards against a schema that can finally record what they came from.
 **Done when:** the CHF headline is a range with the point estimate inside it, a peer row records whether it holds a distribution or a single point and is described accordingly with no quartile wording on a point row, every KPI declares whether a Swiss source exists for it, the launch gate distinguishes an unread value from a declared assumption, the marketing example is tied to the seed by a test, and one watched `pnpm benchmarks:recompute` has moved every snapshot to `benchmark-model@3`.
 spec [0016](../specs/0016-peer-data-curation-launch-gate/index.md)
+code in `src/features/benchmark/`, `src/features/research/catalogue.ts`, `supabase/schemas/24_benchmarks.sql`, `supabase/seed-data/`, `src/trigger/benchmark-company.ts`
 - [x] Design it (spec): `/architect peer data curation & launch gate`
-- [ ] Build it: `/develop peer data curation & model honesty`
-  - [ ] The schema and the two flags: the five new columns through `db:diff` then the regenerated seed, `provisional` split from `is_assumption`, the two gate queries and the pgTAP flag assertions (AC-1, AC-2, AC-3)
-  - [ ] The point row end to end: shape derived from the values, the two new positions with the ISO branch routed through them, the text only rendering with the broadened group note, the catalogue completeness test, the second fixture and the Playwright thread with axe (AC-4, AC-5, AC-6, AC-6b, AC-13b, AC-15)
-  - [ ] The range and the caveats: `benchmark-model@3` with its schema key, the range led card with outward rounding, the gallery states, and the assumption and peer caveats carried through to the disclosure (AC-9, AC-10, AC-11, AC-12, AC-16)
-  - [ ] Per KPI peer status: the catalogue fields with the extended equality test and the reworded sourceless and pending states (AC-7, AC-8)
-  - [ ] The email range, the marketing example test and `docs/benchmark.md` with the confirmed dead ends (AC-13, AC-14, AC-17)
+- [x] Build it: `/develop peer data curation & model honesty`
+  - [x] The schema and the two flags: the five new columns through `db:diff` then the regenerated seed, `provisional` split from `is_assumption`, the two gate queries and the pgTAP flag assertions (AC-1, AC-2, AC-3)
+  - [x] The point row end to end: shape derived from the values, the two new positions with the ISO branch routed through them, the text only rendering with the broadened group note, the catalogue completeness test, the second fixture and the Playwright thread with axe (AC-4, AC-5, AC-6, AC-6b, AC-13b, AC-15)
+  - [x] The range and the caveats: `benchmark-model@3` with its schema key, the range led card with outward rounding, the gallery states, and the assumption and peer caveats carried through to the disclosure (AC-9, AC-10, AC-11, AC-12, AC-16)
+  - [x] Per KPI peer status: the catalogue fields with the extended equality test and the reworded sourceless and pending states (AC-7, AC-8)
+  - [x] The email range, the marketing example test and `docs/benchmark.md` with the confirmed dead ends (AC-13, AC-14, AC-17)
 - [ ] Verify it: `/check verify peer data curation & model honesty`
 - [ ] Test it: `/test peer data curation & model honesty`
 
