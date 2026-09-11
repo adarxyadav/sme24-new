@@ -25,12 +25,23 @@ const RUN_TIMEOUT = { timeout: 180_000, intervals: [1_000, 2_000] };
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 // The fixture company: accident rate 68 per 1 000 FTE, 420 employees, lost days 12.5, NOGA 23.61
-// (section C). The committed seed holds the section C accident rate quartiles 34.9, 49.9, 66.4
-// and the assumptions 4 811 CHF per case, 1 100 CHF per day and the multipliers 2, 3.7 and 5.
+// (section C). Since the peer data refresh (spec 0016 amendment) the committed seed holds, for
+// section C, the 250+ band row scaled from the UVG-Statistik 2026 section row (quartiles 17.0,
+// 27.3, 38.2, period 2024) and the Eurostat lost days point row 14.5, plus the assumptions 4 811
+// CHF per case, 1 100 CHF per day and the multipliers 2, 3.7 and 5. The reference cost repeats
+// the formula at the peer median of both rows: the accident rate and the lost days.
 const INCIDENTS = (68 * 420) / 1000;
 const COST_PER_CASE = 4811 + 12.5 * 1100;
 const ANNUAL = INCIDENTS * COST_PER_CASE * 3.7;
-const AT_MEDIAN = ((49.9 * 420) / 1000) * COST_PER_CASE * 3.7;
+const PEER_MEDIAN_RATE = 27.3;
+const PEER_MEDIAN_LOST_DAYS = 14.5;
+const AT_MEDIAN = ((PEER_MEDIAN_RATE * 420) / 1000) * (4811 + PEER_MEDIAN_LOST_DAYS * 1100) * 3.7;
+// A gap's own saving prices that one KPI at the peer median and holds the other priced input at
+// the company's value (`soloSaving` in the model), so the accident rate gap keeps the company's
+// 12.5 lost days and its saving is larger than the card's, which moves both inputs to the median
+// (the company is already better than the peer on lost days). Both are shown; see the follow up in
+// spec 0016's amendment.
+const GAP_SAVING = ANNUAL - ((PEER_MEDIAN_RATE * 420) / 1000) * COST_PER_CASE * 3.7;
 // The derived counts (spec 0012) take the per million hours arm, on the 1 804 hours assumption:
 // LTIFR 2.4 drives the lost time count and TRIFR 6.1 the recordable one.
 const HOURS_PER_FTE = 1804;
@@ -93,12 +104,15 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     const card = page.locator("[data-opportunity-card]");
     expect(Number(await card.getAttribute("data-cost"))).toBeCloseTo(ANNUAL, 0);
     await expect(card.locator("[data-cost-headline]")).toContainText(/1.961.000/);
-    await expect(card.locator("[data-saving-median]")).toContainText(/522.000/);
+    await expect(card.locator("[data-saving-median]")).toContainText(/1.081.000/);
     await expect(card.getByText(/Computed on \d{2}\.\d{2}\.\d{4}/)).toBeVisible();
     // Four since the peer data refresh (spec 0016 amendment): the Suva rate, the Eurostat lost days
     // and fatality rows and the BFS absence rate all cover section C.
     await expect(card.locator("[data-compared]")).toHaveAttribute("data-compared", "4");
     await expect(card.getByText("4 of 8 KPIs compared")).toBeVisible();
+    // Every peer row the fixture company meets is read from its named source since the peer data
+    // refresh, but the four cost assumptions are still provisional, so the note stays until the
+    // launch gate reads them (spec 0016, AC-1).
     await expect(page.locator("[data-provisional-note]")).toBeVisible();
 
     // The derived counts (spec 0012, AC-1, AC-3, AC-4, AC-6): the fixture company carries both
@@ -126,13 +140,17 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     // A calculated number never borrows a confidence score (AC-5).
     await expect(derived.locator("[data-confidence]")).toHaveCount(0);
 
-    // The priority gaps (AC-9 b): the accident rate is the only KPI with a peer row in the seed.
+    // The priority gaps (AC-9 b): of the four compared KPIs the accident rate is the only one the
+    // fixture company sits above the peer median on (lost days 12.5 against 14.5, no fatality
+    // against 0.55 per 100 000, absence 3.8 against 3.97 are all better).
     const gaps = page.locator("[data-gaps]");
     await expect(gaps).toHaveAttribute("data-gaps", "1");
     const gap = page.locator('[data-gap="accident_rate_per_1000_fte"]');
     await expect(gap).toHaveAttribute("data-rank", "1");
-    await expect(gap.getByText("68.00 vs. median 49.90")).toBeVisible();
-    await expect(gap.locator("[data-gap-saving]")).toContainText(/522.000/);
+    await expect(gap.getByText("68.00 vs. median 27.30")).toBeVisible();
+    // 1 173 942, rounded to the nearest thousand.
+    expect(Math.round(GAP_SAVING)).toBe(1_173_942);
+    await expect(gap.locator("[data-gap-saving]")).toContainText(/1.174.000/);
 
     // The positions (AC-9 c): one row per catalogue KPI, the band on the compared one.
     await expect(page.locator("[data-position-kpi]")).toHaveCount(8);
@@ -143,8 +161,27 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(accident.locator(".sr-only")).toContainText(
       "your value 68.00 is in the band Bottom quarter",
     );
+    // The peer label names the source's own classification through `source_key` (spec 0016,
+    // AC-6) and the band row the 420 FTE company met on rung 1 (amendment, D4).
     await expect(
-      accident.getByText(/Manufacturing · all sizes · 2022 \(nearest year\)/),
+      accident.getByText(
+        /Suva Tab\. 1\.2 · NOGA 10–33 · 250 and more employees · 2024 \(nearest year\)/,
+      ),
+    ).toBeVisible();
+    // The fatality count is judged as a rate per 100 000 employed persons against the Eurostat
+    // point row, and the row says which value it compared (amendment, D3, AC-23).
+    const fatalities = page.locator('[data-position-kpi="fatalities"]');
+    await expect(fatalities).toHaveAttribute("data-peer-shape", "point");
+    await expect(fatalities).toHaveAttribute("data-position", "above_average");
+    await expect(fatalities.locator("[data-compared-value]")).toHaveAttribute(
+      "data-compared-value",
+      "0",
+    );
+    await expect(
+      fatalities.getByText("Your count as a rate: 0.00 per 100 000 employed persons"),
+    ).toBeVisible();
+    await expect(
+      fatalities.getByText(/Eurostat hsw_n2_02 · NACE C · all sizes · 2023/),
     ).toBeVisible();
     await expect(
       page.locator('[data-position-kpi="ltifr"]').getByText("No peer data yet"),
@@ -194,7 +231,7 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       const mail = await readMail(email, { seen: seenBefore, timeoutMs: 60_000 });
       expect(mail.subject).toBe("Ihr Benchmark für Benchmark Fixture AG ist bereit");
       expect(mail.html).toMatch(/1.961.000/);
-      expect(mail.html).toMatch(/522.000/);
+      expect(mail.html).toMatch(/1.081.000/);
       expect(mail.links.some((link) => link.endsWith("/de/app"))).toBe(true);
     } else {
       console.log(
@@ -234,10 +271,23 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       "data-input-industry",
       "23.61",
     );
-    await expect(content.locator('[data-input-kpi="accident_rate_per_1000_fte"]')).toContainText(
-      "68.00 (2025, from the research) · peer: Manufacturing · all sizes · 2022",
+    const accidentInput = content.locator('[data-input-kpi="accident_rate_per_1000_fte"]');
+    await expect(accidentInput).toContainText(
+      "68.00 (2025, from the research) · peer: Manufacturing · 250 and more employees · 2024",
+    );
+    // What the quartiles describe, written by the curator on the row (spec 0016, AC-11; the
+    // amendment's AC-27 wording for a scaled band row).
+    await expect(accidentInput.locator("[data-peer-basis]")).toContainText(
+      "A scaled estimate, not a measurement: section C's Suva figures (Table 1.2, 2024) times 0.58",
+    );
+    await expect(content.locator('[data-input-kpi="fatalities"] [data-peer-basis]')).toContainText(
+      "Fatal accidents at work per 100 000 employed persons in Switzerland in 2023",
+    );
+    await expect(content.locator('[data-input-kpi="fatalities"]')).toContainText(
+      "compared as 0.00 per 100 000 employed persons",
     );
     await expect(content.locator('[data-input-kpi="ltifr"]')).toContainText("no peer row");
+    await expect(content.locator('[data-input-kpi="ltifr"] [data-peer-basis]')).toHaveCount(0);
     await expectNoAxeViolations(page);
 
     // The facts form (AC-11, AC-12): a new headcount is saved, the benchmark is recomputed and the
@@ -264,7 +314,8 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       await page.screenshot({ path: process.env.BENCHMARK_SCREENSHOT, fullPage: true });
     }
 
-    // The stored rows (AC-5): two snapshots, the first keyed to the run, one KPI compared, the saving unrounded.
+    // The stored rows (AC-5): two snapshots, the first keyed to the run, four KPIs compared, the
+    // provisional flag still raised by the cost assumptions, the saving unrounded.
     const { data: company } = await db
       .from("companies")
       .select("id, employees_count, industry_code")
@@ -299,8 +350,10 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
 });
 
 /**
- * The point row path (spec 0016, AC-15). Section D holds one Suva class, so its seeded peer row is
- * 44.3 repeated as all three quartiles: a `point` row. The company is seeded straight into that
+ * The point row path (spec 0016, AC-15). Section D holds one Suva class, so its seeded peer rows
+ * are one figure repeated as all three quartiles: `point` rows. A 200 employee company meets the
+ * section's 50 to 249 band row, 48.9, scaled from the 41.1 section row (spec 0016 amendment, D4),
+ * and a point row stays a point row under the scaling. The company is seeded straight into that
  * section and a snapshot is driven through the same `benchmark-company` task the product uses, so
  * the assertions run against the real model rather than a fixture of the rendering.
  *
@@ -320,8 +373,9 @@ test("a point row renders a sector comparison with no band and no quartile wordi
     const userId = account?.user.id;
     if (!organizationId || !userId) throw new Error("the sign in created no organization");
 
-    // NOGA 35 is section D, whose peer row is a single figure (44.3/44.3/44.3) in the committed
-    // seed. The company sits above it, so the position is `below_average`, never a quartile band.
+    // NOGA 35 is section D, whose 50 to 249 band row is a single figure (48.9 three times) in the
+    // committed seed. The company sits above it, so the position is `below_average`, never a
+    // quartile band.
     const { companyId, runId } = await seedResearchedCompany({
       organizationId,
       userId,
@@ -350,8 +404,13 @@ test("a point row renders a sector comparison with no band and no quartile wordi
     const assessment = page.locator("[data-self-assessment]");
     // 61 rather than the seeded 60: the form diffs each field against its prefilled research value
     // and drops the ones that match, so re-entering 60 would send nothing at all. Any figure above
-    // the 44.3 sector row keeps the position `below_average`.
-    await assessment.getByRole("textbox", { name: "Accident rate per 1 000 FTE" }).fill("61");
+    // the 48.9 band row keeps the position `below_average`.
+    // Wait for the prefilled research value to land before typing: the form refills from the rows
+    // after hydration with `keepDirtyValues`, so a fill that arrives first merges with the prefill
+    // ("6061") and fails validation instead of saving.
+    const accidentField = assessment.getByRole("textbox", { name: "Accident rate per 1 000 FTE" });
+    await expect(accidentField).toHaveValue("60");
+    await accidentField.fill("61");
     await assessment.getByRole("button", { name: "Save and recalculate" }).click();
     await expect(assessment.locator("[data-kpis-saved]")).toHaveAttribute(
       "data-kpis-saved",
@@ -382,7 +441,7 @@ test("a point row renders a sector comparison with no band and no quartile wordi
     await expect(row.locator("svg")).toHaveCount(0);
 
     // One labelled sector figure, and the point row basis sentence.
-    await expect(row.locator("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "44.3");
+    await expect(row.locator("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "48.9");
     await expect(row.getByText("One figure for the whole sector, not a range.")).toBeVisible();
 
     // The words the spec forbids on a point row, in the rendered text of the row itself.

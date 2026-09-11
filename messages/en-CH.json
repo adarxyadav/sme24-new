@@ -1786,7 +1786,7 @@
       "unavailable": "The benchmark is not available yet. We will show it as soon as it is computed.",
       "noData": "Not enough data to compare yet. We need at least one KPI with peer data."
     },
-    "provisionalNote": "The peer values are a provisional first reading of the published statistics and will be replaced before launch.",
+    "provisionalNote": "Some figures behind this estimate are a provisional first reading of the published statistics and will be confirmed before launch.",
     "card": {
       "title": "Annual incident cost",
       "description": "What workplace incidents cost your company per year, estimated from your figures and stored assumptions.",
@@ -1827,7 +1827,7 @@
     },
     "positions": {
       "title": "Your position per KPI",
-      "description": "Where your newest value sits between the peer quartiles.",
+      "description": "Where your newest value sits against the published sector figures: a spread across the Suva branches of your sector, scaled to your size band where a ratio exists, or one figure where the source publishes only one. What each comparison rests on is under \"How this is calculated\".",
       "noValue": "No value",
       "noPeer": "No peer data yet",
       "peer": "{section} · {band} · {year}",

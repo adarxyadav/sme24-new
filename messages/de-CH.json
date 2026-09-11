@@ -1786,7 +1786,7 @@
       "unavailable": "Der Benchmark ist noch nicht verfügbar. Wir zeigen ihn, sobald er berechnet ist.",
       "noData": "Noch nicht genug Daten für einen Vergleich. Wir brauchen mindestens eine Kennzahl mit Vergleichswerten."
     },
-    "provisionalNote": "Die Vergleichswerte sind eine provisorische erste Lesung der publizierten Statistiken und werden vor dem Start ersetzt.",
+    "provisionalNote": "Einige Werte hinter dieser Schätzung sind eine provisorische erste Lesung der publizierten Statistiken und werden vor dem Start bestätigt.",
     "card": {
       "title": "Jährliche Unfallkosten",
       "description": "Was Arbeitsunfälle Ihr Unternehmen pro Jahr kosten, geschätzt aus Ihren Kennzahlen und hinterlegten Annahmen.",
@@ -1827,7 +1827,7 @@
     },
     "positions": {
       "title": "Ihre Position pro Kennzahl",
-      "description": "Wo Ihr neuester Wert zwischen den Quartilen der Vergleichsgruppe liegt.",
+      "description": "Wo Ihr neuester Wert im Vergleich zu den publizierten Branchenwerten liegt: eine Spannweite über die Suva-Branchen Ihres Abschnitts, auf Ihre Grössenklasse skaliert, wo ein Verhältnis vorliegt, oder ein einzelner Wert, wo die Quelle nur einen publiziert. Worauf jeder Vergleich beruht, steht unter «So wird gerechnet».",
       "noValue": "Kein Wert",
       "noPeer": "Noch keine Vergleichsdaten",
       "peer": "{section} · {band} · {year}",
