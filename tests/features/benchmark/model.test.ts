@@ -14,7 +14,7 @@ import {
   roundChf,
   selectPeer,
 } from "@/features/benchmark/model";
-import { parseSnapshotBlocks, SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
+import { parseSnapshotBlocks, peerShapeOf, SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
 import { KPI_CATALOGUE, KPI_KEYS, type KpiKey } from "@/features/research/catalogue";
 
 const UUID = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -87,6 +87,8 @@ const assumptions: readonly ModelAssumption[] = [
   sourceUrl: null,
   provisional: true,
   effectiveFrom: "2022-12-31",
+  isAssumption: false,
+  note: null,
 }));
 
 const kpis: readonly ModelKpiRow[] = [
@@ -183,10 +185,12 @@ describe("computeBenchmark inputs, peers, positions and gaps (spec 0008, AC-4)",
     expect(positionOf("near_miss_rate", "higher_is_better", 9, quartiles)).toBe("bottom_quarter");
   });
 
-  it("applies the ISO rule: certified is above the median, missing is a gap of 1", () => {
+  it("applies the ISO rule: certified is better than the sector, missing is a gap of 1", () => {
+    // A certified share is one number repeated as all three quartiles, so it is a point row and
+    // takes the two average positions rather than the median wording (spec 0016, AC-5).
     const share = { p25: 0.3, median: 0.3, p75: 0.3 };
-    expect(positionOf("iso_45001_certified", "higher_is_better", 1, share)).toBe("above_median");
-    expect(positionOf("iso_45001_certified", "higher_is_better", 0, share)).toBe("below_median");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 1, share)).toBe("above_average");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 0, share)).toBe("below_average");
     expect(gapOf("iso_45001_certified", "higher_is_better", 0, 0.3)).toEqual({
       gapToMedian: 0.3,
       gapRelative: 1,
@@ -586,13 +590,14 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
   // and version 1 is never widened to carry a derived key. Getting this wrong fails quietly,
   // every stored snapshot becomes unreadable and the dashboard drops to its waiting state, so
   // pin the shape rather than trusting a future edit to notice (AC-12).
-  it("keeps both versions in the map and leaves version 1 unwidened (spec 0012, AC-12)", () => {
+  it("keeps every version in the map and leaves version 1 unwidened (spec 0012, AC-12; spec 0016, AC-12)", () => {
     expect(Object.keys(SNAPSHOT_SCHEMAS).sort()).toEqual([
       "benchmark-model@1",
       "benchmark-model@2",
+      "benchmark-model@3",
     ]);
-    // The live write time version is one of them, and it is the newer one.
-    expect(MODEL_VERSION).toBe("benchmark-model@2");
+    // The live write time version is one of them, and it is the newest one.
+    expect(MODEL_VERSION).toBe("benchmark-model@3");
 
     // A version 1 row that somehow carries a derived block drops it: the schema has no such key,
     // so the reader sees an absent block rather than an unvalidated one.
@@ -615,5 +620,103 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
     });
     expect(broken.blocks).toBeNull();
     expect(broken.error).toContain("derived");
+  });
+
+  // A stored @1 or @2 row predates the shape and the source columns, so every reader must handle
+  // their absence rather than assume the newest version (spec 0016, AC-12).
+  it("parses a stored version 2 row whose peer block carries no shape (spec 0016, AC-12)", () => {
+    const stripped = {
+      ...valid,
+      results: valid.results.map((result) =>
+        result.peer === null
+          ? result
+          : {
+              ...result,
+              peer: Object.fromEntries(
+                Object.entries(result.peer).filter(
+                  ([key]) => !["shape", "sourceKey", "basis"].includes(key),
+                ),
+              ),
+            },
+      ),
+      assumptions: valid.assumptions.map((assumption) => {
+        const {
+          isAssumption: _flag,
+          note: _note,
+          ...rest
+        } = assumption as typeof assumption & {
+          isAssumption?: boolean;
+          note?: unknown;
+        };
+        return rest;
+      }),
+    };
+    const v2 = parseSnapshotBlocks({ model_version: "benchmark-model@2", ...stripped });
+    expect(v2.error).toBeNull();
+    const peered = v2.blocks?.results.find((result) => result.peer !== null);
+    expect(peered?.peer?.shape).toBeUndefined();
+    expect(v2.blocks?.assumptions[0]?.isAssumption).toBeUndefined();
+
+    // The same stripped row is not a valid @3 row: the new fields are required there.
+    expect(
+      parseSnapshotBlocks({ model_version: "benchmark-model@3", ...stripped }).blocks,
+    ).toBeNull();
+  });
+});
+
+describe("the peer shape and the two average positions (spec 0016, AC-4, AC-5)", () => {
+  const point = { p25: 44.3, median: 44.3, p75: 44.3 };
+  const spread = { p25: 10, median: 20, p75: 30 };
+
+  it("derives the shape from the values, never from a column", () => {
+    expect(peerShapeOf(point)).toBe("point");
+    expect(peerShapeOf(spread)).toBe("distribution");
+    // Equal ends with a different middle is still a distribution: only all three equal is a point.
+    expect(peerShapeOf({ p25: 10, median: 20, p75: 10 })).toBe("distribution");
+  });
+
+  it("carries the derived shape onto the snapshot's peer block", () => {
+    const rows = [
+      peer("ltifr", "D", "all", [44.3, 44.3, 44.3]),
+      peer("ltifr", "C", "all", [10, 20, 30]),
+    ];
+    expect(selectPeer(rows, "ltifr", "D", "all", 2022)?.shape).toBe("point");
+    expect(selectPeer(rows, "ltifr", "C", "all", 2022)?.shape).toBe("distribution");
+  });
+
+  it("gives a point row only the two average positions, in both directions", () => {
+    // lower is better: at or below the one figure is better than the sector.
+    expect(positionOf("ltifr", "lower_is_better", 40, point)).toBe("above_average");
+    expect(positionOf("ltifr", "lower_is_better", 44.3, point)).toBe("above_average");
+    expect(positionOf("ltifr", "lower_is_better", 50, point)).toBe("below_average");
+    // higher is better: at or above it is better.
+    expect(positionOf("near_miss_rate", "higher_is_better", 50, point)).toBe("above_average");
+    expect(positionOf("near_miss_rate", "higher_is_better", 44.3, point)).toBe("above_average");
+    expect(positionOf("near_miss_rate", "higher_is_better", 40, point)).toBe("below_average");
+  });
+
+  it("routes the ISO branch through the shape rule so it never says median about a point row", () => {
+    // A certified share is one number, so it is always a point row (AC-5).
+    expect(positionOf("iso_45001_certified", "higher_is_better", 1, point)).toBe("above_average");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 0, point)).toBe("below_average");
+    // A distribution keeps the existing two values.
+    expect(positionOf("iso_45001_certified", "higher_is_better", 1, spread)).toBe("above_median");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 0, spread)).toBe("below_median");
+  });
+
+  it("never yields a quartile position for a point row, whatever the value", () => {
+    const quartileBands = ["top_quarter", "above_median", "below_median", "bottom_quarter"];
+    for (const value of [0, 1, 44.29, 44.3, 44.31, 1000]) {
+      for (const direction of ["lower_is_better", "higher_is_better"] as const) {
+        expect(quartileBands).not.toContain(positionOf("ltifr", direction, value, point));
+      }
+    }
+  });
+
+  it("leaves a distribution row's four bands exactly as they were", () => {
+    expect(positionOf("ltifr", "lower_is_better", 5, spread)).toBe("top_quarter");
+    expect(positionOf("ltifr", "lower_is_better", 15, spread)).toBe("above_median");
+    expect(positionOf("ltifr", "lower_is_better", 25, spread)).toBe("below_median");
+    expect(positionOf("ltifr", "lower_is_better", 35, spread)).toBe("bottom_quarter");
   });
 });

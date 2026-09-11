@@ -368,10 +368,23 @@ async function loadPeers(
             p75: Number(row.p75),
             sampleSize: row.sample_size,
             provisional: row.provisional,
+            sourceKey: row.source_key,
+            basis: localizedText(row.basis),
           },
         ]
       : [],
   );
+}
+
+/**
+ * A `{de, en}` jsonb column as a typed pair, or `null` when the column is null or malformed. The
+ * database check constraint requires both keys, so this only guards against a hand written row.
+ * Pure.
+ */
+function localizedText(value: unknown): { readonly de: string; readonly en: string } | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { de, en } = value as Record<string, unknown>;
+  return typeof de === "string" && typeof en === "string" ? { de, en } : null;
 }
 
 async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumption[]> {
@@ -385,6 +398,8 @@ async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumpt
     sourceUrl: row.source_url,
     provisional: row.provisional,
     effectiveFrom: row.effective_from,
+    isAssumption: row.is_assumption,
+    note: localizedText(row.note),
   }));
 }
 

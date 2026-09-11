@@ -93,7 +93,7 @@ export const ASSUMPTION_KEYS = [
 export type AssumptionKey = (typeof ASSUMPTION_KEYS)[number];
 
 /** Names the rule set and snapshot schema; bumped by hand when a formula or rule changes. */
-export const MODEL_VERSION = "benchmark-model@2";
+export const MODEL_VERSION = "benchmark-model@3";
 
 /** How long the dashboard shows "calculating" after a trigger moment before it says "not available yet" (AC-9). */
 export const BENCHMARK_WAIT_MS = 120_000;

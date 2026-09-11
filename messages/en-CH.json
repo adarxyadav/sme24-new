@@ -1834,8 +1834,14 @@
         "top_quarter": "Top quarter",
         "above_median": "Better than the median",
         "below_median": "Worse than the median",
-        "bottom_quarter": "Bottom quarter"
-      }
+        "bottom_quarter": "Bottom quarter",
+        "above_average": "Better than the sector average",
+        "below_average": "Worse than the sector average"
+      },
+      "sector": "Sector figure {value}",
+      "srSector": "{kpi}: your value {value} is {band}. The sector figure is {sector}.",
+      "pointBasis": "One figure for the whole sector, not a range.",
+      "broadened": "all industries, as no figure is published for your sector"
     },
     "noga": {
       "sections": {

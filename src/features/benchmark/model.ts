@@ -6,18 +6,20 @@ import {
   sectionOfDivision,
   sizeBandOf,
 } from "./catalogue";
-import type {
-  AssumptionUsed,
-  DerivedCount,
-  DerivedFromKey,
-  InputKpi,
-  Position,
-  SnapshotBody,
-  SnapshotCost,
-  SnapshotDerived,
-  SnapshotGap,
-  SnapshotPeer,
-  SnapshotResult,
+import {
+  type AssumptionUsedV3,
+  type DerivedCount,
+  type DerivedFromKey,
+  type InputKpi,
+  type Position,
+  peerShapeOf,
+  type SnapshotBody,
+  type SnapshotCost,
+  type SnapshotDerived,
+  type SnapshotGap,
+  type SnapshotPeer,
+  type SnapshotPeerV3,
+  type SnapshotResultV3,
 } from "./snapshot";
 
 /**
@@ -61,9 +63,13 @@ export type ModelPeerRow = {
   readonly p75: number;
   readonly sampleSize: number | null;
   readonly provisional: boolean;
+  /** The source's own classification (spec 0016), for example `Suva class 22A`. */
+  readonly sourceKey?: string | null;
+  /** What the quartiles actually describe, shown to the client (spec 0016). */
+  readonly basis?: { readonly de: string; readonly en: string } | null;
 };
 
-export type ModelAssumption = AssumptionUsed;
+export type ModelAssumption = AssumptionUsedV3;
 
 export type ModelInput = {
   readonly company: ModelCompany;
@@ -97,7 +103,7 @@ export function selectPeer(
   section: string | null,
   band: SizeBand,
   year: number,
-): SnapshotPeer | null {
+): SnapshotPeerV3 | null {
   const ladder: ReadonlyArray<readonly [section: string | null, band: SizeBand]> = [
     [section, band],
     [section, "all"],
@@ -130,19 +136,38 @@ export function selectPeer(
       p75: chosen.p75,
       sampleSize: chosen.sampleSize,
       provisional: chosen.provisional,
+      // Derived from the values, never a stored column (spec 0016, AC-4).
+      shape: peerShapeOf(chosen),
+      sourceKey: chosen.sourceKey ?? null,
+      basis: chosen.basis ?? null,
     };
   }
   return null;
 }
 
-/** The position band of a value against the peer quartiles (AC-4 rule 3). Pure. */
+/**
+ * The position band of a value against the peer row (AC-4 rule 3, spec 0016 AC-5). A `point` row
+ * holds one figure repeated as all three quartiles, so it can only say better or worse than that
+ * figure: the four quartile bands are unreachable for it by construction rather than by wording.
+ * The ISO branch is routed through the same rule, because a certified share is one number and is
+ * therefore always a point row. Pure.
+ */
 export function positionOf(
   key: KpiKey,
   direction: ModelCatalogueEntry["direction"],
   value: number,
   peer: Pick<SnapshotPeer, "p25" | "median" | "p75">,
 ): Position {
-  if (key === "iso_45001_certified") return value >= 1 ? "above_median" : "below_median";
+  const shape = peerShapeOf(peer);
+  if (key === "iso_45001_certified") {
+    if (shape === "point") return value >= 1 ? "above_average" : "below_average";
+    return value >= 1 ? "above_median" : "below_median";
+  }
+  if (shape === "point") {
+    const atLeastAsGood =
+      direction === "higher_is_better" ? value >= peer.median : value <= peer.median;
+    return atLeastAsGood ? "above_average" : "below_average";
+  }
   if (direction === "higher_is_better") {
     if (value >= peer.p75) return "top_quarter";
     if (value >= peer.median) return "above_median";
@@ -266,7 +291,7 @@ export function computeBenchmark({
   }));
 
   // (2) to (4) and (7) per KPI: peer, position, gap, confidence.
-  const results: SnapshotResult[] = inputKpis.map((input) => {
+  const results: SnapshotResultV3[] = inputKpis.map((input) => {
     const peer = selectPeer(peers, input.key, section, sizeBand, input.periodYear);
     if (!peer) {
       return {

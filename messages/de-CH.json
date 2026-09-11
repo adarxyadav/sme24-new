@@ -1834,8 +1834,14 @@
         "top_quarter": "Oberstes Viertel",
         "above_median": "Besser als der Median",
         "below_median": "Schlechter als der Median",
-        "bottom_quarter": "Unterstes Viertel"
-      }
+        "bottom_quarter": "Unterstes Viertel",
+        "above_average": "Besser als der Branchendurchschnitt",
+        "below_average": "Schlechter als der Branchendurchschnitt"
+      },
+      "sector": "Branchenwert {value}",
+      "srSector": "{kpi}: Ihr Wert {value} ist {band}. Der Branchenwert liegt bei {sector}.",
+      "pointBasis": "Ein Wert für die ganze Branche, keine Bandbreite.",
+      "broadened": "alle Branchen, da für Ihre Branche kein Wert publiziert ist"
     },
     "noga": {
       "sections": {
