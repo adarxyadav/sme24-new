@@ -3,7 +3,7 @@
 -- seed migration holds the provisional first set (AC-1, AC-2, AC-15).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(19);
+select plan(24);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -118,6 +118,27 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name, source_note) values ('ltifr', 'C', 'all', 2022, 1, 2, 3, 'test', '{"de":"nur Deutsch"}') $$,
   '23514', null, 'a source note without both locales is rejected');
+-- The two curation columns (spec 0016, AC-1). `basis` is the caveat the client actually sees, so
+-- the database holds the same both-or-neither rule `source_note` has: the CSV parser's refinement
+-- only guards the seed path, and a hand written migration or a later ops UI writes straight here.
+select throws_ok(
+  $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name, basis) values ('ltifr', 'C', 'all', 2022, 1, 2, 3, 'test', '{"de":"nur Deutsch"}') $$,
+  '23514', null, 'a basis without both locales is rejected');
+select throws_ok(
+  $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name, basis) values ('ltifr', 'C', 'all', 2022, 1, 2, 3, 'test', '{"en":"English only"}') $$,
+  '23514', null, 'a basis with only the English locale is rejected');
+select throws_ok(
+  $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name, basis) values ('ltifr', 'C', 'all', 2022, 1, 2, 3, 'test', '"a sentence"') $$,
+  '23514', null, 'a basis that is not an object is rejected');
+-- Both columns are optional and default to null, which is every seeded row today (AC-1): filling
+-- them is the curation pass, not this build. Asserted before the insert below, so it reads the
+-- committed seed rather than anything this file added.
+select is(
+  (select count(*) from public.benchmarks where source_key is null and basis is null), 22::bigint,
+  'every seeded peer row leaves both curation columns null');
+select lives_ok(
+  $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name, source_key, basis) values ('ltifr', 'D', 'all', 2022, 1, 2, 3, 'test', 'Suva class 22A', '{"de":"Mittelwert einer Suva-Klasse","en":"The mean of one Suva class"}') $$,
+  'a source key and a basis with both locales are accepted');
 
 -- A client reads and cannot write
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
