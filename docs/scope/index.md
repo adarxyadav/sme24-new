@@ -27,7 +27,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 12 | Ops admin: orders, companies & scheduling | Slice 3 | done |
 | 13 | Marketing site & retainer enquiry | Slice 4 | done |
 | 14 | Legal, privacy & cookie consent | Slice 4 | done |
-| 15 | Analytics & monitoring | Slice 4 | planned |
+| 15 | Analytics & monitoring | Slice 4 | in-progress |
 | 16 | Expert accounts & profiles | Slice 5 | done |
 | 17 | Structured assessment forms | Slice 5 | planned |
 | 18 | Gap report | Slice 5 | planned |

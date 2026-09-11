@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressList } from "@/components/ui/progress-list";
 import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
+import { BenchmarkViewed } from "@/features/benchmark/ui/benchmark-viewed";
 import { listAssignedExperts } from "@/features/experts/queries";
 import { AssignedExperts } from "@/features/experts/ui/assigned-experts";
 import { listScheduledAssessments } from "@/features/ops-admin/queries";
@@ -196,6 +197,19 @@ export default async function AppPage() {
             // `noData` is the one state where entering a figure by hand is the fix the alert is
             // asking for, so the card moves up beside it instead of sitting below the KPI table.
             figuresSlot={figuresInBenchmark ? selfAssessment : undefined}
+          />
+        ) : null}
+        {/* Spec 0017, AC-6: the one browser event, fired only when a snapshot actually rendered.
+            Guarded on the snapshot rather than on the segment, because the segment also renders
+            the calculating, unavailable and noData states, none of which is a benchmark to view.
+            The expert's read only view of the same segment deliberately does not fire it: an
+            expert reading a client's page is not a client viewing their own benchmark. */}
+        {dashboard.benchmark && dashboard.benchmarkState === "ready" ? (
+          <BenchmarkViewed
+            organizationId={organizationId}
+            companyId={company.id}
+            snapshotId={dashboard.benchmark.id}
+            locale={locale}
           />
         ) : null}
 

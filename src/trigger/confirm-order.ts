@@ -6,6 +6,8 @@ import { z } from "zod";
 import { rappenToChf } from "@/features/checkout/money";
 import { SELLER_PLACEHOLDERS, type Seller } from "@/features/checkout/seller-facts";
 import { settleOrder } from "@/features/checkout/settle";
+import { LOCALE_CODE, localeFromCode } from "@/i18n/routing";
+import { captureServerEvent } from "@/lib/analytics/server";
 import { taskEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import type { Database, Tables } from "@/lib/supabase/database.types";
@@ -131,9 +133,50 @@ export const confirmOrderTask = schemaTask({
       invoiceNumber: settled.data.invoiceNumber,
       alreadySettled: settled.data.alreadySettled,
     });
+    // After the settle RPC succeeded (AC-8). It fires on the webhook path only, and only when this
+    // call actually settled the order: `alreadySettled` means a previous attempt already emitted
+    // the event, so a retry after a crash cannot emit a second one for one payment. The three
+    // fields the event needs are on the order row this task already selected, so no second query.
+    // The locale is the order's own frozen column, never a request header: the caller is Stripe.
+    if (!settled.data.alreadySettled) {
+      await capturePaymentCompleted(order, settled.data.invoiceNumber);
+    }
     return { settled: true, invoiceNumber: settled.data.invoiceNumber };
   },
 });
+
+/**
+ * Fires `payment.completed` after a settlement on the webhook path (spec 0017, AC-5, AC-8). The
+ * buyer, the organization and the locale all come from the order row the task already loaded. An
+ * order with no `created_by` is skipped rather than sent under a placeholder id, the same rule the
+ * confirmation email follows. Never throws: the money is recorded and the invoice numbered, so
+ * analytics may not fail a settled payment or cause a retry that would send a second email.
+ */
+async function capturePaymentCompleted(order: OrderRow, invoiceNumber: string): Promise<void> {
+  if (!order.created_by) {
+    logger.warn("payment.completed not captured: the order has no buyer", { orderId: order.id });
+    return;
+  }
+  try {
+    await captureServerEvent({
+      distinctId: order.created_by,
+      event: "payment.completed",
+      properties: {
+        organizationId: order.organization_id,
+        locale: LOCALE_CODE[localeFromCode(order.locale)],
+        orderId: order.id,
+        packageKey: order.package_key,
+        grossRappen: Number(order.gross_rappen),
+        invoiceNumber,
+      },
+    });
+  } catch (error) {
+    log.warn("payment.completed not captured", {
+      orderId: order.id,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 /** The organization's name for the ops alert. */
 async function organizationName(supabase: Service, organizationId: string): Promise<string> {

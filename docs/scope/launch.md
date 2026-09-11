@@ -37,11 +37,23 @@ spec [0015](../specs/0015-legal-privacy-cookie-consent/index.md)
 - [x] Review it (fresh model): `/check review legal, privacy & cookie consent`
 - [x] Document it: `/document legal, privacy & cookie consent`
 
-### 15. Analytics & monitoring · needs a decision
+### 15. Analytics & monitoring · in-progress
 Conversion funnel events (lookup started, run finished, benchmark viewed, checkout started, payment completed, enquiry sent) plus runtime error monitoring, failed background job alerts and slow page reporting. The event taxonomy is the decision; consent from feature 14 gates the client side part.
 **Done when:** each funnel event is recorded with organization and language, a funnel view shows drop off between steps, runtime errors and failed research runs alert your team with enough context to reproduce.
 Carried over from earlier specs: `benchmark.viewed` and `benchmark.computed` with their properties (spec 0008), `kpi.client_saved` and `kpi.client_cleared` (spec 0010), and confirm or rename the provisional `enquiry_sent` event and add the marketing funnel events (spec 0009).
-- [ ] Design it (spec): `/architect analytics & monitoring`
+spec [0017](../specs/0017-analytics-monitoring/index.md)
+code in `src/lib/analytics/`, `src/lib/alerts/`, `src/trigger/instrumentation.ts`, `docs/analytics.md`
+- [x] Design it (spec): `/architect analytics & monitoring`
+- [x] Build it: `/develop analytics & monitoring`
+  - [x] The catalogue and one event end to end: `ANALYTICS_EVENTS` with its per event Zod schemas under a `satisfies` check, `captureServerEvent` retyped to accept only a catalogue name and to validate properties, and `enquiry_sent` renamed to `enquiry.sent` and proven in PostHog (AC-1, AC-2, AC-3, AC-7, AC-8)
+  - [x] The server side funnel: capture at `requestResearch`, the `research-company` and `benchmark-company` tasks, `saveClientKpis`, `clearClientKpi`, `startCheckout` and the `confirm-order` task, each after the write that makes its work durable; `payment.completed` fires in `confirm-order` rather than inside `settleOrder`, because that core is shared with the ops `markOrderPaid` path and the three fields the event needs (`created_by`, `organization_id`, `locale`) are already on the order row the task selects; the `expert.profile_completed` and `expert.assigned` renames were already carried by milestone 1's closed union (AC-4, AC-5, AC-7, AC-8)
+  - [x] The one browser event: `captureBrowserEvent` behind the existing consent gate and `benchmark.viewed` from a client child of `BenchmarkSegment`, with Playwright proving no event and no identifier before a consent answer (AC-4, AC-6)
+  - [x] Monitoring: the `task.failed` alert kind fired from the existing `tasks.onFailure` hook, and the Sentry release plus source map upload from the Vercel commit SHA (AC-9, AC-10)
+  - [x] Tests and the runbook: the catalogue consistency and capture failure suites, `docs/analytics.md` with the taxonomy table and the funnel insight recipe, and the `PROCESSORS` review, which found the privacy page and the record of processing both claiming PostHog "loads only after you accept" and corrected all three surfaces to the two paths and their two bases (AC-11, AC-12)
+- [ ] Verify it: `/check verify analytics & monitoring`
+- [x] Test it: `/test analytics & monitoring`
+- [x] Review it (fresh model): `/check review analytics & monitoring`
+- [x] Document it: `/document analytics & monitoring`
 
 ### 25. Peer data curation & model honesty · Beta · done
 The first peer seed is provisional by design (spec 0008), and the plan was to read the published tables and clear the flags. Research for spec 0016 found that premise does not hold: no Swiss or European body publishes the indirect to direct accident cost ratio the CHF figure multiplies by, no Swiss source publishes safety outcomes by company size band, and the Suva accident tables use their own premium class scheme rather than NOGA sections. On top of that, eleven of the twenty two seeded rows carry one number repeated as all three quartiles, so a client in those sectors is told they sit in the "Top quarter" of a distribution nobody measured. So this feature changes what the product claims rather than the arithmetic behind it, and leaves the values themselves for you to replace afterwards against a schema that can finally record what they came from.

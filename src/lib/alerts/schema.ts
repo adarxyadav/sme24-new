@@ -17,6 +17,7 @@ export const ALERT_KINDS = [
   "invoice.render_failed",
   "expert.onboarded",
   "data_request.received",
+  "task.failed",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -88,6 +89,19 @@ const alertFields = {
     email: z.email().max(320),
     dueOn: z.string().min(1).max(40),
   }),
+  /**
+   * Spec 0017 (AC-9): a background task exhausted its retries. Raised from the global
+   * `tasks.onFailure` hook, so it covers every task including ones not yet written. `attempts` is
+   * the attempt number the run died on, which is the retry budget for that task. `error` is capped
+   * like every other reason field, so a stack trace never reaches Slack: the trace is in Sentry,
+   * and the run page behind the button is where it is reproduced.
+   */
+  "task.failed": z.object({
+    taskId: z.string().min(1).max(200),
+    runId: z.string().min(1).max(100),
+    attempts: z.number().int().positive(),
+    error: z.string().min(1).max(500),
+  }),
 } as const satisfies Record<AlertKind, z.ZodType>;
 
 /** The typed fields of one kind. */
@@ -119,5 +133,6 @@ export const opsAlertPayloadSchema = z.discriminatedUnion("kind", [
   entry("invoice.render_failed"),
   entry("expert.onboarded"),
   entry("data_request.received"),
+  entry("task.failed"),
 ]);
 export type OpsAlertPayload = z.infer<typeof opsAlertPayloadSchema>;

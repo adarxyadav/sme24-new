@@ -70,7 +70,7 @@ two lists differ. A new table is therefore a row here in the same pull request.
 | `invoices` bucket (Supabase Storage, Zurich) | The rendered invoice PDF | ten years | Private bucket; the accounting record. |
 | `auth.users` (Supabase Auth, Zurich) | Email, provider identity, sign in metadata | account | Scrubbed through the admin API on a fulfilled deletion, which also ends the ability to sign in. |
 | Sentry (Frankfurt) | Error reports, which may contain a user id | 90 days, Sentry's own retention | No message body, no personal data in breadcrumbs by policy. |
-| PostHog (Frankfurt) | Product analytics events | Consent only; PostHog's own retention | Loads only after the visitor accepts. |
+| PostHog (Frankfurt) | Product analytics events: ids and codes, never a name, an email address or free text | PostHog's own retention | Two paths, two bases (spec 0017, `docs/analytics.md`). Nine server side events record SME24's own work on an account (a lookup started, a research run finished, a payment completed) and are captured whether or not the visitor accepted analytics, on `interest`: they need no browser storage and carry opaque ids, so no identifier is set on the device and no profile is built. One browser event, `benchmark.viewed`, needs the `ph_*` cookie and therefore fires on `consent` only, after acceptance. A person who rejects analytics is still counted in the server side funnel and is not identifiable from it. |
 | Trigger.dev (EU) | Task payloads, which carry ids rather than personal data | Trigger.dev's own run retention | Tasks take explicit ids and read the rows themselves. |
 
 ## International transfers

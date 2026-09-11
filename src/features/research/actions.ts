@@ -3,7 +3,8 @@
 import * as Sentry from "@sentry/nextjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, tasks } from "@trigger.dev/sdk";
-import { type Locale, resolveLocale } from "@/i18n/routing";
+import { LOCALE_CODE, type Locale, resolveLocale } from "@/i18n/routing";
+import { captureServerEvent } from "@/lib/analytics/server";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
@@ -110,6 +111,19 @@ export async function requestResearch(
 
   const run = await startRun(actor, company.id);
   if (!run.ok) return run;
+  // After both writes that make the lookup durable: the company row and its queued run (AC-8).
+  // Only `requestResearch` fires it, not `rerunResearch`, because the funnel step is a client
+  // starting a lookup, and a rerun is the same company looked at again.
+  await captureServerEvent({
+    distinctId: userId,
+    event: "lookup.started",
+    properties: {
+      organizationId,
+      locale: LOCALE_CODE[localeOf(input)],
+      companyId: company.id,
+      runId: run.data.runId,
+    },
+  });
   return { ok: true, data: { companyId: company.id, runId: run.data.runId } };
 }
 

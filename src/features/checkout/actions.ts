@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getLocale, getTranslations } from "next-intl/server";
 import { LOCALE_CODE, type Locale, resolveLocale } from "@/i18n/routing";
+import { captureServerEvent } from "@/lib/analytics/server";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
@@ -296,6 +297,19 @@ export async function startCheckout(
   }
 
   log.info("checkout started", { orderId: order.id, reference: order.reference });
+  // After the session id write is confirmed (AC-8), which is the point the checkout is real: an
+  // order whose session id never persisted is one nobody can pay, and the sweep expires it.
+  await captureServerEvent({
+    distinctId: actor.userId,
+    event: "checkout.started",
+    properties: {
+      organizationId: actor.organizationId,
+      locale: LOCALE_CODE[locale],
+      orderId: order.id,
+      packageKey: parsed.data.packageKey,
+      grossRappen: Number(order.gross_rappen),
+    },
+  });
   return {
     ok: true,
     data: { checkoutUrl: session.url, orderId: order.id, reference: order.reference },

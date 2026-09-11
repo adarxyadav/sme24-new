@@ -38,8 +38,6 @@ export type EnquiryActionResult =
 
 const HOUR_MS = 60 * 60 * 1_000;
 const DAY_MS = 24 * HOUR_MS;
-/** The provisional funnel event name; feature 15 fixes the taxonomy. */
-const ENQUIRY_SENT_EVENT = "enquiry_sent";
 
 /**
  * Stores one enquiry and fires the alert and the acknowledgement (AC-9, AC-10). Order: the
@@ -126,10 +124,14 @@ export async function submitEnquiry(
   if (!alert.ok) log.warn("enquiry alert not sent", { id, error: alert.error });
   if (!email.ok) log.warn("enquiry acknowledgement not sent", { id, error: email.error });
 
+  // The enquirer may have no account, so the event is keyed by the enquiry id and carries no
+  // organization (spec 0017, AC-3). `captureServerEvent` swallows its own failures, and the guard
+  // here keeps AC-8 a property of this call site rather than of the implementation behind it: the
+  // row is already stored, and nothing about analytics may change the result the sender sees.
   try {
     await captureServerEvent({
       distinctId: id,
-      event: ENQUIRY_SENT_EVENT,
+      event: "enquiry.sent",
       properties: { topic: values.topic, locale: values.locale },
     });
   } catch (cause) {

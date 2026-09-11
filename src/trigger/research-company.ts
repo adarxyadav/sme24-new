@@ -11,6 +11,7 @@ import {
   wait,
 } from "@trigger.dev/sdk";
 import { z } from "zod";
+import { localeForUser } from "@/features/localization/queries";
 import { KPI_KEYS, type KpiKey, type RUN_STEPS } from "@/features/research/catalogue";
 import { websiteHost } from "@/features/research/schema";
 import {
@@ -19,6 +20,8 @@ import {
   parseSummary,
   type ResearchSummary,
 } from "@/features/research/summary";
+import { LOCALE_CODE } from "@/i18n/routing";
+import { captureServerEvent } from "@/lib/analytics/server";
 import { taskEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { collectSources, extractCandidates, extractFactFields } from "@/lib/research/candidates";
@@ -244,6 +247,15 @@ export const researchCompanyTask = schemaTask({
       stored,
       totalMs: summary.durations?.totalMs,
     });
+    // After the terminal status write, and only when this attempt actually made it (AC-8): the
+    // guarded write above returns 0 rows when another writer closed the run, and that path has
+    // already returned, so one logical run emits one event however many attempts it took.
+    await captureResearchFinished(supabase, run.requested_by, ids, {
+      status,
+      kpiCount: stored,
+      provider: env.RESEARCH_PROVIDER,
+      durationMs: Date.now() - startedAtMs,
+    });
     if (status === "succeeded") await triggerBenchmark(ids, ctx.run.id);
     return { status };
   },
@@ -300,6 +312,51 @@ export const researchCompanyTask = schemaTask({
     });
   },
 });
+
+/**
+ * Fires `research.finished` at the terminal status (spec 0017, AC-5, AC-8). The person is the
+ * member who requested the run, and the locale is that person's stored one, read with the same
+ * `localeForUser` the email rail uses; a run with no requester is skipped rather than sent under a
+ * placeholder id. Never throws: the run is already closed and analytics may not fail a finished
+ * run or turn it into a retry.
+ */
+async function captureResearchFinished(
+  supabase: Service,
+  requestedBy: string | null,
+  ids: RunIds,
+  facts: {
+    readonly status: string;
+    readonly kpiCount: number;
+    readonly provider: string;
+    readonly durationMs: number;
+  },
+): Promise<void> {
+  if (!requestedBy) {
+    log.info("research.finished not captured: the run has no requester", { ...ids });
+    return;
+  }
+  try {
+    const locale = await localeForUser(supabase, requestedBy);
+    await captureServerEvent({
+      distinctId: requestedBy,
+      event: "research.finished",
+      properties: {
+        organizationId: ids.organizationId,
+        locale: LOCALE_CODE[locale],
+        runId: ids.runId,
+        status: facts.status,
+        kpiCount: facts.kpiCount,
+        provider: facts.provider,
+        durationMs: facts.durationMs,
+      },
+    });
+  } catch (error) {
+    log.warn("research.finished not captured", {
+      ...ids,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 /**
  * Queues the benchmark computation once the run ended `succeeded` (spec 0008, AC-6): the key

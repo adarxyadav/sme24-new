@@ -26,6 +26,9 @@ function loadSentry(): void {
         dsn: env.NEXT_PUBLIC_SENTRY_DSN,
         enabled: Boolean(env.NEXT_PUBLIC_SENTRY_DSN),
         environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.NODE_ENV,
+        // Spec 0017 (AC-10): the deploy this error came from, matching the release the build
+        // uploaded source maps under. The browser reads the NEXT_PUBLIC_ copy, which Next inlines.
+        release: process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA,
         tracesSampleRate: 0.1,
         sendDefaultPii: false,
       });

@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { CURRENT_TERMS_VERSION } from "@/features/legal/terms";
-import { resolveLocale } from "@/i18n/routing";
+import { LOCALE_CODE, resolveLocale } from "@/i18n/routing";
 import { sendOpsAlert } from "@/lib/alerts/send";
 import { captureServerEvent } from "@/lib/analytics/server";
 import {
@@ -278,7 +278,11 @@ export async function completeExpertOnboarding(
   if (statusError)
     return reportFailure("expert activation failed", statusError.message, "unexpected");
 
-  await captureServerEvent({ distinctId: actor.userId, event: "expert_onboarded" });
+  await captureServerEvent({
+    distinctId: actor.userId,
+    event: "expert.profile_completed",
+    properties: { locale: LOCALE_CODE[locale] },
+  });
   await announceOnboarding(actor.userId, fullName);
   log.info("expert onboarded", { expertId: actor.userId });
   revalidatePath("/expert");
@@ -387,8 +391,8 @@ export async function assignExpert(
 
   await captureServerEvent({
     distinctId: expertId,
-    event: "expert_assigned",
-    properties: { organization_id: organizationId },
+    event: "expert.assigned",
+    properties: { organizationId, locale: LOCALE_CODE[locale] },
   });
   await announceAssignment(actor.service, {
     assignmentId: data.id,

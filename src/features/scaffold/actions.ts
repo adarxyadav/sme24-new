@@ -2,6 +2,8 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { tasks } from "@trigger.dev/sdk";
+import { getLocale } from "next-intl/server";
+import { LOCALE_CODE, resolveLocale } from "@/i18n/routing";
 import { captureServerEvent } from "@/lib/analytics/server";
 import { roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
@@ -60,10 +62,11 @@ export async function sendSentryTestError(): Promise<ScaffoldResult> {
 
 export async function sendPostHogTestEvent(): Promise<ScaffoldResult> {
   const actor = await requireOps();
+  const locale = resolveLocale(await getLocale());
   const sent = await captureServerEvent({
     distinctId: actor.userId,
-    event: "scaffold_test_event",
-    properties: { source: "scaffold-check" },
+    event: "scaffold.test_event",
+    properties: { source: "scaffold-check", locale: LOCALE_CODE[locale] },
   });
   return sent ? { key: "posthogSent" } : { key: "posthogUnavailable" };
 }

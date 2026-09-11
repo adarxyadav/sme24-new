@@ -4,7 +4,16 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
+/**
+ * Spec 0017 (AC-10): the deploy every Sentry event is tagged with. Vercel sets the unprefixed SHA
+ * on the build; the `NEXT_PUBLIC_` copy exists only when a project has "system environment
+ * variables" enabled, so the browser release is derived here instead of depending on that toggle.
+ */
+const RELEASE = process.env.VERCEL_GIT_COMMIT_SHA;
+
 const nextConfig: NextConfig = {
+  // The browser Sentry init reads this; inlined at build so it never depends on the Vercel toggle.
+  env: { NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: RELEASE ?? "" },
   // Spec 0001: authenticated areas are fully dynamic and the cache components mode stays off.
   cacheComponents: false,
   typedRoutes: false,
@@ -25,6 +34,9 @@ export default withSentryConfig(withNextIntl(nextConfig), {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Must match the `release` passed to every Sentry.init exactly, or uploaded source maps are
+  // filed under a build detected name while events report the SHA, and no trace resolves.
+  release: RELEASE ? { name: RELEASE } : undefined,
   silent: !process.env.CI,
   widenClientFileUpload: true,
   sourcemaps: {

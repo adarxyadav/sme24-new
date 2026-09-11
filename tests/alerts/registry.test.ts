@@ -146,6 +146,68 @@ describe("opsAlertPayloadSchema (AC-11)", () => {
   });
 });
 
+describe("the task.failed kind (spec 0017, AC-9)", () => {
+  it("presents the task, the run, the attempts, the error and the time with an Open run button", () => {
+    const view = presentAlert(
+      "task.failed",
+      { taskId: "send-email", runId: "run_42", attempts: 3, error: "SMTP refused the message" },
+      { now: AT },
+    );
+    expect(view).toEqual({
+      title: "Background task failed",
+      fields: [
+        ["Task", "send-email"],
+        ["Run", "run_42"],
+        ["Attempts", "3"],
+        ["Error", "SMTP refused the message"],
+        ["Time", "05.09.2026, 12:00"],
+      ],
+      buttonLabel: "Open run",
+    });
+  });
+
+  it("accepts the fields with a Trigger.dev run link and rejects a zero attempt or an empty error", () => {
+    const fields = { taskId: "send-email", runId: "run_42", attempts: 1, error: "boom" };
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        kind: "task.failed",
+        fields,
+        externalUrl: "https://cloud.trigger.dev/projects/v3/proj/runs/run_42",
+        idempotencyKey: "task-failed/run_42",
+      }).success,
+    ).toBe(true);
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        kind: "task.failed",
+        fields: { ...fields, attempts: 0 },
+        idempotencyKey: "task-failed/run_42",
+      }).success,
+    ).toBe(false);
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        kind: "task.failed",
+        fields: { ...fields, error: "" },
+        idempotencyKey: "task-failed/run_42",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("caps the error at 500 characters so a stack trace never reaches Slack", () => {
+    expect(
+      opsAlertPayloadSchema.safeParse({
+        kind: "task.failed",
+        fields: {
+          taskId: "send-email",
+          runId: "run_42",
+          attempts: 3,
+          error: "x".repeat(501),
+        },
+        idempotencyKey: "task-failed/run_42",
+      }).success,
+    ).toBe(false);
+  });
+});
+
 describe("the benchmark.failed kind (spec 0008, AC-8)", () => {
   it("presents the organization, the company, the trigger kind, the reason and the time with an Open run button", () => {
     const view = presentAlert(

@@ -67,6 +67,9 @@ vi.mock("@/trigger/ops-alert", () => ({
   },
 }));
 vi.mock("@/lib/env", () => ({ taskEnv: () => state.env }));
+// `captureServerEvent` is `server-only`, which throws under the test environment; the task fires
+// `research.finished` at the terminal status write (spec 0017, AC-8).
+vi.mock("@/lib/analytics/server", () => ({ captureServerEvent: vi.fn().mockResolvedValue(true) }));
 vi.mock("@/lib/research/fixture", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/research/fixture")>();
   return {
@@ -93,6 +96,8 @@ vi.mock("@/lib/research/validate", () => ({
 const ORG = "0a000000-0000-4000-8000-000000000000";
 const COMPANY = "0c000000-0000-4000-8000-00000000000a";
 const RUN = "0d000000-0000-4000-8000-000000000001";
+/** The member who requested the run; `startRun` always writes one, so the fixture carries one. */
+const REQUESTER = "0b000000-0000-4000-8000-000000000001";
 const OTHER_ORG = "0b000000-0000-4000-8000-000000000000";
 const OTHER_COMPANY = "0c000000-0000-4000-8000-00000000000b";
 
@@ -230,6 +235,7 @@ function seed(run: Partial<Row> = {}) {
         id: RUN,
         organization_id: ORG,
         company_id: COMPANY,
+        requested_by: REQUESTER,
         status: "queued",
         provider_run_id: null,
         started_at: null,

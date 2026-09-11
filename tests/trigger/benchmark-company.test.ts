@@ -44,6 +44,9 @@ vi.mock("@/lib/env", () => ({
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
   }),
 }));
+// `captureServerEvent` is `server-only`, which throws under the test environment; the task fires
+// `benchmark.computed` after the snapshot insert (spec 0017, AC-8).
+vi.mock("@/lib/analytics/server", () => ({ captureServerEvent: vi.fn().mockResolvedValue(true) }));
 vi.mock("@/lib/supabase/service", () => ({ createServiceClient: () => fakeSupabase() }));
 
 const ORG = "0a000000-0000-4000-8000-000000000000";
@@ -138,6 +141,9 @@ beforeEach(() => {
         archived_at: null,
         employees_count: null,
         industry_code: null,
+        // The creator is the person `benchmark.computed` is captured for (spec 0017, AC-8); a row
+        // without one is skipped rather than sent under a placeholder id.
+        created_by: CREATOR,
         updated_at: "2026-09-06T10:00:00.000Z",
       },
     ],
@@ -305,6 +311,8 @@ const OTHER_ORG = "0b000000-0000-4000-8000-000000000000";
 const OTHER_COMPANY = "0c000000-0000-4000-8000-00000000000b";
 const MEMBER_A = "11111111-1111-4111-8111-111111111111";
 const MEMBER_B = "11111111-1111-4111-8111-111111111112";
+/** The company's creator: the person `benchmark.computed` names as its distinct id (spec 0017). */
+const CREATOR = MEMBER_A;
 
 async function emailTrigger() {
   const { sendEmailTask } = await import("@/trigger/send-email");
@@ -543,11 +551,18 @@ describe("the benchmark ready email (AC-7)", () => {
    * behind, so a decision taken *after* the retry's own insert would see two rows, call the run
    * "not first" and lose the email for good. The retry sends what the crashed attempt owed; the
    * global key `benchmark-ready/<companyId>/<userId>` makes the repeat a no op.
+   *
+   * The same crash is why `benchmark.computed` carries a dedupe key (spec 0017, AC-8): both
+   * attempts insert and both capture, so one logical computation would otherwise be two funnel
+   * events. The key is the trigger run id, one id for every attempt of one run.
    */
   it("sends the email the crashed attempt owed when a retry inserts a second row", async () => {
     seedComputation();
     const task = await loadTask();
     const trigger = await emailTrigger();
+    const { captureServerEvent } = await import("@/lib/analytics/server");
+    const capture = vi.mocked(captureServerEvent);
+    capture.mockClear();
 
     // Attempt 1 stores the snapshot, then dies before the send.
     state.failing.organization_members = RAW_POSTGREST_ERROR;
@@ -568,6 +583,23 @@ describe("the benchmark ready email (AC-7)", () => {
         idempotencyKeyTTL: "30d",
       });
     }
+
+    // Two snapshot rows, but one funnel event: both sends carry the run's one dedupe key, so
+    // PostHog collapses them. A legitimate recompute is a different run id and still fires.
+    expect(capture).toHaveBeenCalledTimes(1);
+    expect(capture).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "benchmark.computed",
+        distinctId: CREATOR,
+        dedupeKey: `benchmark-computed/${ctx.run.id}`,
+        properties: expect.objectContaining({
+          organizationId: ORG,
+          companyId: COMPANY,
+          triggerKind: "recompute",
+          kpisCompared: 2,
+        }),
+      }),
+    );
   });
 
   it("keeps the snapshot and finishes when an email trigger fails", async () => {
