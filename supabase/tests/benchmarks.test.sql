@@ -3,7 +3,7 @@
 -- seed migration holds the provisional first set (AC-1, AC-2, AC-15).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(29);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -92,9 +92,18 @@ on conflict (key) do nothing;
 select cmp_ok((select count(*) from public.benchmarks where kpi_key = 'accident_rate_per_1000_fte' and industry_section = 'ALL' and size_band = 'all'), '>=', 1::bigint,
   'the seed holds an ALL and all row for the accident rate');
 -- The two flags (spec 0016, AC-2, AC-3): `provisional` means not yet read from its named source,
--- `is_assumption` means no published source exists. Every seeded peer row is still awaiting a
--- reading, and no peer row is a declared assumption.
-select is((select count(*) from public.benchmarks where not provisional), 0::bigint, 'every seeded peer row is provisional');
+-- `is_assumption` means no published source exists. Every peer row has been read from its named
+-- source (the spec 0016 amendment of 2026-09-12, AC-29), and no peer row is a declared assumption.
+select is((select count(*) from public.benchmarks where provisional), 0::bigint, 'no seeded peer row is provisional');
+select is((select count(*) from public.benchmarks where source_key is null or basis is null), 0::bigint,
+  'every seeded peer row names its source classification and its basis');
+select is((select count(*) from public.benchmarks where kpi_key = 'accident_rate_per_1000_fte' and size_band = 'all'), 22::bigint,
+  'one Suva accident rate row per section plus ALL');
+select is((select count(*) from public.benchmarks where kpi_key = 'fatalities'), 22::bigint, 'one Eurostat fatality rate row per section plus ALL');
+select is((select count(*) from public.benchmarks where kpi_key = 'lost_days_per_incident'), 21::bigint,
+  'one Eurostat lost days row per section plus ALL, none for section U (three accidents)');
+select is((select count(*) from public.benchmarks where kpi_key = 'absenteeism_rate'), 20::bigint,
+  'one BFS absence rate row per published section group member plus ALL, none for P and U');
 select is((select count(*) from public.benchmarks where is_assumption), 0::bigint, 'no seeded peer row is a declared assumption');
 select is((select count(*) from public.benchmarks where provisional and is_assumption), 0::bigint,
   'no peer row is both provisional and a declared assumption');
@@ -110,7 +119,7 @@ select throws_ok(
   $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name) values ('ltifr', 'C', 'huge', 2022, 1, 2, 3, 'test') $$,
   '23514', null, 'an unknown size band is rejected');
 select throws_ok(
-  $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name) values ('accident_rate_per_1000_fte', 'ALL', 'all', 2022, 1, 2, 3, 'test') $$,
+  $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name) values ('accident_rate_per_1000_fte', 'ALL', 'all', 2024, 1, 2, 3, 'test') $$,
   '23505', null, 'a second row per KPI, section, band and year is rejected');
 select throws_ok(
   $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name) values ('unknown_kpi', 'C', 'all', 2022, 1, 2, 3, 'test') $$,
@@ -130,12 +139,12 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name, basis) values ('ltifr', 'C', 'all', 2022, 1, 2, 3, 'test', '"a sentence"') $$,
   '23514', null, 'a basis that is not an object is rejected');
--- Both columns are optional and default to null, which is every seeded row today (AC-1): filling
--- them is the curation pass, not this build. Asserted before the insert below, so it reads the
--- committed seed rather than anything this file added.
+-- Both columns are optional and default to null (AC-1); since the peer data refresh (the spec 0016
+-- amendment of 2026-09-12, AC-24 to AC-28) every seeded row fills both, so the client always sees
+-- what the figure describes. Rows this file inserts under the source name 'test' are excluded.
 select is(
-  (select count(*) from public.benchmarks where source_key is null and basis is null), 22::bigint,
-  'every seeded peer row leaves both curation columns null');
+  (select count(*) from public.benchmarks where (source_key is null or basis is null) and source_name <> 'test'), 0::bigint,
+  'every seeded peer row fills both curation columns');
 select lives_ok(
   $$ insert into public.benchmarks (kpi_key, industry_section, size_band, period_year, p25, median, p75, source_name, source_key, basis) values ('ltifr', 'D', 'all', 2022, 1, 2, 3, 'test', 'Suva class 22A', '{"de":"Mittelwert einer Suva-Klasse","en":"The mean of one Suva class"}') $$,
   'a source key and a basis with both locales are accepted');

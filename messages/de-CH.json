@@ -375,7 +375,7 @@
           "title": "Kostenlücke bei Unfällen",
           "description": "Gegenüber Ihrer Grössenklasse und Branche",
           "action": "Quellen",
-          "figure": "CHF 148 000",
+          "figure": "CHF 168 000",
           "unit": "pro Jahr",
           "progressLabel": "Ihre Unfallrate gegenüber dem Median der Vergleichsgruppe",
           "you": "Sie",
@@ -1846,18 +1846,21 @@
       "sector": "Branchenwert {value}",
       "srSector": "{kpi}: Ihr Wert {value} ist {band}. Der Branchenwert liegt bei {sector}.",
       "pointBasis": "Ein Wert für die ganze Branche, keine Bandbreite.",
+      "fatalityRate": "{value} je 100 000 Erwerbstätige",
+      "fatalityCompared": "Ihre Anzahl als Rate: {value}",
+      "fatalityNeedsHeadcount": "Die Branchenrate gilt je 100 000 Erwerbstätige, der Vergleich braucht deshalb Ihren Personalbestand.",
       "broadened": "alle Branchen, da für Ihre Branche kein Wert publiziert ist",
       "peerStatus": {
         "noSourceTitle": "Keine Schweizer Vergleichsdaten vorhanden",
         "pendingTitle": "Noch keine Vergleichsdaten"
       },
       "peerNote": {
-        "fatalities": "Unfalltodesraten sind für die Schweiz nach Branche in der europäischen Unfallstatistik publiziert und noch nicht in die Vergleichsdaten eingelesen.",
+        "fatalities": "Aus der europäischen Unfallstatistik für die Schweiz eingelesen (Eurostat, tödliche Arbeitsunfälle je 100 000 Erwerbstätige nach Branche); Ihre Anzahl wird über Ihren Personalbestand in diese Rate umgerechnet.",
         "near_miss_rate": "Beinahe-Unfälle werden von keiner Schweizer Stelle erhoben, es gibt also keinen Vergleichswert.",
-        "absenteeism_rate": "Die Schweizer Absenztabelle ist nach Branche publiziert und noch nicht in die Vergleichsdaten eingelesen.",
+        "absenteeism_rate": "Aus der Schweizer Arbeitsvolumenstatistik eingelesen (BFS, Quote der gesundheitsbedingten Absenzen der Vollzeitarbeitnehmenden nach Branchengruppe).",
         "ltifr": "Für die Schweiz ist keine LTIFR nach Branche publiziert; die Suva-Unfallrate ist vorerst die vergleichbare Zahl.",
         "trifr": "Für die Schweiz ist keine TRIFR nach Branche publiziert; die Suva-Unfallrate ist vorerst die vergleichbare Zahl.",
-        "lost_days_per_incident": "Ausfalltage pro Unfall sind für die Schweiz nach Branche in der europäischen Unfallstatistik publiziert und noch nicht in die Vergleichsdaten eingelesen.",
+        "lost_days_per_incident": "Aus der europäischen Unfallstatistik für die Schweiz eingelesen (Eurostat, Unfälle nach Ausfalltagen je Branche); der Branchenwert ist die Absenz des typischen Unfalls, aus den publizierten Klassen interpoliert.",
         "iso_45001_certified": "Keine Schweizer Stelle publiziert Zertifizierungsanteile nach Branche; ein Anteil ist noch nicht eingelesen.",
         "accident_rate_per_1000_fte": "Aus den Suva-UVG-Unfalltabellen eingelesen."
       }
@@ -1997,6 +2000,7 @@
       "sourceResearch": "aus der Recherche",
       "sourceClient": "von Ihnen erfasst",
       "peerUsed": "Vergleich: {section} · {band} · {year}",
+      "comparedAs": "verglichen als {value}",
       "noPeerUsed": "kein Vergleichswert",
       "headcount": "Mitarbeiterzahl: {count}",
       "noHeadcount": "Mitarbeiterzahl: unbekannt",

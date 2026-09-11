@@ -54,7 +54,7 @@ describe("the public worked example (spec 0016, AC-14)", () => {
   it("computes the example from the committed seed through the real model", () => {
     expect(sectionC).toBeDefined();
     // The quartiles the card's own comment cites, so a seed edit that moves them is visible here.
-    expect([sectionC?.p25, sectionC?.median, sectionC?.p75]).toEqual([34.9, 49.9, 66.4]);
+    expect([sectionC?.p25, sectionC?.median, sectionC?.p75]).toEqual([29.3, 47.1, 65.8]);
     expect(body.inputs.section).toBe("C");
     expect(body.inputs.fte).toBe(120);
     expect(body.costChf).not.toBeNull();

@@ -119,7 +119,17 @@ describe("the seed row schemas (spec 0008, AC-2)", () => {
     expect(benchmarks.ok).toBe(true);
     if (benchmarks.ok) {
       expect(benchmarks.rows.length).toBeGreaterThan(0);
-      expect(benchmarks.rows.every((row) => row.provisional)).toBe(true);
+      // Every peer row has been read from its named source (spec 0016 amendment, AC-24 to AC-28).
+      expect(benchmarks.rows.every((row) => !row.provisional)).toBe(true);
+      expect(benchmarks.rows.every((row) => row.source_key && row.basis_de && row.basis_en)).toBe(
+        true,
+      );
+      // No Suva row claims a sample size: its branches are not peers (AC-24).
+      expect(
+        benchmarks.rows
+          .filter((row) => row.kpi_key === "accident_rate_per_1000_fte")
+          .every((row) => row.sample_size === null),
+      ).toBe(true);
       expect(
         benchmarks.rows.some(
           (row) =>
@@ -128,13 +138,8 @@ describe("the seed row schemas (spec 0008, AC-2)", () => {
             row.size_band === "all",
         ),
       ).toBe(true);
-      // No seeded peer row is a declared assumption, and filling the two source columns is
-      // curation work rather than this build (spec 0016, AC-1, AC-2).
+      // No seeded peer row is a declared assumption (spec 0016, AC-2).
       expect(benchmarks.rows.every((row) => !row.is_assumption)).toBe(true);
-      expect(benchmarks.rows.every((row) => row.source_key === null)).toBe(true);
-      expect(benchmarks.rows.every((row) => row.basis_de === null && row.basis_en === null)).toBe(
-        true,
-      );
     }
     const assumptions = parseSeedRows(
       parseCsv(readFileSync(join(SEED_DIR, "benchmark-assumptions.csv"), "utf8")),
@@ -190,6 +195,31 @@ describe("the seed migration generator (spec 0008, AC-2)", () => {
       "on conflict (kpi_key, industry_section, size_band, period_year) do update set",
     );
     expect(sql).not.toMatch(/do update set[^;]*kpi_key = excluded/);
+  });
+
+  // The CSV is the whole peer table (spec 0016 amendment, AC-29): a reading replaced under a new
+  // period year would otherwise stay in the table beside the new row and trip the launch gate.
+  it("retires every peer row the CSV no longer names, and nothing when the CSV is empty", () => {
+    const rows = parseSeedRows(
+      parseCsv(
+        `${BENCHMARK_HEADER}\nltifr,C,all,2024,1,2,3,,Source,,,,,,,false,false\nltifr,ALL,all,2023,1,2,3,,Source,,,,,,,false,false\n`,
+      ),
+      benchmarkRowSchema,
+    );
+    if (!rows.ok) throw new Error(rows.error.message);
+    const sql = renderSeedMigration(rows.rows, [], new Date("2026-09-12T09:00:00Z"));
+    expect(sql).toContain(
+      "delete from public.benchmarks where (kpi_key, industry_section, size_band, period_year) not in (",
+    );
+    expect(sql).toContain("('ltifr', 'C', 'all', 2024)");
+    expect(sql).toContain("('ltifr', 'ALL', 'all', 2023)");
+    // The delete follows the upserts, so the new rows are in place before anything is retired.
+    expect(sql.indexOf("delete from public.benchmarks")).toBeGreaterThan(
+      sql.lastIndexOf("insert into public.benchmarks"),
+    );
+    expect(renderSeedMigration([], [], new Date("2026-09-12T09:00:00Z"))).not.toContain(
+      "delete from",
+    );
   });
 
   it("renders an assumption upsert keyed by key", () => {

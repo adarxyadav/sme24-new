@@ -59,8 +59,10 @@ describe("the KPI catalogue (spec 0007, AC-1)", () => {
     }
     // The statuses spec 0016 fixed: two KPIs no Swiss body publishes at all, one already read.
     const statusOf = (key: string) => KPI_LIST.find((kpi) => kpi.key === key)?.peerStatus;
-    // Eurostat publishes the Swiss fatal accident rate by section (spec 0016 amendment, AC-19).
-    expect(statusOf("fatalities")).toBe("pending");
+    // Eurostat and BFS rows landed in block B of the spec 0016 amendment (AC-19).
+    expect(statusOf("fatalities")).toBe("sourced");
+    expect(statusOf("lost_days_per_incident")).toBe("sourced");
+    expect(statusOf("absenteeism_rate")).toBe("sourced");
     expect(statusOf("near_miss_rate")).toBe("no_source");
     expect(statusOf("accident_rate_per_1000_fte")).toBe("sourced");
   });

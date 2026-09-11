@@ -375,7 +375,7 @@
           "title": "Accident cost gap",
           "description": "Against your size band and sector",
           "action": "Sources",
-          "figure": "CHF 148 000",
+          "figure": "CHF 168 000",
           "unit": "a year",
           "progressLabel": "Your accident rate against the peer median",
           "you": "You",
@@ -1846,18 +1846,21 @@
       "sector": "Sector figure {value}",
       "srSector": "{kpi}: your value {value} is {band}. The sector figure is {sector}.",
       "pointBasis": "One figure for the whole sector, not a range.",
+      "fatalityRate": "{value} per 100 000 employed persons",
+      "fatalityCompared": "Your count as a rate: {value}",
+      "fatalityNeedsHeadcount": "The sector rate is per 100 000 employed persons, so the comparison needs your headcount.",
       "broadened": "all industries, as no figure is published for your sector",
       "peerStatus": {
         "noSourceTitle": "No Swiss peer data exists",
         "pendingTitle": "No peer data yet"
       },
       "peerNote": {
-        "fatalities": "Fatal accident rates are published for Switzerland by sector in the European accident statistics and are not read into the peer set yet.",
+        "fatalities": "Read from the European accident statistics for Switzerland (Eurostat, fatal accidents per 100 000 employed persons by sector); your count is converted to that rate from your headcount.",
         "near_miss_rate": "Near miss reporting is not collected by any Swiss body, so there is no peer figure to compare against.",
-        "absenteeism_rate": "The Swiss absence table is published by sector and is not read into the peer set yet.",
+        "absenteeism_rate": "Read from the Swiss labour volume statistics (BFS, the health related absence rate of full time employees by sector group).",
         "ltifr": "No Swiss LTIFR is published by sector; the Suva accident rate is the comparable figure for now.",
         "trifr": "No Swiss TRIFR is published by sector; the Suva accident rate is the comparable figure for now.",
-        "lost_days_per_incident": "Lost days per accident are published for Switzerland by sector in the European accident statistics and are not read into the peer set yet.",
+        "lost_days_per_incident": "Read from the European accident statistics for Switzerland (Eurostat, accidents by days lost per sector); the sector figure is the typical accident's absence, interpolated from the published bands.",
         "iso_45001_certified": "No Swiss body publishes certification shares by sector; a share is not read into the peer set yet.",
         "accident_rate_per_1000_fte": "Read from the Suva UVG accident tables."
       }
@@ -1997,6 +2000,7 @@
       "sourceResearch": "from the research",
       "sourceClient": "entered by you",
       "peerUsed": "peer: {section} · {band} · {year}",
+      "comparedAs": "compared as {value}",
       "noPeerUsed": "no peer row",
       "headcount": "Headcount: {count}",
       "noHeadcount": "Headcount: not known",

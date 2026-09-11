@@ -139,7 +139,11 @@ export async function CalculationContent({
               : t("disclosure.noIndustry", { band: t(`sizeBands.${inputs.sizeBand}`) })}
           </li>
           {inputs.kpis.map((input) => {
-            const peer = results.find((result) => result.key === input.key)?.peer ?? null;
+            const result = results.find((entry) => entry.key === input.key);
+            const peer = result?.peer ?? null;
+            // The fatality rate the position was judged on (spec 0016 amendment, AC-23); absent
+            // on a stored @1 to @3 row and null for every other KPI.
+            const comparedValue = result?.comparedValue ?? null;
             return (
               <li key={input.key} data-input-kpi={input.key}>
                 <span className="text-foreground">{kpiNameOf(input.key)}</span>
@@ -165,9 +169,18 @@ export async function CalculationContent({
                       year: peer.periodYear,
                     })
                   : t("disclosure.noPeerUsed")}
-                {/* What the quartiles actually describe, when the curator recorded it. Null on
-                    every row today, and a null basis renders nothing at all rather than an empty
-                    element (spec 0016, AC-11). */}
+                {comparedValue !== null && input.key === "fatalities" ? (
+                  <>
+                    {" · "}
+                    {t("disclosure.comparedAs", {
+                      value: t("positions.fatalityRate", {
+                        value: formatKpiValue(comparedValue, "decimal2", format, yesNo),
+                      }),
+                    })}
+                  </>
+                ) : null}
+                {/* What the quartiles actually describe, when the curator recorded it. A null
+                    basis renders nothing at all rather than an empty element (spec 0016, AC-11). */}
                 {peer?.basis ? (
                   <span className="block text-xs" data-peer-basis>
                     {localizedText(peer.basis, locale)}

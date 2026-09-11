@@ -95,8 +95,10 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(card.locator("[data-cost-headline]")).toContainText(/1.961.000/);
     await expect(card.locator("[data-saving-median]")).toContainText(/522.000/);
     await expect(card.getByText(/Computed on \d{2}\.\d{2}\.\d{4}/)).toBeVisible();
-    await expect(card.locator("[data-compared]")).toHaveAttribute("data-compared", "1");
-    await expect(card.getByText("1 of 8 KPIs compared")).toBeVisible();
+    // Four since the peer data refresh (spec 0016 amendment): the Suva rate, the Eurostat lost days
+    // and fatality rows and the BFS absence rate all cover section C.
+    await expect(card.locator("[data-compared]")).toHaveAttribute("data-compared", "4");
+    await expect(card.getByText("4 of 8 KPIs compared")).toBeVisible();
     await expect(page.locator("[data-provisional-note]")).toBeVisible();
 
     // The derived counts (spec 0012, AC-1, AC-3, AC-4, AC-6): the fixture company carries both
@@ -282,7 +284,7 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     );
     expect(first?.trigger_kind).toBe("research");
     expect(first?.research_run_id).not.toBeNull();
-    expect(first?.kpis_compared).toBe(1);
+    expect(first?.kpis_compared).toBe(4);
     expect(first?.peer_provisional).toBe(true);
     expect(Number(first?.saving_median_chf)).toBeCloseTo(ANNUAL - AT_MEDIAN, 0);
     expect(second?.trigger_kind).toBe("client_edit");
