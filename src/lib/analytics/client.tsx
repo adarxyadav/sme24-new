@@ -3,6 +3,11 @@
 import { useEffect } from "react";
 import { analyticsAllowed } from "@/features/legal/consent";
 import { useConsent } from "@/features/legal/consent-store";
+import {
+  type AnalyticsEvent,
+  type AnalyticsProperties,
+  propertySchema,
+} from "@/lib/analytics/catalogue";
 import { publicEnv } from "@/lib/env.public";
 
 /**
@@ -117,4 +122,42 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   }, [allowed]);
 
   return children;
+}
+
+/**
+ * Browser side capture for the one genuine view event (spec 0017, AC-6). Typed by the same
+ * catalogue as `captureServerEvent`, so a free string is a typecheck failure here too, and the
+ * properties are parsed against the event's own schema before sending.
+ *
+ * Consent gated by construction: it sends only through a `posthog-js` instance that
+ * `AnalyticsProvider` has already initialised, and the gate initialises nothing without a current
+ * `granted` answer. With no answer, a denied answer, or no key configured, the library is never
+ * loaded, `__loaded` is false and this is a no op — it never calls `posthog.init` itself, so it
+ * cannot become a second way for analytics to start.
+ *
+ * Never throws and never blocks the caller: a failed capture is a missing event, not a broken
+ * render. Browser only.
+ */
+export function captureBrowserEvent<E extends AnalyticsEvent>(
+  event: E,
+  properties: AnalyticsProperties<E>,
+): void {
+  const parsed = propertySchema(event).safeParse(properties);
+  // Dropping is the right failure for analytics: a missing event shows as a gap, while a wrong
+  // event is believed (AC-2). No `log` here: that module is server side, and a browser console
+  // warning is the honest equivalent.
+  if (!parsed.success) {
+    console.warn("analytics event dropped: properties failed their schema", event);
+    return;
+  }
+
+  if (!publicEnv().NEXT_PUBLIC_POSTHOG_KEY) return;
+
+  import("posthog-js")
+    .then(({ default: posthog }) => {
+      // The consent check: a library that was never initialised is a visitor who has not accepted.
+      if (!posthog.__loaded) return;
+      posthog.capture(event, { ...parsed.data, $lib_context: "browser" });
+    })
+    .catch(() => undefined);
 }

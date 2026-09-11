@@ -28,6 +28,7 @@ const posthog = vi.hoisted(() => ({
   opt_in_capturing: vi.fn(),
   opt_out_capturing: vi.fn(),
   reset: vi.fn(),
+  capture: vi.fn(),
 }));
 
 vi.mock("posthog-js", () => ({ default: posthog }));
@@ -39,7 +40,15 @@ const env = vi.hoisted(() => ({
 
 vi.mock("@/lib/env.public", () => ({ publicEnv: () => env }));
 
-const { AnalyticsProvider } = await import("@/lib/analytics/client");
+const { AnalyticsProvider, captureBrowserEvent } = await import("@/lib/analytics/client");
+
+/** A valid `benchmark.viewed` payload; individual tests break one field on purpose. */
+const VIEWED = {
+  organizationId: "11111111-1111-4111-8111-111111111111",
+  companyId: "22222222-2222-4222-8222-222222222222",
+  snapshotId: "33333333-3333-4333-8333-333333333333",
+  locale: "en",
+} as const;
 
 /** Writes the consent cookie the way the server action would, then wakes the store. */
 function storeChoice(choice: "granted" | "denied") {
@@ -204,5 +213,61 @@ describe("AnalyticsProvider", () => {
 
     expect(posthog.opt_in_capturing).toHaveBeenCalledTimes(1);
     expect(posthog.init).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * The one browser event (spec 0017, AC-2, AC-6). The consent claim here is structural rather than
+ * a second cookie read: `captureBrowserEvent` sends only through a library the gate above has
+ * already initialised, so `__loaded` false is exactly "no current granted answer" and the capture
+ * must be a no op. That is the property these tests pin, because it is what makes the event absent
+ * by design for a visitor who denied, without a second place in the app that can read consent and
+ * get it wrong.
+ */
+describe("captureBrowserEvent", () => {
+  it("sends nothing while PostHog was never loaded, which is every unanswered or denied visit (AC-6)", async () => {
+    posthog.__loaded = false;
+    captureBrowserEvent("benchmark.viewed", VIEWED);
+    await settle();
+    expect(posthog.capture).not.toHaveBeenCalled();
+  });
+
+  it("captures the event with its properties once consent loaded the library (AC-6)", async () => {
+    posthog.__loaded = true;
+    captureBrowserEvent("benchmark.viewed", VIEWED);
+    await settle();
+    expect(posthog.capture).toHaveBeenCalledTimes(1);
+    expect(posthog.capture).toHaveBeenCalledWith(
+      "benchmark.viewed",
+      expect.objectContaining({
+        organizationId: VIEWED.organizationId,
+        companyId: VIEWED.companyId,
+        snapshotId: VIEWED.snapshotId,
+        locale: "en",
+      }),
+    );
+  });
+
+  /** A wrong event is believed, a missing one shows as a gap, so a bad payload is dropped (AC-2). */
+  it("drops an event whose properties fail their schema, without throwing", async () => {
+    posthog.__loaded = true;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    expect(() =>
+      captureBrowserEvent("benchmark.viewed", { ...VIEWED, snapshotId: "not-a-uuid" }),
+    ).not.toThrow();
+    await settle();
+
+    expect(posthog.capture).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it("sends nothing when no key is configured, even with the library loaded", async () => {
+    env.NEXT_PUBLIC_POSTHOG_KEY = undefined;
+    posthog.__loaded = true;
+    captureBrowserEvent("benchmark.viewed", VIEWED);
+    await settle();
+    expect(posthog.capture).not.toHaveBeenCalled();
   });
 });
