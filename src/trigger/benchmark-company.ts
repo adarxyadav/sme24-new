@@ -12,6 +12,7 @@ import {
   type ModelKpiRow,
   type ModelPeerRow,
   roundChf,
+  roundChfRange,
 } from "@/features/benchmark/model";
 import { SNAPSHOT_SCHEMAS, type SnapshotBody } from "@/features/benchmark/snapshot";
 import { isKpiKey } from "@/features/research/catalogue";
@@ -244,11 +245,18 @@ async function sendBenchmarkReady(
     .select("user_id")
     .eq("organization_id", ids.organizationId);
   if (error) throw queryError(error);
+  // Rounded outward here, with the same function the card uses, so the two surfaces never show
+  // different numbers for one snapshot (spec 0016, AC-13).
+  const range =
+    body.costLowChf === null || body.costHighChf === null
+      ? null
+      : roundChfRange(body.costLowChf, body.costHighChf);
   const data: NewSendPayload["data"] = {
     companyName,
     kpisCompared: body.kpisCompared,
     ...(body.costChf === null ? {} : { costChf: roundChf(body.costChf) }),
     ...(body.savingMedianChf === null ? {} : { savingMedianChf: roundChf(body.savingMedianChf) }),
+    ...(range === null ? {} : { costLowChf: range.low, costHighChf: range.high }),
   };
   let queued = 0;
   for (const member of members) {
@@ -368,10 +376,23 @@ async function loadPeers(
             p75: Number(row.p75),
             sampleSize: row.sample_size,
             provisional: row.provisional,
+            sourceKey: row.source_key,
+            basis: localizedText(row.basis),
           },
         ]
       : [],
   );
+}
+
+/**
+ * A `{de, en}` jsonb column as a typed pair, or `null` when the column is null or malformed. The
+ * database check constraint requires both keys, so this only guards against a hand written row.
+ * Pure.
+ */
+function localizedText(value: unknown): { readonly de: string; readonly en: string } | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { de, en } = value as Record<string, unknown>;
+  return typeof de === "string" && typeof en === "string" ? { de, en } : null;
 }
 
 async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumption[]> {
@@ -385,6 +406,8 @@ async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumpt
     sourceUrl: row.source_url,
     provisional: row.provisional,
     effectiveFrom: row.effective_from,
+    isAssumption: row.is_assumption,
+    note: localizedText(row.note),
   }));
 }
 

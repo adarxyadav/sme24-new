@@ -67,7 +67,11 @@ export const benchmarkRowSchema = z
     source_url: csvOptionalText.pipe(z.url().nullable()),
     source_note_de: csvOptionalText,
     source_note_en: csvOptionalText,
+    source_key: csvOptionalText,
+    basis_de: csvOptionalText,
+    basis_en: csvOptionalText,
     provisional: csvBoolean,
+    is_assumption: csvBoolean,
   })
   .refine((row) => row.p25 <= row.median && row.median <= row.p75, {
     message: "quartiles must satisfy p25 <= median <= p75",
@@ -76,6 +80,15 @@ export const benchmarkRowSchema = z
   .refine((row) => (row.source_note_de === null) === (row.source_note_en === null), {
     message: "source_note_de and source_note_en are both set or both empty",
     path: ["source_note_en"],
+  })
+  .refine((row) => (row.basis_de === null) === (row.basis_en === null), {
+    message: "basis_de and basis_en are both set or both empty",
+    path: ["basis_en"],
+  })
+  // A value is either awaiting a reading or declared unsourceable, never both (spec 0016).
+  .refine((row) => !(row.provisional && row.is_assumption), {
+    message: "provisional and is_assumption must not both be true",
+    path: ["is_assumption"],
   });
 export type BenchmarkSeedRow = z.infer<typeof benchmarkRowSchema>;
 
@@ -91,6 +104,7 @@ export const assumptionRowSchema = z
     note_de: csvOptionalText,
     note_en: csvOptionalText,
     provisional: csvBoolean,
+    is_assumption: csvBoolean,
     effective_from: z
       .string()
       .trim()
@@ -99,6 +113,11 @@ export const assumptionRowSchema = z
   .refine((row) => (row.note_de === null) === (row.note_en === null), {
     message: "note_de and note_en are both set or both empty",
     path: ["note_en"],
+  })
+  // A value is either awaiting a reading or declared unsourceable, never both (spec 0016).
+  .refine((row) => !(row.provisional && row.is_assumption), {
+    message: "provisional and is_assumption must not both be true",
+    path: ["is_assumption"],
   });
 export type AssumptionSeedRow = z.infer<typeof assumptionRowSchema>;
 

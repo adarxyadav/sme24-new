@@ -3,7 +3,7 @@
 -- provisional, with the multipliers in order (AC-1, AC-2, AC-15).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(17);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -93,7 +93,19 @@ select results_eq(
   $$ select key from public.benchmark_assumptions order by key $$,
   $$ values ('cost_per_absence_day_chf'), ('direct_cost_per_case_chf'), ('hours_per_fte'), ('indirect_multiplier'), ('indirect_multiplier_high'), ('indirect_multiplier_low'), ('lost_days_per_incident_default') $$,
   'the seed holds exactly the seven assumption keys');
-select is((select count(*) from public.benchmark_assumptions where not provisional), 0::bigint, 'every seeded assumption is provisional');
+-- The two flags (spec 0016, AC-2, AC-3): the three multipliers are declared assumptions, because
+-- no Swiss indirect to direct accident cost ratio is published, so they are not provisional and
+-- never will be read from a source. The other four are still awaiting their reading.
+select is(
+  (select count(*) from public.benchmark_assumptions where is_assumption and not provisional
+     and key in ('indirect_multiplier_low', 'indirect_multiplier', 'indirect_multiplier_high')),
+  3::bigint, 'the three multipliers are declared assumptions and not provisional');
+select is(
+  (select count(*) from public.benchmark_assumptions where provisional and not is_assumption
+     and key not in ('indirect_multiplier_low', 'indirect_multiplier', 'indirect_multiplier_high')),
+  4::bigint, 'the four non multiplier assumptions are provisional and not declared assumptions');
+select is((select count(*) from public.benchmark_assumptions where provisional and is_assumption), 0::bigint,
+  'no assumption is both provisional and a declared assumption');
 select ok(
   (select value from public.benchmark_assumptions where key = 'indirect_multiplier_low') <= (select value from public.benchmark_assumptions where key = 'indirect_multiplier')
   and (select value from public.benchmark_assumptions where key = 'indirect_multiplier') <= (select value from public.benchmark_assumptions where key = 'indirect_multiplier_high'),

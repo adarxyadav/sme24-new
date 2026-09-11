@@ -10,6 +10,7 @@ import {
   en,
   inputKpi,
   parsedSnapshot,
+  peer,
   renderEnglish,
   result,
 } from "./helpers";
@@ -137,6 +138,113 @@ describe("CalculationContent (AC-10)", () => {
     expect(container.querySelector('[data-input-kpi="iso_45001_certified"]')).toHaveTextContent(
       "Yes (2025",
     );
+  });
+
+  // Spec 0016 splits two flags that used to look alike in the disclosure. `provisional` means the
+  // value has not been read from its source yet; `is_assumption` means no published source exists
+  // at all, so waiting for it is pointless. They are never both true on one row, and the badge the
+  // reader sees must follow the flag rather than treating all seven constants alike (AC-10).
+  describe("a declared assumption (spec 0016, AC-10)", () => {
+    const multiplier = assumptionUsed("indirect_multiplier", 3.7, {
+      unit: "factor",
+      provisional: false,
+      isAssumption: true,
+      note: {
+        de: "Arbeitswert in der Mitte der Bandbreite.",
+        en: "SME24's own estimate rather than a published Swiss figure.",
+      },
+    });
+
+    it("badges a declared assumption and renders its note naming the source", async () => {
+      const { container } = await renderContent({ assumptions: [multiplier] });
+      const item = container.querySelector(
+        '[data-assumption="indirect_multiplier"]',
+      ) as HTMLElement;
+      expect(within(item).getByText(d.declaredAssumption)).toBeInTheDocument();
+      expect(item.querySelector("[data-assumption-note]")).toHaveTextContent(
+        "SME24's own estimate rather than a published Swiss figure.",
+      );
+    });
+
+    // The two flags are independent, so a declared assumption is not also awaiting a reading. A
+    // multiplier carrying both badges would tell the client to expect a figure that is never coming.
+    it("does not also mark a declared assumption as provisional", async () => {
+      const { container } = await renderContent({ assumptions: [multiplier] });
+      const item = container.querySelector(
+        '[data-assumption="indirect_multiplier"]',
+      ) as HTMLElement;
+      expect(within(item).queryByText(d.provisional)).not.toBeInTheDocument();
+    });
+
+    // A note without the flag is not a declared assumption, so it must stay unrendered: the
+    // disclosure reads `note` only when `isAssumption` is true.
+    it("renders no badge and no note for an unflagged assumption that carries a note", async () => {
+      const { container } = await renderContent({
+        assumptions: [
+          assumptionUsed("direct_cost_per_case_chf", 4811, {
+            isAssumption: false,
+            note: { de: "Nicht gezeigt.", en: "Not shown." },
+          }),
+        ],
+      });
+      const item = container.querySelector(
+        '[data-assumption="direct_cost_per_case_chf"]',
+      ) as HTMLElement;
+      expect(within(item).queryByText(d.declaredAssumption)).not.toBeInTheDocument();
+      expect(item.querySelector("[data-assumption-note]")).not.toBeInTheDocument();
+      expect(item).not.toHaveTextContent("Not shown.");
+    });
+
+    // A stored @1 or @2 row carries neither field, and must keep rendering rather than breaking
+    // (AC-12). The helper's default assumption sets no flag at all.
+    it("renders a stored row that carries neither flag nor note", async () => {
+      const { container } = await renderContent({
+        assumptions: [assumptionUsed("indirect_multiplier", 3.7, { unit: "factor" })],
+      });
+      const item = container.querySelector(
+        '[data-assumption="indirect_multiplier"]',
+      ) as HTMLElement;
+      expect(within(item).queryByText(d.declaredAssumption)).not.toBeInTheDocument();
+      expect(item.querySelector("[data-assumption-note]")).not.toBeInTheDocument();
+    });
+  });
+
+  // The peer caveat reaches the client instead of dying in the database the way `source_note`
+  // does (AC-11). Every seeded row carries a null basis on day one, so the null path is the one
+  // that actually ships and it must render nothing at all rather than an empty element.
+  describe("the peer basis caveat (spec 0016, AC-11)", () => {
+    it("renders the basis sentence for a peer row that carries one", async () => {
+      const { container } = await renderContent({
+        results: [
+          result("accident_rate_per_1000_fte", {
+            peer: peer([34.9, 49.9, 66.4], {
+              basis: {
+                de: "Quartile über Suva Prämienklassen, nicht über NOGA Abschnitte.",
+                en: "Quartiles across Suva premium classes, not NOGA sections.",
+              },
+            }),
+            position: "bottom_quarter",
+          }),
+        ],
+      });
+      const line = container.querySelector(
+        '[data-input-kpi="accident_rate_per_1000_fte"] [data-peer-basis]',
+      );
+      expect(line).toHaveTextContent("Quartiles across Suva premium classes, not NOGA sections.");
+    });
+
+    it("renders no caveat element at all when the basis is null, which is every row today", async () => {
+      const { container } = await renderContent();
+      expect(container.querySelectorAll("[data-peer-basis]")).toHaveLength(0);
+    });
+
+    // A KPI with no peer row has no basis to show either, so the caveat must not appear on a line
+    // whose peer is absent.
+    it("renders no caveat for a KPI with no peer row", async () => {
+      const { container } = await renderContent();
+      const trifr = container.querySelector('[data-input-kpi="trifr"]') as HTMLElement;
+      expect(trifr.querySelector("[data-peer-basis]")).not.toBeInTheDocument();
+    });
   });
 
   it("says the headcount and the industry are not known when the inputs lack them", async () => {

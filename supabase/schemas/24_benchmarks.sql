@@ -21,7 +21,13 @@ create table public.benchmarks (
     source_note is null
     or (jsonb_typeof(source_note) = 'object' and source_note ? 'de' and source_note ? 'en')
   ),
+  source_key text null,
+  basis jsonb null check (
+    basis is null
+    or (jsonb_typeof(basis) = 'object' and basis ? 'de' and basis ? 'en')
+  ),
   provisional boolean not null default true,
+  is_assumption boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint benchmarks_quartile_order check (p25 <= median and median <= p75),
@@ -32,6 +38,9 @@ comment on table public.benchmarks is 'Peer quartiles per KPI, NOGA section, siz
 comment on column public.benchmarks.industry_section is 'A NOGA 2008 section letter A to U, or ALL for every industry.';
 comment on column public.benchmarks.size_band is '1-49, 50-249, 250+ or all.';
 comment on column public.benchmarks.provisional is 'True until the owner replaced the value from the published table; the dashboard says so while any used row is provisional.';
+comment on column public.benchmarks.source_key is 'The source''s own classification the row was read from, for example "Suva class 22A" (spec 0016). Null when the source publishes on the same axis the row is keyed by.';
+comment on column public.benchmarks.basis is 'Localized {de, en} sentence saying what the quartiles actually describe (spec 0016); this is the caveat the client sees, unlike source_note.';
+comment on column public.benchmarks.is_assumption is 'True when the value is a declared modelling assumption with no published source (spec 0016), as distinct from provisional, which means not yet read from its named source. No seeded peer row sets it true.';
 
 alter table public.benchmarks enable row level security;
 

@@ -6,14 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BenchmarkState } from "@/features/benchmark/catalogue";
-import { roundChf } from "@/features/benchmark/model";
+import { roundChf, roundChfRange } from "@/features/benchmark/model";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
-import type {
-  DerivedCount,
-  SnapshotDerived,
-  SnapshotGap,
-  SnapshotPeer,
-  SnapshotResult,
+import {
+  type DerivedCount,
+  peerShapeOf,
+  type SnapshotBlocks,
+  type SnapshotDerived,
+  type SnapshotGap,
 } from "@/features/benchmark/snapshot";
 import {
   isKpiKey,
@@ -369,6 +369,11 @@ function OpportunityCard({
 }) {
   const chf = (value: number) => format.number(roundChf(value), "chfWhole");
   const cost = snapshot.blocks.cost;
+  // Rounded outward, so the displayed band always contains the computed one (spec 0016, AC-9).
+  const range =
+    snapshot.costLowChf !== null && snapshot.costHighChf !== null
+      ? roundChfRange(snapshot.costLowChf, snapshot.costHighChf)
+      : null;
   // Absent on a stored version 1 row and whenever nothing could be derived; the card then renders
   // exactly as it did before this block existed (spec 0012, AC-7, AC-12).
   const derived = snapshot.blocks.derived ?? null;
@@ -394,18 +399,38 @@ function OpportunityCard({
         ) : null}
         {cost && snapshot.costChf !== null ? (
           <>
+            {/* The range leads and the point estimate sits beneath it as the working estimate
+                (spec 0016, AC-9): the multiplier behind the single figure is a declared assumption,
+                so the honest headline is the band it sits in. The ends round outward, so the shown
+                band always contains the computed one. */}
             <div className="flex flex-col gap-1">
-              <p className="font-semibold text-3xl tabular-nums" data-numeric data-cost-headline>
-                {chf(snapshot.costChf)}
-              </p>
-              {snapshot.costLowChf !== null && snapshot.costHighChf !== null ? (
-                <p className="text-muted-foreground text-sm tabular-nums" data-numeric>
-                  {t("card.range", {
-                    low: chf(snapshot.costLowChf),
-                    high: chf(snapshot.costHighChf),
-                  })}
+              {range ? (
+                <>
+                  <p
+                    className="font-semibold text-3xl tabular-nums"
+                    data-numeric
+                    data-cost-range
+                    data-cost-low={range.low}
+                    data-cost-high={range.high}
+                  >
+                    {t("card.rangeHeadline", {
+                      low: format.number(range.low, "chfWhole"),
+                      high: format.number(range.high, "chfWhole"),
+                    })}
+                  </p>
+                  <p
+                    className="text-muted-foreground text-sm tabular-nums"
+                    data-numeric
+                    data-cost-headline
+                  >
+                    {t("card.working", { cost: chf(snapshot.costChf) })}
+                  </p>
+                </>
+              ) : (
+                <p className="font-semibold text-3xl tabular-nums" data-numeric data-cost-headline>
+                  {chf(snapshot.costChf)}
                 </p>
-              ) : null}
+              )}
             </div>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-0.5">
@@ -555,11 +580,24 @@ function GapList(props: ValueProps) {
   );
 }
 
-function peerLabel(peer: SnapshotPeer, t: Translator): string {
-  const section =
-    peer.industrySection === "ALL"
-      ? t("positions.allIndustries")
-      : t(`noga.sections.${peer.industrySection as "A"}`);
+/**
+ * The peer group in words. Names the source's own classification when the row carries one, else
+ * the section, band and year as before (spec 0016, AC-6). A row reached on rung 3 or 4 says the
+ * group was broadened (AC-6b): the shape can flip on fallback, so a company whose own section has
+ * no row must not silently gain a band drawn from the wider `ALL` row. Pure.
+ */
+function peerLabel(
+  peer: SnapshotBlocks["results"][number]["peer"] & object,
+  t: Translator,
+): string {
+  const broadened = peer.rung >= 3 && peer.industrySection === "ALL";
+  const section = peer.sourceKey
+    ? peer.sourceKey
+    : broadened
+      ? t("positions.broadened")
+      : peer.industrySection === "ALL"
+        ? t("positions.allIndustries")
+        : t(`noga.sections.${peer.industrySection as "A"}`);
   const band = t(`sizeBands.${peer.sizeBand}`);
   const year =
     peer.yearMatch === "nearest"
@@ -582,7 +620,9 @@ function PositionRow({
   yesNo,
 }: ValueProps & {
   readonly definition: KpiDefinitionRow;
-  readonly result: SnapshotResult | undefined;
+  // The blocks' own result type, so a version 3 peer keeps its shape and source columns and a
+  // stored @1 or @2 peer is still accepted without them (spec 0016, AC-12).
+  readonly result: SnapshotBlocks["results"][number] | undefined;
 }) {
   const name = kpiName(catalogue, locale, definition.key);
   const input = snapshot.blocks.inputs.kpis.find((entry) => entry.key === definition.key);
@@ -599,12 +639,17 @@ function PositionRow({
         }
       : null;
   const bandLabel = result?.position ? t(`positions.band.${result.position}`) : null;
+  // A stored @1 or @2 row carries no shape, so derive it from the values it does carry: the rule
+  // is the same one the model applies (spec 0016, AC-4, AC-12).
+  const shape = peer ? (peer.shape ?? peerShapeOf(peer)) : null;
+  const sectorFigure = peer && key ? formatQuartile(key, peer.median, format, yesNo) : null;
 
   return (
     <li
       className="grid gap-2 rounded-lg border p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
       data-position-kpi={definition.key}
       data-position={result?.position ?? ""}
+      data-peer-shape={shape ?? ""}
     >
       <div className="flex flex-col gap-0.5">
         <span className="font-medium">{name}</span>
@@ -618,32 +663,77 @@ function PositionRow({
         )}
       </div>
       <div className="flex flex-col gap-1">
-        {peer && input && quartiles && bandLabel ? (
-          <>
-            {kind !== "yesNo" ? (
-              <QuartileBand
-                p25={peer.p25}
-                median={peer.median}
-                p75={peer.p75}
-                value={input.value}
-                label={t("positions.srBand", {
+        {peer && input && quartiles && bandLabel && sectorFigure ? (
+          shape === "point" ? (
+            // A point row holds one figure repeated as all three quartiles, so it gets no band and
+            // no replacement graphic: one labelled sector figure, and never the words quarter,
+            // quartile or median (spec 0016, AC-6).
+            <>
+              <span className="sr-only">
+                {t("positions.srSector", {
                   kpi: name,
                   value: value ?? "",
                   band: bandLabel,
-                  p25: quartiles.p25,
-                  median: quartiles.median,
-                  p75: quartiles.p75,
+                  sector: sectorFigure,
                 })}
-              />
-            ) : null}
-            <span className="text-sm">{bandLabel}</span>
-            <span className="text-muted-foreground text-xs tabular-nums" data-numeric>
-              {t("positions.quartiles", quartiles)}
-            </span>
-            <span className="text-muted-foreground text-xs">{peerLabel(peer, t)}</span>
-          </>
+              </span>
+              <span className="text-sm" aria-hidden="true">
+                {bandLabel}
+              </span>
+              <span
+                className="text-muted-foreground text-xs tabular-nums"
+                data-numeric
+                data-sector-figure={peer.median}
+                aria-hidden="true"
+              >
+                {t("positions.sector", { value: sectorFigure })}
+              </span>
+              <span className="text-muted-foreground text-xs">{t("positions.pointBasis")}</span>
+              <span className="text-muted-foreground text-xs">{peerLabel(peer, t)}</span>
+            </>
+          ) : (
+            <>
+              {kind !== "yesNo" ? (
+                <QuartileBand
+                  p25={peer.p25}
+                  median={peer.median}
+                  p75={peer.p75}
+                  value={input.value}
+                  label={t("positions.srBand", {
+                    kpi: name,
+                    value: value ?? "",
+                    band: bandLabel,
+                    p25: quartiles.p25,
+                    median: quartiles.median,
+                    p75: quartiles.p75,
+                  })}
+                />
+              ) : null}
+              <span className="text-sm">{bandLabel}</span>
+              <span className="text-muted-foreground text-xs tabular-nums" data-numeric>
+                {t("positions.quartiles", quartiles)}
+              </span>
+              <span className="text-muted-foreground text-xs">{peerLabel(peer, t)}</span>
+            </>
+          )
         ) : value !== null ? (
-          <span className="text-muted-foreground text-sm">{t("positions.noPeer")}</span>
+          // A KPI with no peer row says why (spec 0016, AC-8): a `no_source` KPI is one no Swiss
+          // body publishes, so it gets its own sentence rather than the shared "not yet", which
+          // would have the client waiting for data that is never coming.
+          <span className="flex flex-col gap-0.5 text-muted-foreground text-sm" data-no-peer>
+            <span>
+              {key && KPI_CATALOGUE[key].peerStatus === "no_source"
+                ? t("positions.peerStatus.noSourceTitle")
+                : key && KPI_CATALOGUE[key].peerStatus === "pending"
+                  ? t("positions.peerStatus.pendingTitle")
+                  : t("positions.noPeer")}
+            </span>
+            {key ? (
+              <span className="text-xs" data-peer-status={KPI_CATALOGUE[key].peerStatus}>
+                {t(KPI_CATALOGUE[key].peerNote as "positions.noPeer")}
+              </span>
+            ) : null}
+          </span>
         ) : null}
       </div>
     </li>

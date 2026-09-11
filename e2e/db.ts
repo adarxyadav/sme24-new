@@ -177,6 +177,13 @@ export async function seedResearchedCompany(input: {
   readonly userId: string;
   readonly name: string;
   readonly status?: "succeeded" | "empty" | "failed";
+  /**
+   * The company's NOGA code. Defaults to section C, whose seeded peer row carries a real spread.
+   * A caller that wants the point row path (spec 0016, AC-15) passes a division of a section whose
+   * peer row holds one figure repeated as all three quartiles, for example `35` for section D.
+   */
+  readonly industryCode?: string;
+  readonly employeesCount?: number;
 }) {
   const supabase = serviceClient();
   const { data: company, error } = await supabase
@@ -185,8 +192,8 @@ export async function seedResearchedCompany(input: {
       organization_id: input.organizationId,
       name: input.name,
       created_by: input.userId,
-      industry_code: "23.61",
-      employees_count: 420,
+      industry_code: input.industryCode ?? "23.61",
+      employees_count: input.employeesCount ?? 420,
     })
     .select("id")
     .single();

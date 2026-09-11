@@ -39,7 +39,10 @@ export function renderBenchmarkUpsert(row: BenchmarkSeedRow): string {
     "source_name",
     "source_url",
     "source_note",
+    "source_key",
+    "basis",
     "provisional",
+    "is_assumption",
   ];
   const values = [
     literal(row.kpi_key),
@@ -53,7 +56,10 @@ export function renderBenchmarkUpsert(row: BenchmarkSeedRow): string {
     literal(row.source_name),
     literal(row.source_url),
     localized(row.source_note_de, row.source_note_en),
+    literal(row.source_key),
+    localized(row.basis_de, row.basis_en),
     row.provisional ? "true" : "false",
+    row.is_assumption ? "true" : "false",
   ];
   const updates = columns
     .filter((column) => !(BENCHMARK_CONFLICT_COLUMNS as readonly string[]).includes(column))
@@ -76,6 +82,7 @@ export function renderAssumptionUpsert(row: AssumptionSeedRow): string {
     "source_url",
     "note",
     "provisional",
+    "is_assumption",
     "effective_from",
   ];
   const values = [
@@ -87,6 +94,7 @@ export function renderAssumptionUpsert(row: AssumptionSeedRow): string {
     literal(row.source_url),
     localized(row.note_de, row.note_en),
     row.provisional ? "true" : "false",
+    row.is_assumption ? "true" : "false",
     literal(row.effective_from),
   ];
   const updates = columns

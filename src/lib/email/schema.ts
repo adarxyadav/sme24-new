@@ -39,6 +39,13 @@ export const benchmarkReadyDataSchema = templateDataBaseSchema.extend({
   kpisCompared: z.number().int().min(0).max(8),
   costChf: z.number().nonnegative().optional(),
   savingMedianChf: z.number().nonnegative().optional(),
+  /**
+   * The cost range, already rounded outward by `roundChfRange` in the task (spec 0016, AC-13).
+   * The template renders the range only when both ends are present and falls back to the single
+   * figure alone when either is absent, so an older queued payload still sends.
+   */
+  costLowChf: z.number().nonnegative().optional(),
+  costHighChf: z.number().nonnegative().optional(),
 });
 export type BenchmarkReadyData = z.infer<typeof benchmarkReadyDataSchema>;
 /**

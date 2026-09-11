@@ -55,6 +55,7 @@ export type Database = {
         Row: {
           created_at: string
           effective_from: string
+          is_assumption: boolean
           key: string
           label: Json
           note: Json | null
@@ -68,6 +69,7 @@ export type Database = {
         Insert: {
           created_at?: string
           effective_from: string
+          is_assumption?: boolean
           key: string
           label: Json
           note?: Json | null
@@ -81,6 +83,7 @@ export type Database = {
         Update: {
           created_at?: string
           effective_from?: string
+          is_assumption?: boolean
           key?: string
           label?: Json
           note?: Json | null
@@ -192,9 +195,11 @@ export type Database = {
       }
       benchmarks: {
         Row: {
+          basis: Json | null
           created_at: string
           id: string
           industry_section: string
+          is_assumption: boolean
           kpi_key: string
           median: number
           p25: number
@@ -203,15 +208,18 @@ export type Database = {
           provisional: boolean
           sample_size: number | null
           size_band: string
+          source_key: string | null
           source_name: string
           source_note: Json | null
           source_url: string | null
           updated_at: string
         }
         Insert: {
+          basis?: Json | null
           created_at?: string
           id?: string
           industry_section: string
+          is_assumption?: boolean
           kpi_key: string
           median: number
           p25: number
@@ -220,15 +228,18 @@ export type Database = {
           provisional?: boolean
           sample_size?: number | null
           size_band: string
+          source_key?: string | null
           source_name: string
           source_note?: Json | null
           source_url?: string | null
           updated_at?: string
         }
         Update: {
+          basis?: Json | null
           created_at?: string
           id?: string
           industry_section?: string
+          is_assumption?: boolean
           kpi_key?: string
           median?: number
           p25?: number
@@ -237,6 +248,7 @@ export type Database = {
           provisional?: boolean
           sample_size?: number | null
           size_band?: string
+          source_key?: string | null
           source_name?: string
           source_note?: Json | null
           source_url?: string | null

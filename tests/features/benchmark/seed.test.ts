@@ -22,12 +22,12 @@ const SEED_DIR = join(process.cwd(), "supabase/seed-data");
 const MIGRATIONS_DIR = join(process.cwd(), "supabase/migrations");
 
 const BENCHMARK_HEADER =
-  "kpi_key,industry_section,size_band,period_year,p25,median,p75,sample_size,source_name,source_url,source_note_de,source_note_en,provisional";
+  "kpi_key,industry_section,size_band,period_year,p25,median,p75,sample_size,source_name,source_url,source_note_de,source_note_en,source_key,basis_de,basis_en,provisional,is_assumption";
 const ASSUMPTION_HEADER =
-  "key,value,unit,label_de,label_en,source_name,source_url,note_de,note_en,provisional,effective_from";
+  "key,value,unit,label_de,label_en,source_name,source_url,note_de,note_en,provisional,is_assumption,effective_from";
 
 function assumptionLine(key: string, value: number): string {
-  return `${key},${value},unit,Label,Label,Source,,,,true,2026-01-01`;
+  return `${key},${value},unit,Label,Label,Source,,,,true,false,2026-01-01`;
 }
 
 describe("the CSV parser (spec 0008, AC-2)", () => {
@@ -50,7 +50,7 @@ describe("the CSV parser (spec 0008, AC-2)", () => {
 describe("the seed row schemas (spec 0008, AC-2)", () => {
   it("rejects a row with p25 above the median with its line number", () => {
     const table = parseCsv(
-      `${BENCHMARK_HEADER}\nltifr,C,all,2022,1,2,3,,Source,,,,true\nltifr,ALL,all,2022,3,2,4,,Source,,,,true\n`,
+      `${BENCHMARK_HEADER}\nltifr,C,all,2022,1,2,3,,Source,,,,,,,true,false\nltifr,ALL,all,2022,3,2,4,,Source,,,,,,,true,false\n`,
     );
     const result = parseSeedRows(table, benchmarkRowSchema);
     expect(result.ok).toBe(false);
@@ -63,12 +63,21 @@ describe("the seed row schemas (spec 0008, AC-2)", () => {
   it("rejects an unknown section, band, year and a broken url", () => {
     const bad = (line: string) =>
       parseSeedRows(parseCsv(`${BENCHMARK_HEADER}\n${line}\n`), benchmarkRowSchema).ok;
-    expect(bad("ltifr,X,all,2022,1,2,3,,Source,,,,true")).toBe(false);
-    expect(bad("ltifr,C,huge,2022,1,2,3,,Source,,,,true")).toBe(false);
-    expect(bad("ltifr,C,all,1999,1,2,3,,Source,,,,true")).toBe(false);
-    expect(bad("ltifr,C,all,2022,1,2,3,,Source,not a url,,,true")).toBe(false);
-    expect(bad("ltifr,C,all,2022,1,2,3,,Source,,only de,,true")).toBe(false);
-    expect(bad("ltifr,C,all,2022,1,2,3,12,Source,https://example.org,de,en,false")).toBe(true);
+    expect(bad("ltifr,X,all,2022,1,2,3,,Source,,,,,,,true,false")).toBe(false);
+    expect(bad("ltifr,C,huge,2022,1,2,3,,Source,,,,,,,true,false")).toBe(false);
+    expect(bad("ltifr,C,all,1999,1,2,3,,Source,,,,,,,true,false")).toBe(false);
+    expect(bad("ltifr,C,all,2022,1,2,3,,Source,not a url,,,,,,true,false")).toBe(false);
+    expect(bad("ltifr,C,all,2022,1,2,3,,Source,,only de,,,,,true,false")).toBe(false);
+    // basis, like source_note, is both locales or neither (spec 0016, AC-1).
+    expect(bad("ltifr,C,all,2022,1,2,3,,Source,,,,,nur de,,true,false")).toBe(false);
+    expect(bad("ltifr,C,all,2022,1,2,3,,Source,,,,,,only en,true,false")).toBe(false);
+    // A value is either awaiting a reading or declared unsourceable, never both (spec 0016, AC-2).
+    expect(bad("ltifr,C,all,2022,1,2,3,,Source,,,,,,,true,true")).toBe(false);
+    expect(
+      bad(
+        "ltifr,C,all,2022,1,2,3,12,Source,https://example.org,de,en,Suva class 22A,Basis de,Basis en,false,false",
+      ),
+    ).toBe(true);
   });
 
   it("requires every assumption key exactly once and the multipliers in order", () => {
@@ -102,7 +111,7 @@ describe("the seed row schemas (spec 0008, AC-2)", () => {
     expect(disordered.error?.issues[0]?.message).toContain("indirect_multiplier_low <=");
   });
 
-  it("parses the committed CSVs, every row provisional", () => {
+  it("parses the committed CSVs with the two flags (spec 0016, AC-1, AC-2)", () => {
     const benchmarks = parseSeedRows(
       parseCsv(readFileSync(join(SEED_DIR, "benchmarks.csv"), "utf8")),
       benchmarkRowSchema,
@@ -119,6 +128,13 @@ describe("the seed row schemas (spec 0008, AC-2)", () => {
             row.size_band === "all",
         ),
       ).toBe(true);
+      // No seeded peer row is a declared assumption, and filling the two source columns is
+      // curation work rather than this build (spec 0016, AC-1, AC-2).
+      expect(benchmarks.rows.every((row) => !row.is_assumption)).toBe(true);
+      expect(benchmarks.rows.every((row) => row.source_key === null)).toBe(true);
+      expect(benchmarks.rows.every((row) => row.basis_de === null && row.basis_en === null)).toBe(
+        true,
+      );
     }
     const assumptions = parseSeedRows(
       parseCsv(readFileSync(join(SEED_DIR, "benchmark-assumptions.csv"), "utf8")),
@@ -127,7 +143,30 @@ describe("the seed row schemas (spec 0008, AC-2)", () => {
     expect(assumptions.ok).toBe(true);
     if (assumptions.ok) {
       expect(assumptionFileSchema.safeParse(assumptions.rows).success).toBe(true);
-      expect(assumptions.rows.every((row) => row.provisional)).toBe(true);
+      // The three multipliers are declared assumptions, because no Swiss indirect to direct
+      // accident cost ratio is published; the other four still await their reading (AC-2).
+      const multipliers = [
+        "indirect_multiplier_low",
+        "indirect_multiplier",
+        "indirect_multiplier_high",
+      ];
+      const isMultiplier = (key: string) => multipliers.includes(key);
+      expect(
+        assumptions.rows
+          .filter((row) => isMultiplier(row.key))
+          .every((row) => row.is_assumption && !row.provisional),
+      ).toBe(true);
+      expect(
+        assumptions.rows
+          .filter((row) => !isMultiplier(row.key))
+          .every((row) => row.provisional && !row.is_assumption),
+      ).toBe(true);
+      // AC-10: each multiplier states its source and that no Swiss ratio is published.
+      expect(
+        assumptions.rows
+          .filter((row) => isMultiplier(row.key))
+          .every((row) => (row.note_en ?? "").length > 0 && (row.note_de ?? "").length > 0),
+      ).toBe(true);
     }
   });
 });
@@ -135,7 +174,7 @@ describe("the seed row schemas (spec 0008, AC-2)", () => {
 describe("the seed migration generator (spec 0008, AC-2)", () => {
   it("renders one upsert per row with doubled quotes and jsonb notes", () => {
     const table = parseCsv(
-      `${BENCHMARK_HEADER}\nltifr,C,all,2022,1,2,3,12,"O'Reilly",https://example.org,"Anmerkung, de",Note en,true\n`,
+      `${BENCHMARK_HEADER}\nltifr,C,all,2022,1,2,3,12,"O'Reilly",https://example.org,"Anmerkung, de",Note en,Suva 22A,"Grundlage, de",Basis en,true,false\n`,
     );
     const rows = parseSeedRows(table, benchmarkRowSchema);
     if (!rows.ok) throw new Error(rows.error.message);
@@ -143,6 +182,10 @@ describe("the seed migration generator (spec 0008, AC-2)", () => {
     expect(sql).toContain("insert into public.benchmarks");
     expect(sql).toContain("'O''Reilly'");
     expect(sql).toContain('{"de":"Anmerkung, de","en":"Note en"}');
+    // The two source columns and the flag reach the upsert (spec 0016, AC-1).
+    expect(sql).toContain("'Suva 22A'");
+    expect(sql).toContain('{"de":"Grundlage, de","en":"Basis en"}');
+    expect(sql).toContain("is_assumption");
     expect(sql).toContain(
       "on conflict (kpi_key, industry_section, size_band, period_year) do update set",
     );

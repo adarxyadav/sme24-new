@@ -58,6 +58,50 @@ describe("renderEmail benchmark_ready", () => {
     expect(rendered.text).toContain("Benchmark ansehen");
   });
 
+  // The range leads and the working estimate follows (spec 0016, AC-13), the same order as the
+  // card, so a forwarded email never presents a precise figure the dashboard has just qualified.
+  it("leads with the range and carries the working estimate beneath it, in both languages", async () => {
+    for (const [locale, expected] of [
+      ["en", { range: "1’060’000 to 2’651’000", working: "Our working estimate" }],
+      ["de", { range: "1’060’000 bis 2’651’000", working: "Unser Arbeitswert" }],
+    ] as const) {
+      const rendered = await renderEmail({
+        template: "benchmark_ready",
+        locale,
+        data: {
+          companyName: "Example Ltd",
+          kpisCompared: 5,
+          costChf: 1_961_000,
+          costLowChf: 1_060_000,
+          costHighChf: 2_651_000,
+        },
+        appUrl,
+      });
+      const [low, high] = expected.range.split(/ (?:to|bis) /) as [string, string];
+      expect(rendered.html).toMatch(chfPattern(low));
+      expect(rendered.html).toMatch(chfPattern(high));
+      expect(rendered.html).toContain(expected.working);
+      // The range is stated before the working estimate.
+      expect(rendered.text.indexOf(expected.working)).toBeGreaterThan(0);
+    }
+  });
+
+  // Half a range is never shown: without both ends the single figure stands alone, so an older
+  // queued payload still sends (spec 0016, AC-13).
+  it("falls back to the single figure when either range end is absent", async () => {
+    for (const partial of [{ costLowChf: 1_060_000 }, { costHighChf: 2_651_000 }, {}]) {
+      const rendered = await renderEmail({
+        template: "benchmark_ready",
+        locale: "en",
+        data: { companyName: "Example Ltd", kpisCompared: 5, costChf: 1_961_000, ...partial },
+        appUrl,
+      });
+      expect(rendered.html).toContain("cost you about");
+      expect(rendered.html).not.toContain("Our working estimate");
+      expect(rendered.html).toMatch(chfPattern("1’961’000"));
+    }
+  });
+
   it("renders the English variant without money when no cost was computed", async () => {
     const rendered = await renderEmail({
       template: "benchmark_ready",

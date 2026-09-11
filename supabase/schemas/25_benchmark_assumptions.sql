@@ -16,6 +16,7 @@ create table public.benchmark_assumptions (
     or (jsonb_typeof(note) = 'object' and note ? 'de' and note ? 'en')
   ),
   provisional boolean not null default true,
+  is_assumption boolean not null default false,
   effective_from date not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -23,6 +24,7 @@ create table public.benchmark_assumptions (
 
 comment on table public.benchmark_assumptions is 'The stored constants of the incident cost model (spec 0008), one row per key. Every signed in user reads; ops and migrations write.';
 comment on column public.benchmark_assumptions.effective_from is 'The date the value refers to; documentation only, key is the primary key.';
+comment on column public.benchmark_assumptions.is_assumption is 'True when no published source exists for the value and it is a declared modelling assumption (spec 0016), as distinct from provisional, which means not yet read from its named source. The three indirect_multiplier rows carry true.';
 
 alter table public.benchmark_assumptions enable row level security;
 

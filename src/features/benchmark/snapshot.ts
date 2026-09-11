@@ -9,8 +9,39 @@ import { ASSUMPTION_KEYS, SIZE_BANDS } from "./catalogue";
  * as absent by the reader. Pure.
  */
 
-export const POSITIONS = ["top_quarter", "above_median", "below_median", "bottom_quarter"] as const;
+/**
+ * The position bands. The four quartile values describe a real distribution; the two average
+ * values (spec 0016, AC-5) describe a peer row that holds one number repeated as all three
+ * quartiles, where a quartile word would claim a spread nobody measured.
+ */
+export const POSITIONS = [
+  "top_quarter",
+  "above_median",
+  "below_median",
+  "bottom_quarter",
+  "above_average",
+  "below_average",
+] as const;
 export type Position = (typeof POSITIONS)[number];
+
+/**
+ * What a peer row actually holds (spec 0016, AC-4): a `point` row is one figure repeated as all
+ * three quartiles, a `distribution` row carries real spread. Derived from the values, never a
+ * stored column and never hand typed.
+ */
+export const PEER_SHAPES = ["point", "distribution"] as const;
+export type PeerShape = (typeof PEER_SHAPES)[number];
+
+/** A peer row's shape from its quartiles: all three equal is a point row (spec 0016, AC-4). Pure. */
+export function peerShapeOf(quartiles: {
+  readonly p25: number;
+  readonly median: number;
+  readonly p75: number;
+}): PeerShape {
+  return quartiles.p25 === quartiles.median && quartiles.median === quartiles.p75
+    ? "point"
+    : "distribution";
+}
 
 export const inputKpiSchema = z.object({
   key: z.enum(KPI_KEYS),
@@ -50,6 +81,18 @@ export const peerSchema = z.object({
   provisional: z.boolean(),
 });
 export type SnapshotPeer = z.infer<typeof peerSchema>;
+
+/**
+ * The version 3 peer block (spec 0016): the shape the row actually holds, plus the source's own
+ * classification and the sentence saying what the quartiles describe, so the client sees the
+ * caveat instead of it dying in the database the way `source_note` does.
+ */
+export const peerV3Schema = peerSchema.extend({
+  shape: z.enum(PEER_SHAPES),
+  sourceKey: z.string().nullable(),
+  basis: z.object({ de: z.string(), en: z.string() }).nullable(),
+});
+export type SnapshotPeerV3 = z.infer<typeof peerV3Schema>;
 
 export const resultSchema = z.object({
   key: z.enum(KPI_KEYS),
@@ -98,6 +141,17 @@ export const assumptionUsedSchema = z.object({
 export type AssumptionUsed = z.infer<typeof assumptionUsedSchema>;
 
 /**
+ * The version 3 assumption block (spec 0016, AC-10): whether the value is a declared assumption
+ * with no published source, and the note that says so, so the disclosure can name each multiplier
+ * boundary and its source rather than presenting all seven constants alike.
+ */
+export const assumptionUsedV3Schema = assumptionUsedSchema.extend({
+  isAssumption: z.boolean(),
+  note: z.object({ de: z.string(), en: z.string() }).nullable(),
+});
+export type AssumptionUsedV3 = z.infer<typeof assumptionUsedV3Schema>;
+
+/**
  * One derived injury count (spec 0012): the count itself plus the rate row it came from, so the
  * card can name the figure and its year. Deliberately carries no confidence: a derived value
  * inherits its input's reliability and must not look independently assessed (AC-5).
@@ -138,11 +192,38 @@ export const snapshotBlocksV2Schema = snapshotBlocksV1Schema.extend({
   derived: derivedSchema.nullable(),
 });
 
+/** A version 3 result: the peer block carries the shape and the two source columns (spec 0016). */
+export const resultV3Schema = resultSchema.extend({
+  peer: peerV3Schema.nullable(),
+});
+export type SnapshotResultV3 = z.infer<typeof resultV3Schema>;
+
+/**
+ * The version 3 blocks (spec 0016): version 2 plus the peer shape and its source columns, and the
+ * assumption note and its flag. The arithmetic is unchanged; only what the snapshot records about
+ * its own values grows.
+ */
+export const snapshotBlocksV3Schema = snapshotBlocksV2Schema.extend({
+  results: z.array(resultV3Schema),
+  assumptions: z.array(assumptionUsedV3Schema),
+});
+
 /**
  * What a reader gets from any version. `derived` is optional because a stored version 1 row has
- * no such key and is never widened to carry one (AC-12); a version 2 row always sets it.
+ * no such key and is never widened to carry one (AC-12); a version 2 row always sets it. The
+ * version 3 additions are optional per field for the same reason (spec 0016, AC-12): a stored
+ * `@1` or `@2` row keeps parsing and rendering under its own schema, so every reader of a shape,
+ * a basis or a note must handle its absence rather than assume the newest version.
  */
-export type SnapshotBlocks = z.infer<typeof snapshotBlocksV1Schema> & {
+export type SnapshotBlocks = Omit<
+  z.infer<typeof snapshotBlocksV1Schema>,
+  "results" | "assumptions"
+> & {
+  readonly results: readonly (SnapshotResult & {
+    readonly peer: (SnapshotPeer & Partial<Omit<SnapshotPeerV3, keyof SnapshotPeer>>) | null;
+  })[];
+  readonly assumptions: readonly (AssumptionUsed &
+    Partial<Omit<AssumptionUsedV3, keyof AssumptionUsed>>)[];
   readonly derived?: SnapshotDerived | null;
 };
 
@@ -168,6 +249,7 @@ export type SnapshotBody = SnapshotBlocks & SnapshotScalars;
 export const SNAPSHOT_SCHEMAS: Readonly<Record<string, z.ZodType<SnapshotBlocks>>> = {
   "benchmark-model@1": snapshotBlocksV1Schema,
   "benchmark-model@2": snapshotBlocksV2Schema,
+  "benchmark-model@3": snapshotBlocksV3Schema,
 };
 
 export type SnapshotRowLike = {

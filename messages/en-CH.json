@@ -1338,7 +1338,8 @@
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "card": "Opportunity card",
       "collapsible": "Collapsible disclosure",
-      "confidenceMedium": "Medium"
+      "confidenceMedium": "Medium",
+      "pointComparison": "Point comparison"
     },
     "marketing": {
       "packages": "Package card: fixed price and price on request",
@@ -1393,7 +1394,9 @@
       "saving": "Reaching the peer median would save about {saving} per year.",
       "noCost": "We could not estimate the annual cost yet. Add your headcount in the client area and we recalculate at once.",
       "nextStep": "The client area shows your position per KPI, the priority gaps and how every number is calculated.",
-      "button": "See the benchmark"
+      "button": "See the benchmark",
+      "range": "Workplace incidents cost you about {low} to {high} per year.",
+      "working": "Our working estimate within that range is {cost}."
     },
     "enquiry_received": {
       "subject": "Your enquiry has reached SME24",
@@ -1795,7 +1798,9 @@
       "confidenceFrom": "Confidence from {kpi}",
       "missingHeadcount": "We need your headcount to estimate the annual cost.",
       "missingIncidentRate": "We need an accident rate or an LTIFR to estimate the annual cost.",
-      "compared": "{compared} of {total} KPIs compared"
+      "compared": "{compared} of {total} KPIs compared",
+      "rangeHeadline": "{low} to {high}",
+      "working": "Working estimate {cost}"
     },
     "derived": {
       "title": "What that means in injuries",
@@ -1834,7 +1839,27 @@
         "top_quarter": "Top quarter",
         "above_median": "Better than the median",
         "below_median": "Worse than the median",
-        "bottom_quarter": "Bottom quarter"
+        "bottom_quarter": "Bottom quarter",
+        "above_average": "Better than the sector average",
+        "below_average": "Worse than the sector average"
+      },
+      "sector": "Sector figure {value}",
+      "srSector": "{kpi}: your value {value} is {band}. The sector figure is {sector}.",
+      "pointBasis": "One figure for the whole sector, not a range.",
+      "broadened": "all industries, as no figure is published for your sector",
+      "peerStatus": {
+        "noSourceTitle": "No Swiss peer data exists",
+        "pendingTitle": "No peer data yet"
+      },
+      "peerNote": {
+        "fatalities": "No Swiss source publishes fatality rates by sector, so there is no peer figure to compare against.",
+        "near_miss_rate": "Near miss reporting is not collected by any Swiss body, so there is no peer figure to compare against.",
+        "absenteeism_rate": "The Swiss absence table is published by sector and is not read into the peer set yet.",
+        "ltifr": "No Swiss LTIFR is published by sector; the Suva accident rate is the comparable figure for now.",
+        "trifr": "No Swiss TRIFR is published by sector; the Suva accident rate is the comparable figure for now.",
+        "lost_days_per_incident": "Lost days per accident are derivable from the Suva tables and are not read into the peer set yet.",
+        "iso_45001_certified": "No Swiss body publishes certification shares by sector; a share is not read into the peer set yet.",
+        "accident_rate_per_1000_fte": "Read from the Suva UVG accident tables."
       }
     },
     "noga": {
@@ -1978,7 +2003,8 @@
       "industry": "Industry: {division} (section {section}), size band {band}",
       "noIndustry": "Industry: not known, size band {band}",
       "correctTitle": "Correct industry or headcount",
-      "correctDescription": "Your values take precedence over the research and start a new computation."
+      "correctDescription": "Your values take precedence over the research and start a new computation.",
+      "declaredAssumption": "declared assumption"
     },
     "facts": {
       "industry": "Industry (NOGA division)",

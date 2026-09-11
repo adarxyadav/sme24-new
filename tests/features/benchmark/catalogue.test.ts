@@ -10,6 +10,7 @@ import {
   sectionOfDivision,
   sizeBandOf,
 } from "@/features/benchmark/catalogue";
+import { PEER_SHAPES, POSITIONS } from "@/features/benchmark/snapshot";
 import { KPI_KEYS } from "@/features/research/catalogue";
 import de from "../../../messages/de-CH.json";
 import en from "../../../messages/en-CH.json";
@@ -100,7 +101,101 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
       "indirect_multiplier",
       "indirect_multiplier_high",
     ]);
-    expect(MODEL_VERSION).toBe("benchmark-model@2");
+    expect(MODEL_VERSION).toBe("benchmark-model@3");
     expect(BENCHMARK_WAIT_MS).toBe(120_000);
+  });
+
+  // The band label is looked up at render time as `positions.band.<stored value>`, so a missing
+  // key fails in the browser rather than at build: the two average positions of spec 0016 must
+  // not be able to ship without their labels (AC-13b).
+  it("labels every position in both catalogs (spec 0016, AC-13b)", () => {
+    for (const messages of [de, en]) {
+      const bands = messages.benchmark.positions.band as Record<string, string>;
+      for (const position of POSITIONS) {
+        expect(bands[position], position).toBeTruthy();
+      }
+      // No stale label outlives its position value either.
+      expect(Object.keys(bands).sort()).toEqual([...POSITIONS].sort());
+    }
+  });
+
+  it("names both peer shapes and the point row wording in both catalogs (spec 0016, AC-6)", () => {
+    expect(PEER_SHAPES).toEqual(["point", "distribution"]);
+    for (const messages of [de, en]) {
+      const positions = messages.benchmark.positions as Record<string, unknown>;
+      for (const key of ["sector", "srSector", "pointBasis", "broadened"]) {
+        expect(positions[key], key).toBeTruthy();
+      }
+    }
+  });
+
+  // AC-6 forbids the words quarter, quartile and median on a point row "in either language", but
+  // the component suite mocks `next-intl/server` with `locale: "en-CH"` hardcoded, so its
+  // `not.toMatch(/quarter|quartile|median/i)` only ever reads English. A translator could put
+  // "Median" or "Viertel" back into a German point row string and the whole suite would stay green.
+  // The rule is a property of the catalogs, so it is asserted here against both.
+  //
+  // Only the keys the point row branch actually renders are in scope: the distribution branch
+  // legitimately says p25/Median/p75 in `quartiles` and `srBand`, so scanning the namespace would
+  // fail on wording that is correct.
+  it("keeps quartile wording out of every point row string, in both catalogs (spec 0016, AC-6)", () => {
+    // The keys `benchmark-segment.tsx` reads on the point path: the sector figure and its screen
+    // reader narration, the basis line, the peer label parts, the two no-peer titles, and the only
+    // two band labels `positionOf` can return for a point row.
+    const POINT_ROW_KEYS = [
+      "title",
+      "sector",
+      "srSector",
+      "pointBasis",
+      "broadened",
+      "peer",
+      "allIndustries",
+      "nearestYear",
+      "sample",
+      "noPeer",
+      "peerStatus.noSourceTitle",
+      "peerStatus.pendingTitle",
+      "band.above_average",
+      "band.below_average",
+    ] as const;
+    // Both languages, because "quarter" and "median" travel into German as "Viertel" and "Median".
+    const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
+    const read = (source: unknown, path: string): unknown =>
+      path
+        .split(".")
+        .reduce<unknown>((value, key) => (value as Record<string, unknown>)?.[key], source);
+
+    for (const [locale, messages] of [
+      ["de", de],
+      ["en", en],
+    ] as const) {
+      for (const key of POINT_ROW_KEYS) {
+        const text = read(messages.benchmark.positions, key);
+        expect(typeof text, `${locale}: ${key} is missing`).toBe("string");
+        expect(text as string, `${locale}: ${key} carries quartile wording`).not.toMatch(
+          QUARTILE_WORDING,
+        );
+      }
+    }
+  });
+
+  // The guard above is only honest if it would actually fire, and a regex over prose is easy to get
+  // subtly wrong. The distribution strings are the control: they are supposed to name the quartiles,
+  // so the same pattern must match them in both languages.
+  it("uses a pattern that does catch quartile wording where it belongs (spec 0016, AC-6)", () => {
+    const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
+    for (const [locale, messages] of [
+      ["de", de],
+      ["en", en],
+    ] as const) {
+      const positions = messages.benchmark.positions as Record<string, unknown>;
+      const bands = positions.band as Record<string, string>;
+      expect(positions.quartiles as string, `${locale}: quartiles`).toMatch(QUARTILE_WORDING);
+      expect(positions.srBand as string, `${locale}: srBand`).toMatch(QUARTILE_WORDING);
+      // The four distribution bands, which are exactly the positions a point row cannot reach.
+      for (const band of ["top_quarter", "above_median", "below_median", "bottom_quarter"]) {
+        expect(bands[band], `${locale}: band.${band}`).toMatch(QUARTILE_WORDING);
+      }
+    }
   });
 });

@@ -78,8 +78,24 @@ What to know when changing them:
 
 The peer values and the assumptions live in two CSV files and reach the database through a generated migration, so a replaced value is a reviewed diff and a rerun changes no row count.
 
-- `supabase/seed-data/benchmarks.csv`: `kpi_key, industry_section (A to U or ALL), size_band (1-49, 50-249, 250+, all), period_year, p25, median, p75, sample_size (empty allowed), source_name, source_url, source_note_de, source_note_en, provisional`.
-- `supabase/seed-data/benchmark-assumptions.csv`: `key, value, unit, label_de, label_en, source_name, source_url, note_de, note_en, provisional, effective_from`. Exactly the seven keys of `ASSUMPTION_KEYS`, once each, with `indirect_multiplier_low <= indirect_multiplier <= indirect_multiplier_high`.
+- `supabase/seed-data/benchmarks.csv`: `kpi_key, industry_section (A to U or ALL), size_band (1-49, 50-249, 250+, all), period_year, p25, median, p75, sample_size (empty allowed), source_name, source_url, source_note_de, source_note_en, source_key, basis_de, basis_en, provisional, is_assumption`.
+- `supabase/seed-data/benchmark-assumptions.csv`: `key, value, unit, label_de, label_en, source_name, source_url, note_de, note_en, provisional, is_assumption, effective_from`. Exactly the seven keys of `ASSUMPTION_KEYS`, once each, with `indirect_multiplier_low <= indirect_multiplier <= indirect_multiplier_high`.
+
+### The two flags, and the two source columns (spec 0016)
+
+`provisional` and `is_assumption` mean different things and are never both true on one row:
+
+- **`provisional`**: the value has not been read from its named source yet. It is a promise to go and read it. The launch gate requires zero of these.
+- **`is_assumption`**: no published source exists, so the value is a declared modelling assumption. Waiting for it is pointless. The gate permits these, by name.
+
+The three `indirect_multiplier*` rows are the only declared assumptions today: no Swiss or European body publishes an indirect to direct accident cost ratio, so the low bound is the ILO's, the high bound is Heinrich (1931) which modern safety science disputes, and the middle is SME24's own estimate. Each says so in its own `note`, which the disclosure renders (AC-10).
+
+Two columns record what a peer value actually came from. Both are null on every row today; filling them is the curation pass, not a code change.
+
+- **`source_key`**: the source's own classification the row was read from, for example `Suva class 22A`. Set it when the source publishes on a different axis than the row is keyed by. The positions list names it instead of the NOGA section.
+- **`basis`** (`basis_de`, `basis_en`, both or neither): one sentence saying what the quartiles describe. This is the caveat the client sees. `source_note` stays an internal reading note and is not shown.
+
+A row's **shape** is never a column. `p25 == median == p75` makes it a `point` row, anything else a `distribution` row, derived in the model from the values themselves (AC-4). A point row renders one sector figure with no quartile band and never the words quarter, quartile or median. Eleven of the twenty two seeded rows are point rows today, because their NOGA section holds a single Suva class.
 - `pnpm benchmarks:migration` parses both files with the Zod schemas in `src/features/benchmark/seed-schema.ts`, stops with the file and line number on the first invalid row, and writes `supabase/migrations/<timestamp>_benchmark_seed.sql` with one `insert … on conflict do update` per row. The timestamp is strictly later than the newest migration, so the seed always applies after the table migration. Commit the generated file; every run makes a new one, so delete a duplicate you did not mean to keep.
 
 After generating: `pnpm db:reset`, `pnpm test:db` (the pgTAP suites count the seven assumptions and the `ALL`/`all` accident rate row and assert every row is provisional until the launch gate below changes that expectation), then `pnpm db:types` if a column changed.
@@ -137,7 +153,9 @@ Two things to know when running the worker locally:
 
 ## Launch gate
 
-Production carries no provisional row. Before the promotion, replace the rows from the published tables, generate the seed migration, run `pnpm benchmarks:recompute` on staging, and confirm this returns zero rows on both:
+The gate is two queries, because an unread value and an unsourceable one are different problems (spec 0016, AC-3). Before the promotion, replace the readable rows from the published tables, generate the seed migration, run `pnpm benchmarks:recompute` on staging, then run both.
+
+**One: nothing is still waiting to be read.** This must return zero on both tables.
 
 ```sql
 select 'benchmarks' as t, count(*) from public.benchmarks where provisional
@@ -145,4 +163,27 @@ union all
 select 'benchmark_assumptions', count(*) from public.benchmark_assumptions where provisional;
 ```
 
-The pgTAP seed assertions (`supabase/tests/benchmarks.test.sql`, `benchmark_assumptions.test.sql`) currently expect every row provisional; flip them in the same change that clears the flag.
+**Two: every declared assumption is one you meant to declare.** This may return rows, but it must return exactly these three and nothing else.
+
+```sql
+select 'benchmarks' as t, kpi_key as key from public.benchmarks where is_assumption
+union all
+select 'benchmark_assumptions', key from public.benchmark_assumptions where is_assumption
+order by 1, 2;
+```
+
+Expected, and only these: `indirect_multiplier_low`, `indirect_multiplier`, `indirect_multiplier_high`, all on `benchmark_assumptions`. No peer row may be a declared assumption. A new name in that list is a new claim the product is making without a source, so it needs a decision, not a tick.
+
+The pgTAP suites (`supabase/tests/benchmarks.test.sql`, `benchmark_assumptions.test.sql`) assert both flags across both tables, including that no row is both provisional and a declared assumption; update them in the same change that clears a flag.
+
+## What the research for spec 0016 confirmed is unreadable
+
+Recorded so the curation pass does not spend a second afternoon on the same dead ends.
+
+- **No Swiss or European body publishes an indirect to direct accident cost ratio.** The multiplier the CHF figure turns on is an assumption and is now declared as one.
+- **No Swiss source publishes safety outcomes by company size band.** Every seeded peer row is therefore `size_band = all`, and a size band comparison cannot be built from public data.
+- **The Suva accident tables use their own premium class scheme, not NOGA sections.** Mapping a class to a section needs a crosswalk that is not officially published, which is what `source_key` exists to record once a mapping is chosen.
+- **No fatality rate and no near miss rate is published by sector.** Both KPIs are `no_source` in `KPI_CATALOGUE` and say so on the card, rather than showing "not yet" forever.
+- **The BFS absence table is published by NOGA section and is readable.** `absenteeism_rate` is `pending`, not blocked: it is the readiest win of the curation pass.
+
+The per KPI status lives in `KPI_CATALOGUE` (`src/features/research/catalogue.ts`) as `peerStatus`, one of `sourced`, `pending` or `no_source`, with a `peerNote` message key in both catalogs. A Vitest test keeps every key's status and note present.

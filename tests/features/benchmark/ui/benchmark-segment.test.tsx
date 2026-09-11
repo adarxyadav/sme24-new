@@ -132,14 +132,20 @@ describe("the waiting states (AC-9)", () => {
 });
 
 describe("the opportunity card (AC-9, AC-14)", () => {
-  it("shows the rounded cost headline, the range, both savings, the confidence and the date", async () => {
+  // The range leads and the working estimate sits beneath it (spec 0016, AC-9). The ends round
+  // outward, so 1 060 180 floors to 1 060 000 and 2 650 450 ceils to 2 651 000: the displayed band
+  // always contains the computed one.
+  it("leads with the outward rounded range, then the working estimate, both savings, the confidence and the date", async () => {
     const { container } = await renderSegment();
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(within(card).getByText(b.card.title)).toBeInTheDocument();
-    expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(chf(1_961_340));
-    expect(
-      within(card).getByText(`Range ${chf(1_060_180)} to ${chf(2_650_450)}`),
-    ).toBeInTheDocument();
+    const range = card.querySelector("[data-cost-range]") as HTMLElement;
+    expect(range).toHaveTextContent(`${chf(1_060_000)} to ${chf(2_651_000)}`);
+    expect(range).toHaveAttribute("data-cost-low", "1060000");
+    expect(range).toHaveAttribute("data-cost-high", "2651000");
+    expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(
+      `Working estimate ${chf(1_961_340)}`,
+    );
     expect(card.querySelector("[data-saving-median]")).toHaveTextContent(chf(522_340));
     expect(card.querySelector("[data-saving-top]")).toHaveTextContent(chf(955_340));
     expect(
@@ -149,13 +155,18 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(within(card).getByText("5 of 8 KPIs compared")).toBeInTheDocument();
   });
 
-  it("rounds a cost below 10 000 to the nearest 100", async () => {
+  it("rounds a cost below 10 000 to the nearest 100, and each range end at its own step", async () => {
     const { container } = await renderSegment({
       snapshot: parsedSnapshot({ costChf: 8_449, costLowChf: 4_120, costHighChf: 11_990 }),
     });
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(chf(8_400));
     expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(/8.400/);
+    // The two ends straddle the 10 000 boundary, so they round at different steps: 4 120 floors
+    // to 4 100 at the nearest 100, 11 990 ceils to 12 000 at the nearest 1 000 (spec 0016, AC-9).
+    const range = card.querySelector("[data-cost-range]") as HTMLElement;
+    expect(range).toHaveAttribute("data-cost-low", "4100");
+    expect(range).toHaveAttribute("data-cost-high", "12000");
   });
 
   it("names the confidence level with the three feature 8 levels", async () => {
@@ -461,21 +472,30 @@ describe("the positions (AC-9, AC-14)", () => {
     ).toHaveClass("sr-only");
   });
 
-  it("names a coarser rung as all industries and all sizes with the nearest year, and no sample", async () => {
+  // A rung 3 or 4 match means the company's own section had no row, and the shape can flip on that
+  // fallback, so the label says the group was broadened rather than naming it as if it were the
+  // company's own sector (spec 0016, AC-6b).
+  it("says the peer group was broadened on a coarser rung, with the nearest year and no sample", async () => {
     const { container } = await renderSegment();
     const row = container.querySelector('[data-position-kpi="ltifr"]') as HTMLElement;
     expect(
-      within(row).getByText("all industries · all sizes · 2021 (nearest year)"),
+      within(row).getByText(`${b.positions.broadened} · all sizes · 2021 (nearest year)`),
     ).toBeInTheDocument();
     expect(within(row).queryByText(/n = /)).not.toBeInTheDocument();
   });
 
-  it("formats the certified share as a percentage and draws no band for a yes or no KPI", async () => {
+  // The certified share is one figure repeated as all three quartiles, so it is a point row: one
+  // labelled sector figure, no band, and none of the words quarter, quartile or median on the row
+  // (spec 0016, AC-6).
+  it("renders the certified share as a point comparison with no band and no quartile wording", async () => {
     const { container } = await renderSegment();
     const row = container.querySelector('[data-position-kpi="iso_45001_certified"]') as HTMLElement;
     expect(within(row).getByText("Yes")).toBeInTheDocument();
-    expect(within(row).getByText(/^p25 30\s?% · median 30\s?% · p75 30\s?%$/)).toBeInTheDocument();
+    expect(row).toHaveAttribute("data-peer-shape", "point");
+    expect(row.querySelector("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "0.3");
+    expect(within(row).getByText(b.positions.pointBasis)).toBeInTheDocument();
     expect(row.querySelector('[data-slot="quartile-band"]')).not.toBeInTheDocument();
+    expect(row.textContent).not.toMatch(/quarter|quartile|median|p25|p75/i);
   });
 
   it("divides an absenteeism value and its quartiles by 100 before the percent format", async () => {
@@ -487,6 +507,36 @@ describe("the positions (AC-9, AC-14)", () => {
     ).toBeInTheDocument();
   });
 
+  // A KPI nobody publishes must say so rather than showing the shared "not yet", which would have
+  // the client waiting for data that is never coming (spec 0016, AC-7, AC-8). Both sourceless KPIs
+  // stay in the list, so the fatality ranking rule in `computeBenchmark` is untouched.
+  it("gives a sourceless KPI its own title and sentence rather than the shared not yet", async () => {
+    const { container } = await renderSegment();
+    const fatalities = container.querySelector(
+      '[data-position-kpi="fatalities"] [data-no-peer]',
+    ) as HTMLElement;
+    expect(within(fatalities).getByText(b.positions.peerStatus.noSourceTitle)).toBeInTheDocument();
+    expect(fatalities).toHaveTextContent(b.positions.peerNote.fatalities);
+    expect(fatalities).not.toHaveTextContent(b.positions.peerStatus.pendingTitle);
+    expect(fatalities.querySelector('[data-peer-status="no_source"]')).toBeInTheDocument();
+  });
+
+  // A `pending` KPI is readable but not read yet, so it keeps a "not yet" wording that names what
+  // is awaited (AC-8). The two states must not collapse into one another.
+  it("keeps a not yet wording for a pending KPI and names what is awaited", async () => {
+    const { container } = await renderSegment();
+    const trifr = container.querySelector(
+      '[data-position-kpi="trifr"] [data-no-peer]',
+    ) as HTMLElement;
+    // Asserted against `pendingTitle`, not the generic `noPeer`: the two strings are byte
+    // identical in both catalogs today, so matching on `noPeer` would pass even if the pending
+    // branch were deleted. This pins the branch, so the wording can be sharpened during curation.
+    expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
+    expect(trifr).toHaveTextContent(b.positions.peerNote.trifr);
+    expect(trifr).not.toHaveTextContent(b.positions.peerStatus.noSourceTitle);
+    expect(trifr.querySelector('[data-peer-status="pending"]')).toBeInTheDocument();
+  });
+
   it("says no value for a KPI without a row and no peer data yet for one without a peer", async () => {
     const { container } = await renderSegment();
     const nearMiss = container.querySelector('[data-position-kpi="near_miss_rate"]') as HTMLElement;
@@ -494,7 +544,9 @@ describe("the positions (AC-9, AC-14)", () => {
     expect(within(nearMiss).queryByText(b.positions.noPeer)).not.toBeInTheDocument();
     const trifr = container.querySelector('[data-position-kpi="trifr"]') as HTMLElement;
     expect(within(trifr).getByText("6.10")).toBeInTheDocument();
-    expect(within(trifr).getByText(b.positions.noPeer)).toBeInTheDocument();
+    // `trifr` is a pending KPI, so the title it renders is `pendingTitle`; `noPeer` would match
+    // only because the two strings are identical today (spec 0016, AC-8).
+    expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
     expect(trifr).toHaveAttribute("data-position", "");
   });
 });

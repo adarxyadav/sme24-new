@@ -12,9 +12,10 @@ import {
   positionOf,
   rateShapeOf,
   roundChf,
+  roundChfRange,
   selectPeer,
 } from "@/features/benchmark/model";
-import { parseSnapshotBlocks, SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
+import { parseSnapshotBlocks, peerShapeOf, SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
 import { KPI_CATALOGUE, KPI_KEYS, type KpiKey } from "@/features/research/catalogue";
 
 const UUID = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -87,6 +88,8 @@ const assumptions: readonly ModelAssumption[] = [
   sourceUrl: null,
   provisional: true,
   effectiveFrom: "2022-12-31",
+  isAssumption: false,
+  note: null,
 }));
 
 const kpis: readonly ModelKpiRow[] = [
@@ -183,10 +186,12 @@ describe("computeBenchmark inputs, peers, positions and gaps (spec 0008, AC-4)",
     expect(positionOf("near_miss_rate", "higher_is_better", 9, quartiles)).toBe("bottom_quarter");
   });
 
-  it("applies the ISO rule: certified is above the median, missing is a gap of 1", () => {
+  it("applies the ISO rule: certified is better than the sector, missing is a gap of 1", () => {
+    // A certified share is one number repeated as all three quartiles, so it is a point row and
+    // takes the two average positions rather than the median wording (spec 0016, AC-5).
     const share = { p25: 0.3, median: 0.3, p75: 0.3 };
-    expect(positionOf("iso_45001_certified", "higher_is_better", 1, share)).toBe("above_median");
-    expect(positionOf("iso_45001_certified", "higher_is_better", 0, share)).toBe("below_median");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 1, share)).toBe("above_average");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 0, share)).toBe("below_average");
     expect(gapOf("iso_45001_certified", "higher_is_better", 0, 0.3)).toEqual({
       gapToMedian: 0.3,
       gapRelative: 1,
@@ -393,6 +398,18 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   });
 
   it("rounds CHF to the nearest 100 below 10 000 and to the nearest 1 000 above", () => {
+    expect(roundChfRange(1_060_400, 2_650_100)).toEqual({ low: 1_060_000, high: 2_651_000 });
+    // The displayed band always contains the computed one: low rounds down, high rounds up, at
+    // the same step roundChf uses either side of 10 000 (spec 0016, AC-9).
+    expect(roundChfRange(4_849, 4_851)).toEqual({ low: 4_800, high: 4_900 });
+    expect(roundChfRange(9_999, 10_001)).toEqual({ low: 9_900, high: 11_000 });
+    // An exact multiple of the step is left where it is, so a clean number gains no false width.
+    expect(roundChfRange(2_000, 12_000)).toEqual({ low: 2_000, high: 12_000 });
+    expect(roundChfRange(0, 0)).toEqual({ low: 0, high: 0 });
+    // The band contains the point estimate for the real seeded multipliers.
+    const { low, high } = roundChfRange(1_060_400, 2_650_100);
+    expect(low).toBeLessThanOrEqual(1_060_400);
+    expect(high).toBeGreaterThanOrEqual(2_650_100);
     expect(roundChf(4_849)).toBe(4_800);
     expect(roundChf(4_850)).toBe(4_900);
     expect(roundChf(9_950)).toBe(10_000);
@@ -586,13 +603,14 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
   // and version 1 is never widened to carry a derived key. Getting this wrong fails quietly,
   // every stored snapshot becomes unreadable and the dashboard drops to its waiting state, so
   // pin the shape rather than trusting a future edit to notice (AC-12).
-  it("keeps both versions in the map and leaves version 1 unwidened (spec 0012, AC-12)", () => {
+  it("keeps every version in the map and leaves version 1 unwidened (spec 0012, AC-12; spec 0016, AC-12)", () => {
     expect(Object.keys(SNAPSHOT_SCHEMAS).sort()).toEqual([
       "benchmark-model@1",
       "benchmark-model@2",
+      "benchmark-model@3",
     ]);
-    // The live write time version is one of them, and it is the newer one.
-    expect(MODEL_VERSION).toBe("benchmark-model@2");
+    // The live write time version is one of them, and it is the newest one.
+    expect(MODEL_VERSION).toBe("benchmark-model@3");
 
     // A version 1 row that somehow carries a derived block drops it: the schema has no such key,
     // so the reader sees an absent block rather than an unvalidated one.
@@ -615,5 +633,242 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
     });
     expect(broken.blocks).toBeNull();
     expect(broken.error).toContain("derived");
+  });
+
+  // A stored @1 or @2 row predates the shape and the source columns, so every reader must handle
+  // their absence rather than assume the newest version (spec 0016, AC-12).
+  it("parses a stored version 2 row whose peer block carries no shape (spec 0016, AC-12)", () => {
+    const stripped = {
+      ...valid,
+      results: valid.results.map((result) =>
+        result.peer === null
+          ? result
+          : {
+              ...result,
+              peer: Object.fromEntries(
+                Object.entries(result.peer).filter(
+                  ([key]) => !["shape", "sourceKey", "basis"].includes(key),
+                ),
+              ),
+            },
+      ),
+      assumptions: valid.assumptions.map((assumption) => {
+        const {
+          isAssumption: _flag,
+          note: _note,
+          ...rest
+        } = assumption as typeof assumption & {
+          isAssumption?: boolean;
+          note?: unknown;
+        };
+        return rest;
+      }),
+    };
+    const v2 = parseSnapshotBlocks({ model_version: "benchmark-model@2", ...stripped });
+    expect(v2.error).toBeNull();
+    const peered = v2.blocks?.results.find((result) => result.peer !== null);
+    expect(peered?.peer?.shape).toBeUndefined();
+    expect(v2.blocks?.assumptions[0]?.isAssumption).toBeUndefined();
+
+    // The same stripped row is not a valid @3 row: the new fields are required there.
+    expect(
+      parseSnapshotBlocks({ model_version: "benchmark-model@3", ...stripped }).blocks,
+    ).toBeNull();
+  });
+});
+
+describe("the peer shape and the two average positions (spec 0016, AC-4, AC-5)", () => {
+  const point = { p25: 44.3, median: 44.3, p75: 44.3 };
+  const spread = { p25: 10, median: 20, p75: 30 };
+
+  it("derives the shape from the values, never from a column", () => {
+    expect(peerShapeOf(point)).toBe("point");
+    expect(peerShapeOf(spread)).toBe("distribution");
+    // Equal ends with a different middle is still a distribution: only all three equal is a point.
+    expect(peerShapeOf({ p25: 10, median: 20, p75: 10 })).toBe("distribution");
+  });
+
+  it("carries the derived shape onto the snapshot's peer block", () => {
+    const rows = [
+      peer("ltifr", "D", "all", [44.3, 44.3, 44.3]),
+      peer("ltifr", "C", "all", [10, 20, 30]),
+    ];
+    expect(selectPeer(rows, "ltifr", "D", "all", 2022)?.shape).toBe("point");
+    expect(selectPeer(rows, "ltifr", "C", "all", 2022)?.shape).toBe("distribution");
+  });
+
+  it("gives a point row only the two average positions, in both directions", () => {
+    // lower is better: at or below the one figure is better than the sector.
+    expect(positionOf("ltifr", "lower_is_better", 40, point)).toBe("above_average");
+    expect(positionOf("ltifr", "lower_is_better", 44.3, point)).toBe("above_average");
+    expect(positionOf("ltifr", "lower_is_better", 50, point)).toBe("below_average");
+    // higher is better: at or above it is better.
+    expect(positionOf("near_miss_rate", "higher_is_better", 50, point)).toBe("above_average");
+    expect(positionOf("near_miss_rate", "higher_is_better", 44.3, point)).toBe("above_average");
+    expect(positionOf("near_miss_rate", "higher_is_better", 40, point)).toBe("below_average");
+  });
+
+  it("routes the ISO branch through the shape rule so it never says median about a point row", () => {
+    // A certified share is one number, so it is always a point row (AC-5).
+    expect(positionOf("iso_45001_certified", "higher_is_better", 1, point)).toBe("above_average");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 0, point)).toBe("below_average");
+    // A distribution keeps the existing two values.
+    expect(positionOf("iso_45001_certified", "higher_is_better", 1, spread)).toBe("above_median");
+    expect(positionOf("iso_45001_certified", "higher_is_better", 0, spread)).toBe("below_median");
+  });
+
+  it("never yields a quartile position for a point row, whatever the value", () => {
+    const quartileBands = ["top_quarter", "above_median", "below_median", "bottom_quarter"];
+    for (const value of [0, 1, 44.29, 44.3, 44.31, 1000]) {
+      for (const direction of ["lower_is_better", "higher_is_better"] as const) {
+        expect(quartileBands).not.toContain(positionOf("ltifr", direction, value, point));
+      }
+    }
+  });
+
+  it("leaves a distribution row's four bands exactly as they were", () => {
+    expect(positionOf("ltifr", "lower_is_better", 5, spread)).toBe("top_quarter");
+    expect(positionOf("ltifr", "lower_is_better", 15, spread)).toBe("above_median");
+    expect(positionOf("ltifr", "lower_is_better", 25, spread)).toBe("below_median");
+    expect(positionOf("ltifr", "lower_is_better", 35, spread)).toBe("bottom_quarter");
+  });
+});
+
+/**
+ * The curator's two source columns reaching the snapshot (spec 0016, AC-11). The rendering side is
+ * covered in `calculation-content.test.tsx`, but nothing yet proves the values survive the trip
+ * from the stored row onto the peer block. This is the half that made `source_note` useless: a
+ * curator writes a sentence and it dies in the database. Every seeded row carries null today, so
+ * the null path is the one that ships and the populated path is the one curation switches on.
+ */
+describe("the peer source columns reach the snapshot (spec 0016, AC-11)", () => {
+  const basis = {
+    de: "Quartile über Suva Klasse 22A, nicht über die NOGA Sektion.",
+    en: "Quartiles over Suva class 22A, not over the NOGA section.",
+  };
+
+  it("copies source_key and basis from the chosen row onto the peer block", () => {
+    const rows = [peer("ltifr", "C", "all", [10, 20, 30], { sourceKey: "Suva class 22A", basis })];
+    const chosen = selectPeer(rows, "ltifr", "C", "all", 2022);
+    expect(chosen?.sourceKey).toBe("Suva class 22A");
+    expect(chosen?.basis).toEqual(basis);
+  });
+
+  it("reads null for a row carrying neither, which is every seeded row today", () => {
+    const rows = [peer("ltifr", "C", "all", [10, 20, 30])];
+    const chosen = selectPeer(rows, "ltifr", "C", "all", 2022);
+    // Absent on the row rather than explicitly null: the `?? null` must normalise both, or the
+    // v3 schema rejects an `undefined` where it requires a nullable string.
+    expect(chosen?.sourceKey).toBeNull();
+    expect(chosen?.basis).toBeNull();
+  });
+
+  it("carries the columns of the row the ladder actually chose, not another rung's", () => {
+    // The section row wins, so the ALL row's caveat must not leak onto the block: a basis sentence
+    // describes one row's quartiles and is wrong about any other.
+    const rows = [
+      peer("ltifr", "C", "all", [10, 20, 30], { sourceKey: "section row", basis }),
+      peer("ltifr", "ALL", "all", [1, 2, 3], {
+        sourceKey: "all row",
+        basis: { de: "falsch", en: "wrong" },
+      }),
+    ];
+    expect(selectPeer(rows, "ltifr", "C", "all", 2022)?.sourceKey).toBe("section row");
+    expect(selectPeer(rows, "ltifr", "J", "all", 2022)?.sourceKey).toBe("all row");
+  });
+
+  it("keeps both columns through a whole computation and its schema parse", () => {
+    const body = compute({
+      peers: [peer("accident_rate_per_1000_fte", "C", "all", [34.9, 49.9, 66.4], { basis })],
+    });
+    const parsed = parseSnapshotBlocks({ model_version: MODEL_VERSION, ...body });
+    expect(parsed.error).toBeNull();
+    const result = parsed.blocks?.results.find(
+      (entry) => entry.key === "accident_rate_per_1000_fte",
+    );
+    // Through the v3 schema rather than off the raw body, so a schema that stripped the field
+    // would fail here rather than passing on the in memory object.
+    expect(result?.peer?.basis).toEqual(basis);
+  });
+});
+
+/**
+ * The signal on a broadened peer group (spec 0016, AC-6b). The rung label is covered in the segment
+ * test; what is not covered is the reason the spec gives for needing it, that the fallback can flip
+ * the shape. A company whose own single point section loses its row during curation falls to the
+ * `ALL` row, which carries real spread, so the page would quietly start drawing a `QuartileBand`
+ * over a comparison group that changed underneath the client.
+ */
+describe("a broadened peer group can change the shape (spec 0016, AC-6b)", () => {
+  const pointRow = (section: string) =>
+    peer("ltifr", section, "all", [44.3, 44.3, 44.3], { periodYear: 2022 });
+  const spreadRow = peer("ltifr", "ALL", "all", [1, 2, 4], { periodYear: 2022 });
+
+  it("reports rung 1 and keeps the point shape while the company's own section has a row", () => {
+    const chosen = selectPeer([pointRow("D"), spreadRow], "ltifr", "D", "all", 2022);
+    expect(chosen?.rung).toBe(1);
+    expect(chosen?.shape).toBe("point");
+    expect(chosen?.industrySection).toBe("D");
+  });
+
+  it("falls to the ALL row and flips to a distribution when that section row goes away", () => {
+    // The same company and the same KPI, with only the section row removed: exactly what a curation
+    // pass does when it retires a row it cannot source.
+    const chosen = selectPeer([spreadRow], "ltifr", "D", "all", 2022);
+    expect(chosen?.rung).toBe(3);
+    expect(chosen?.industrySection).toBe("ALL");
+    // The shape changed under the client, which is why the rung must be visible on the block: this
+    // row now has a real spread and would otherwise draw a band with no signal the group changed.
+    expect(chosen?.shape).toBe("distribution");
+  });
+
+  it("puts the rung on the snapshot so the label can say the group was broadened", () => {
+    // Section J has no row in the suite's peer set, so the accident rate falls to the ALL rung and
+    // the block carries a rung above 2, which is what the label reads.
+    const body = compute({ company: { ...company, industryCode: "62.01" } });
+    const result = body.results.find((entry) => entry.key === "accident_rate_per_1000_fte");
+    expect(result?.peer?.rung).toBeGreaterThan(2);
+    expect(result?.peer?.industrySection).toBe("ALL");
+  });
+});
+
+/**
+ * The property the outward rounding exists for (spec 0016, AC-9). The table above pins chosen
+ * values; this pins the rule itself across the 10 000 step change, where a single step applied to
+ * both ends would round a low of 10 400 up to 11 000 and show a band that excludes the real cost.
+ */
+describe("the displayed range always contains the computed one (spec 0016, AC-9)", () => {
+  it("never rounds a low end up or a high end down, on either side of the step boundary", () => {
+    const values = [0, 1, 99, 100, 4_849, 9_900, 9_999, 10_000, 10_001, 10_400, 99_999, 1_060_400];
+    for (const low of values) {
+      for (const high of values.filter((value) => value >= low)) {
+        const rounded = roundChfRange(low, high);
+        expect(rounded.low).toBeLessThanOrEqual(low);
+        expect(rounded.high).toBeGreaterThanOrEqual(high);
+        // A range never renders inverted, however close the two ends sit.
+        expect(rounded.high).toBeGreaterThanOrEqual(rounded.low);
+      }
+    }
+  });
+
+  it("rounds each end at its own step when the range straddles 10 000", () => {
+    // The end below the boundary takes the 100 step and the end above takes the 1 000 step, so a
+    // low just over 10 000 is not dragged down a whole thousand by its own end's step.
+    expect(roundChfRange(9_950, 10_400)).toEqual({ low: 9_900, high: 11_000 });
+    expect(roundChfRange(10_400, 10_600)).toEqual({ low: 10_000, high: 11_000 });
+  });
+
+  it("contains the point estimate roundChf shows beside it", () => {
+    // The card prints the range and the working estimate together, so a point estimate outside its
+    // own range would read as an arithmetic error to the client.
+    for (const [low, point, high] of [
+      [1_060_400, 1_800_000, 2_650_100],
+      [4_849, 6_000, 9_999],
+      [9_999, 10_500, 12_001],
+    ] as const) {
+      const rounded = roundChfRange(low, high);
+      expect(roundChf(point)).toBeGreaterThanOrEqual(rounded.low);
+      expect(roundChf(point)).toBeLessThanOrEqual(rounded.high);
+    }
   });
 });
