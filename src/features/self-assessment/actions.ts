@@ -4,7 +4,8 @@ import * as Sentry from "@sentry/nextjs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, tasks } from "@trigger.dev/sdk";
 import { KPI_KEYS, type KpiKey } from "@/features/research/catalogue";
-import { type Locale, resolveLocale } from "@/i18n/routing";
+import { LOCALE_CODE, type Locale, resolveLocale } from "@/i18n/routing";
+import { captureServerEvent } from "@/lib/analytics/server";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
@@ -183,6 +184,19 @@ export async function saveClientKpis(
     keys: saved,
     benchmarkQueued,
   });
+  // After the rows are written (AC-8). `kpiKeysSent` counts the keys present in the submission,
+  // not the keys whose value changed, which is why the property is named for what it is.
+  await captureServerEvent({
+    distinctId: userId,
+    event: "kpi.client_saved",
+    properties: {
+      organizationId,
+      locale: LOCALE_CODE[localeOf(input)],
+      companyId,
+      kpiKeysSent: saved.length,
+      reportingYear: periodYear,
+    },
+  });
   return { ok: true, data: { companyId, periodYear, saved, benchmarkQueued } };
 }
 
@@ -227,6 +241,17 @@ export async function clearClientKpi(
     periodYear,
     kpiKey,
     benchmarkQueued,
+  });
+  // After the delete (AC-8): the row is gone, so the research value shows again.
+  await captureServerEvent({
+    distinctId: actor.userId,
+    event: "kpi.client_cleared",
+    properties: {
+      organizationId,
+      locale: LOCALE_CODE[localeOf(input)],
+      companyId,
+      kpiKey,
+    },
   });
   return { ok: true, data: { companyId, kpiKey, periodYear, benchmarkQueued } };
 }

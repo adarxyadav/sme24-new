@@ -15,7 +15,10 @@ import {
   roundChfRange,
 } from "@/features/benchmark/model";
 import { SNAPSHOT_SCHEMAS, type SnapshotBody } from "@/features/benchmark/snapshot";
+import { localeForUser } from "@/features/localization/queries";
 import { isKpiKey } from "@/features/research/catalogue";
+import { LOCALE_CODE } from "@/i18n/routing";
+import { captureServerEvent } from "@/lib/analytics/server";
 import { BENCHMARK_SNAPSHOT_CREATED_EVENT, type NewSendPayload } from "@/lib/email/schema";
 import { taskEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
@@ -182,6 +185,10 @@ export const benchmarkCompanyTask = schemaTask({
       const sent = await sendBenchmarkReady(supabase, ids, company.name, body);
       step("benchmark ready emails queued", { members: sent.members, queued: sent.queued });
     }
+    // After the snapshot insert (AC-8): this task retries up to three times, so firing before the
+    // insert would emit a second event for one logical run when an attempt crashed mid run.
+    // `kpisCompared` is the value written to the row, not `results.length`: the two can differ.
+    await captureBenchmarkComputed(supabase, company, payload.triggerKind, body.kpisCompared);
     return { status: "stored" as const, snapshotId: inserted.id, first };
   },
   onFailure: async ({ payload, error, ctx }) => {
@@ -224,6 +231,49 @@ export const benchmarkCompanyTask = schemaTask({
     });
   },
 });
+
+/**
+ * Fires `benchmark.computed` after the snapshot insert (spec 0017, AC-5, AC-8). The person is the
+ * company's creator, taken from the row this task already loaded rather than from a second query;
+ * the locale is that person's stored one, the same `localeForUser` the email rail uses. A company
+ * whose `created_by` is null (a row created by the service role) is skipped rather than sent under
+ * a placeholder id, because a fabricated person is worse in a funnel than a missing event. Never
+ * throws: the snapshot is already stored and analytics may not fail a stored computation.
+ */
+async function captureBenchmarkComputed(
+  supabase: Service,
+  company: CompanyRow,
+  triggerKind: TriggerKind,
+  kpisCompared: number,
+): Promise<void> {
+  const createdBy = company.created_by;
+  if (!createdBy) {
+    log.info("benchmark.computed not captured: the company has no creator", {
+      companyId: company.id,
+    });
+    return;
+  }
+  try {
+    const locale = await localeForUser(supabase, createdBy);
+    await captureServerEvent({
+      distinctId: createdBy,
+      event: "benchmark.computed",
+      properties: {
+        organizationId: company.organization_id,
+        locale: LOCALE_CODE[locale],
+        companyId: company.id,
+        triggerKind,
+        kpisCompared,
+        modelVersion: MODEL_VERSION,
+      },
+    });
+  } catch (error) {
+    log.warn("benchmark.computed not captured", {
+      companyId: company.id,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 /** How long the global key blocks a second benchmark ready email for the same member and company. */
 const EMAIL_IDEMPOTENCY_TTL = "30d";

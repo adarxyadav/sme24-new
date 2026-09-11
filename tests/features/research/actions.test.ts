@@ -40,6 +40,10 @@ vi.mock("@trigger.dev/sdk", () => ({
 }));
 vi.mock("@/lib/env", () => ({ serverEnv: () => boundary.env }));
 vi.mock("@sentry/nextjs", () => ({ captureException: boundary.captureException }));
+// `captureServerEvent` is `server-only`, which throws under the test environment, so the
+// analytics boundary is mocked here as it is in every other suite that reaches an action firing
+// an event (spec 0017).
+vi.mock("@/lib/analytics/server", () => ({ captureServerEvent: vi.fn().mockResolvedValue(true) }));
 
 function matches(row: Row, filters: Filter[]): boolean {
   return filters.every(([column, op, value]) => {

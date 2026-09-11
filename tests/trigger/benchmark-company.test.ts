@@ -44,6 +44,9 @@ vi.mock("@/lib/env", () => ({
     NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
   }),
 }));
+// `captureServerEvent` is `server-only`, which throws under the test environment; the task fires
+// `benchmark.computed` after the snapshot insert (spec 0017, AC-8).
+vi.mock("@/lib/analytics/server", () => ({ captureServerEvent: vi.fn().mockResolvedValue(true) }));
 vi.mock("@/lib/supabase/service", () => ({ createServiceClient: () => fakeSupabase() }));
 
 const ORG = "0a000000-0000-4000-8000-000000000000";
