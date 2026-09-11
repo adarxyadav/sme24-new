@@ -38,7 +38,7 @@ pnpm test                    # Vitest + Testing Library (tests/, src/**/*.test.*
 pnpm test:e2e                # Playwright + axe (e2e/); starts its own dev server on port 3100, reads .env.local, 2 workers locally; the email flows go through Mailpit, so they run on the local stack only and skip on a deployment; the welcome email and research specs assert on a task only with `TRIGGER_DEV_RUNNING=1` while `pnpm trigger:dev` runs
 pnpm test:db                 # pgTAP policy tests in supabase/tests/; needs the local stack running
 pnpm db:diff <name>          # migration from supabase/schemas/ (declarative sync)
-pnpm db:reset && pnpm db:types   # reapply locally, then regenerate src/lib/supabase/database.types.ts (CI fails when stale)
+pnpm db:reset && pnpm db:types   # reapply locally, then regenerate src/lib/supabase/database.types.ts (CI fails when stale); never from a second worktree, they share one local stack and a reset silently skips the other's migrations
 pnpm trigger:dev             # Trigger.dev tasks locally (needs a project ref; the `trigger` binary comes from the pinned `trigger.dev` dev dependency)
 pnpm email:dev               # React Email preview server on port 3200, one preview per template and language (src/lib/email/previews/)
 pnpm user:invite --email <address> --role expert|ops [--locale de|en] [--name "…"]   # invite a staff user with the role fixed; needs the target environment's Supabase keys in .env.local (docs/auth.md)
