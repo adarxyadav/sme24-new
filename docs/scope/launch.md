@@ -53,7 +53,7 @@ code in `src/lib/analytics/`, `src/lib/alerts/`, `src/trigger/instrumentation.ts
 - [ ] Verify it: `/check verify analytics & monitoring`
 - [x] Test it: `/test analytics & monitoring`
 - [x] Review it (fresh model): `/check review analytics & monitoring`
-- [ ] Document it: `/document analytics & monitoring`
+- [x] Document it: `/document analytics & monitoring`
 
 ### 25. Peer data curation & model honesty · Beta · done
 The first peer seed is provisional by design (spec 0008), and the plan was to read the published tables and clear the flags. Research for spec 0016 found that premise does not hold: no Swiss or European body publishes the indirect to direct accident cost ratio the CHF figure multiplies by, no Swiss source publishes safety outcomes by company size band, and the Suva accident tables use their own premium class scheme rather than NOGA sections. On top of that, eleven of the twenty two seeded rows carry one number repeated as all three quartiles, so a client in those sectors is told they sit in the "Top quarter" of a distribution nobody measured. So this feature changes what the product claims rather than the arithmetic behind it, and leaves the values themselves for you to replace afterwards against a schema that can finally record what they came from.
