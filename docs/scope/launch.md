@@ -52,7 +52,7 @@ code in `src/lib/analytics/`, `src/lib/alerts/`, `src/trigger/instrumentation.ts
   - [x] Tests and the runbook: the catalogue consistency and capture failure suites, `docs/analytics.md` with the taxonomy table and the funnel insight recipe, and the `PROCESSORS` review, which found the privacy page and the record of processing both claiming PostHog "loads only after you accept" and corrected all three surfaces to the two paths and their two bases (AC-11, AC-12)
 - [ ] Verify it: `/check verify analytics & monitoring`
 - [x] Test it: `/test analytics & monitoring`
-- [ ] Review it (fresh model): `/check review analytics & monitoring`
+- [x] Review it (fresh model): `/check review analytics & monitoring`
 - [ ] Document it: `/document analytics & monitoring`
 
 ### 25. Peer data curation & model honesty · Beta · done

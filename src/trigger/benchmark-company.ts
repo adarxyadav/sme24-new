@@ -188,7 +188,17 @@ export const benchmarkCompanyTask = schemaTask({
     // After the snapshot insert (AC-8): this task retries up to three times, so firing before the
     // insert would emit a second event for one logical run when an attempt crashed mid run.
     // `kpisCompared` is the value written to the row, not `results.length`: the two can differ.
-    await captureBenchmarkComputed(supabase, company, payload.triggerKind, body.kpisCompared);
+    // Snapshots are append only, so an attempt that died after its insert leaves a row behind and
+    // the retry inserts its own: the insert cannot say whether this event was already emitted.
+    // `ctx.run.id` can, because it is one id for every attempt of one logical run and a different
+    // one for every legitimate recompute, which must still fire.
+    await captureBenchmarkComputed(
+      supabase,
+      company,
+      payload.triggerKind,
+      body.kpisCompared,
+      ctx.run.id,
+    );
     return { status: "stored" as const, snapshotId: inserted.id, first };
   },
   onFailure: async ({ payload, error, ctx }) => {
@@ -239,12 +249,17 @@ export const benchmarkCompanyTask = schemaTask({
  * whose `created_by` is null (a row created by the service role) is skipped rather than sent under
  * a placeholder id, because a fabricated person is worse in a funnel than a missing event. Never
  * throws: the snapshot is already stored and analytics may not fail a stored computation.
+ *
+ * Keyed by `benchmark-computed/<triggerRunId>` so one logical computation is one event however
+ * many attempts it took (AC-8): every attempt of a run shares the id, and a legitimate recompute
+ * is a different run, so it still fires.
  */
 async function captureBenchmarkComputed(
   supabase: Service,
   company: CompanyRow,
   triggerKind: TriggerKind,
   kpisCompared: number,
+  triggerRunId: string,
 ): Promise<void> {
   const createdBy = company.created_by;
   if (!createdBy) {
@@ -258,6 +273,7 @@ async function captureBenchmarkComputed(
     await captureServerEvent({
       distinctId: createdBy,
       event: "benchmark.computed",
+      dedupeKey: `benchmark-computed/${triggerRunId}`,
       properties: {
         organizationId: company.organization_id,
         locale: LOCALE_CODE[locale],
