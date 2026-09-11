@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { CostIceberg } from "@/components/cost-iceberg";
 import { Example } from "@/components/gallery/gallery-section";
 import { PACKAGES } from "@/features/marketing/packages";
 import { EnquiryForm } from "@/features/marketing/ui/enquiry-form";
@@ -12,13 +13,14 @@ import { SectionHeader } from "@/features/marketing/ui/section-header";
 
 /**
  * The marketing primitives (spec 0009, AC-15): the section opener at its three tiers, the landing
- * hero's client area still, a fixed
+ * hero's client area still, the cost iceberg of the landing number section, a fixed
  * price and the retainer package card, the FAQ accordion, and the enquiry form empty and in its
  * error state, so axe scans every state.
  * Browser; the gallery page hands it the `marketing` messages.
  */
 export function MarketingSection() {
   const t = useTranslations("gallery.marketing");
+  const points = useTranslations("marketing.landing.points");
   const compliance = PACKAGES.find((entry) => entry.key === "compliance");
   const retainer = PACKAGES.find((entry) => entry.key === "retainer");
 
@@ -45,6 +47,14 @@ export function MarketingSection() {
       </Example>
       <Example label={t("heroResearch")}>
         <HeroResearch className="w-full" />
+      </Example>
+      <Example label={t("costIceberg")}>
+        <CostIceberg
+          visible={{ share: 20, title: points("visibleTitle"), figure: points("visibleFigure") }}
+          hidden={{ share: 80, title: points("hiddenTitle"), figure: points("hiddenFigure") }}
+          label={points("graphicLabel")}
+          className="max-w-md"
+        />
       </Example>
       <Example label={t("packages")}>
         <ul className="grid w-full gap-px border bg-border sm:grid-cols-2">

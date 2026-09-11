@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
+import { CostIceberg } from "@/components/cost-iceberg";
 import { Button } from "@/components/ui/button";
 import { webSiteJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
@@ -23,10 +23,14 @@ import { resolveLocale } from "@/i18n/routing";
 const STEPS = ["lookup", "benchmark", "package", "expert"] as const;
 
 /**
- * The picture opposite the cost argument: a walkthrough on an industrial site. It is a photograph
- * of people, so it runs black and white (docs/design.md, Brand).
+ * The two shares the cost iceberg is drawn from (decision B of the client review, accepted
+ * 2026-09-12): the hidden share is the top of the model's own multiplier range, the
+ * `indirect_multiplier_high` assumption of factor 5 in `supabase/seed-data/benchmark-assumptions.csv`
+ * (Heinrich's 1:4 ratio, the ILO cost iceberg), so it is stated as "up to 80 percent" and never
+ * as a bare 80, and the visible share is what that leaves. The words on the drawing come from the
+ * catalogue; these numbers only set its proportions.
  */
-const EXAMPLE_IMAGE = "/campaign/walkthrough.png";
+const COST_SHARES = { visible: 20, hidden: 80 } as const;
 
 /**
  * The landing FAQ, in the order a first time reader asks them: what this is, where the numbers
@@ -208,8 +212,8 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
         what the figure is made of and what one looks like (owner reference, 2026-09-10).
 
         It was one sentence running the page width until then, which is what made a load bearing
-        claim read as a caption. The split is the argument on the left and the worked example on
-        the right, so the prose and the number are read as one exchange rather than as a paragraph
+        claim read as a caption. The split is the argument on the left and the drawing on the
+        right, so the prose and the number are read as one exchange rather than as a paragraph
         with a figure buried in it.
 
         Every driver named is one the model actually charges for. The cost is direct claims times
@@ -237,26 +241,38 @@ export default async function LandingPage({ params }: PageProps<"/[locale]">) {
           </div>
 
           {/*
-            The site walkthrough, opposite the argument (owner decision, 2026-09-10). A figure card
-            stood here until then, which put the page's franc figure in two places -- this card and
-            the benchmark step's own still -- and made the section an assertion answered by a
-            restatement of itself. The photograph answers the prose instead: the copy says an
-            accident costs more than the claim, and the picture is the walkthrough that finds what
-            the claim missed.
+            The cost iceberg, opposite the argument (the client review of 2026-09-11, win 9). A
+            grayscale walkthrough photograph stood here until then, answering a body that said an
+            accident costs more than the claim. The body now carries the figures, so the object
+            beside it is the drawing that carries them too: two shares on the drawing, the count
+            in the body and the sources under it, one point made once. A photograph next to it
+            would have been decoration.
 
-            Grayscale per the brand's imagery rule (docs/design.md, Brand): photographs of people
-            and places are black and white, so the colour original is desaturated here rather than
-            a second file being checked in. The source is 16:9 and is shown at its own ratio, so
-            nothing is cropped off the three people the picture is of.
+            The figures on the page are literal catalogue strings ("up to 80 percent", "99 421"
+            with a non breaking space) rather than runtime formatted numbers; a grouped number is
+            rendered differently by Node and the browser (docs/marketing.md). The source line
+            names where each figure came from without the dataset code: the review moves the
+            machinery off the surface, and docs/design.md keeps every figure naming its source.
           */}
-          <Image
-            src={EXAMPLE_IMAGE}
-            alt={t("points.imageAlt")}
-            width={1920}
-            height={1080}
-            sizes="(min-width: 1024px) 34rem, 100vw"
-            className="w-full grayscale"
-          />
+          <figure className="flex flex-col gap-4 lg:pl-8">
+            <CostIceberg
+              visible={{
+                share: COST_SHARES.visible,
+                title: t("points.visibleTitle"),
+                figure: t("points.visibleFigure"),
+              }}
+              hidden={{
+                share: COST_SHARES.hidden,
+                title: t("points.hiddenTitle"),
+                figure: t("points.hiddenFigure"),
+              }}
+              label={t("points.graphicLabel")}
+              className="max-w-md"
+            />
+            <figcaption className="max-w-prose text-muted-foreground text-xs">
+              {t("points.source")}
+            </figcaption>
+          </figure>
         </div>
       </section>
 

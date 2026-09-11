@@ -354,7 +354,12 @@
         "title": "Machen Sie aus Sicherheitsrisiko eine Zahl, die Ihr CFO kennt.",
         "body": "Ein Unfall kostet mehr als den Schadenfall. Ausfalltage, Stellvertretung, Einarbeitung, Betriebsunterbruch und die Administration danach fallen alle im selben Geschäftsjahr an — und keine davon steht auf der Versicherungsabrechnung.",
         "cta": "Sehen, was Ihr Risiko kostet",
-        "imageAlt": "Drei Sicherheitsfachleute in Helmen und Warnjacken im Gespräch bei einer Begehung in einem Industriebetrieb"
+        "visibleTitle": "Sichtbare Kosten",
+        "visibleFigure": "Mindestens 20 Prozent",
+        "hiddenTitle": "Verborgene Kosten",
+        "hiddenFigure": "Bis zu 80 Prozent",
+        "graphicLabel": "Ein Eisberg: Die sichtbaren Kosten eines Berufsunfalls, mindestens 20 Prozent der Gesamtkosten, liegen über der Wasserlinie; die verborgenen Kosten, bis zu 80 Prozent, liegen darunter.",
+        "source": "Der verborgene Anteil folgt dem Kosten-Eisberg der ILO und dem Verhältnis 1:4 nach Heinrich. Die Zahl stammt von Eurostat, europäische Unfallstatistik, 2023."
       },
       "how": {
         "visual": {
@@ -1357,7 +1362,8 @@
       "sectionEyebrow": "So funktioniert es",
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
       "heroResearch": "Hero-Objekt der Startseite: Standbild des Kundenbereichs",
-      "registerDirectory": "Expertenverzeichnis"
+      "registerDirectory": "Expertenverzeichnis",
+      "costIceberg": "Kosten-Eisberg: der Zahlen-Abschnitt der Startseite"
     },
     "expertAvatar": "Expertenbild",
     "avatarInitials": "Mit Initialen",

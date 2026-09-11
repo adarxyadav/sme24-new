@@ -352,9 +352,14 @@
         "heading": "What a benchmark shows",
         "eyebrow": "The number",
         "title": "Turn safety risk into a number your CFO recognises.",
-        "body": "An accident costs more than the claim. Lost days, cover, retraining, disruption and the paperwork that follows all land on the same year's accounts, and none of them appear on the insurance statement.",
+        "body": "Up to 80 percent of the cost of a workplace accident stays hidden. The insurance statement shows the claim; lost days, cover, retraining, disruption and the paperwork that follows land on the same year's accounts with no line of their own. In Switzerland alone, 99 421 accidents at work led to four or more days of absence in 2023.",
         "cta": "See what your risk costs",
-        "imageAlt": "Three safety specialists in helmets and high visibility jackets talking through a walkthrough on an industrial site"
+        "visibleTitle": "Visible costs",
+        "visibleFigure": "At least 20 percent",
+        "hiddenTitle": "Hidden costs",
+        "hiddenFigure": "Up to 80 percent",
+        "graphicLabel": "An iceberg: the visible costs of a workplace accident, at least 20 percent of the total, sit above the waterline; the hidden costs, up to 80 percent, sit below it.",
+        "source": "The hidden share follows the ILO cost iceberg and Heinrich's 1:4 ratio. The count is from Eurostat, European accident statistics, 2023."
       },
       "how": {
         "visual": {
@@ -1357,7 +1362,8 @@
       "sectionEyebrow": "How it works",
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
       "heroResearch": "Landing hero object: the client area still",
-      "registerDirectory": "Expert directory"
+      "registerDirectory": "Expert directory",
+      "costIceberg": "Cost iceberg: the landing page's number section"
     },
     "expertAvatar": "Expert avatar",
     "avatarInitials": "With initials",
