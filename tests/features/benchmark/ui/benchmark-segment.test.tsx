@@ -507,6 +507,33 @@ describe("the positions (AC-9, AC-14)", () => {
     ).toBeInTheDocument();
   });
 
+  // A KPI nobody publishes must say so rather than showing the shared "not yet", which would have
+  // the client waiting for data that is never coming (spec 0016, AC-7, AC-8). Both sourceless KPIs
+  // stay in the list, so the fatality ranking rule in `computeBenchmark` is untouched.
+  it("gives a sourceless KPI its own title and sentence rather than the shared not yet", async () => {
+    const { container } = await renderSegment();
+    const fatalities = container.querySelector(
+      '[data-position-kpi="fatalities"] [data-no-peer]',
+    ) as HTMLElement;
+    expect(within(fatalities).getByText(b.positions.peerStatus.noSourceTitle)).toBeInTheDocument();
+    expect(fatalities).toHaveTextContent(b.positions.peerNote.fatalities);
+    expect(fatalities).not.toHaveTextContent(b.positions.peerStatus.pendingTitle);
+    expect(fatalities.querySelector('[data-peer-status="no_source"]')).toBeInTheDocument();
+  });
+
+  // A `pending` KPI is readable but not read yet, so it keeps a "not yet" wording that names what
+  // is awaited (AC-8). The two states must not collapse into one another.
+  it("keeps a not yet wording for a pending KPI and names what is awaited", async () => {
+    const { container } = await renderSegment();
+    const trifr = container.querySelector(
+      '[data-position-kpi="trifr"] [data-no-peer]',
+    ) as HTMLElement;
+    expect(within(trifr).getByText(b.positions.noPeer)).toBeInTheDocument();
+    expect(trifr).toHaveTextContent(b.positions.peerNote.trifr);
+    expect(trifr).not.toHaveTextContent(b.positions.peerStatus.noSourceTitle);
+    expect(trifr.querySelector('[data-peer-status="pending"]')).toBeInTheDocument();
+  });
+
   it("says no value for a KPI without a row and no peer data yet for one without a peer", async () => {
     const { container } = await renderSegment();
     const nearMiss = container.querySelector('[data-position-kpi="near_miss_rate"]') as HTMLElement;

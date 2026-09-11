@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
 import {
   type AssumptionUsed,
+  type AssumptionUsedV3,
   type DerivedCount,
   type InputKpi,
   peerShapeOf,
@@ -102,11 +103,16 @@ export function gap(rank: number, key: KpiKey, overrides: Partial<SnapshotGap> =
   return { rank, key, reason: "distance", savingMedianChf: null, gapRelative: null, ...overrides };
 }
 
+/**
+ * An assumption as the task stores it. Overrides are the version 3 shape (spec 0016, AC-10), so a
+ * fixture can set `isAssumption` and `note`; a stored @1 or @2 row carries neither and the default
+ * omits both, which is the path the UI must still render.
+ */
 export function assumptionUsed(
   key: AssumptionUsed["key"],
   value: number,
-  overrides: Partial<AssumptionUsed> = {},
-): AssumptionUsed {
+  overrides: Partial<AssumptionUsedV3> = {},
+): AssumptionUsed & Partial<Omit<AssumptionUsedV3, keyof AssumptionUsed>> {
   return {
     key,
     value,

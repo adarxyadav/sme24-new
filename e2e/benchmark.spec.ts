@@ -215,8 +215,10 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       "data-assumption-value",
       "4811",
     );
+    // The multiplier is a declared assumption, not an unread value: spec 0016 split the two flags,
+    // so it carries the declared assumption badge rather than the provisional one (AC-10).
     await expect(
-      content.locator('[data-assumption="indirect_multiplier"] [data-provisional]'),
+      content.locator('[data-assumption="indirect_multiplier"] [data-declared-assumption]'),
     ).toBeVisible();
     await expect(content.locator('[data-assumption="hours_per_fte"]')).toHaveAttribute(
       "data-assumption-value",
@@ -340,8 +342,19 @@ test("a point row renders a sector comparison with no band and no quartile wordi
     await expect(page.getByRole("heading", { level: 1, name: "Point Row AG" })).toBeVisible();
 
     // Drive a snapshot through the product's own path: saving a figure queues `benchmark-company`.
+    // The form sends only the fields the client changed, so an untouched value is never copied into
+    // a client row and an untouched save returns `nothingToSave` without queueing anything. Enter a
+    // figure first, then wait for the save to land before polling for the snapshot.
     const assessment = page.locator("[data-self-assessment]");
-    await assessment.getByRole("button", { name: /Save/ }).first().click();
+    // 61 rather than the seeded 60: the form diffs each field against its prefilled research value
+    // and drops the ones that match, so re-entering 60 would send nothing at all. Any figure above
+    // the 44.3 sector row keeps the position `below_average`.
+    await assessment.getByRole("textbox", { name: "Accident rate per 1 000 FTE" }).fill("61");
+    await assessment.getByRole("button", { name: "Save and recalculate" }).click();
+    await expect(assessment.locator("[data-kpis-saved]")).toHaveAttribute(
+      "data-kpis-saved",
+      "true",
+    );
     await expect
       .poll(async () => {
         const { count } = await db
