@@ -39,6 +39,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 24 | Ops metrics dashboard | Slice 8 | planned |
 | 25 | Peer data curation & model honesty | Slice 4 | done |
 | 25b | Seller facts & MWST registration | Slice 4 | planned |
+| 25c | Peer data refresh (UVG 2026 & Eurostat) | Slice 4 | in-progress |
 | 26 | Production environment & go live | Slice 4 | planned |
 | 27 | Derived injury counts | Slice 2 | done |
 
@@ -49,7 +50,7 @@ Build order is the `#` above. Each epic file holds its features grouped by phase
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
 - [Client funnel](client.md) · 6 to 10, 22, 23, 27 · 5 of 8 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
 - [Commerce & ops](commerce.md) · 11, 12, 24 · 2 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
-- [Launch](launch.md) · 13 to 15, 25, 25b, 26 · 3 of 6 done · marketing site, legal and consent, analytics and monitoring, the peer data and what the model may claim about it, the seller facts, the production environment. Release 1 ships after this.
+- [Launch](launch.md) · 13 to 15, 25, 25b, 25c, 26 · 3 of 7 done · marketing site, legal and consent, analytics and monitoring, the peer data and what the model may claim about it, the refreshed peer values from UVG 2026 and Eurostat, the seller facts, the production environment. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 1 of 3 done · experts, the three structured assessments, the generated gap report.
 - [Programs & tracking](programs.md) · 19 to 21 · 0 of 3 done · matching, the improvement program, the embedded progress dashboard.
 
@@ -65,7 +66,6 @@ Out of scope for the current build pass, kept so the plan stays honest.
 - **Zefix register lookup**: a type ahead against the federal commercial register (free REST API behind a registered account) so the legal name, UID and canton come from the register instead of the research · from spec 0007
 - **Absenteeism cost line**: extend the incident cost model with absence cost (rate × FTE × working days × absence day cost) as a second CHF line; the assumption table already holds the day cost · from spec 0008
 - **Peer rows for fatalities and near misses**: spec 0016 established that no Swiss source publishes either by sector, so both are declared `no_source` in the KPI catalogue and say so on the card rather than waiting for data · from specs 0008 and 0016
-- **Whether a single class section deserves a peer comparison at all**: spec 0016 keeps the comparison for the eleven sections whose peer row is one Suva class mean and labels it honestly as a sector average; the curation pass may show some of those sections are better off with no comparison · from spec 0016 · needs a decision
 - **Headless CMS for marketing copy**: page copy edited without a deploy; the catalogs and one catalog file per fact set are enough while the site is four pages · from spec 0009
 - **Captcha or edge rate limiting on the enquiry form**: the honeypot, the timing check and the two counted limits ship first; add a challenge or an edge limiter only if the flood guard proves too weak in production · from spec 0009
 - **Lighthouse in CI**: a Lighthouse CI job on the Vercel preview once the hand recorded numbers are stable · from spec 0009
