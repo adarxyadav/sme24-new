@@ -51,7 +51,7 @@ code in `src/lib/analytics/`, `src/lib/alerts/`, `src/trigger/instrumentation.ts
   - [x] Monitoring: the `task.failed` alert kind fired from the existing `tasks.onFailure` hook, and the Sentry release plus source map upload from the Vercel commit SHA (AC-9, AC-10)
   - [x] Tests and the runbook: the catalogue consistency and capture failure suites, `docs/analytics.md` with the taxonomy table and the funnel insight recipe, and the `PROCESSORS` review, which found the privacy page and the record of processing both claiming PostHog "loads only after you accept" and corrected all three surfaces to the two paths and their two bases (AC-11, AC-12)
 - [ ] Verify it: `/check verify analytics & monitoring`
-- [ ] Test it: `/test analytics & monitoring`
+- [x] Test it: `/test analytics & monitoring`
 - [ ] Review it (fresh model): `/check review analytics & monitoring`
 - [ ] Document it: `/document analytics & monitoring`
 
