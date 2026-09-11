@@ -260,9 +260,27 @@ Run the skill against the files you changed before opening a PR, the same way `p
 
 The guidelines are largely already met, and the parts we meet are load bearing, so do not undo them: `[data-numeric]` and `.tabular-nums` in `globals.css` carry `font-variant-numeric` for every figure; the `prefers-reduced-motion` block clamps to 1ms rather than zero so Radix exit animations still fire; `[data-marketing] :is(:target, input, select, textarea, fieldset)` clears the sticky header so a fragment target and the field React Hook Form focuses on an invalid submit both stay in view; `RegisterDirectory` pages at fifty rows rather than mapping 1,929 and defers its grouped count until mount. An `outline-none` on a `tabIndex={-1}` skip link landing (`#main`, the forbidden page, the auth page) is correct and is not a finding.
 
+### Additive only, on a marketing branch
+
+_Adopted 2026-09-09 during the marketing UX pass, recorded here 2026-09-11._
+
+A branch polishing the public pages grows the design system **additively**. Allowed: a **new** token in `src/app/globals.css`, a **new** primitive, a **new** section on the ops only `/admin/design` gallery, a **new** section in this file.
+
+Not allowed: changing the **value** of an existing token, or an existing component's default styling. Those restyle `/app`, `/expert` and `/admin` — areas nobody is looking at while working on a marketing page. If a value genuinely must change, that is its own change on its own branch, reviewed across all four areas.
+
+Check before every PR; additive shows as pure `+` lines:
+
+```
+git diff main -- src/app/globals.css docs/design.md src/components/
+```
+
+`src/components/` is in the command because the token files alone do not catch the second half of the rule: a shared primitive restyled in place changes `/app`, `/expert` and `/admin` without touching a token. The weight cap of 2026-09-10 is the worked example — it landed as four `-` lines under `src/components/` (`app-sidebar`, `page-header`, `signature`, `logo`) and none in `globals.css`.
+
+Any `-` line touching an existing token or a primitive's default styling is the thing to challenge. A deliberate exception answers with the decision behind it and the gate that holds it — the weight cap answers with the owner decision and `tests/font-weight.test.ts`.
+
 ### The four fixes
 
-Four gaps were real when the gate was adopted. All four are additive, so all four sit inside a marketing branch's design system rule.
+Four gaps were real when the gate was adopted. All four are additive, so all four sit inside the rule above.
 
 | Fix | Where | Why |
 |---|---|---|
