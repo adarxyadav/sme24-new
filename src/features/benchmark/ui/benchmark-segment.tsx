@@ -354,6 +354,11 @@ function DerivedBlock({
           hours: format.number(derived.hoursPerFte, "integer"),
         })}
       </p>
+      {/* The recordable count sits beside a franc figure that ignores it (spec 0016 amendment,
+          AC-31): say so here, where the two meet, rather than only in the disclosure. */}
+      <p className="text-muted-foreground text-xs" data-derived-priced>
+        {t("derived.priced")}
+      </p>
     </div>
   );
 }

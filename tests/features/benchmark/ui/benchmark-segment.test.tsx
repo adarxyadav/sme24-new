@@ -344,6 +344,21 @@ describe("the derived injury counts (spec 0012)", () => {
     );
   });
 
+  it("says the franc figure prices lost time accidents only (spec 0016 amendment, AC-31)", async () => {
+    const { container } = await renderSegment(withDerived());
+    const block = container.querySelector("[data-derived-block]") as HTMLElement;
+    const line = block.querySelector("[data-derived-priced]") as HTMLElement;
+    expect(line).toBeInTheDocument();
+    expect(line).toHaveTextContent(b.derived.priced);
+    // The line belongs to the counts it qualifies, after the recordable count and before the figure.
+    const recordable = container.querySelector('[data-derived-count="recordable"]') as HTMLElement;
+    const headline = container.querySelector("[data-cost-headline]") as HTMLElement;
+    expect(
+      recordable.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(line.compareDocumentPosition(headline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("carries no confidence score anywhere on the block (AC-5)", async () => {
     const { container } = await renderSegment(withDerived());
     const block = container.querySelector("[data-derived-block]") as HTMLElement;

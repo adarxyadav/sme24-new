@@ -1811,7 +1811,8 @@
       "fromResearch": "Calculated from the researched {kpi} for {year}",
       "fromClientSuva": "Calculated from your Suva accident rate for {year}",
       "fromResearchSuva": "Calculated from the researched Suva accident rate for {year}",
-      "exposure": "Based on {fte} employees and {hours} hours each a year"
+      "exposure": "Based on {fte} employees and {hours} hours each a year",
+      "priced": "The franc figure prices lost time accidents only. Recordable injuries are shown for context and are not priced."
     },
     "gaps": {
       "title": "Priority gaps",

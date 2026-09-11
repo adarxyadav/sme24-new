@@ -1811,7 +1811,8 @@
       "fromResearch": "Berechnet aus der recherchierten {kpi} für {year}",
       "fromClientSuva": "Berechnet aus Ihrer Suva Unfallrate für {year}",
       "fromResearchSuva": "Berechnet aus der recherchierten Suva Unfallrate für {year}",
-      "exposure": "Basierend auf {fte} Mitarbeitenden und je {hours} Stunden pro Jahr"
+      "exposure": "Basierend auf {fte} Mitarbeitenden und je {hours} Stunden pro Jahr",
+      "priced": "Der Frankenbetrag bewertet nur Unfälle mit Ausfallzeit. Meldepflichtige Unfälle dienen der Einordnung und werden nicht bewertet."
     },
     "gaps": {
       "title": "Prioritäre Lücken",
