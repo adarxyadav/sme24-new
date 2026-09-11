@@ -1852,12 +1852,12 @@
         "pendingTitle": "Noch keine Vergleichsdaten"
       },
       "peerNote": {
-        "fatalities": "Keine Schweizer Quelle publiziert Unfalltodesraten nach Branche, es gibt also keinen Vergleichswert.",
+        "fatalities": "Unfalltodesraten sind für die Schweiz nach Branche in der europäischen Unfallstatistik publiziert und noch nicht in die Vergleichsdaten eingelesen.",
         "near_miss_rate": "Beinahe-Unfälle werden von keiner Schweizer Stelle erhoben, es gibt also keinen Vergleichswert.",
         "absenteeism_rate": "Die Schweizer Absenztabelle ist nach Branche publiziert und noch nicht in die Vergleichsdaten eingelesen.",
         "ltifr": "Für die Schweiz ist keine LTIFR nach Branche publiziert; die Suva-Unfallrate ist vorerst die vergleichbare Zahl.",
         "trifr": "Für die Schweiz ist keine TRIFR nach Branche publiziert; die Suva-Unfallrate ist vorerst die vergleichbare Zahl.",
-        "lost_days_per_incident": "Ausfalltage pro Unfall lassen sich aus den Suva-Tabellen ableiten und sind noch nicht eingelesen.",
+        "lost_days_per_incident": "Ausfalltage pro Unfall sind für die Schweiz nach Branche in der europäischen Unfallstatistik publiziert und noch nicht in die Vergleichsdaten eingelesen.",
         "iso_45001_certified": "Keine Schweizer Stelle publiziert Zertifizierungsanteile nach Branche; ein Anteil ist noch nicht eingelesen.",
         "accident_rate_per_1000_fte": "Aus den Suva-UVG-Unfalltabellen eingelesen."
       }

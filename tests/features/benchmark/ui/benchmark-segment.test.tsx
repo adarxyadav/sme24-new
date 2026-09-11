@@ -508,17 +508,28 @@ describe("the positions (AC-9, AC-14)", () => {
   });
 
   // A KPI nobody publishes must say so rather than showing the shared "not yet", which would have
-  // the client waiting for data that is never coming (spec 0016, AC-7, AC-8). Both sourceless KPIs
-  // stay in the list, so the fatality ranking rule in `computeBenchmark` is untouched.
+  // the client waiting for data that is never coming (spec 0016, AC-7, AC-8). Near misses are the
+  // one KPI no body anywhere collects; fatalities moved to `pending` under the 2026-09-12
+  // amendment once Eurostat's sector rate was found.
   it("gives a sourceless KPI its own title and sentence rather than the shared not yet", async () => {
-    const { container } = await renderSegment();
-    const fatalities = container.querySelector(
-      '[data-position-kpi="fatalities"] [data-no-peer]',
+    // The fixture has no near miss value, so give it one with no peer row for this case.
+    const base = parsedSnapshot().blocks;
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot(
+        {},
+        {
+          inputs: { ...base.inputs, kpis: [...base.inputs.kpis, inputKpi("near_miss_rate", 14)] },
+          results: [...base.results, result("near_miss_rate")],
+        },
+      ),
+    });
+    const nearMiss = container.querySelector(
+      '[data-position-kpi="near_miss_rate"] [data-no-peer]',
     ) as HTMLElement;
-    expect(within(fatalities).getByText(b.positions.peerStatus.noSourceTitle)).toBeInTheDocument();
-    expect(fatalities).toHaveTextContent(b.positions.peerNote.fatalities);
-    expect(fatalities).not.toHaveTextContent(b.positions.peerStatus.pendingTitle);
-    expect(fatalities.querySelector('[data-peer-status="no_source"]')).toBeInTheDocument();
+    expect(within(nearMiss).getByText(b.positions.peerStatus.noSourceTitle)).toBeInTheDocument();
+    expect(nearMiss).toHaveTextContent(b.positions.peerNote.near_miss_rate);
+    expect(nearMiss).not.toHaveTextContent(b.positions.peerStatus.pendingTitle);
+    expect(nearMiss.querySelector('[data-peer-status="no_source"]')).toBeInTheDocument();
   });
 
   // A `pending` KPI is readable but not read yet, so it keeps a "not yet" wording that names what

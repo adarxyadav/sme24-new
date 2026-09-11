@@ -72,7 +72,9 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   fatalities: {
     key: "fatalities",
-    peerStatus: "no_source",
+    // Eurostat hsw_n2_02 publishes the Swiss fatal accident rate by NACE section; the rows land in
+    // block B of the spec 0016 amendment (AC-19, AC-26), which flips this to `sourced`.
+    peerStatus: "pending",
     peerNote: "positions.peerNote.fatalities",
     unit: "count",
     direction: "lower_is_better",

@@ -1852,12 +1852,12 @@
         "pendingTitle": "No peer data yet"
       },
       "peerNote": {
-        "fatalities": "No Swiss source publishes fatality rates by sector, so there is no peer figure to compare against.",
+        "fatalities": "Fatal accident rates are published for Switzerland by sector in the European accident statistics and are not read into the peer set yet.",
         "near_miss_rate": "Near miss reporting is not collected by any Swiss body, so there is no peer figure to compare against.",
         "absenteeism_rate": "The Swiss absence table is published by sector and is not read into the peer set yet.",
         "ltifr": "No Swiss LTIFR is published by sector; the Suva accident rate is the comparable figure for now.",
         "trifr": "No Swiss TRIFR is published by sector; the Suva accident rate is the comparable figure for now.",
-        "lost_days_per_incident": "Lost days per accident are derivable from the Suva tables and are not read into the peer set yet.",
+        "lost_days_per_incident": "Lost days per accident are published for Switzerland by sector in the European accident statistics and are not read into the peer set yet.",
         "iso_45001_certified": "No Swiss body publishes certification shares by sector; a share is not read into the peer set yet.",
         "accident_rate_per_1000_fte": "Read from the Suva UVG accident tables."
       }
