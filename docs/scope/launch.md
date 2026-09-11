@@ -37,7 +37,7 @@ spec [0015](../specs/0015-legal-privacy-cookie-consent/index.md)
 - [x] Review it (fresh model): `/check review legal, privacy & cookie consent`
 - [x] Document it: `/document legal, privacy & cookie consent`
 
-### 15. Analytics & monitoring · in-progress
+### 15. Analytics & monitoring · done
 Conversion funnel events (lookup started, run finished, benchmark viewed, checkout started, payment completed, enquiry sent) plus runtime error monitoring, failed background job alerts and slow page reporting. The event taxonomy is the decision; consent from feature 14 gates the client side part.
 **Done when:** each funnel event is recorded with organization and language, a funnel view shows drop off between steps, runtime errors and failed research runs alert your team with enough context to reproduce.
 Carried over from earlier specs: `benchmark.viewed` and `benchmark.computed` with their properties (spec 0008), `kpi.client_saved` and `kpi.client_cleared` (spec 0010), and confirm or rename the provisional `enquiry_sent` event and add the marketing funnel events (spec 0009).

@@ -78,6 +78,14 @@ Two events renamed with this spec, so their staging history before 2026-09-11 si
 - [ ] **Consent**: with no answer and with a denied answer, no PostHog request and no `ph_*` cookie leaves the browser; after accepting, `benchmark.viewed` fires once on the dashboard. `e2e/analytics.spec.ts` drives this; it needs a real key, so an environment with an empty `NEXT_PUBLIC_POSTHOG_KEY` proves nothing here.
 - [ ] **Server events survive rejection**: reject analytics, run a lookup, confirm `lookup.started` still arrives. This is the claim the funnel rests on, and it is invisible locally where the key is usually empty.
 
+## Open on staging as of 11 Sep 2026
+
+Recorded so they are not rediscovered. None is a defect in the feature; all three are environment state that only a deployment can close.
+
+- **`E2E_SEED_PASSWORD` is not a repository secret**, so the three `benchmark.viewed` tests in `e2e/analytics.spec.ts` (the AC-4 and AC-6 thread) skip rather than run, and the consent line above stays unproven in CI. Closing it is `pnpm users:seed` against staging followed by `gh secret set E2E_SEED_PASSWORD`. Expect the first green run after that to surface failures that were hiding behind the 81 skips, so run it when there is time to read the result.
+- **`pnpm budget` has never run on `main`.** The budget step lives in `e2e.yml`, whose `deployment_status` guard did not match on either run for `997e99c`, so both were skipped. The fix that keeps the zod runtime out of the browser bundle (`cd41157`, spec 0009 AC-16) is therefore proven locally and on the pull request preview only, never on a `main` deployment.
+- **Migrations are not reaching staging.** `Deploy database and tasks` fails on `main` (run `34621421887`): `supabase db push` reports migration history drift, because the remote holds `20260906073908` with no matching local file. The repair is `supabase migration repair --status reverted 20260906073908`, which is a human decision about remote state, so nobody should run it unprompted. Until it is settled, no migration lands on staging.
+
 ## Data protection
 
 Events carry ids and codes, never personal content: no email address, no contact name, no company name and no free text message is ever a property. `enquiry.sent` carries the topic code, not the message. The schemas enforce it rather than the call sites, because a `z.object` strips a property it does not declare, so a well meant addition at a call site is dropped rather than sent.

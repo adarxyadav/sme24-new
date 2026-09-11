@@ -27,7 +27,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 12 | Ops admin: orders, companies & scheduling | Slice 3 | done |
 | 13 | Marketing site & retainer enquiry | Slice 4 | done |
 | 14 | Legal, privacy & cookie consent | Slice 4 | done |
-| 15 | Analytics & monitoring | Slice 4 | in-progress |
+| 15 | Analytics & monitoring | Slice 4 | done |
 | 16 | Expert accounts & profiles | Slice 5 | done |
 | 17 | Structured assessment forms | Slice 5 | planned |
 | 18 | Gap report | Slice 5 | planned |
@@ -49,7 +49,7 @@ Build order is the `#` above. Each epic file holds its features grouped by phase
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
 - [Client funnel](client.md) · 6 to 10, 22, 23, 27 · 5 of 8 done · sign in, company lookup, AI research, benchmark and CHF opportunity, plus later team and notification strands.
 - [Commerce & ops](commerce.md) · 11, 12, 24 · 2 of 3 done · fixed price checkout with Swiss VAT, the ops admin, ops metrics.
-- [Launch](launch.md) · 13 to 15, 25, 25b, 26 · 2 of 6 done · marketing site, legal and consent, analytics and monitoring, the peer data and what the model may claim about it, the seller facts, the production environment. Release 1 ships after this.
+- [Launch](launch.md) · 13 to 15, 25, 25b, 26 · 3 of 6 done · marketing site, legal and consent, analytics and monitoring, the peer data and what the model may claim about it, the seller facts, the production environment. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 1 of 3 done · experts, the three structured assessments, the generated gap report.
 - [Programs & tracking](programs.md) · 19 to 21 · 0 of 3 done · matching, the improvement program, the embedded progress dashboard.
 
