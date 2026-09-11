@@ -157,6 +157,11 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
       "peerStatus.pendingTitle",
       "band.above_average",
       "band.below_average",
+      // The fatality peer rows are point rows (amendment AC-26), so the three strings the fatality
+      // branch renders on that path are guarded too (amendment AC-23).
+      "fatalityRate",
+      "fatalityCompared",
+      "fatalityNeedsHeadcount",
     ] as const;
     // Both languages, because "quarter" and "median" travel into German as "Viertel" and "Median".
     const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;

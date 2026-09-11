@@ -20,8 +20,10 @@ function marketingFigures(): readonly string[] {
 }
 
 describe("the public worked example (spec 0016, AC-14)", () => {
-  // The example company the homepage names: 120 FTE in NOGA section C, sitting at the p75 of its
-  // own section's accident rate, which is the "room to improve" end of the published spread.
+  // The example company the homepage names: 120 FTE in NOGA section C, with the accident rate at
+  // the p75 of its own section's all sizes row, the "room to improve" end of the published spread.
+  // At 120 FTE the model measures it against the section's `50-249` band row (amendment D4), so
+  // the saving is computed against that row's median, not the all sizes one.
   const peers = seedPeers();
   const sectionC = peers.find(
     (row) => row.kpiKey === "accident_rate_per_1000_fte" && row.industrySection === "C",

@@ -87,7 +87,7 @@ spec [0016](../specs/0016-peer-data-curation-launch-gate/index.md), the amendmen
   - [x] Block C, what the client sees: `basis` and `source_key` confirmed on a real card in both languages, the lost time only disclosure line, the distribution wording decided with the copy (AC-30, AC-31)
 - [x] Verify it: `/check verify peer data refresh`
 - [x] Test it: `/test peer data refresh`
-- [ ] Review it (fresh model): `/check review peer data refresh`
+- [x] Review it (fresh model): `/check review peer data refresh`
 - [ ] Close: the staging version query, one watched recompute, both gate queries, the recompute boxes in spec 0012 `verify.md` and spec 0016 ticked (AC-32)
 
 ### 26. Production environment & go live

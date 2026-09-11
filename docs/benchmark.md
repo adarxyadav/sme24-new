@@ -91,15 +91,15 @@ The peer values and the assumptions live in two CSV files and reach the database
 
 The three `indirect_multiplier*` rows are the only declared assumptions today: no Swiss or European body publishes an indirect to direct accident cost ratio, so the low bound is the ILO's, the high bound is Heinrich (1931) which modern safety science disputes, and the middle is SME24's own estimate. Each says so in its own `note`, which the disclosure renders (AC-10).
 
-Two columns record what a peer value actually came from. Both are null on every row today; filling them is the curation pass, not a code change.
+Two columns record what a peer value actually came from. Both are filled on every one of the 122 seeded rows since the peer data refresh of 12 Sep 2026 (`benchmarks.test.sql` and `seed.test.ts` both assert it), so a new row without them is a seed error, not a pending curation step.
 
 - **`source_key`**: the source's own classification the row was read from, for example `Suva class 22A`. Set it when the source publishes on a different axis than the row is keyed by. The positions list names it instead of the NOGA section.
 - **`basis`** (`basis_de`, `basis_en`, both or neither): one sentence saying what the quartiles describe. This is the caveat the client sees. `source_note` stays an internal reading note and is not shown.
 
-A row's **shape** is never a column. `p25 == median == p75` makes it a `point` row, anything else a `distribution` row, derived in the model from the values themselves (AC-4). A point row renders one sector figure with no quartile band and never the words quarter, quartile or median. Eleven of the twenty two seeded rows are point rows today, because their NOGA section holds a single Suva class.
+A row's **shape** is never a column. `p25 == median == p75` makes it a `point` row, anything else a `distribution` row, derived in the model from the values themselves (AC-4). A point row renders one sector figure with no quartile band and never the words quarter, quartile or median. Of the 122 seeded rows, 84 are point rows: every Eurostat and BFS row by construction (one published figure per section), and 21 of the 59 accident rate rows, those whose NOGA section holds a single Suva branch or are a band scaled from one. `tests/features/benchmark/runbook.test.ts` pins both counts to the committed CSV.
 - `pnpm benchmarks:migration` parses both files with the Zod schemas in `src/features/benchmark/seed-schema.ts`, stops with the file and line number on the first invalid row, and writes `supabase/migrations/<timestamp>_benchmark_seed.sql` with one `insert … on conflict do update` per row, followed by one `delete` that retires every peer row the CSV no longer names (so the CSV is the whole peer table and a replaced reading under a new year does not linger beside the new row; snapshots keep their own copy of the rows they used, so nothing stored changes). The timestamp is strictly later than the newest migration, so the seed always applies after the table migration. Commit the generated file; every run makes a new one, so delete a duplicate you did not mean to keep.
 
-After generating: `pnpm db:reset`, `pnpm test:db` (the pgTAP suites count the seven assumptions and the `ALL`/`all` accident rate row and assert every row is provisional until the launch gate below changes that expectation), then `pnpm db:types` if a column changed.
+After generating: `pnpm db:reset`, `pnpm test:db` (the pgTAP suites count the seven assumptions, every KPI's row set and the `ALL`/`all` accident rate row, and assert that no seeded peer row is provisional, so a new row that has not been read from its source fails there first), then `pnpm db:types` if a column changed.
 
 ## The source checklist, and what the seed actually holds
 

@@ -689,7 +689,15 @@ function PositionRow({
               <span className="sr-only">
                 {t("positions.srSector", {
                   kpi: name,
-                  value: value ?? "",
+                  // A fatality count was judged as a rate, so the narration compares the rate to
+                  // the sector rate rather than a count to a rate (amendment D3, AC-23); the
+                  // count itself is read from the value column.
+                  value:
+                    comparedValue !== null && key === "fatalities"
+                      ? t("positions.fatalityRate", {
+                          value: formatKpiValue(comparedValue, "decimal2", format, yesNo),
+                        })
+                      : (value ?? ""),
                   band: bandLabel,
                   sector: sectorFigure,
                 })}

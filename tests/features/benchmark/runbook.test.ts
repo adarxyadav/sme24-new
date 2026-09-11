@@ -136,6 +136,34 @@ describe("the runbook matches the code (spec 0016 amendment, AC-18)", () => {
     ).toBe(String(rounded));
   });
 
+  // The shape paragraph quotes how many seeded rows are point rows. Counted here from the committed
+  // CSV with the same rule the model applies (`p25 == median == p75`), so a seed edit that adds or
+  // retires a point row fails the build instead of leaving a stale count in the runbook.
+  it("quotes the point row count the committed seed actually gives", () => {
+    const table = parseCsv(readFileSync(join(SEED_DIR, "benchmarks.csv"), "utf8"));
+    const isPoint = (fields: Record<string, string>) =>
+      fields.p25 === fields.median && fields.median === fields.p75;
+    const total = table.records.length;
+    const points = table.records.filter((record) => isPoint(record.fields)).length;
+    const accidentRows = table.records.filter(
+      (record) => record.fields.kpi_key === "accident_rate_per_1000_fte",
+    );
+    const accidentPoints = accidentRows.filter((record) => isPoint(record.fields)).length;
+    const sentence =
+      /Of the (\d+) seeded rows, (\d+) are point rows: .*?(\d+) of the (\d+) accident rate rows/.exec(
+        RUNBOOK,
+      );
+    expect(sentence, "the runbook's point row sentence").not.toBeNull();
+    const [, quotedTotal, quotedPoints, quotedAccidentPoints, quotedAccidentRows] =
+      sentence as RegExpExecArray;
+    expect([quotedTotal, quotedPoints, quotedAccidentPoints, quotedAccidentRows]).toEqual([
+      String(total),
+      String(points),
+      String(accidentPoints),
+      String(accidentRows.length),
+    ]);
+  });
+
   // The three Eurostat tables the amendment found readable are named where the next curator will
   // look, so the dead end of "no fatality rate, no size bands, no lost days" cannot come back.
   it("records the three Eurostat tables as readable", () => {
