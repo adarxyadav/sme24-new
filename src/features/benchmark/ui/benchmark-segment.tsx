@@ -69,6 +69,9 @@ function formatQuartile(
   yesNo: { readonly yes: string; readonly no: string },
 ): string {
   if (key === "iso_45001_certified") return format.number(value, "percent");
+  // The fatality peer row is a rate per 100 000 employed persons, never the count's whole number
+  // format (spec 0016 amendment, AC-23); the unit is added by the caller.
+  if (key === "fatalities") return formatKpiValue(value, "decimal2", format, yesNo);
   return formatKpiValue(value, KPI_CATALOGUE[key].format, format, yesNo);
 }
 
@@ -350,6 +353,11 @@ function DerivedBlock({
           fte: format.number(derived.fte, "integer"),
           hours: format.number(derived.hoursPerFte, "integer"),
         })}
+      </p>
+      {/* The recordable count sits beside a franc figure that ignores it (spec 0016 amendment,
+          AC-31): say so here, where the two meet, rather than only in the disclosure. */}
+      <p className="text-muted-foreground text-xs" data-derived-priced>
+        {t("derived.priced")}
       </p>
     </div>
   );
@@ -642,7 +650,16 @@ function PositionRow({
   // A stored @1 or @2 row carries no shape, so derive it from the values it does carry: the rule
   // is the same one the model applies (spec 0016, AC-4, AC-12).
   const shape = peer ? (peer.shape ?? peerShapeOf(peer)) : null;
-  const sectorFigure = peer && key ? formatQuartile(key, peer.median, format, yesNo) : null;
+  const sectorFigure =
+    peer && key
+      ? key === "fatalities"
+        ? t("positions.fatalityRate", { value: formatQuartile(key, peer.median, format, yesNo) })
+        : formatQuartile(key, peer.median, format, yesNo)
+      : null;
+  // The value the position was judged on when it differs from the stored one: the fatality rate
+  // (spec 0016 amendment, AC-22). Absent on a stored @1 to @3 row.
+  const comparedValue = result?.comparedValue ?? null;
+  const fte = snapshot.blocks.inputs.fte;
 
   return (
     <li
@@ -672,7 +689,15 @@ function PositionRow({
               <span className="sr-only">
                 {t("positions.srSector", {
                   kpi: name,
-                  value: value ?? "",
+                  // A fatality count was judged as a rate, so the narration compares the rate to
+                  // the sector rate rather than a count to a rate (amendment D3, AC-23); the
+                  // count itself is read from the value column.
+                  value:
+                    comparedValue !== null && key === "fatalities"
+                      ? t("positions.fatalityRate", {
+                          value: formatKpiValue(comparedValue, "decimal2", format, yesNo),
+                        })
+                      : (value ?? ""),
                   band: bandLabel,
                   sector: sectorFigure,
                 })}
@@ -688,6 +713,19 @@ function PositionRow({
               >
                 {t("positions.sector", { value: sectorFigure })}
               </span>
+              {comparedValue !== null && key === "fatalities" ? (
+                <span
+                  className="text-muted-foreground text-xs tabular-nums"
+                  data-numeric
+                  data-compared-value={comparedValue}
+                >
+                  {t("positions.fatalityCompared", {
+                    value: t("positions.fatalityRate", {
+                      value: formatKpiValue(comparedValue, "decimal2", format, yesNo),
+                    }),
+                  })}
+                </span>
+              ) : null}
               <span className="text-muted-foreground text-xs">{t("positions.pointBasis")}</span>
               <span className="text-muted-foreground text-xs">{peerLabel(peer, t)}</span>
             </>
@@ -728,7 +766,13 @@ function PositionRow({
                   ? t("positions.peerStatus.pendingTitle")
                   : t("positions.noPeer")}
             </span>
-            {key ? (
+            {key === "fatalities" && !(fte && fte > 0) ? (
+              // A count cannot become a rate without a headcount, so the model compared nothing
+              // (spec 0016 amendment, D3, AC-23): say what is missing rather than "no peer data".
+              <span className="text-xs" data-fatality-needs-headcount>
+                {t("positions.fatalityNeedsHeadcount")}
+              </span>
+            ) : key ? (
               <span className="text-xs" data-peer-status={KPI_CATALOGUE[key].peerStatus}>
                 {t(KPI_CATALOGUE[key].peerNote as "positions.noPeer")}
               </span>

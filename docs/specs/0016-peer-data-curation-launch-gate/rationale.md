@@ -124,3 +124,14 @@ Two read only research passes were run for this spec on 2026-09-11. Findings tha
 - SSUV/Suva, the UVG statistics class time series index showing the premium class structure: https://www.unfallstatistik.ch/d/neuza/suva_klasse_d.htm
 - BFS, the health related absence rate by Wirtschaftsabschnitt: https://www.bfs.admin.ch/asset/de/36569173
 - BFS STATENT, establishments and employment by NOGA and size class: https://www.bfs.admin.ch/bfs/de/home/statistiken/industrie-dienstleistungen/erhebungen/statent.html
+
+## Amendment of 2026-09-12: why these four decisions
+
+Recorded from the owner's brief of 12 Sep 2026 and the "Benchmark Repair Plan" artifact; the options weighed live there in full, this is the short form.
+
+- **A peer reference of 0.** Options were to keep "no reference", to price it, or to price it with a reporting caveat. Pricing it was chosen: the rule in AC-18 of spec 0008 was aimed at a missing median, not at a legitimate zero, and a safest quarter with no incidents is exactly where the largest opportunity sits. The caveat option adds a sentence the data does not support (no Swiss source distinguishes reporting from safety at that level).
+- **Single class sections.** Options were to keep the labelled comparison, to hide it, or to fall back to the all industry row. Keeping it was chosen: the point row machinery of this spec already renders it honestly, and an all industry fallback is comparable across clients but less specific than the client's own sector.
+- **Fatalities.** Options were to convert at compare time, to add a `fatality_rate` KPI, or to show the sector rate as context only. Converting was chosen: one model rule and one stored field, no new `kpi_definitions` row, no new research target, and the client still gets a position. A new KPI would have been cleaner but would have doubled the surface for a KPI most companies report as 0.
+- **Size bands.** Options were to scale the Suva row by the Eurostat band ratio, to store the Eurostat rows on a separate KPI, or to leave the bands empty. Scaling was chosen: it keeps one unit on the KPI so peer selection cannot pick a wrong unit row, it is size aware, and `basis` can say plainly that it is an estimate. Separate rows would have shown two rates for one thing.
+
+Two things this amendment refuses, for the record: the ISSA "return on prevention" 2.2 as a multiplier (it is a return on investment, not a cost ratio) and the 25 to 50 thousand and 5 to 15 thousand franc injury bands from the two tier model (unsourced, and they price a recordable injury above a lost time one).

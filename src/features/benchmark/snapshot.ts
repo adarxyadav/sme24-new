@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { KPI_KEYS } from "@/features/research/catalogue";
-import { ASSUMPTION_KEYS, SIZE_BANDS } from "./catalogue";
+import { ASSUMPTION_KEYS, type AssumptionKey, SIZE_BANDS } from "./catalogue";
 
 /**
  * The snapshot block schemas (spec 0008, AC-4, AC-9): what `benchmark_snapshots.inputs`,
@@ -209,6 +209,27 @@ export const snapshotBlocksV3Schema = snapshotBlocksV2Schema.extend({
 });
 
 /**
+ * A version 4 result (spec 0016 amendment of 2026-09-12, AC-22): `comparedValue` is the value the
+ * position was actually judged on when it differs from the stored value. Today that is only the
+ * fatality rate (D3): the company stores a count, the peer row is deaths per 100 000 employed
+ * persons, and the model converts at compare time. Null for every other KPI.
+ */
+export const resultV4Schema = resultV3Schema.extend({
+  comparedValue: z.number().nullable(),
+});
+export type SnapshotResultV4 = z.infer<typeof resultV4Schema>;
+
+/**
+ * The version 4 blocks (spec 0016 amendment): version 3 plus `comparedValue` on each result. The
+ * rules that changed under this version are D1 (a peer reference of 0 prices to zero incidents
+ * rather than to "no reference"), D3 (the fatality rate comparison) and the assumption guard
+ * (AC-20: a missing assumption gives a null cost, never `NaN`).
+ */
+export const snapshotBlocksV4Schema = snapshotBlocksV3Schema.extend({
+  results: z.array(resultV4Schema),
+});
+
+/**
  * What a reader gets from any version. `derived` is optional because a stored version 1 row has
  * no such key and is never widened to carry one (AC-12); a version 2 row always sets it. The
  * version 3 additions are optional per field for the same reason (spec 0016, AC-12): a stored
@@ -221,6 +242,8 @@ export type SnapshotBlocks = Omit<
 > & {
   readonly results: readonly (SnapshotResult & {
     readonly peer: (SnapshotPeer & Partial<Omit<SnapshotPeerV3, keyof SnapshotPeer>>) | null;
+    /** Absent on a stored `@1` to `@3` row; a reader treats absence as null (amendment AC-22). */
+    readonly comparedValue?: number | null;
   })[];
   readonly assumptions: readonly (AssumptionUsed &
     Partial<Omit<AssumptionUsedV3, keyof AssumptionUsed>>)[];
@@ -239,8 +262,19 @@ export type SnapshotScalars = {
   readonly savingTopChf: number | null;
 };
 
-/** What `computeBenchmark` returns and the task stores. */
-export type SnapshotBody = SnapshotBlocks & SnapshotScalars;
+/**
+ * Why the cost block is null although the company has a headcount and an incident rate (spec 0016
+ * amendment, AC-20): an assumption the chosen arm needs was absent or not finite. Not stored; the
+ * task logs it so ops read a named cause instead of a zod complaint about `NaN`.
+ */
+export type CostSkipped = {
+  readonly reason: "missing_assumption";
+  readonly key: AssumptionKey;
+};
+
+/** What `computeBenchmark` returns and the task stores (`costSkipped` is logged, never stored). */
+export type SnapshotBody = SnapshotBlocks &
+  SnapshotScalars & { readonly costSkipped: CostSkipped | null };
 
 /**
  * The block schema per model version, under literal keys so a bump to `MODEL_VERSION` adds an
@@ -250,6 +284,7 @@ export const SNAPSHOT_SCHEMAS: Readonly<Record<string, z.ZodType<SnapshotBlocks>
   "benchmark-model@1": snapshotBlocksV1Schema,
   "benchmark-model@2": snapshotBlocksV2Schema,
   "benchmark-model@3": snapshotBlocksV3Schema,
+  "benchmark-model@4": snapshotBlocksV4Schema,
 };
 
 export type SnapshotRowLike = {

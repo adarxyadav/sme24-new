@@ -375,7 +375,7 @@
           "title": "Accident cost gap",
           "description": "Against your size band and sector",
           "action": "Sources",
-          "figure": "CHF 148 000",
+          "figure": "CHF 101 000",
           "unit": "a year",
           "progressLabel": "Your accident rate against the peer median",
           "you": "You",
@@ -1786,13 +1786,13 @@
       "unavailable": "The benchmark is not available yet. We will show it as soon as it is computed.",
       "noData": "Not enough data to compare yet. We need at least one KPI with peer data."
     },
-    "provisionalNote": "The peer values are a provisional first reading of the published statistics and will be replaced before launch.",
+    "provisionalNote": "Some figures behind this estimate are a provisional first reading of the published statistics and will be confirmed before launch.",
     "card": {
       "title": "Annual incident cost",
       "description": "What workplace incidents cost your company per year, estimated from your figures and stored assumptions.",
       "range": "Range {low} to {high}",
-      "savingMedian": "Saving at the peer median",
-      "savingTop": "Saving at the top quarter",
+      "savingMedian": "Saving at the peer median, all priced figures",
+      "savingTop": "Saving at the top quarter, all priced figures",
       "noReference": "No peer reference",
       "computedOn": "Computed on {date}",
       "confidenceFrom": "Confidence from {kpi}",
@@ -1811,22 +1811,23 @@
       "fromResearch": "Calculated from the researched {kpi} for {year}",
       "fromClientSuva": "Calculated from your Suva accident rate for {year}",
       "fromResearchSuva": "Calculated from the researched Suva accident rate for {year}",
-      "exposure": "Based on {fte} employees and {hours} hours each a year"
+      "exposure": "Based on {fte} employees and {hours} hours each a year",
+      "priced": "The franc figure prices lost time accidents only. Recordable injuries are shown for context and are not priced."
     },
     "gaps": {
       "title": "Priority gaps",
-      "description": "What to fix first: ranked by the saving at the peer median, then by the distance to the median.",
+      "description": "What to fix first: ranked by each KPI's own saving at the peer median, then by the distance to the median.",
       "empty": "No gap against your peers. Every compared KPI is at or better than the median.",
       "rank": "Rank {rank}",
       "versus": "{value} vs. median {median}",
       "relative": "{percent} above the median",
-      "saving": "{amount} per year at the median",
+      "saving": "{amount} per year at the median, from this KPI alone",
       "fatality": "A fatality was reported. It comes first, whatever the other numbers say.",
       "showAll": "Show all gaps ({count})"
     },
     "positions": {
       "title": "Your position per KPI",
-      "description": "Where your newest value sits between the peer quartiles.",
+      "description": "Where your newest value sits against the published sector figures: a spread across the Suva branches of your sector, scaled to your size band where a ratio exists, or one figure where the source publishes only one. What each comparison rests on is under \"How this is calculated\".",
       "noValue": "No value",
       "noPeer": "No peer data yet",
       "peer": "{section} · {band} · {year}",
@@ -1846,18 +1847,21 @@
       "sector": "Sector figure {value}",
       "srSector": "{kpi}: your value {value} is {band}. The sector figure is {sector}.",
       "pointBasis": "One figure for the whole sector, not a range.",
+      "fatalityRate": "{value} per 100 000 employed persons",
+      "fatalityCompared": "Your count as a rate: {value}",
+      "fatalityNeedsHeadcount": "The sector rate is per 100 000 employed persons, so the comparison needs your headcount.",
       "broadened": "all industries, as no figure is published for your sector",
       "peerStatus": {
         "noSourceTitle": "No Swiss peer data exists",
         "pendingTitle": "No peer data yet"
       },
       "peerNote": {
-        "fatalities": "No Swiss source publishes fatality rates by sector, so there is no peer figure to compare against.",
+        "fatalities": "Read from the European accident statistics for Switzerland (Eurostat, fatal accidents per 100 000 employed persons by sector); your count is converted to that rate from your headcount.",
         "near_miss_rate": "Near miss reporting is not collected by any Swiss body, so there is no peer figure to compare against.",
-        "absenteeism_rate": "The Swiss absence table is published by sector and is not read into the peer set yet.",
+        "absenteeism_rate": "Read from the Swiss labour volume statistics (BFS, the health related absence rate of full time employees by sector group).",
         "ltifr": "No Swiss LTIFR is published by sector; the Suva accident rate is the comparable figure for now.",
         "trifr": "No Swiss TRIFR is published by sector; the Suva accident rate is the comparable figure for now.",
-        "lost_days_per_incident": "Lost days per accident are derivable from the Suva tables and are not read into the peer set yet.",
+        "lost_days_per_incident": "Read from the European accident statistics for Switzerland (Eurostat, accidents by days lost per sector); the sector figure is the typical accident's absence, interpolated from the published bands.",
         "iso_45001_certified": "No Swiss body publishes certification shares by sector; a share is not read into the peer set yet.",
         "accident_rate_per_1000_fte": "Read from the Suva UVG accident tables."
       }
@@ -1997,6 +2001,7 @@
       "sourceResearch": "from the research",
       "sourceClient": "entered by you",
       "peerUsed": "peer: {section} · {band} · {year}",
+      "comparedAs": "compared as {value}",
       "noPeerUsed": "no peer row",
       "headcount": "Headcount: {count}",
       "noHeadcount": "Headcount: not known",

@@ -92,8 +92,12 @@ export const ASSUMPTION_KEYS = [
 ] as const;
 export type AssumptionKey = (typeof ASSUMPTION_KEYS)[number];
 
-/** Names the rule set and snapshot schema; bumped by hand when a formula or rule changes. */
-export const MODEL_VERSION = "benchmark-model@3";
+/**
+ * Names the rule set and snapshot schema; bumped by hand when a formula or rule changes. `@4`
+ * (spec 0016 amendment of 2026-09-12): a peer reference of 0 prices to zero incidents, fatalities
+ * compare as a rate per 100 000 employed persons, and a missing assumption gives a null cost.
+ */
+export const MODEL_VERSION = "benchmark-model@4";
 
 /** How long the dashboard shows "calculating" after a trigger moment before it says "not available yet" (AC-9). */
 export const BENCHMARK_WAIT_MS = 120_000;

@@ -72,7 +72,9 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   fatalities: {
     key: "fatalities",
-    peerStatus: "no_source",
+    // Eurostat hsw_n2_02, the Swiss fatal accident rate per 100 000 employed persons by NACE
+    // section; the model converts the company's count at compare time (spec 0016 amendment, D3).
+    peerStatus: "sourced",
     peerNote: "positions.peerNote.fatalities",
     unit: "count",
     direction: "lower_is_better",
@@ -83,7 +85,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   lost_days_per_incident: {
     key: "lost_days_per_incident",
-    peerStatus: "pending",
+    // Eurostat hsw_n2_04, the median accident's days lost per NACE section (spec 0016 amendment).
+    peerStatus: "sourced",
     peerNote: "positions.peerNote.lost_days_per_incident",
     unit: "days",
     direction: "lower_is_better",
@@ -105,7 +108,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   absenteeism_rate: {
     key: "absenteeism_rate",
-    peerStatus: "pending",
+    // BFS AVOL table T 03.02.03.02.06, the health related absence rate by section group.
+    peerStatus: "sourced",
     peerNote: "positions.peerNote.absenteeism_rate",
     unit: "percent",
     direction: "lower_is_better",

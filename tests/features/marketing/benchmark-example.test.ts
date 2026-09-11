@@ -1,23 +1,9 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  computeBenchmark,
-  type ModelAssumption,
-  type ModelCatalogueEntry,
-  type ModelKpiRow,
-  type ModelPeerRow,
-  roundChf,
-} from "@/features/benchmark/model";
-import {
-  assumptionRowSchema,
-  benchmarkRowSchema,
-  parseCsv,
-  parseSeedRows,
-} from "@/features/benchmark/seed-schema";
-import { KPI_CATALOGUE, KPI_KEYS, type KpiKey } from "@/features/research/catalogue";
+import { computeBenchmark, type ModelKpiRow, roundChf } from "@/features/benchmark/model";
+import type { KpiKey } from "@/features/research/catalogue";
 import de from "../../../messages/de-CH.json";
 import en from "../../../messages/en-CH.json";
+import { seedAssumptions, seedCatalogue, seedPeers } from "../benchmark/seed-helpers";
 
 /**
  * The public worked example (spec 0016, AC-14): the homepage prints one franc figure, and it must
@@ -25,57 +11,6 @@ import en from "../../../messages/en-CH.json";
  * that moves the example fails this test rather than letting the marketing figure drift away from
  * the model in silence.
  */
-
-const SEED_DIR = join(process.cwd(), "supabase/seed-data");
-
-/** The committed peer rows as the model takes them. */
-function seedPeers(): readonly ModelPeerRow[] {
-  const parsed = parseSeedRows(
-    parseCsv(readFileSync(join(SEED_DIR, "benchmarks.csv"), "utf8")),
-    benchmarkRowSchema,
-  );
-  if (!parsed.ok) throw new Error(`benchmarks.csv: ${parsed.error.message}`);
-  return parsed.rows.map((row, index) => ({
-    id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
-    kpiKey: row.kpi_key,
-    industrySection: row.industry_section,
-    sizeBand: row.size_band,
-    periodYear: row.period_year,
-    p25: row.p25,
-    median: row.median,
-    p75: row.p75,
-    sampleSize: row.sample_size,
-    provisional: row.provisional,
-    sourceKey: row.source_key,
-    basis: row.basis_de && row.basis_en ? { de: row.basis_de, en: row.basis_en } : null,
-  }));
-}
-
-/** The committed assumptions as the model takes them. */
-function seedAssumptions(): readonly ModelAssumption[] {
-  const parsed = parseSeedRows(
-    parseCsv(readFileSync(join(SEED_DIR, "benchmark-assumptions.csv"), "utf8")),
-    assumptionRowSchema,
-  );
-  if (!parsed.ok) throw new Error(`benchmark-assumptions.csv: ${parsed.error.message}`);
-  return parsed.rows.map((row) => ({
-    key: row.key,
-    value: row.value,
-    unit: row.unit,
-    sourceName: row.source_name,
-    sourceUrl: row.source_url,
-    provisional: row.provisional,
-    effectiveFrom: row.effective_from,
-    isAssumption: row.is_assumption,
-    note: row.note_de && row.note_en ? { de: row.note_de, en: row.note_en } : null,
-  }));
-}
-
-const catalogue: readonly ModelCatalogueEntry[] = KPI_KEYS.map((key, index) => ({
-  key,
-  direction: KPI_CATALOGUE[key].direction,
-  sortOrder: (index + 1) * 10,
-}));
 
 /** The franc figure the landing page prints, in both catalogs. */
 function marketingFigures(): readonly string[] {
@@ -85,8 +20,10 @@ function marketingFigures(): readonly string[] {
 }
 
 describe("the public worked example (spec 0016, AC-14)", () => {
-  // The example company the homepage names: 120 FTE in NOGA section C, sitting at the p75 of its
-  // own section's accident rate, which is the "room to improve" end of the published spread.
+  // The example company the homepage names: 120 FTE in NOGA section C, with the accident rate at
+  // the p75 of its own section's all sizes row, the "room to improve" end of the published spread.
+  // At 120 FTE the model measures it against the section's `50-249` band row (amendment D4), so
+  // the saving is computed against that row's median, not the all sizes one.
   const peers = seedPeers();
   const sectionC = peers.find(
     (row) => row.kpiKey === "accident_rate_per_1000_fte" && row.industrySection === "C",
@@ -110,7 +47,7 @@ describe("the public worked example (spec 0016, AC-14)", () => {
       industryCode: "23",
       updatedAt: "2026-09-11T00:00:00.000Z",
     },
-    catalogue,
+    catalogue: seedCatalogue,
     kpis,
     peers,
     assumptions: seedAssumptions(),
@@ -119,7 +56,7 @@ describe("the public worked example (spec 0016, AC-14)", () => {
   it("computes the example from the committed seed through the real model", () => {
     expect(sectionC).toBeDefined();
     // The quartiles the card's own comment cites, so a seed edit that moves them is visible here.
-    expect([sectionC?.p25, sectionC?.median, sectionC?.p75]).toEqual([34.9, 49.9, 66.4]);
+    expect([sectionC?.p25, sectionC?.median, sectionC?.p75]).toEqual([29.3, 47.1, 65.8]);
     expect(body.inputs.section).toBe("C");
     expect(body.inputs.fte).toBe(120);
     expect(body.costChf).not.toBeNull();

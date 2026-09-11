@@ -344,6 +344,21 @@ describe("the derived injury counts (spec 0012)", () => {
     );
   });
 
+  it("says the franc figure prices lost time accidents only (spec 0016 amendment, AC-31)", async () => {
+    const { container } = await renderSegment(withDerived());
+    const block = container.querySelector("[data-derived-block]") as HTMLElement;
+    const line = block.querySelector("[data-derived-priced]") as HTMLElement;
+    expect(line).toBeInTheDocument();
+    expect(line).toHaveTextContent(b.derived.priced);
+    // The line belongs to the counts it qualifies, after the recordable count and before the figure.
+    const recordable = container.querySelector('[data-derived-count="recordable"]') as HTMLElement;
+    const headline = container.querySelector("[data-cost-headline]") as HTMLElement;
+    expect(
+      recordable.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(line.compareDocumentPosition(headline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("carries no confidence score anywhere on the block (AC-5)", async () => {
     const { container } = await renderSegment(withDerived());
     const block = container.querySelector("[data-derived-block]") as HTMLElement;
@@ -508,17 +523,28 @@ describe("the positions (AC-9, AC-14)", () => {
   });
 
   // A KPI nobody publishes must say so rather than showing the shared "not yet", which would have
-  // the client waiting for data that is never coming (spec 0016, AC-7, AC-8). Both sourceless KPIs
-  // stay in the list, so the fatality ranking rule in `computeBenchmark` is untouched.
+  // the client waiting for data that is never coming (spec 0016, AC-7, AC-8). Near misses are the
+  // one KPI no body anywhere collects; fatalities moved to `sourced` under the 2026-09-12
+  // amendment once Eurostat's sector rate was found.
   it("gives a sourceless KPI its own title and sentence rather than the shared not yet", async () => {
-    const { container } = await renderSegment();
-    const fatalities = container.querySelector(
-      '[data-position-kpi="fatalities"] [data-no-peer]',
+    // The fixture has no near miss value, so give it one with no peer row for this case.
+    const base = parsedSnapshot().blocks;
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot(
+        {},
+        {
+          inputs: { ...base.inputs, kpis: [...base.inputs.kpis, inputKpi("near_miss_rate", 14)] },
+          results: [...base.results, result("near_miss_rate")],
+        },
+      ),
+    });
+    const nearMiss = container.querySelector(
+      '[data-position-kpi="near_miss_rate"] [data-no-peer]',
     ) as HTMLElement;
-    expect(within(fatalities).getByText(b.positions.peerStatus.noSourceTitle)).toBeInTheDocument();
-    expect(fatalities).toHaveTextContent(b.positions.peerNote.fatalities);
-    expect(fatalities).not.toHaveTextContent(b.positions.peerStatus.pendingTitle);
-    expect(fatalities.querySelector('[data-peer-status="no_source"]')).toBeInTheDocument();
+    expect(within(nearMiss).getByText(b.positions.peerStatus.noSourceTitle)).toBeInTheDocument();
+    expect(nearMiss).toHaveTextContent(b.positions.peerNote.near_miss_rate);
+    expect(nearMiss).not.toHaveTextContent(b.positions.peerStatus.pendingTitle);
+    expect(nearMiss.querySelector('[data-peer-status="no_source"]')).toBeInTheDocument();
   });
 
   // A `pending` KPI is readable but not read yet, so it keeps a "not yet" wording that names what
@@ -601,5 +627,123 @@ describe("confidenceDriver (AC-9)", () => {
         parsedSnapshot({}, { results: [result("ltifr", { peer: peer([1, 2, 4]) })] }),
       ),
     ).toBe("accident_rate_per_1000_fte");
+  });
+});
+
+/**
+ * The fatality row (spec 0016 amendment of 2026-09-12, D3, AC-22, AC-23): the company stores a
+ * count, the Eurostat peer row is deaths per 100 000 employed persons, and the model converts at
+ * compare time. The row must show the sector figure as a rate, the company's count as the rate
+ * it was judged on, and, without a headcount, say what is missing rather than "no peer data".
+ */
+describe("the fatality row (spec 0016 amendment, AC-22, AC-23)", () => {
+  const base = () => parsedSnapshot().blocks;
+  const fatalityPeer = () =>
+    peer([0.55, 0.55, 0.55], { rowId: "00000000-0000-4000-8000-000000000505", periodYear: 2023 });
+  const withFatalityResult = (
+    entry: ReturnType<typeof base>["results"][number],
+    inputs: Partial<ReturnType<typeof base>["inputs"]> = {},
+  ) => {
+    const blocks = base();
+    return parsedSnapshot(
+      {},
+      {
+        inputs: { ...blocks.inputs, ...inputs },
+        results: blocks.results.map((result) => (result.key === "fatalities" ? entry : result)),
+      },
+    );
+  };
+
+  it("shows the sector figure as a rate and the count as the rate it was judged on (covers AC-22, AC-23)", async () => {
+    const { container } = await renderSegment({
+      snapshot: withFatalityResult({
+        ...result("fatalities", {
+          peer: fatalityPeer(),
+          position: "below_average",
+          gapToMedian: 237.5452,
+          gapRelative: 431.9,
+          confidence: 0.95,
+        }),
+        comparedValue: 238.0952,
+      }),
+    });
+    const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
+    // The stored value stays the count; only the comparison is a rate.
+    expect(row.querySelector("[data-value]")).toHaveAttribute("data-value", "1");
+    expect(within(row).getByText("1")).toBeInTheDocument();
+    expect(row).toHaveAttribute("data-peer-shape", "point");
+    expect(row).toHaveAttribute("data-position", "below_average");
+    expect(row.querySelector("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "0.55");
+    expect(
+      within(row).getByText("Sector figure 0.55 per 100 000 employed persons"),
+    ).toBeInTheDocument();
+    const compared = row.querySelector("[data-compared-value]") as HTMLElement;
+    expect(compared).toHaveAttribute("data-compared-value", "238.0952");
+    expect(compared).toHaveTextContent("Your count as a rate: 238.10 per 100 000 employed persons");
+    // A point row: no band drawing and no quartile wording, the sector rate included.
+    expect(row.querySelector('[data-slot="quartile-band"]')).not.toBeInTheDocument();
+    expect(within(row).getByText(b.positions.pointBasis)).toBeInTheDocument();
+    expect(row.textContent).not.toMatch(/quarter|quartile|median|p25|p75/i);
+    // The narration compares the rate to the sector rate, never the count to a rate, so a screen
+    // reader hears two figures in one unit; the count is read from the value column.
+    expect(
+      within(row).getByText(
+        "fatalities (en): your value 238.10 per 100 000 employed persons is Worse than the sector average. The sector figure is 0.55 per 100 000 employed persons.",
+      ),
+    ).toHaveClass("sr-only");
+  });
+
+  // A stored @1 to @3 row carries no `comparedValue`; the reader treats absence as null and the
+  // row still renders the sector rate, just without the compared line (AC-22).
+  it("renders a stored row without a compared value with the sector rate and no compared line", async () => {
+    const { container } = await renderSegment({
+      snapshot: withFatalityResult(
+        result("fatalities", { peer: fatalityPeer(), position: "below_average", confidence: 0.95 }),
+      ),
+    });
+    const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
+    expect(
+      within(row).getByText("Sector figure 0.55 per 100 000 employed persons"),
+    ).toBeInTheDocument();
+    expect(row.querySelector("[data-compared-value]")).not.toBeInTheDocument();
+    expect(row.textContent).not.toContain("Your count as a rate");
+  });
+
+  it("names the missing headcount when a fatality count could not become a rate (covers AC-23)", async () => {
+    const { container } = await renderSegment({
+      snapshot: withFatalityResult(result("fatalities", { confidence: 0.95 }), { fte: null }),
+    });
+    const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
+    const noPeer = row.querySelector("[data-no-peer]") as HTMLElement;
+    expect(noPeer).toBeInTheDocument();
+    expect(noPeer.querySelector("[data-fatality-needs-headcount]")).toHaveTextContent(
+      b.positions.fatalityNeedsHeadcount,
+    );
+    // The headcount sentence replaces the catalogue note, so the row does not also say the
+    // figure was read from Eurostat as if the comparison had merely not happened yet.
+    expect(noPeer.querySelector("[data-peer-status]")).not.toBeInTheDocument();
+    expect(noPeer).not.toHaveTextContent(b.positions.peerNote.fatalities);
+  });
+
+  it("keeps the sourced note, not the headcount sentence, when the headcount is known and no peer row matched", async () => {
+    const { container } = await renderSegment();
+    const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
+    const noPeer = row.querySelector("[data-no-peer]") as HTMLElement;
+    expect(noPeer.querySelector("[data-fatality-needs-headcount]")).not.toBeInTheDocument();
+    expect(noPeer.querySelector('[data-peer-status="sourced"]')).toHaveTextContent(
+      b.positions.peerNote.fatalities,
+    );
+  });
+
+  it("keeps the fatality row accessible with the compared line present", async () => {
+    const { container } = await renderSegment({
+      snapshot: withFatalityResult({
+        ...result("fatalities", { peer: fatalityPeer(), position: "below_average" }),
+        comparedValue: 238.0952,
+      }),
+    });
+    const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
+    const results = await axe.run(row, { rules: { "color-contrast": { enabled: false } } });
+    expect(results.violations).toEqual([]);
   });
 });

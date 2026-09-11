@@ -13,11 +13,14 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 /**
- * Where the bar sits: the company's own accident rate as a share of the peer band it is measured
- * against. The worked example the page already commits to (`marketing.landing.points.sentence`) is
- * a 120 person metal fabricator at UVG section C's p75 of 66.4 against a median of 49.9, so the
- * bar reads three quarters along -- the same arithmetic that produces the CHF 148 000 the card
- * prints and the sentence higher up the page quotes.
+ * Where the bar sits: the company's own accident rate as a share of the p25 to p75 band of the
+ * peer row it is measured against. The worked example the page already commits to
+ * (`marketing.landing.points.sentence`) is a 120 person metal fabricator whose rate is UVG section
+ * C's p75 of 65.8 (the 2024 figures of UVG-Statistik 2026); at 120 FTE the model meets the section's
+ * `50-249` band row (p25 34.0, median 54.6, p75 76.3, scaled from the section row per spec 0016's
+ * amendment), and 65.8 sits three quarters along that band, hence the 75. The same selection
+ * produces the CHF 101 000 the card prints and the sentence higher up the page quotes;
+ * `tests/features/marketing/benchmark-example.test.ts` pins the figure and the row.
  */
 const RATE_SHARE = 75;
 
@@ -26,7 +29,7 @@ const RATE_SHARE = 75;
  * `Button`, so the page shows the product rather than describing it.
  *
  * The figure is the one the landing page already stands behind, not a number chosen to look good:
- * it is the same CHF 148 000 the worked example band quotes, computed by the real model from the
+ * it is the same CHF 101 000 the worked example band quotes, computed by the real model from the
  * seed assumptions. A still that printed a different gap for the same example company would
  * contradict the sentence two sections above it.
  *

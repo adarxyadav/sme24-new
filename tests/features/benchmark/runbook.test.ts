@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { MODEL_VERSION } from "@/features/benchmark/catalogue";
+import { computeBenchmark, type ModelKpiRow, roundChf } from "@/features/benchmark/model";
 import { assumptionRowSchema, parseCsv, parseSeedRows } from "@/features/benchmark/seed-schema";
+import { SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
+import { KPI_KEYS } from "@/features/research/catalogue";
+import { FIXTURE_VALUES } from "@/lib/research/fixture";
+import { seedAssumptions, seedCatalogue, seedPeers } from "./seed-helpers";
 
 /**
  * The launch gate runbook (spec 0016, AC-17): `docs/benchmark.md` is what the owner reads at the
@@ -72,5 +78,99 @@ describe("the launch gate runbook (spec 0016, AC-17)", () => {
     expect(RUNBOOK).toContain("`provisional`");
     expect(RUNBOOK).toContain("`is_assumption`");
     expect(RUNBOOK).toContain("never both true");
+  });
+});
+
+/**
+ * The runbook and the code are one fact written in two places (spec 0016 amendment, AC-18): the
+ * live model version, the keys of the version map, and the worked example figure. The runbook
+ * carried `@2` in three places while the code wrote `@3`, and an example figure the seed no longer
+ * gave, for a week before anyone noticed; these pins make that a failing build instead.
+ */
+describe("the runbook matches the code (spec 0016 amendment, AC-18)", () => {
+  it("names the live model version and every key of the version map", () => {
+    expect(RUNBOOK).toContain(`\`${MODEL_VERSION}\``);
+    // The sentence describing the map names every version in it, so a bump that forgets the
+    // runbook fails here rather than leaving the reader with a stale list.
+    const mapLine = RUNBOOK.split("\n").find((line) => line.includes("`SNAPSHOT_SCHEMAS`"));
+    expect(mapLine).toBeDefined();
+    for (const version of Object.keys(SNAPSHOT_SCHEMAS)) {
+      expect(mapLine, `the version map sentence names ${version}`).toContain(version);
+    }
+  });
+
+  // The local proof paragraph quotes the fixture company's cost. Computed here from the fixture
+  // values and the committed seed through the real model, the way the marketing example is.
+  it("quotes the fixture company's cost as the committed seed actually gives it", () => {
+    const kpis: readonly ModelKpiRow[] = KPI_KEYS.map((key, index) => ({
+      id: `00000000-0000-4000-8000-${String(800 + index).padStart(12, "0")}`,
+      kpiKey: key,
+      value: FIXTURE_VALUES[key],
+      periodYear: 2025,
+      source: "research",
+      confidence: 0.9,
+      researchRunId: null,
+    }));
+    const body = computeBenchmark({
+      company: {
+        id: "00000000-0000-4000-8000-000000000799",
+        employeesCount: 420,
+        industryCode: "23.61",
+        updatedAt: "2026-09-12T00:00:00.000Z",
+      },
+      catalogue: seedCatalogue,
+      kpis,
+      peers: seedPeers(),
+      assumptions: seedAssumptions(),
+    });
+    expect(body.costChf).not.toBeNull();
+    const rounded = roundChf(body.costChf as number);
+    const line = RUNBOOK.split("\n").find((text) =>
+      text.includes("The whole thread runs without a vendor"),
+    );
+    expect(line).toBeDefined();
+    const quoted = /a cost of about CHF (\d[\d ]*\d)/.exec(line as string)?.[1] ?? "";
+    expect(
+      quoted.replace(/\D/g, ""),
+      `the runbook says CHF ${quoted}, the model gives ${rounded}`,
+    ).toBe(String(rounded));
+  });
+
+  // The shape paragraph quotes how many seeded rows are point rows. Counted here from the committed
+  // CSV with the same rule the model applies (`p25 == median == p75`), so a seed edit that adds or
+  // retires a point row fails the build instead of leaving a stale count in the runbook.
+  it("quotes the point row count the committed seed actually gives", () => {
+    const table = parseCsv(readFileSync(join(SEED_DIR, "benchmarks.csv"), "utf8"));
+    const isPoint = (fields: Record<string, string>) =>
+      fields.p25 === fields.median && fields.median === fields.p75;
+    const total = table.records.length;
+    const points = table.records.filter((record) => isPoint(record.fields)).length;
+    const accidentRows = table.records.filter(
+      (record) => record.fields.kpi_key === "accident_rate_per_1000_fte",
+    );
+    const accidentPoints = accidentRows.filter((record) => isPoint(record.fields)).length;
+    const sentence =
+      /Of the (\d+) seeded rows, (\d+) are point rows: .*?(\d+) of the (\d+) accident rate rows/.exec(
+        RUNBOOK,
+      );
+    expect(sentence, "the runbook's point row sentence").not.toBeNull();
+    const [, quotedTotal, quotedPoints, quotedAccidentPoints, quotedAccidentRows] =
+      sentence as RegExpExecArray;
+    expect([quotedTotal, quotedPoints, quotedAccidentPoints, quotedAccidentRows]).toEqual([
+      String(total),
+      String(points),
+      String(accidentPoints),
+      String(accidentRows.length),
+    ]);
+  });
+
+  // The three Eurostat tables the amendment found readable are named where the next curator will
+  // look, so the dead end of "no fatality rate, no size bands, no lost days" cannot come back.
+  it("records the three Eurostat tables as readable", () => {
+    for (const code of ["hsw_n2_02", "hsw_n2_04", "hsw_n2_05"]) {
+      expect(RUNBOOK).toContain(`\`${code}\``);
+    }
+    expect(RUNBOOK).not.toContain("confirmed is unreadable");
+    expect(RUNBOOK).not.toContain("No fatality rate and no near miss rate is published by sector");
   });
 });
