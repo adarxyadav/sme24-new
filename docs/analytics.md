@@ -80,11 +80,14 @@ Two events renamed with this spec, so their staging history before 2026-09-11 si
 
 ## Open on staging as of 11 Sep 2026
 
-Recorded so they are not rediscovered. None is a defect in the feature; all three are environment state that only a deployment can close.
+Recorded so they are not rediscovered. None is a defect in the feature; each is environment state that only a deployment can close.
 
 - **`E2E_SEED_PASSWORD` is not a repository secret**, so the three `benchmark.viewed` tests in `e2e/analytics.spec.ts` (the AC-4 and AC-6 thread) skip rather than run, and the consent line above stays unproven in CI. Closing it is `pnpm users:seed` against staging followed by `gh secret set E2E_SEED_PASSWORD`. Expect the first green run after that to surface failures that were hiding behind the 81 skips, so run it when there is time to read the result.
-- **`pnpm budget` has never run on `main`.** The budget step lives in `e2e.yml`, whose `deployment_status` guard did not match on either run for `997e99c`, so both were skipped. The fix that keeps the zod runtime out of the browser bundle (`cd41157`, spec 0009 AC-16) is therefore proven locally and on the pull request preview only, never on a `main` deployment.
-- **Migrations are not reaching staging.** `Deploy database and tasks` fails on `main` (run `34621421887`): `supabase db push` reports migration history drift, because the remote holds `20260906073908` with no matching local file. The repair is `supabase migration repair --status reverted 20260906073908`, which is a human decision about remote state, so nobody should run it unprompted. Until it is settled, no migration lands on staging.
+
+### Closed on 11 Sep 2026
+
+- ~~**`pnpm budget` has never run on `main`.**~~ Closed the same afternoon. The `deployment_status` guard matched once a deployment actually reported success, and run `34625922098` measured all twenty two marketing pages against the live `main` deployment, every one under budget (the widest margin being `/de/kontakt` and `/en/contact` at 317.0 kB against their 350 kB ceiling). The zod runtime fix (`cd41157`, spec 0009 AC-16) is therefore proven on `main`, not only locally and on a preview.
+- ~~**Migrations are not reaching staging.**~~ Closed on 11 Sep 2026. The drift was benign: `20260906073908_benchmark_seed.sql` was the 6 Sep seed, and spec 0016 regenerated it under a new timestamp (`20260911074150`), which git recorded as a rename, so the remote held a version whose file no longer existed. Because the regenerated seed upserts on `(kpi_key, industry_section, size_band, period_year)`, re-applying it updates the same 22 rows in place rather than duplicating them, which is what made `supabase migration repair --status reverted 20260906073908` the honest call rather than a fudge. After the repair, run `34625832509` applied both pending migrations (`20260911074011_benchmark_honesty_columns.sql` and the regenerated seed) and `supabase migration list` shows local and remote in step. **If this shape recurs**, the diagnosis is a renamed migration rather than a lost one: check `git log --all --diff-filter=D` for the timestamp before assuming remote state is wrong.
 
 ## Data protection
 
