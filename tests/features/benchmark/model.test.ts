@@ -733,3 +733,142 @@ describe("the peer shape and the two average positions (spec 0016, AC-4, AC-5)",
     expect(positionOf("ltifr", "lower_is_better", 35, spread)).toBe("bottom_quarter");
   });
 });
+
+/**
+ * The curator's two source columns reaching the snapshot (spec 0016, AC-11). The rendering side is
+ * covered in `calculation-content.test.tsx`, but nothing yet proves the values survive the trip
+ * from the stored row onto the peer block. This is the half that made `source_note` useless: a
+ * curator writes a sentence and it dies in the database. Every seeded row carries null today, so
+ * the null path is the one that ships and the populated path is the one curation switches on.
+ */
+describe("the peer source columns reach the snapshot (spec 0016, AC-11)", () => {
+  const basis = {
+    de: "Quartile über Suva Klasse 22A, nicht über die NOGA Sektion.",
+    en: "Quartiles over Suva class 22A, not over the NOGA section.",
+  };
+
+  it("copies source_key and basis from the chosen row onto the peer block", () => {
+    const rows = [peer("ltifr", "C", "all", [10, 20, 30], { sourceKey: "Suva class 22A", basis })];
+    const chosen = selectPeer(rows, "ltifr", "C", "all", 2022);
+    expect(chosen?.sourceKey).toBe("Suva class 22A");
+    expect(chosen?.basis).toEqual(basis);
+  });
+
+  it("reads null for a row carrying neither, which is every seeded row today", () => {
+    const rows = [peer("ltifr", "C", "all", [10, 20, 30])];
+    const chosen = selectPeer(rows, "ltifr", "C", "all", 2022);
+    // Absent on the row rather than explicitly null: the `?? null` must normalise both, or the
+    // v3 schema rejects an `undefined` where it requires a nullable string.
+    expect(chosen?.sourceKey).toBeNull();
+    expect(chosen?.basis).toBeNull();
+  });
+
+  it("carries the columns of the row the ladder actually chose, not another rung's", () => {
+    // The section row wins, so the ALL row's caveat must not leak onto the block: a basis sentence
+    // describes one row's quartiles and is wrong about any other.
+    const rows = [
+      peer("ltifr", "C", "all", [10, 20, 30], { sourceKey: "section row", basis }),
+      peer("ltifr", "ALL", "all", [1, 2, 3], {
+        sourceKey: "all row",
+        basis: { de: "falsch", en: "wrong" },
+      }),
+    ];
+    expect(selectPeer(rows, "ltifr", "C", "all", 2022)?.sourceKey).toBe("section row");
+    expect(selectPeer(rows, "ltifr", "J", "all", 2022)?.sourceKey).toBe("all row");
+  });
+
+  it("keeps both columns through a whole computation and its schema parse", () => {
+    const body = compute({
+      peers: [peer("accident_rate_per_1000_fte", "C", "all", [34.9, 49.9, 66.4], { basis })],
+    });
+    const parsed = parseSnapshotBlocks({ model_version: MODEL_VERSION, ...body });
+    expect(parsed.error).toBeNull();
+    const result = parsed.blocks?.results.find(
+      (entry) => entry.key === "accident_rate_per_1000_fte",
+    );
+    // Through the v3 schema rather than off the raw body, so a schema that stripped the field
+    // would fail here rather than passing on the in memory object.
+    expect(result?.peer?.basis).toEqual(basis);
+  });
+});
+
+/**
+ * The signal on a broadened peer group (spec 0016, AC-6b). The rung label is covered in the segment
+ * test; what is not covered is the reason the spec gives for needing it, that the fallback can flip
+ * the shape. A company whose own single point section loses its row during curation falls to the
+ * `ALL` row, which carries real spread, so the page would quietly start drawing a `QuartileBand`
+ * over a comparison group that changed underneath the client.
+ */
+describe("a broadened peer group can change the shape (spec 0016, AC-6b)", () => {
+  const pointRow = (section: string) =>
+    peer("ltifr", section, "all", [44.3, 44.3, 44.3], { periodYear: 2022 });
+  const spreadRow = peer("ltifr", "ALL", "all", [1, 2, 4], { periodYear: 2022 });
+
+  it("reports rung 1 and keeps the point shape while the company's own section has a row", () => {
+    const chosen = selectPeer([pointRow("D"), spreadRow], "ltifr", "D", "all", 2022);
+    expect(chosen?.rung).toBe(1);
+    expect(chosen?.shape).toBe("point");
+    expect(chosen?.industrySection).toBe("D");
+  });
+
+  it("falls to the ALL row and flips to a distribution when that section row goes away", () => {
+    // The same company and the same KPI, with only the section row removed: exactly what a curation
+    // pass does when it retires a row it cannot source.
+    const chosen = selectPeer([spreadRow], "ltifr", "D", "all", 2022);
+    expect(chosen?.rung).toBe(3);
+    expect(chosen?.industrySection).toBe("ALL");
+    // The shape changed under the client, which is why the rung must be visible on the block: this
+    // row now has a real spread and would otherwise draw a band with no signal the group changed.
+    expect(chosen?.shape).toBe("distribution");
+  });
+
+  it("puts the rung on the snapshot so the label can say the group was broadened", () => {
+    // Section J has no row in the suite's peer set, so the accident rate falls to the ALL rung and
+    // the block carries a rung above 2, which is what the label reads.
+    const body = compute({ company: { ...company, industryCode: "62.01" } });
+    const result = body.results.find((entry) => entry.key === "accident_rate_per_1000_fte");
+    expect(result?.peer?.rung).toBeGreaterThan(2);
+    expect(result?.peer?.industrySection).toBe("ALL");
+  });
+});
+
+/**
+ * The property the outward rounding exists for (spec 0016, AC-9). The table above pins chosen
+ * values; this pins the rule itself across the 10 000 step change, where a single step applied to
+ * both ends would round a low of 10 400 up to 11 000 and show a band that excludes the real cost.
+ */
+describe("the displayed range always contains the computed one (spec 0016, AC-9)", () => {
+  it("never rounds a low end up or a high end down, on either side of the step boundary", () => {
+    const values = [0, 1, 99, 100, 4_849, 9_900, 9_999, 10_000, 10_001, 10_400, 99_999, 1_060_400];
+    for (const low of values) {
+      for (const high of values.filter((value) => value >= low)) {
+        const rounded = roundChfRange(low, high);
+        expect(rounded.low).toBeLessThanOrEqual(low);
+        expect(rounded.high).toBeGreaterThanOrEqual(high);
+        // A range never renders inverted, however close the two ends sit.
+        expect(rounded.high).toBeGreaterThanOrEqual(rounded.low);
+      }
+    }
+  });
+
+  it("rounds each end at its own step when the range straddles 10 000", () => {
+    // The end below the boundary takes the 100 step and the end above takes the 1 000 step, so a
+    // low just over 10 000 is not dragged down a whole thousand by its own end's step.
+    expect(roundChfRange(9_950, 10_400)).toEqual({ low: 9_900, high: 11_000 });
+    expect(roundChfRange(10_400, 10_600)).toEqual({ low: 10_000, high: 11_000 });
+  });
+
+  it("contains the point estimate roundChf shows beside it", () => {
+    // The card prints the range and the working estimate together, so a point estimate outside its
+    // own range would read as an arithmetic error to the client.
+    for (const [low, point, high] of [
+      [1_060_400, 1_800_000, 2_650_100],
+      [4_849, 6_000, 9_999],
+      [9_999, 10_500, 12_001],
+    ] as const) {
+      const rounded = roundChfRange(low, high);
+      expect(roundChf(point)).toBeGreaterThanOrEqual(rounded.low);
+      expect(roundChf(point)).toBeLessThanOrEqual(rounded.high);
+    }
+  });
+});

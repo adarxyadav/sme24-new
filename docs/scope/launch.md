@@ -56,8 +56,8 @@ code in `src/features/benchmark/`, `src/features/research/catalogue.ts`, `supaba
   - [x] Per KPI peer status: the catalogue fields with the extended equality test and the reworded sourceless and pending states (AC-7, AC-8)
   - [x] The email range, the marketing example test and `docs/benchmark.md` with the confirmed dead ends (AC-13, AC-14, AC-17)
 - [x] Review it (fresh model): `/check review peer data curation & model honesty`
-- [ ] Verify it: `/check verify peer data curation & model honesty`
-- [ ] Test it: `/test peer data curation & model honesty`
+- [x] Verify it: `/check verify peer data curation & model honesty`
+- [x] Test it: `/test peer data curation & model honesty`
 
 ### 25b. Seller facts & MWST registration
 Split from row 25 on 11 Sep 2026: it shared nothing with the peer data but a checklist line, and it blocks the first sale rather than the launch. From spec 0011, the seller facts printed on every invoice: the legal name, address, the `CHE-...MWST` UID and the IBAN the QR-bill pays into, held behind `SELLER_PLACEHOLDERS` until they are real. Confirm with your accountant that SME24 is MWST registered before the first sale, since charging 8.1% without a registration is a real problem. Configuration and an accountant, not a spec.
