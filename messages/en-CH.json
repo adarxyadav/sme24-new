@@ -92,7 +92,7 @@
     "howItWorks": {
       "meta": {
         "title": "How it works",
-        "description": "From company lookup to a written report with ranked actions: the four steps, what you do and what we do."
+        "description": "Enter your company name, benchmark your risks, choose a fixed price package and let subject matter experts fix the gaps: the four steps, what you do and what we do."
       },
       "og": {
         "statement": "Four steps. One report."
@@ -332,11 +332,11 @@
     },
     "landing": {
       "meta": {
-        "title": "Fixed-price EHS consulting",
-        "description": "See what your EHS risk costs in CHF, benchmarked against your peers — free. Then book a senior expert at a fixed price to fix what matters most."
+        "title": "Benchmark your EHS risks. Fix them at one fixed price",
+        "description": "Benchmark your EHS risks against similar companies for free, see your savings in CHF and have subject matter experts fix the gaps – once, at one fixed price."
       },
       "og": {
-        "statement": "Senior experts. No slides. Just results."
+        "statement": "Benchmark your risks. Find your savings. Fix it – once."
       },
       "eyebrow": "Fixed-price EHS consulting",
       "title": "Benchmark your risks. Find your savings. Fix it – once.",
