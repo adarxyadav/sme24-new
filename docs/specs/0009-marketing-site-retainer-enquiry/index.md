@@ -282,7 +282,8 @@ hero title, the lookup call to action, the free line and the landing meta descri
 `marketing.landing.*`; the footer's product link is `marketing.nav.riskCost`. A later copy pass
 changes those keys and owes this spec nothing, so long as the behaviour in point 1 holds.
 
-**3. The naming convention that governs a later pass.** Both buyers are in play, the safety manager
+**3. The naming convention that governs a later pass.** _Superseded by the fifth amendment of
+2026-09-12 below, kept as history._ Both buyers are in play, the safety manager
 and the CFO, so the franc figure leads and the peer comparison is the proof: a safety manager can
 carry a franc number to their boss and a CFO reads it directly. "Benchmark" stays as the honest
 descriptive word wherever it describes the thing accurately, but it is no longer the headline. This
@@ -335,6 +336,49 @@ reading flat.
 **Value sourcing:** all copy from `marketing.landing.trust.*` in both catalogs; the per region
 counts from `PROCESSORS` in `src/features/legal/processors.ts` (spec 0015); the privacy link from
 `PATHNAMES`.
+
+## Amendment 2026-09-12 (fifth): the headline leads with the benchmark again
+
+Client decision. Phillip's review of the live site on 2026-09-11 (ten marked up screenshots, kept
+locally as `docs/raw/20260911_Review_Pages.pdf`, not in the repo) put his own line in the hero:
+"Benchmark your risks. Find your savings. Fix it – once." The owner accepted it on 2026-09-12
+(decision A on the review page), and with it the direction of point 3 of the third amendment
+reverses: the headline now leads with the benchmark and the franc figure is the proof under it. The
+earlier rule stands above, marked superseded, so the history of the positioning stays readable.
+
+**1. The headline rule, restated.** Both buyers are still in play, the safety manager and the CFO.
+The headline leads with Phillip's line: four plain verbs and the offer, done once. The franc figure
+is the proof, carried by the lead sentence, the number section and the benchmark card, no longer by
+the headline. "Benchmark" is the first word the visitor reads and stays the honest descriptive word
+everywhere it describes the thing accurately. This governs the marketing pages and their metadata
+(`marketing.landing.meta.*` and the `og.statement` follow the headline). AC-1's own wording ("all
+lead into the free benchmark") is unaffected, as before.
+
+**2. Why the reversal.** The third amendment's reasoning was that a franc figure serves both buyers
+while "benchmark" as a headline serves neither. The review read the page from the buyer's side and
+found the opposite problem: the franc led hero opens with a riddle ("Your balance sheet already
+prices every risk but this one") and the first screen then names the NOGA division, eight KPIs,
+three reporting years, a size band and the UVG statistics. His line states the offer in the first
+line and the four steps beneath it (Enter, Benchmark, Choose, Fix) repeat the same verbs, so the
+headline and the funnel say one thing. The franc figure is not demoted, it moves from the claim to
+the evidence, which is where a CFO checks it anyway.
+
+**3. What this changes and what it does not.** The copy itself is a later pass over the
+`marketing.*` keys in both catalogs and owes this spec nothing (point 2 of the third amendment
+stands); this amendment settles only the rule the pass follows. The sentence in the AGENTS.md
+marketing rule and a note in `docs/marketing.md` are amended with it, so the three agree. No
+acceptance criterion changes, the hero control stays a role rather than a fixed string (point 1 of
+the third amendment), the section order stands, and the AC-16 budgets stand.
+
+**4. The signed in surfaces.** The dashboard heading (`benchmark.heading`) and the `benchmark_ready`
+email subject were left leading with the benchmark on 2026-09-09 as a deliberate later pass, pending
+proof of the franc led name on the marketing pages. That proof went the other way: the marketing
+pages now lead with the benchmark too, so the two surfaces already agree with the headline and the
+later pass is closed with no change.
+
+**Value sourcing:** the headline and lead, from `marketing.landing.title` and `marketing.landing.lead`
+in both catalogs; the metadata, from `marketing.landing.meta.*` and `marketing.landing.og.*`
+through `marketingMetadata` and the `opengraph-image.tsx` beside the landing page.
 
 ## Rationale
 
