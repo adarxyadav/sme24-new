@@ -461,21 +461,30 @@ describe("the positions (AC-9, AC-14)", () => {
     ).toHaveClass("sr-only");
   });
 
-  it("names a coarser rung as all industries and all sizes with the nearest year, and no sample", async () => {
+  // A rung 3 or 4 match means the company's own section had no row, and the shape can flip on that
+  // fallback, so the label says the group was broadened rather than naming it as if it were the
+  // company's own sector (spec 0016, AC-6b).
+  it("says the peer group was broadened on a coarser rung, with the nearest year and no sample", async () => {
     const { container } = await renderSegment();
     const row = container.querySelector('[data-position-kpi="ltifr"]') as HTMLElement;
     expect(
-      within(row).getByText("all industries · all sizes · 2021 (nearest year)"),
+      within(row).getByText(`${b.positions.broadened} · all sizes · 2021 (nearest year)`),
     ).toBeInTheDocument();
     expect(within(row).queryByText(/n = /)).not.toBeInTheDocument();
   });
 
-  it("formats the certified share as a percentage and draws no band for a yes or no KPI", async () => {
+  // The certified share is one figure repeated as all three quartiles, so it is a point row: one
+  // labelled sector figure, no band, and none of the words quarter, quartile or median on the row
+  // (spec 0016, AC-6).
+  it("renders the certified share as a point comparison with no band and no quartile wording", async () => {
     const { container } = await renderSegment();
     const row = container.querySelector('[data-position-kpi="iso_45001_certified"]') as HTMLElement;
     expect(within(row).getByText("Yes")).toBeInTheDocument();
-    expect(within(row).getByText(/^p25 30\s?% · median 30\s?% · p75 30\s?%$/)).toBeInTheDocument();
+    expect(row).toHaveAttribute("data-peer-shape", "point");
+    expect(row.querySelector("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "0.3");
+    expect(within(row).getByText(b.positions.pointBasis)).toBeInTheDocument();
     expect(row.querySelector('[data-slot="quartile-band"]')).not.toBeInTheDocument();
+    expect(row.textContent).not.toMatch(/quarter|quartile|median|p25|p75/i);
   });
 
   it("divides an absenteeism value and its quartiles by 100 before the percent format", async () => {

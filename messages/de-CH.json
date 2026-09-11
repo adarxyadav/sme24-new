@@ -1338,7 +1338,8 @@
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
       "card": "Potenzialkarte",
       "collapsible": "Aufklappbare Erklärung",
-      "confidenceMedium": "Mittel"
+      "confidenceMedium": "Mittel",
+      "pointComparison": "Punktvergleich"
     },
     "marketing": {
       "packages": "Paketkarte: Fixpreis und Preis auf Anfrage",

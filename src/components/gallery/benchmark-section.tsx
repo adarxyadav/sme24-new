@@ -48,6 +48,17 @@ export function BenchmarkSection() {
           </Example>
         ))}
       </div>
+      {/* The point comparison beside the three band shapes (spec 0016, AC-16): a peer row holding
+          one figure gets no band and no replacement graphic, so axe scans that state too. */}
+      <div className="grid gap-8 lg:grid-cols-3">
+        <Example label={t("pointComparison")}>
+          <span className="text-sm">{b("positions.band.above_average")}</span>
+          <p className="text-muted-foreground text-xs tabular-nums" data-numeric>
+            {b("positions.sector", { value: "44.30" })}
+          </p>
+          <p className="text-muted-foreground text-xs">{b("positions.pointBasis")}</p>
+        </Example>
+      </div>
       <div className="grid gap-8 lg:grid-cols-2">
         <Example label={t("card")}>
           <Card>

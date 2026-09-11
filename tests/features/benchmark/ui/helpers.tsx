@@ -2,15 +2,16 @@ import { render } from "@testing-library/react";
 import { createFormatter, NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
-import type {
-  AssumptionUsed,
-  DerivedCount,
-  InputKpi,
-  SnapshotBlocks,
-  SnapshotDerived,
-  SnapshotGap,
-  SnapshotPeer,
-  SnapshotResult,
+import {
+  type AssumptionUsed,
+  type DerivedCount,
+  type InputKpi,
+  peerShapeOf,
+  type SnapshotBlocks,
+  type SnapshotDerived,
+  type SnapshotGap,
+  type SnapshotPeerV3,
+  type SnapshotResult,
 } from "@/features/benchmark/snapshot";
 import type { KpiKey } from "@/features/research/catalogue";
 import { formats, TIME_ZONE } from "@/i18n/formats";
@@ -62,8 +63,8 @@ const KPI_INDEX: readonly KpiKey[] = [
 /** A peer selection as the task stores it on a result. */
 export function peer(
   [p25, median, p75]: readonly [number, number, number],
-  overrides: Partial<SnapshotPeer> = {},
-): SnapshotPeer {
+  overrides: Partial<SnapshotPeerV3> = {},
+): SnapshotPeerV3 {
   return {
     rowId: UUID(500),
     rung: 1,
@@ -76,6 +77,11 @@ export function peer(
     p75,
     sampleSize: null,
     provisional: true,
+    // Derived the same way the model derives it, so a fixture can never claim a shape its own
+    // values contradict (spec 0016, AC-4).
+    shape: peerShapeOf({ p25, median, p75 }),
+    sourceKey: null,
+    basis: null,
     ...overrides,
   };
 }
@@ -210,7 +216,9 @@ export function readyBlocks(overrides: Partial<SnapshotBlocks> = {}): SnapshotBl
           industrySection: "ALL",
           sizeBand: "all",
         }),
-        position: "above_median",
+        // One figure repeated as all three quartiles is a point row, so the model gives it an
+        // average position rather than a quartile one (spec 0016, AC-5).
+        position: "above_average",
         gapToMedian: 0,
         gapRelative: 0,
         confidence: null,

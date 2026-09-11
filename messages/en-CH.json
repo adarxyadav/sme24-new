@@ -1338,7 +1338,8 @@
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "card": "Opportunity card",
       "collapsible": "Collapsible disclosure",
-      "confidenceMedium": "Medium"
+      "confidenceMedium": "Medium",
+      "pointComparison": "Point comparison"
     },
     "marketing": {
       "packages": "Package card: fixed price and price on request",

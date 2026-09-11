@@ -10,6 +10,7 @@ import {
   sectionOfDivision,
   sizeBandOf,
 } from "@/features/benchmark/catalogue";
+import { PEER_SHAPES, POSITIONS } from "@/features/benchmark/snapshot";
 import { KPI_KEYS } from "@/features/research/catalogue";
 import de from "../../../messages/de-CH.json";
 import en from "../../../messages/en-CH.json";
@@ -100,7 +101,31 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
       "indirect_multiplier",
       "indirect_multiplier_high",
     ]);
-    expect(MODEL_VERSION).toBe("benchmark-model@2");
+    expect(MODEL_VERSION).toBe("benchmark-model@3");
     expect(BENCHMARK_WAIT_MS).toBe(120_000);
+  });
+
+  // The band label is looked up at render time as `positions.band.<stored value>`, so a missing
+  // key fails in the browser rather than at build: the two average positions of spec 0016 must
+  // not be able to ship without their labels (AC-13b).
+  it("labels every position in both catalogs (spec 0016, AC-13b)", () => {
+    for (const messages of [de, en]) {
+      const bands = messages.benchmark.positions.band as Record<string, string>;
+      for (const position of POSITIONS) {
+        expect(bands[position], position).toBeTruthy();
+      }
+      // No stale label outlives its position value either.
+      expect(Object.keys(bands).sort()).toEqual([...POSITIONS].sort());
+    }
+  });
+
+  it("names both peer shapes and the point row wording in both catalogs (spec 0016, AC-6)", () => {
+    expect(PEER_SHAPES).toEqual(["point", "distribution"]);
+    for (const messages of [de, en]) {
+      const positions = messages.benchmark.positions as Record<string, unknown>;
+      for (const key of ["sector", "srSector", "pointBasis", "broadened"]) {
+        expect(positions[key], key).toBeTruthy();
+      }
+    }
   });
 });
