@@ -2013,6 +2013,7 @@
     },
     "facts": {
       "industry": "Branche (NOGA-Abteilung)",
+      "industryHint": "Die NOGA-Abteilung, unter der Ihr Unternehmen eingeordnet ist.",
       "industryPlaceholder": "Abteilung wählen",
       "employees": "Mitarbeiterzahl",
       "employeesHint": "Mitarbeitende, gezählt als Vollzeitstellen.",

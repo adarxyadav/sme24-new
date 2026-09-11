@@ -56,6 +56,7 @@ export function FactsCard({ className }: { readonly className?: string }) {
                   aria-hidden="true"
                 />
               </div>
+              <FieldDescription>{t("industryHint")}</FieldDescription>
             </Field>
             <Field>
               <FieldLabel>{t("employees")}</FieldLabel>
