@@ -115,6 +115,17 @@ export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
     ],
     buttonLabel: "Open request",
   }),
+  "task.failed": (fields, context) => ({
+    title: "Background task failed",
+    fields: [
+      ["Task", fields.taskId],
+      ["Run", fields.runId],
+      ["Attempts", String(fields.attempts)],
+      ["Error", fields.error],
+      ["Time", format.dateTime(context.now, "dateTime")],
+    ],
+    buttonLabel: "Open run",
+  }),
   "invoice.render_failed": (fields, context) => ({
     title: "Invoice render failed",
     fields: [
