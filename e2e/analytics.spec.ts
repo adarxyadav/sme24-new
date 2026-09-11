@@ -1,5 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
-import { SEED_USERS, signIn } from "./helpers";
+import { SEED_USERS, seedPassword, signIn } from "./helpers";
 
 /**
  * The browser event and the consent line it sits behind (spec 0017, AC-4, AC-6).
@@ -41,6 +41,13 @@ async function identifiers(page: Page) {
     .map((cookie) => cookie.name);
   return [...keys, ...cookies];
 }
+
+// Every test here signs in as a seeded user, and `signIn` casts the password to a string, so an
+// unset `E2E_SEED_PASSWORD` submits an empty one and the sign in redirect never comes: the suite
+// hangs on `waitForURL` rather than skipping. Every other spec that signs in guards on
+// `seedPassword` too, either alone (`design`, `emails`, `enquiries`, `roles`, `localization`,
+// `auth`) or together with `dbAvailable` (`ops-admin`, `experts`, `legal`).
+test.skip(!seedPassword, "E2E_SEED_PASSWORD is not set; seeded users are unavailable");
 
 test.describe("benchmark.viewed", () => {
   test("no event and no identifier before the visitor answers the bar (AC-4, AC-6)", async ({
