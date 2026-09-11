@@ -491,27 +491,27 @@
         "items": {
           "what": {
             "question": "What does SME24 actually do?",
-            "answer": "We benchmark your safety figures against comparable Swiss companies, put a franc figure on the gap, and send a senior expert to your site to close it. The benchmark is free; the visit is a fixed price package."
+            "answer": "Enter your company name and our proprietary EHS engine benchmarks your safety, health and environmental risks against similar companies, free of charge. You see where you are overpaying, in francs. Choose a package at one fixed price, and subject matter experts come to your site and fix the gaps – once."
           },
           "figures": {
             "question": "Where do the peer figures come from?",
-            "answer": "Public Swiss sources — the UVG accident statistics by industry section and size band, and the published reports of comparable companies. Every value we show names the source it came from."
+            "answer": "Public sources: the standardised UVG accident statistics, European accident statistics and the published reports of similar companies. Every value on your benchmark names the source it came from, so you can check it yourself."
           },
           "free": {
             "question": "Is the benchmark really free?",
-            "answer": "Yes. You name your company, we research the public record and show you where you stand, before anyone visits and before you pay anything."
+            "answer": "Yes. Enter your company name and see where you stand against similar companies, before anyone visits and before you pay anything. You pay only when you choose a package, at one fixed price."
           },
           "duration": {
             "question": "How long does the benchmark take?",
-            "answer": "A few minutes. The run searches sustainability, annual and safety reports, extracts the KPIs for the latest three reporting years and checks every value against its source."
+            "answer": "Minutes. Our proprietary EHS engine reads your company's public record and returns your benchmark while you are on the page. Once you choose a package, a site visit typically follows within two weeks and the written report within ten days of the visit."
           },
           "experts": {
             "question": "Who are the experts?",
-            "answer": "Senior EHS people who have run safety in Swiss industry for decades. The person who walks your site is the person who writes the report — there is no junior handover."
+            "answer": "Subject matter experts who have run EHS in Swiss industry, not a junior with a checklist. The person who walks your site is the person who writes the report and closes the gaps with you – industry experience, not theory."
           },
           "price": {
             "question": "What does a package cost?",
-            "answer": "From CHF 2 000 excluding VAT, and the price on the page is the price you pay. If the visit shows you need less than you thought, take the smaller package."
+            "answer": "From CHF 2 000 excluding VAT. Three packages, each at one fixed price agreed before the first visit, and an implementation partner on demand. The price on the page is the price you pay. If the visit shows you need less than you thought, take the smaller package."
           }
         }
       },
