@@ -5,6 +5,8 @@ import {
   createConfirmedClient,
   dbAvailable,
   deleteAccount,
+  seedCompanyKpi,
+  seedResearchedCompany,
   serviceClient,
 } from "./db";
 import { mailAvailable, mailIds, noMailFor, readMail, uniqueEmail } from "./mail";
@@ -288,6 +290,93 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     if (!process.env.BENCHMARK_KEEP_DELIVERIES) {
       await serviceClient().from("email_deliveries").delete().eq("recipient_email", email);
     }
+    await deleteAccount(email);
+  }
+});
+
+/**
+ * The point row path (spec 0016, AC-15). Section D holds one Suva class, so its seeded peer row is
+ * 44.3 repeated as all three quartiles: a `point` row. The company is seeded straight into that
+ * section and a snapshot is driven through the same `benchmark-company` task the product uses, so
+ * the assertions run against the real model rather than a fixture of the rendering.
+ *
+ * What must hold: no quartile band is drawn and no replacement graphic takes its place, the words
+ * quarter, quartile and median never appear on the row, one labelled sector figure is shown, and
+ * the state passes axe. The distribution path stays covered by the test above, so both shapes are
+ * exercised.
+ */
+test("a point row renders a sector comparison with no band and no quartile wording", async ({
+  page,
+}) => {
+  const email = uniqueEmail("benchmark-point");
+  try {
+    await signInFresh(page, email, "Point Row AG");
+    const account = await accountByEmail(email);
+    const organizationId = account?.organization?.id;
+    const userId = account?.user.id;
+    if (!organizationId || !userId) throw new Error("the sign in created no organization");
+
+    // NOGA 35 is section D, whose peer row is a single figure (44.3/44.3/44.3) in the committed
+    // seed. The company sits above it, so the position is `below_average`, never a quartile band.
+    const { companyId, runId } = await seedResearchedCompany({
+      organizationId,
+      userId,
+      name: "Point Row AG",
+      industryCode: "35",
+      employeesCount: 200,
+    });
+    await seedCompanyKpi({
+      organizationId,
+      companyId,
+      runId,
+      kpiKey: "accident_rate_per_1000_fte",
+      periodYear: 2024,
+      value: 60,
+    });
+
+    const db = serviceClient();
+    await db.from("companies").update({ updated_at: new Date().toISOString() }).eq("id", companyId);
+    await page.goto("/en/app");
+    await expect(page.getByRole("heading", { level: 1, name: "Point Row AG" })).toBeVisible();
+
+    // Drive a snapshot through the product's own path: saving a figure queues `benchmark-company`.
+    const assessment = page.locator("[data-self-assessment]");
+    await assessment.getByRole("button", { name: /Save/ }).first().click();
+    await expect
+      .poll(async () => {
+        const { count } = await db
+          .from("benchmark_snapshots")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", companyId);
+        return count ?? 0;
+      }, RUN_TIMEOUT)
+      .toBeGreaterThan(0);
+    await expect
+      .poll(
+        () => page.locator("[data-benchmark-state]").getAttribute("data-benchmark-state"),
+        RUN_TIMEOUT,
+      )
+      .toBe("ready");
+
+    const row = page.locator('[data-position-kpi="accident_rate_per_1000_fte"]');
+    await expect(row).toHaveAttribute("data-peer-shape", "point");
+    await expect(row).toHaveAttribute("data-position", "below_average");
+
+    // No band, and nothing drawn in its place.
+    await expect(row.locator('[data-slot="quartile-band"]')).toHaveCount(0);
+    await expect(row.locator("svg")).toHaveCount(0);
+
+    // One labelled sector figure, and the point row basis sentence.
+    await expect(row.locator("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "44.3");
+    await expect(row.getByText("One figure for the whole sector, not a range.")).toBeVisible();
+
+    // The words the spec forbids on a point row, in the rendered text of the row itself.
+    const text = ((await row.textContent()) ?? "").toLowerCase();
+    expect(text).not.toMatch(/quarter|quartile|median|p25|p75/);
+
+    await expectNoAxeViolations(page);
+  } finally {
+    await serviceClient().from("email_deliveries").delete().eq("recipient_email", email);
     await deleteAccount(email);
   }
 });
