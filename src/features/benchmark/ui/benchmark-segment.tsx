@@ -724,7 +724,9 @@ function PositionRow({
             <span>
               {key && KPI_CATALOGUE[key].peerStatus === "no_source"
                 ? t("positions.peerStatus.noSourceTitle")
-                : t("positions.noPeer")}
+                : key && KPI_CATALOGUE[key].peerStatus === "pending"
+                  ? t("positions.peerStatus.pendingTitle")
+                  : t("positions.noPeer")}
             </span>
             {key ? (
               <span className="text-xs" data-peer-status={KPI_CATALOGUE[key].peerStatus}>

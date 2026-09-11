@@ -528,7 +528,10 @@ describe("the positions (AC-9, AC-14)", () => {
     const trifr = container.querySelector(
       '[data-position-kpi="trifr"] [data-no-peer]',
     ) as HTMLElement;
-    expect(within(trifr).getByText(b.positions.noPeer)).toBeInTheDocument();
+    // Asserted against `pendingTitle`, not the generic `noPeer`: the two strings are byte
+    // identical in both catalogs today, so matching on `noPeer` would pass even if the pending
+    // branch were deleted. This pins the branch, so the wording can be sharpened during curation.
+    expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
     expect(trifr).toHaveTextContent(b.positions.peerNote.trifr);
     expect(trifr).not.toHaveTextContent(b.positions.peerStatus.noSourceTitle);
     expect(trifr.querySelector('[data-peer-status="pending"]')).toBeInTheDocument();
@@ -541,7 +544,9 @@ describe("the positions (AC-9, AC-14)", () => {
     expect(within(nearMiss).queryByText(b.positions.noPeer)).not.toBeInTheDocument();
     const trifr = container.querySelector('[data-position-kpi="trifr"]') as HTMLElement;
     expect(within(trifr).getByText("6.10")).toBeInTheDocument();
-    expect(within(trifr).getByText(b.positions.noPeer)).toBeInTheDocument();
+    // `trifr` is a pending KPI, so the title it renders is `pendingTitle`; `noPeer` would match
+    // only because the two strings are identical today (spec 0016, AC-8).
+    expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
     expect(trifr).toHaveAttribute("data-position", "");
   });
 });
