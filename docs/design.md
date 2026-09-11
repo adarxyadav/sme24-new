@@ -194,7 +194,7 @@ The tier of every section that exists today. A new section joins this table.
 
 | Page | Sections in order |
 |---|---|
-| Landing | anchor hero on the page ground, centred, with the hero object under it · minor proof points · **major steps** · major packages · minor campaign wall · major trust · anchor jet closing |
+| Landing | anchor hero on the page ground, centred, with the hero object under it · minor worked figure beside the walkthrough · **major steps** · major packages · major experts · major trust, centred rather than split · minor FAQ · anchor jet closing |
 | How it works | anchor opener · **major steps** · major split of labour · minor timing · anchor jet closing |
 | Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
 | Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |

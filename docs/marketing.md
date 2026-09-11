@@ -4,11 +4,11 @@ _How the public site is built, how to change what it says, how an enquiry travel
 
 ## The pages
 
-Seven prerendered pages in German and English under `src/app/[locale]/(marketing)/`:
+Eight prerendered pages in German and English under `src/app/[locale]/(marketing)/`:
 
 | Page | English | German | What it holds |
 |---|---|---|---|
-| Landing | `/en` | `/de` | The centred hero on the page ground with the company lookup field into sign up and a still of the client area's first screen under it (`HeroResearch`, `inert` and announced as one image), one sentence carrying the worked figure, how it works, the packages overview, the campaign wall, the trust band (`TrustSection`: Swiss hosting, the row level security fence and the processor record, counted from `PROCESSORS`), a closing call to action |
+| Landing | `/en` | `/de` | The centred hero on the page ground with the company lookup field into sign up and a still of the client area's first screen under it (`HeroResearch`, `inert` and announced as one image), one sentence carrying the worked figure, how it works, the packages overview, the expert band (`ExpertsSection`, example profiles coded from `EXPERT_CATALOGUE` and labelled as illustrations), the trust band (`TrustSection`: Swiss hosting, the row level security fence and the processor record, counted from `PROCESSORS`), a closing call to action |
 | How it works | `/en/how-it-works` | `/de/so-funktionierts` | The four steps the landing page summarises, the division of labour between the client and us, how long each stage takes |
 | Expert network | `/en/expert-network` | `/de/expertennetzwerk` | What "senior" has to mean, how an expert is vetted into the network, how one is matched to a company, where the network reaches |
 | Expert directory | `/en/expert-network/directory` | `/de/expertennetzwerk/verzeichnis` | The public SGAS register of occupational safety specialists: the counts, the coverage per canton and the searchable register itself |
