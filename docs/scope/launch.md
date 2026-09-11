@@ -82,7 +82,7 @@ Row 25 gave the benchmark a schema that can say what a peer value came from; thi
 spec [0016](../specs/0016-peer-data-curation-launch-gate/index.md), the amendment of 12 Sep 2026
 - [x] Design it (spec): `/architect peer data refresh`
 - [ ] Build it: `/develop peer data refresh` · code in `supabase/seed-data/`, `src/features/benchmark/model.ts`, `src/features/benchmark/snapshot.ts`, `src/features/research/catalogue.ts`, `src/features/benchmark/ui/`, `docs/benchmark.md`
-  - [ ] Block A, correctness and honesty: the three corrected conclusions and the reconciled runbook with its pinned worked example, `fatalities` to `pending` and the rewritten lost days note, the `costAt` guard with a named reason, a zero peer reference priced as a saving with AC-18 of spec 0008 amended, `benchmark-model@4` (AC-18 to AC-22 of the amendment)
+  - [x] Block A, correctness and honesty: the three corrected conclusions and the reconciled runbook with its pinned worked example, `fatalities` to `pending` and the rewritten lost days note, the `costAt` guard with a named reason, a zero peer reference priced as a saving with AC-18 of spec 0008 amended, `benchmark-model@4` (AC-18 to AC-22 of the amendment)
   - [ ] Block B, the data: the 22 Suva rows re read from UVG-Statistik 2026 with `source_key` and `basis`, the Eurostat lost days, fatality and size band rows under D3 and D4, absenteeism resolved, the generated migration with the flipped pgTAP expectations (AC-23 to AC-29)
   - [ ] Block C, what the client sees: `basis` and `source_key` confirmed on a real card in both languages, the lost time only disclosure line, the distribution wording decided with the copy (AC-30, AC-31)
 - [ ] Verify it: `/check verify peer data refresh`
