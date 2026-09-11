@@ -23,10 +23,21 @@ export type ParseRule = "decimal" | "integer" | "boolean";
 /** How the dashboard renders a value (AC-7): two decimals, a whole number, a percentage with one decimal, or yes/no. */
 export type KpiFormat = "decimal2" | "integer" | "percent1" | "yesNo";
 
+/**
+ * Whether a Swiss peer source exists for a KPI (spec 0016, AC-7). `sourced` is read from a
+ * published table, `pending` is readable but not yet read into the peer set, and `no_source` means
+ * no Swiss body publishes it at all, so waiting for it is pointless.
+ */
+export type PeerStatus = "sourced" | "pending" | "no_source";
+
 export type KpiDefinition = {
   readonly key: KpiKey;
   /** The unit every stored value is in (the source unit is converted by the validator). */
   readonly unit: string;
+  /** Whether a Swiss peer source exists for this KPI (spec 0016, AC-7). */
+  readonly peerStatus: PeerStatus;
+  /** The `benchmark` message key explaining that status to the client (spec 0016, AC-7, AC-8). */
+  readonly peerNote: string;
   readonly direction: "lower_is_better" | "higher_is_better";
   /** Values outside this range are dropped as `out_of_range` (AC-5). */
   readonly range: readonly [min: number, max: number];
@@ -39,6 +50,8 @@ export type KpiDefinition = {
 export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   ltifr: {
     key: "ltifr",
+    peerStatus: "pending",
+    peerNote: "positions.peerNote.ltifr",
     unit: "per 1 000 000 hours worked",
     direction: "lower_is_better",
     range: [0, 100],
@@ -48,6 +61,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   trifr: {
     key: "trifr",
+    peerStatus: "pending",
+    peerNote: "positions.peerNote.trifr",
     unit: "per 1 000 000 hours worked",
     direction: "lower_is_better",
     range: [0, 200],
@@ -57,6 +72,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   fatalities: {
     key: "fatalities",
+    peerStatus: "no_source",
+    peerNote: "positions.peerNote.fatalities",
     unit: "count",
     direction: "lower_is_better",
     range: [0, 1000],
@@ -66,6 +83,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   lost_days_per_incident: {
     key: "lost_days_per_incident",
+    peerStatus: "pending",
+    peerNote: "positions.peerNote.lost_days_per_incident",
     unit: "days",
     direction: "lower_is_better",
     range: [0, 365],
@@ -75,6 +94,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   accident_rate_per_1000_fte: {
     key: "accident_rate_per_1000_fte",
+    peerStatus: "sourced",
+    peerNote: "positions.peerNote.accident_rate_per_1000_fte",
     unit: "per 1 000 full time equivalents",
     direction: "lower_is_better",
     range: [0, 1000],
@@ -84,6 +105,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   absenteeism_rate: {
     key: "absenteeism_rate",
+    peerStatus: "pending",
+    peerNote: "positions.peerNote.absenteeism_rate",
     unit: "percent",
     direction: "lower_is_better",
     range: [0, 100],
@@ -93,6 +116,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   near_miss_rate: {
     key: "near_miss_rate",
+    peerStatus: "no_source",
+    peerNote: "positions.peerNote.near_miss_rate",
     unit: "per 100 employees",
     direction: "higher_is_better",
     range: [0, 1000],
@@ -102,6 +127,8 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   iso_45001_certified: {
     key: "iso_45001_certified",
+    peerStatus: "pending",
+    peerNote: "positions.peerNote.iso_45001_certified",
     unit: "yes or no",
     direction: "higher_is_better",
     range: [0, 1],

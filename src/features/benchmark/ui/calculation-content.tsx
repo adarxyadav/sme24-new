@@ -82,7 +82,20 @@ export async function CalculationContent({
                       {t("disclosure.provisional")}
                     </Badge>
                   ) : null}
+                  {assumption.isAssumption ? (
+                    <Badge variant="outline" data-declared-assumption>
+                      {t("disclosure.declaredAssumption")}
+                    </Badge>
+                  ) : null}
                 </div>
+                {/* A declared assumption names its own boundary and source, so the disclosure
+                    states plainly where each multiplier came from rather than presenting all
+                    seven constants alike (spec 0016, AC-10). */}
+                {assumption.isAssumption && assumption.note ? (
+                  <span className="text-muted-foreground text-xs" data-assumption-note>
+                    {localizedText(assumption.note, locale)}
+                  </span>
+                ) : null}
                 <span className="text-muted-foreground text-xs">
                   {assumption.sourceUrl ? (
                     <a
@@ -152,6 +165,14 @@ export async function CalculationContent({
                       year: peer.periodYear,
                     })
                   : t("disclosure.noPeerUsed")}
+                {/* What the quartiles actually describe, when the curator recorded it. Null on
+                    every row today, and a null basis renders nothing at all rather than an empty
+                    element (spec 0016, AC-11). */}
+                {peer?.basis ? (
+                  <span className="block text-xs" data-peer-basis>
+                    {localizedText(peer.basis, locale)}
+                  </span>
+                ) : null}
               </li>
             );
           })}

@@ -14,6 +14,8 @@ import {
 import { classifyRunInsertError } from "@/features/research/errors";
 import { lookupSchema, normalizeWebsite, rerunSchema } from "@/features/research/schema";
 import { parseSummary, researchSummarySchema } from "@/features/research/summary";
+import de from "../../../messages/de-CH.json";
+import en from "../../../messages/en-CH.json";
 
 /** The keys the data migration seeds, in its insert order (spec 0007, AC-1). */
 function seededKeys(): string[] {
@@ -37,6 +39,29 @@ describe("the KPI catalogue (spec 0007, AC-1)", () => {
       expect(["decimal2", "integer", "percent1", "yesNo"]).toContain(kpi.format);
       expect(kpi.hint.split("\n")).toHaveLength(1);
     }
+  });
+
+  // Every KPI declares whether a Swiss peer source exists, and says so in both languages, so a
+  // client stops waiting for data that is never coming (spec 0016, AC-7).
+  it("declares a peer status and a note key present in both catalogs for every KPI", () => {
+    const resolve = (messages: typeof de, key: string) =>
+      key
+        .split(".")
+        .reduce<unknown>(
+          (node, part) => (node as Record<string, unknown> | undefined)?.[part],
+          messages.benchmark,
+        );
+    for (const kpi of KPI_LIST) {
+      expect(["sourced", "pending", "no_source"], kpi.key).toContain(kpi.peerStatus);
+      for (const messages of [de, en]) {
+        expect(resolve(messages, kpi.peerNote), `${kpi.key} in ${kpi.peerNote}`).toBeTruthy();
+      }
+    }
+    // The statuses spec 0016 fixed: two KPIs no Swiss body publishes at all, one already read.
+    const statusOf = (key: string) => KPI_LIST.find((kpi) => kpi.key === key)?.peerStatus;
+    expect(statusOf("fatalities")).toBe("no_source");
+    expect(statusOf("near_miss_rate")).toBe("no_source");
+    expect(statusOf("accident_rate_per_1000_fte")).toBe("sourced");
   });
 
   it("parses source strings by rule: decimals with comma or apostrophe, integers, yes and no", () => {

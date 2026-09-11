@@ -215,7 +215,10 @@ export const snapshotBlocksV3Schema = snapshotBlocksV2Schema.extend({
  * `@1` or `@2` row keeps parsing and rendering under its own schema, so every reader of a shape,
  * a basis or a note must handle its absence rather than assume the newest version.
  */
-export type SnapshotBlocks = Omit<z.infer<typeof snapshotBlocksV1Schema>, "results"> & {
+export type SnapshotBlocks = Omit<
+  z.infer<typeof snapshotBlocksV1Schema>,
+  "results" | "assumptions"
+> & {
   readonly results: readonly (SnapshotResult & {
     readonly peer: (SnapshotPeer & Partial<Omit<SnapshotPeerV3, keyof SnapshotPeer>>) | null;
   })[];

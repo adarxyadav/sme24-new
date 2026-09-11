@@ -717,7 +717,21 @@ function PositionRow({
             </>
           )
         ) : value !== null ? (
-          <span className="text-muted-foreground text-sm">{t("positions.noPeer")}</span>
+          // A KPI with no peer row says why (spec 0016, AC-8): a `no_source` KPI is one no Swiss
+          // body publishes, so it gets its own sentence rather than the shared "not yet", which
+          // would have the client waiting for data that is never coming.
+          <span className="flex flex-col gap-0.5 text-muted-foreground text-sm" data-no-peer>
+            <span>
+              {key && KPI_CATALOGUE[key].peerStatus === "no_source"
+                ? t("positions.peerStatus.noSourceTitle")
+                : t("positions.noPeer")}
+            </span>
+            {key ? (
+              <span className="text-xs" data-peer-status={KPI_CATALOGUE[key].peerStatus}>
+                {t(KPI_CATALOGUE[key].peerNote as "positions.noPeer")}
+              </span>
+            ) : null}
+          </span>
         ) : null}
       </div>
     </li>
