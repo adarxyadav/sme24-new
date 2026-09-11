@@ -3,7 +3,7 @@
 -- seed migration holds the provisional first set (AC-1, AC-2, AC-15).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(19);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -91,7 +91,13 @@ on conflict (key) do nothing;
 -- The seed (AC-2): the generated migration seeded the provisional first set.
 select cmp_ok((select count(*) from public.benchmarks where kpi_key = 'accident_rate_per_1000_fte' and industry_section = 'ALL' and size_band = 'all'), '>=', 1::bigint,
   'the seed holds an ALL and all row for the accident rate');
+-- The two flags (spec 0016, AC-2, AC-3): `provisional` means not yet read from its named source,
+-- `is_assumption` means no published source exists. Every seeded peer row is still awaiting a
+-- reading, and no peer row is a declared assumption.
 select is((select count(*) from public.benchmarks where not provisional), 0::bigint, 'every seeded peer row is provisional');
+select is((select count(*) from public.benchmarks where is_assumption), 0::bigint, 'no seeded peer row is a declared assumption');
+select is((select count(*) from public.benchmarks where provisional and is_assumption), 0::bigint,
+  'no peer row is both provisional and a declared assumption');
 
 -- Shape rules (AC-1), as the superuser so no policy hides them.
 select throws_ok(

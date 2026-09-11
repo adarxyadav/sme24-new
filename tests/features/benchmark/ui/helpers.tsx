@@ -124,6 +124,7 @@ export function assumptionRow(key: string, overrides: Partial<AssumptionRow> = {
     source_url: null,
     note: null,
     provisional: true,
+    is_assumption: false,
     effective_from: "2022-12-31",
     created_at: "2026-09-06T00:00:00.000Z",
     updated_at: "2026-09-06T00:00:00.000Z",
