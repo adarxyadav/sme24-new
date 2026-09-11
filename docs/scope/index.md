@@ -37,7 +37,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 22 | Client team invitations | Slice 8 | planned |
 | 23 | In app notification center | Slice 8 | planned |
 | 24 | Ops metrics dashboard | Slice 8 | planned |
-| 25 | Peer data curation & model honesty | Slice 4 | in-progress |
+| 25 | Peer data curation & model honesty | Slice 4 | done |
 | 25b | Seller facts & MWST registration | Slice 4 | planned |
 | 26 | Production environment & go live | Slice 4 | planned |
 | 27 | Derived injury counts | Slice 2 | done |

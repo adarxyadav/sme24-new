@@ -1,7 +1,7 @@
 # 0016. Peer data curation and model honesty
 
 **Date**: 2026-09-11
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
