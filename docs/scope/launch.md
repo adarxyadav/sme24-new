@@ -55,6 +55,7 @@ code in `src/features/benchmark/`, `src/features/research/catalogue.ts`, `supaba
   - [x] The range and the caveats: `benchmark-model@3` with its schema key, the range led card with outward rounding, the gallery states, and the assumption and peer caveats carried through to the disclosure (AC-9, AC-10, AC-11, AC-12, AC-16)
   - [x] Per KPI peer status: the catalogue fields with the extended equality test and the reworded sourceless and pending states (AC-7, AC-8)
   - [x] The email range, the marketing example test and `docs/benchmark.md` with the confirmed dead ends (AC-13, AC-14, AC-17)
+- [x] Review it (fresh model): `/check review peer data curation & model honesty`
 - [ ] Verify it: `/check verify peer data curation & model honesty`
 - [ ] Test it: `/test peer data curation & model honesty`
 
