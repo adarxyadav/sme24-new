@@ -3000,7 +3000,7 @@
           "purpose": "Durchsucht öffentliche Quellen nach Angaben zu Ihrem Unternehmen."
         },
         "posthog": {
-          "purpose": "Produktanalyse, und erst nachdem Sie zugestimmt haben. Unsere Instanz läuft in Frankfurt."
+          "purpose": "Produktanalyse. Wir halten unsere eigenen Vorgänge zu Ihrem Konto fest (eine gestartete Abfrage, ein fertiger Bericht), unabhängig von Ihrer Zustimmung und anhand von Kennungen statt Ihres Namens, Ihrer E-Mail-Adresse oder von Ihnen verfasster Texte. Nur der Teil, der ein Cookie in Ihrem Browser benötigt, wartet auf Ihre Zustimmung. Unsere Instanz läuft in Frankfurt."
         },
         "sentry": {
           "purpose": "Sammelt Fehlermeldungen, damit Störungen gefunden werden. Unsere Instanz läuft in Frankfurt."

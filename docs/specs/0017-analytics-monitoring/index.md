@@ -185,7 +185,7 @@ Tracer Bullet, so milestone 1 proves the whole vocabulary end to end through one
 
 - [ ] Feature 24 (ops metrics dashboard) should surface the funnel in app, so reading it does not need a second login.
 - [ ] Decide whether marketing entry events (`pricing.viewed`, `package.selected`) are worth adding once the funnel shows real drop off; they were considered and deferred here because they are browser only and therefore the least reliable events in the set.
-- [ ] Review the PostHog entry in `PROCESSORS` and the record of processing, so the record says that some events are collected server side without consent and on what basis.
+- [x] Review the PostHog entry in `PROCESSORS` and the record of processing, so the record says that some events are collected server side without consent and on what basis. Done in milestone 5: both surfaces claimed PostHog "loads only after the visitor accepts", which the nine server side events made false. The record now states the two paths and their two bases (`interest` for the server events, which set no device identifier, `consent` for `benchmark.viewed`), and the privacy page's `posthog.purpose` says the same in both catalogues. `PROCESSORS` itself needed no row change: PostHog was already listed, in the EU.
 - [ ] `docs/analytics.md` conventions are not yet in root `AGENTS.md`; `/sync` should add the one line rule pointing at it.
 - [ ] Confirm whether Sentry `tracesSampleRate` should rise above 0 for slow page reporting, which the scope row names but this spec does not build.
 

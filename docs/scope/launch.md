@@ -44,12 +44,12 @@ Carried over from earlier specs: `benchmark.viewed` and `benchmark.computed` wit
 spec [0017](../specs/0017-analytics-monitoring/index.md)
 code in `src/lib/analytics/`, `src/lib/alerts/`, `src/trigger/instrumentation.ts`, `docs/analytics.md`
 - [x] Design it (spec): `/architect analytics & monitoring`
-- [ ] Build it: `/develop analytics & monitoring`
+- [x] Build it: `/develop analytics & monitoring`
   - [x] The catalogue and one event end to end: `ANALYTICS_EVENTS` with its per event Zod schemas under a `satisfies` check, `captureServerEvent` retyped to accept only a catalogue name and to validate properties, and `enquiry_sent` renamed to `enquiry.sent` and proven in PostHog (AC-1, AC-2, AC-3, AC-7, AC-8)
   - [x] The server side funnel: capture at `requestResearch`, the `research-company` and `benchmark-company` tasks, `saveClientKpis`, `clearClientKpi`, `startCheckout` and the `confirm-order` task, each after the write that makes its work durable; `payment.completed` fires in `confirm-order` rather than inside `settleOrder`, because that core is shared with the ops `markOrderPaid` path and the three fields the event needs (`created_by`, `organization_id`, `locale`) are already on the order row the task selects; the `expert.profile_completed` and `expert.assigned` renames were already carried by milestone 1's closed union (AC-4, AC-5, AC-7, AC-8)
   - [x] The one browser event: `captureBrowserEvent` behind the existing consent gate and `benchmark.viewed` from a client child of `BenchmarkSegment`, with Playwright proving no event and no identifier before a consent answer (AC-4, AC-6)
   - [x] Monitoring: the `task.failed` alert kind fired from the existing `tasks.onFailure` hook, and the Sentry release plus source map upload from the Vercel commit SHA (AC-9, AC-10)
-  - [ ] Tests and the runbook: the catalogue consistency and capture failure suites, `docs/analytics.md` with the taxonomy table and the funnel insight recipe, and the `PROCESSORS` review (AC-11, AC-12)
+  - [x] Tests and the runbook: the catalogue consistency and capture failure suites, `docs/analytics.md` with the taxonomy table and the funnel insight recipe, and the `PROCESSORS` review, which found the privacy page and the record of processing both claiming PostHog "loads only after you accept" and corrected all three surfaces to the two paths and their two bases (AC-11, AC-12)
 - [ ] Verify it: `/check verify analytics & monitoring`
 - [ ] Test it: `/test analytics & monitoring`
 - [ ] Review it (fresh model): `/check review analytics & monitoring`

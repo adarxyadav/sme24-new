@@ -3000,7 +3000,7 @@
           "purpose": "Searches public sources for facts about your company."
         },
         "posthog": {
-          "purpose": "Product analytics, and only after you accept it. Our instance runs in Frankfurt."
+          "purpose": "Product analytics. We record our own work on your account (a lookup started, a report finished) whether or not you accept, using ids rather than your name, email or any text you wrote. Only the part that needs a cookie in your browser waits for your acceptance. Our instance runs in Frankfurt."
         },
         "sentry": {
           "purpose": "Collects error reports so faults are found. Our instance runs in Frankfurt."
