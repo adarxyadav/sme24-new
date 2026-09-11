@@ -86,6 +86,24 @@ export function roundChf(value: number): number {
   return Math.round(value / step) * step;
 }
 
+/**
+ * Rounds a cost range outward at the same step `roundChf` uses (spec 0016, AC-9): the low end
+ * down, the high end up, so the displayed band always contains the computed one and the shown
+ * range can never be narrower than the arithmetic. The card and the email both call this, so the
+ * two surfaces never show different numbers for one snapshot (AC-13). Both ends are non negative
+ * by construction, so no behaviour below zero is defined. Pure.
+ */
+export function roundChfRange(
+  low: number,
+  high: number,
+): { readonly low: number; readonly high: number } {
+  const stepOf = (value: number) => (Math.abs(value) < 10_000 ? 100 : 1_000);
+  return {
+    low: Math.floor(low / stepOf(low)) * stepOf(low),
+    high: Math.ceil(high / stepOf(high)) * stepOf(high),
+  };
+}
+
 /** The KPI's newest row: the highest `period_year` wins (AC-4 rule 1). Pure. */
 function newestRow(rows: readonly ModelKpiRow[], key: KpiKey): ModelKpiRow | null {
   return rows

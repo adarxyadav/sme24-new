@@ -254,6 +254,9 @@ function seedComputation() {
       p75: "81.2",
       sample_size: null,
       provisional: true,
+      is_assumption: false,
+      source_key: null,
+      basis: null,
     },
     {
       id: "0b000000-0000-4000-8000-000000000002",
@@ -282,7 +285,11 @@ function seedComputation() {
     unit,
     source_name: "test",
     source_url: null,
+    note: null,
     provisional: true,
+    // The three multipliers are declared assumptions in the real seed (spec 0016, AC-2); here the
+    // flag only has to be present, because the loader copies it onto every assumption block.
+    is_assumption: false,
     effective_from: "2022-12-31",
   }));
   state.tables.organization_members = [
@@ -336,7 +343,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       company_id: COMPANY,
       research_run_id: RUN,
       trigger_kind: "research",
-      model_version: "benchmark-model@2",
+      model_version: "benchmark-model@3",
       peer_provisional: true,
       kpis_compared: 2,
       confidence: 0.9,
@@ -482,6 +489,10 @@ describe("the benchmark ready email (AC-7)", () => {
           kpisCompared: 2,
           costChf: expect.any(Number),
           savingMedianChf: expect.any(Number),
+          // The range the email leads with, rounded outward by the same function the card uses
+          // (spec 0016, AC-13).
+          costLowChf: expect.any(Number),
+          costHighChf: expect.any(Number),
         },
         recipient: { userId },
         sourceEvent: "benchmark.snapshot_created",
@@ -490,6 +501,14 @@ describe("the benchmark ready email (AC-7)", () => {
       });
       expect((sendPayload.data as Row).costChf).not.toBe(stored.cost_chf);
       expect(((sendPayload.data as Row).costChf as number) % 100).toBe(0);
+      // The band contains the computed ends, so the email can never show a narrower range than
+      // the arithmetic (spec 0016, AC-9, AC-13).
+      const low = (sendPayload.data as Row).costLowChf as number;
+      const high = (sendPayload.data as Row).costHighChf as number;
+      expect(low).toBeLessThanOrEqual(Number(stored.cost_low_chf));
+      expect(high).toBeGreaterThanOrEqual(Number(stored.cost_high_chf));
+      expect(low).toBeLessThanOrEqual((sendPayload.data as Row).costChf as number);
+      expect(high).toBeGreaterThanOrEqual((sendPayload.data as Row).costChf as number);
       expect(options).toEqual({
         idempotencyKey: `benchmark-ready/${COMPANY}/${userId}`,
         idempotencyKeyTTL: "30d",

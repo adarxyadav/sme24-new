@@ -1394,7 +1394,9 @@
       "saving": "Der Median Ihrer Vergleichsgruppe würde rund {saving} pro Jahr einsparen.",
       "noCost": "Die Jahreskosten konnten wir noch nicht schätzen. Erfassen Sie Ihre Mitarbeiterzahl im Kundenbereich, dann rechnen wir sofort neu.",
       "nextStep": "Der Kundenbereich zeigt Ihre Position pro Kennzahl, die prioritären Lücken und wie jede Zahl berechnet wird.",
-      "button": "Benchmark ansehen"
+      "button": "Benchmark ansehen",
+      "range": "Arbeitsunfälle kosten Sie rund {low} bis {high} pro Jahr.",
+      "working": "Unser Arbeitswert innerhalb dieser Bandbreite liegt bei {cost}."
     },
     "enquiry_received": {
       "subject": "Ihre Anfrage ist bei SME24 eingegangen",
@@ -1796,7 +1798,9 @@
       "confidenceFrom": "Verlässlichkeit aus {kpi}",
       "missingHeadcount": "Für die Kostenschätzung brauchen wir Ihre Mitarbeiterzahl.",
       "missingIncidentRate": "Für die Kostenschätzung brauchen wir eine Unfallrate oder eine LTIFR.",
-      "compared": "{compared} von {total} Kennzahlen verglichen"
+      "compared": "{compared} von {total} Kennzahlen verglichen",
+      "rangeHeadline": "{low} bis {high}",
+      "working": "Arbeitswert {cost}"
     },
     "derived": {
       "title": "Was das an Unfällen bedeutet",

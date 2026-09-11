@@ -37,7 +37,16 @@ export function BenchmarkReadyEmail({ t, locale, data, href }: TemplateProps<Ben
       </EmailText>
       {data.costChf !== undefined ? (
         <EmailText>
-          {t("email.benchmark_ready.cost", { cost: chf(data.costChf) })}
+          {/* The range leads and the working estimate follows (spec 0016, AC-13), the same order
+              as the card, so the artifact most likely to be forwarded to a board does not present
+              a precise figure the dashboard has just qualified. Without both ends the single
+              figure stands alone rather than showing half a range. */}
+          {data.costLowChf !== undefined && data.costHighChf !== undefined
+            ? `${t("email.benchmark_ready.range", {
+                low: chf(data.costLowChf),
+                high: chf(data.costHighChf),
+              })} ${t("email.benchmark_ready.working", { cost: chf(data.costChf) })}`
+            : t("email.benchmark_ready.cost", { cost: chf(data.costChf) })}
           {data.savingMedianChf !== undefined
             ? ` ${t("email.benchmark_ready.saving", { saving: chf(data.savingMedianChf) })}`
             : ""}

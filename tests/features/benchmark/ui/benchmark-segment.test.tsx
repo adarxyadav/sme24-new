@@ -132,14 +132,20 @@ describe("the waiting states (AC-9)", () => {
 });
 
 describe("the opportunity card (AC-9, AC-14)", () => {
-  it("shows the rounded cost headline, the range, both savings, the confidence and the date", async () => {
+  // The range leads and the working estimate sits beneath it (spec 0016, AC-9). The ends round
+  // outward, so 1 060 180 floors to 1 060 000 and 2 650 450 ceils to 2 651 000: the displayed band
+  // always contains the computed one.
+  it("leads with the outward rounded range, then the working estimate, both savings, the confidence and the date", async () => {
     const { container } = await renderSegment();
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(within(card).getByText(b.card.title)).toBeInTheDocument();
-    expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(chf(1_961_340));
-    expect(
-      within(card).getByText(`Range ${chf(1_060_180)} to ${chf(2_650_450)}`),
-    ).toBeInTheDocument();
+    const range = card.querySelector("[data-cost-range]") as HTMLElement;
+    expect(range).toHaveTextContent(`${chf(1_060_000)} to ${chf(2_651_000)}`);
+    expect(range).toHaveAttribute("data-cost-low", "1060000");
+    expect(range).toHaveAttribute("data-cost-high", "2651000");
+    expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(
+      `Working estimate ${chf(1_961_340)}`,
+    );
     expect(card.querySelector("[data-saving-median]")).toHaveTextContent(chf(522_340));
     expect(card.querySelector("[data-saving-top]")).toHaveTextContent(chf(955_340));
     expect(
@@ -149,13 +155,18 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(within(card).getByText("5 of 8 KPIs compared")).toBeInTheDocument();
   });
 
-  it("rounds a cost below 10 000 to the nearest 100", async () => {
+  it("rounds a cost below 10 000 to the nearest 100, and each range end at its own step", async () => {
     const { container } = await renderSegment({
       snapshot: parsedSnapshot({ costChf: 8_449, costLowChf: 4_120, costHighChf: 11_990 }),
     });
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(chf(8_400));
     expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(/8.400/);
+    // The two ends straddle the 10 000 boundary, so they round at different steps: 4 120 floors
+    // to 4 100 at the nearest 100, 11 990 ceils to 12 000 at the nearest 1 000 (spec 0016, AC-9).
+    const range = card.querySelector("[data-cost-range]") as HTMLElement;
+    expect(range).toHaveAttribute("data-cost-low", "4100");
+    expect(range).toHaveAttribute("data-cost-high", "12000");
   });
 
   it("names the confidence level with the three feature 8 levels", async () => {

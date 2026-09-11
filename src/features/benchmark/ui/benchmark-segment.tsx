@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BenchmarkState } from "@/features/benchmark/catalogue";
-import { roundChf } from "@/features/benchmark/model";
+import { roundChf, roundChfRange } from "@/features/benchmark/model";
 import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
 import {
   type DerivedCount,
@@ -369,6 +369,11 @@ function OpportunityCard({
 }) {
   const chf = (value: number) => format.number(roundChf(value), "chfWhole");
   const cost = snapshot.blocks.cost;
+  // Rounded outward, so the displayed band always contains the computed one (spec 0016, AC-9).
+  const range =
+    snapshot.costLowChf !== null && snapshot.costHighChf !== null
+      ? roundChfRange(snapshot.costLowChf, snapshot.costHighChf)
+      : null;
   // Absent on a stored version 1 row and whenever nothing could be derived; the card then renders
   // exactly as it did before this block existed (spec 0012, AC-7, AC-12).
   const derived = snapshot.blocks.derived ?? null;
@@ -394,18 +399,38 @@ function OpportunityCard({
         ) : null}
         {cost && snapshot.costChf !== null ? (
           <>
+            {/* The range leads and the point estimate sits beneath it as the working estimate
+                (spec 0016, AC-9): the multiplier behind the single figure is a declared assumption,
+                so the honest headline is the band it sits in. The ends round outward, so the shown
+                band always contains the computed one. */}
             <div className="flex flex-col gap-1">
-              <p className="font-semibold text-3xl tabular-nums" data-numeric data-cost-headline>
-                {chf(snapshot.costChf)}
-              </p>
-              {snapshot.costLowChf !== null && snapshot.costHighChf !== null ? (
-                <p className="text-muted-foreground text-sm tabular-nums" data-numeric>
-                  {t("card.range", {
-                    low: chf(snapshot.costLowChf),
-                    high: chf(snapshot.costHighChf),
-                  })}
+              {range ? (
+                <>
+                  <p
+                    className="font-semibold text-3xl tabular-nums"
+                    data-numeric
+                    data-cost-range
+                    data-cost-low={range.low}
+                    data-cost-high={range.high}
+                  >
+                    {t("card.rangeHeadline", {
+                      low: format.number(range.low, "chfWhole"),
+                      high: format.number(range.high, "chfWhole"),
+                    })}
+                  </p>
+                  <p
+                    className="text-muted-foreground text-sm tabular-nums"
+                    data-numeric
+                    data-cost-headline
+                  >
+                    {t("card.working", { cost: chf(snapshot.costChf) })}
+                  </p>
+                </>
+              ) : (
+                <p className="font-semibold text-3xl tabular-nums" data-numeric data-cost-headline>
+                  {chf(snapshot.costChf)}
                 </p>
-              ) : null}
+              )}
             </div>
             <dl className="grid gap-3 sm:grid-cols-2">
               <div className="flex flex-col gap-0.5">

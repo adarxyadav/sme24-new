@@ -12,6 +12,7 @@ import {
   positionOf,
   rateShapeOf,
   roundChf,
+  roundChfRange,
   selectPeer,
 } from "@/features/benchmark/model";
 import { parseSnapshotBlocks, peerShapeOf, SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
@@ -397,6 +398,18 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   });
 
   it("rounds CHF to the nearest 100 below 10 000 and to the nearest 1 000 above", () => {
+    expect(roundChfRange(1_060_400, 2_650_100)).toEqual({ low: 1_060_000, high: 2_651_000 });
+    // The displayed band always contains the computed one: low rounds down, high rounds up, at
+    // the same step roundChf uses either side of 10 000 (spec 0016, AC-9).
+    expect(roundChfRange(4_849, 4_851)).toEqual({ low: 4_800, high: 4_900 });
+    expect(roundChfRange(9_999, 10_001)).toEqual({ low: 9_900, high: 11_000 });
+    // An exact multiple of the step is left where it is, so a clean number gains no false width.
+    expect(roundChfRange(2_000, 12_000)).toEqual({ low: 2_000, high: 12_000 });
+    expect(roundChfRange(0, 0)).toEqual({ low: 0, high: 0 });
+    // The band contains the point estimate for the real seeded multipliers.
+    const { low, high } = roundChfRange(1_060_400, 2_650_100);
+    expect(low).toBeLessThanOrEqual(1_060_400);
+    expect(high).toBeGreaterThanOrEqual(2_650_100);
     expect(roundChf(4_849)).toBe(4_800);
     expect(roundChf(4_850)).toBe(4_900);
     expect(roundChf(9_950)).toBe(10_000);

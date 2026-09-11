@@ -12,6 +12,7 @@ import {
   type ModelKpiRow,
   type ModelPeerRow,
   roundChf,
+  roundChfRange,
 } from "@/features/benchmark/model";
 import { SNAPSHOT_SCHEMAS, type SnapshotBody } from "@/features/benchmark/snapshot";
 import { isKpiKey } from "@/features/research/catalogue";
@@ -244,11 +245,18 @@ async function sendBenchmarkReady(
     .select("user_id")
     .eq("organization_id", ids.organizationId);
   if (error) throw queryError(error);
+  // Rounded outward here, with the same function the card uses, so the two surfaces never show
+  // different numbers for one snapshot (spec 0016, AC-13).
+  const range =
+    body.costLowChf === null || body.costHighChf === null
+      ? null
+      : roundChfRange(body.costLowChf, body.costHighChf);
   const data: NewSendPayload["data"] = {
     companyName,
     kpisCompared: body.kpisCompared,
     ...(body.costChf === null ? {} : { costChf: roundChf(body.costChf) }),
     ...(body.savingMedianChf === null ? {} : { savingMedianChf: roundChf(body.savingMedianChf) }),
+    ...(range === null ? {} : { costLowChf: range.low, costHighChf: range.high }),
   };
   let queued = 0;
   for (const member of members) {
