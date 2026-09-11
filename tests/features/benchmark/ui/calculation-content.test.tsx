@@ -311,3 +311,61 @@ describe("CalculationContent (AC-10)", () => {
     expect(screen.getByText("Industry: not known, size band all sizes")).toBeInTheDocument();
   });
 });
+
+/**
+ * The compared fatality rate in the disclosure (spec 0016 amendment, D3, AC-23): the inputs list
+ * shows the stored count, and beside the peer row it says the rate the position was judged on.
+ * Absent on a stored @1 to @3 row and never on another KPI, whatever its result carries.
+ */
+describe("the compared fatality rate (spec 0016 amendment, AC-23)", () => {
+  const fatalityPeer = () =>
+    peer([0.55, 0.55, 0.55], { rowId: "00000000-0000-4000-8000-000000000505", periodYear: 2023 });
+  const fatalityLine = (container: HTMLElement) =>
+    container.querySelector('[data-input-kpi="fatalities"]') as HTMLElement;
+
+  it("says the count was compared as a rate per 100 000 employed persons beside the peer row", async () => {
+    const { container } = await renderContent({
+      results: [
+        {
+          ...result("fatalities", { peer: fatalityPeer(), position: "below_average" }),
+          comparedValue: 238.0952,
+        },
+      ],
+    });
+    const line = fatalityLine(container);
+    expect(line).toHaveTextContent("1 (2025, from the research)");
+    expect(line).toHaveTextContent("peer: Manufacturing · 250 and more employees · 2023");
+    expect(line).toHaveTextContent("compared as 238.10 per 100 000 employed persons");
+  });
+
+  it("renders no compared text on a stored row that carries no compared value", async () => {
+    const { container } = await renderContent({
+      results: [result("fatalities", { peer: fatalityPeer(), position: "below_average" })],
+    });
+    expect(fatalityLine(container)).not.toHaveTextContent("compared as");
+  });
+
+  it("renders no compared text on the default fixture, where fatalities have no peer row", async () => {
+    const { container } = await renderContent();
+    const line = fatalityLine(container);
+    expect(line).toHaveTextContent(d.noPeerUsed);
+    expect(line).not.toHaveTextContent("compared as");
+  });
+
+  // The guard is on the key, not on the value: a compared value on any other KPI is never shown,
+  // because only the fatality count is converted at compare time.
+  it("never renders a compared line for a KPI other than fatalities", async () => {
+    const { container } = await renderContent({
+      results: [
+        {
+          ...result("accident_rate_per_1000_fte", {
+            peer: peer([34.9, 49.9, 66.4]),
+            position: "bottom_quarter",
+          }),
+          comparedValue: 68,
+        },
+      ],
+    });
+    expect(container.textContent).not.toContain("compared as");
+  });
+});
