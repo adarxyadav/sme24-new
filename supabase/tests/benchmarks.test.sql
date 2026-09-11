@@ -3,7 +3,7 @@
 -- seed migration holds the provisional first set (AC-1, AC-2, AC-15).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(31);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -99,6 +99,15 @@ select is((select count(*) from public.benchmarks where source_key is null or ba
   'every seeded peer row names its source classification and its basis');
 select is((select count(*) from public.benchmarks where kpi_key = 'accident_rate_per_1000_fte' and size_band = 'all'), 22::bigint,
   'one Suva accident rate row per section plus ALL');
+-- The size band rows (the spec 0016 amendment, AC-27, D4): one scaled estimate per (section, band)
+-- whose Eurostat band holds at least 100 accidents and 5 000 employed persons, 37 in all.
+select is((select count(*) from public.benchmarks where kpi_key = 'accident_rate_per_1000_fte' and size_band <> 'all'), 37::bigint,
+  'one scaled accident rate row per section and band that clears the floor');
+-- A band row is derived from its section's Suva row of the same year, so it can never outlive it.
+select is((select count(*) from public.benchmarks b where b.kpi_key = 'accident_rate_per_1000_fte' and b.size_band <> 'all'
+    and not exists (select 1 from public.benchmarks a where a.kpi_key = b.kpi_key and a.industry_section = b.industry_section
+      and a.size_band = 'all' and a.period_year = b.period_year)), 0::bigint,
+  'every accident rate band row has the section row of the same year it was scaled from');
 select is((select count(*) from public.benchmarks where kpi_key = 'fatalities'), 22::bigint, 'one Eurostat fatality rate row per section plus ALL');
 select is((select count(*) from public.benchmarks where kpi_key = 'lost_days_per_incident'), 21::bigint,
   'one Eurostat lost days row per section plus ALL, none for section U (three accidents)');

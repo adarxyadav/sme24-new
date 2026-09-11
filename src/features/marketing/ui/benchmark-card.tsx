@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
  * against. The worked example the page already commits to (`marketing.landing.points.sentence`) is
  * a 120 person metal fabricator at UVG section C's p75 of 65.8 against a median of 47.1 (the 2024
  * figures of UVG-Statistik 2026), so the bar reads three quarters along -- the same arithmetic
- * that produces the CHF 168 000 the card prints and the sentence higher up the page quotes.
+ * that produces the CHF 101 000 the card prints and the sentence higher up the page quotes.
  */
 const RATE_SHARE = 75;
 
@@ -26,7 +26,7 @@ const RATE_SHARE = 75;
  * `Button`, so the page shows the product rather than describing it.
  *
  * The figure is the one the landing page already stands behind, not a number chosen to look good:
- * it is the same CHF 168 000 the worked example band quotes, computed by the real model from the
+ * it is the same CHF 101 000 the worked example band quotes, computed by the real model from the
  * seed assumptions. A still that printed a different gap for the same example company would
  * contradict the sentence two sections above it.
  *
