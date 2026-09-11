@@ -60,3 +60,7 @@ lefthook-local.yml
 # Trigger.dev local worker build cache
 .trigger
 .env.worker
+
+# raw client material (contact lists, decks) and the artifact pages built from it; never committed
+/docs/raw/
+/docs/artifacts/
