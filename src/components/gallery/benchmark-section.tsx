@@ -1,12 +1,9 @@
 "use client";
 
-import { ChevronDownIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
 import { Example } from "@/components/gallery/gallery-section";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Separator } from "@/components/ui/separator";
 
@@ -18,16 +15,16 @@ const BANDS = [
 ] as const;
 
 /**
- * The benchmark primitives (spec 0008, AC-14): the `QuartileBand` in three shapes, a static
+ * The benchmark primitives (spec 0008, AC-14): the `QuartileBand` in three shapes and a static
  * opportunity card in its cut down shape (the confidence spelled out in the title row, the range,
- * the working estimate with its lost time clause, a saving and an "already at or below" mark),
- * and the `Collapsible` disclosure, so axe scans them on the gallery. Runs in the browser.
+ * the working estimate with its lost time clause, a saving and an "already at or below" mark), so
+ * axe scans them on the gallery. The "How this is calculated" disclosure that once sat beside the
+ * card was cut on 2026-09-13 (owner decision). Runs in the browser.
  */
 export function BenchmarkSection() {
   const t = useTranslations("gallery.benchmark");
   const b = useTranslations("benchmark");
   const format = useFormatter();
-  const [open, setOpen] = useState(false);
   const chf = (value: number) => format.number(value, "chfWhole");
 
   return (
@@ -104,20 +101,6 @@ export function BenchmarkSection() {
               </dl>
             </CardContent>
           </Card>
-        </Example>
-        <Example label={t("collapsible")}>
-          <Collapsible open={open} onOpenChange={setOpen} className="rounded-lg border">
-            <CollapsibleTrigger className="flex w-full items-center justify-between gap-3 rounded-lg px-4 py-3 text-left font-medium text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-              {b("disclosure.title")}
-              <ChevronDownIcon
-                aria-hidden="true"
-                className={`size-4 shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
-              />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="border-t px-4 py-4 text-muted-foreground text-sm">
-              {b("disclosure.fteLine")}
-            </CollapsibleContent>
-          </Collapsible>
         </Example>
       </div>
     </div>

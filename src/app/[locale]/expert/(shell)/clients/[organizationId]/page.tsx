@@ -104,7 +104,6 @@ export default async function ExpertClientPage({ params }: Props) {
             snapshot={dashboard.benchmark}
             state={dashboard.benchmarkState}
             catalogue={dashboard.catalogue}
-            assumptions={dashboard.benchmarkAssumptions}
             company={{
               id: company?.id ?? "",
               industryCode: company?.industry_code ?? null,

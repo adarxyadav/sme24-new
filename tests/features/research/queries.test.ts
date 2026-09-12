@@ -165,7 +165,6 @@ describe("getCompanyDashboard (AC-7, AC-8)", () => {
       quota: { used: 0, limit: 5, remaining: 5, openRunId: null },
       benchmark: null,
       benchmarkState: "unavailable",
-      benchmarkAssumptions: [],
       kpiRows: [],
       clientKpiUpdatedAt: null,
     });
@@ -340,7 +339,7 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     updated_at: "2026-09-06T00:00:00.000Z",
   };
 
-  it("loads the company's newest snapshot with its numbers parsed, the assumption rows and the ready state", async () => {
+  it("loads the company's newest snapshot with its numbers parsed and the ready state", async () => {
     const { client, calls } = fakeClient(
       baseAnswers({
         benchmark_snapshots: () => ({ data: [snapshotRow] }),
@@ -357,7 +356,6 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
       savingTopChf: 955_340,
       blocks: { inputs: { fte: 420, section: "C" } },
     });
-    expect(dashboard.benchmarkAssumptions).toEqual([assumptionRow]);
     const snapshots = calls.find((call) => call.table === "benchmark_snapshots");
     expect(snapshots?.steps).toEqual([
       ["select", ["*"]],
@@ -406,7 +404,6 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
     expect(dashboard.benchmark).toBeNull();
     expect(dashboard.benchmarkState).toBe("calculating");
-    expect(dashboard.benchmarkAssumptions).toEqual([]);
     expect(calls.map((call) => call.table)).not.toContain("benchmark_assumptions");
   });
 

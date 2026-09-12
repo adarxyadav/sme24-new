@@ -197,6 +197,7 @@ Tracer Bullet: the first slice runs the whole thread (seeded peer rows, model, t
 - [ ] Peer rows for `fatalities` (a rate per 100 000 workers scaled to the band) and `near_miss_rate` if a published source appears; both are left uncovered on purpose.
 - [ ] Amend spec 0002's target map: `benchmarks` is now three tables (`benchmarks`, `benchmark_assumptions`, `benchmark_snapshots`); `/sync` records the seed data folder and the two scripts in `AGENTS.md`.
 - [ ] If the owner curates the real CSV before the build starts, drop the provisional flag on the curated rows in that same seed.
+- [x] 2026-09-13, owner decision: the "How this is calculated" disclosure of AC-10 (formula, assumptions with sources, inputs used) was removed from the client page as not useful to the client. The facts form of AC-11 kept its place on the page as a card of its own after the positions, and still on the "missing input" card. The assumption rows are no longer loaded for the dashboard.
 
 ## Rationale
 

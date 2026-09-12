@@ -42,11 +42,11 @@ const AT_MEDIAN = ((PEER_MEDIAN_RATE * 420) / 1000) * (4811 + PEER_MEDIAN_LOST_D
 // (the company is already better than the peer on lost days). Both are shown; see the follow up in
 // spec 0016's amendment.
 const GAP_SAVING = ANNUAL - ((PEER_MEDIAN_RATE * 420) / 1000) * COST_PER_CASE * 3.7;
-// The derived counts (spec 0012) take the per million hours arm, on the 1 804 hours assumption:
-// LTIFR 2.4 drives the lost time count and TRIFR 6.1 the recordable one.
+// The lost time count (spec 0012) takes the per million hours arm, on the 1 804 hours assumption:
+// LTIFR 2.4 drives it. The recordable count is still computed but no longer shown anywhere since
+// the "How this is calculated" disclosure was cut (owner decision of 2026-09-13).
 const HOURS_PER_FTE = 1804;
 const LOST_TIME = (2.4 * 420 * HOURS_PER_FTE) / 1_000_000;
-const RECORDABLE = (6.1 * 420 * HOURS_PER_FTE) / 1_000_000;
 
 test.skip(localOnly, "needs the local stack: Mailpit and the Supabase secret key");
 test.skip(
@@ -103,7 +103,8 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     // The opportunity card (AC-9 a): the range, the working estimate with the lost time count it
     // is built from (spec 0012, AC-1, AC-8: 1.818 injuries a year to one decimal), both savings,
     // the spelled out confidence in the title row, the provisional note. Nothing else: the date,
-    // the KPI count and the derived rows moved to the disclosure (owner decision of 2026-09-13).
+    // the KPI count and the derived rows left the card on 2026-09-13 and the disclosure that took
+    // them was cut the same day (owner decisions).
     const card = page.locator("[data-opportunity-card]");
     expect(Number(await card.getAttribute("data-cost"))).toBeCloseTo(ANNUAL, 0);
     await expect(card.locator("[data-cost-headline]")).toContainText(/1.961.000/);
@@ -221,88 +222,20 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     }
     const seenAfterFirst = await mailIds(email);
 
-    // The disclosure (AC-10): closed by default, the formula, the six assumptions the snapshot used
-    // (the fixture has a lost days row and an accident rate, so no default days; the hours are named
-    // because the derived counts used them, spec 0012 AC-11), the inputs.
-    const disclosure = page.locator("[data-calculation-disclosure]");
-    await expect(disclosure.locator("[data-calculation-content]")).toBeHidden();
-    await disclosure.getByRole("button", { name: "How this is calculated" }).click();
-    const content = disclosure.locator("[data-calculation-content]");
-    await expect(content).toBeVisible();
-
-    // The facts rows at the top of the disclosure: the date and the KPI count that left the card
-    // (four since the peer data refresh, spec 0016 amendment: the Suva rate, the Eurostat lost
-    // days and fatality rows and the BFS absence rate all cover section C), then the derived
-    // counts (spec 0012, AC-1, AC-2, AC-4, AC-6): the fixture company carries both LTIFR and
-    // TRIFR, so the lost time count comes from LTIFR (the fallback to the Suva accident rate is
-    // never reached) and the recordable count comes from TRIFR. Both name their source.
-    const facts = disclosure.locator("[data-calculation-facts]");
-    await expect(facts.getByText(/Computed on \d{2}\.\d{2}\.\d{4}/)).toBeVisible();
-    await expect(facts.locator("[data-compared]")).toHaveAttribute("data-compared", "4");
-    await expect(facts.getByText("4 of 8 KPIs compared")).toBeVisible();
-    const lostTime = facts.locator('[data-derived-count="lost-time"]');
-    await expect(lostTime.locator("[data-derived-value]")).toHaveText(LOST_TIME.toFixed(1));
-    await expect(lostTime.locator("[data-derived-from]")).toHaveAttribute(
-      "data-derived-from",
-      "ltifr",
-    );
-    await expect(lostTime).toContainText("Calculated from the researched LTIFR for");
-    const recordable = facts.locator('[data-derived-count="recordable"]');
-    // 4.622 injuries a year, shown to one decimal (AC-8).
-    await expect(recordable.locator("[data-derived-value]")).toHaveText(RECORDABLE.toFixed(1));
-    await expect(recordable.locator("[data-derived-from]")).toHaveAttribute(
-      "data-derived-from",
-      "trifr",
-    );
-    await expect(recordable).toContainText("Calculated from the researched TRIFR for");
-    await expect(facts.locator("[data-derived-priced]")).toBeVisible();
-    // A calculated number never borrows a confidence score (AC-5).
-    await expect(facts.locator("[data-confidence]")).toHaveCount(0);
-    await expect(content.locator("[data-fte-line]")).toBeVisible();
-    await expect(content.locator("[data-assumption]")).toHaveCount(6);
-    await expect(content.locator('[data-assumption="direct_cost_per_case_chf"]')).toHaveAttribute(
-      "data-assumption-value",
-      "4811",
-    );
-    // The multiplier is a declared assumption, not an unread value: spec 0016 split the two flags,
-    // so it carries the declared assumption badge rather than the provisional one (AC-10).
-    await expect(
-      content.locator('[data-assumption="indirect_multiplier"] [data-declared-assumption]'),
-    ).toBeVisible();
-    await expect(content.locator('[data-assumption="hours_per_fte"]')).toHaveAttribute(
-      "data-assumption-value",
-      String(HOURS_PER_FTE),
-    );
-    await expect(content.locator("[data-input-headcount]")).toHaveAttribute(
-      "data-input-headcount",
-      "420",
-    );
-    await expect(content.locator("[data-input-industry]")).toHaveAttribute(
-      "data-input-industry",
-      "23.61",
-    );
-    const accidentInput = content.locator('[data-input-kpi="accident_rate_per_1000_fte"]');
-    await expect(accidentInput).toContainText(
-      "68.00 (2025, from the research) · peer: Manufacturing · 250 and more employees · 2024",
-    );
-    // What the quartiles describe, written by the curator on the row (spec 0016, AC-11; the
-    // amendment's AC-27 wording for a scaled band row).
-    await expect(accidentInput.locator("[data-peer-basis]")).toContainText(
-      "A scaled estimate, not a measurement: section C's Suva figures (Table 1.2, 2024) times 0.58",
-    );
-    await expect(content.locator('[data-input-kpi="fatalities"] [data-peer-basis]')).toContainText(
-      "Fatal accidents at work per 100 000 employed persons in Switzerland in 2023",
-    );
-    await expect(content.locator('[data-input-kpi="fatalities"]')).toContainText(
-      "compared as 0.00 per 100 000 employed persons",
-    );
-    await expect(content.locator('[data-input-kpi="ltifr"]')).toContainText("no peer row");
-    await expect(content.locator('[data-input-kpi="ltifr"] [data-peer-basis]')).toHaveCount(0);
+    // No "How this is calculated" disclosure anywhere on the page (owner decision of 2026-09-13):
+    // the formula, the assumptions, the inputs used and the derived rows are gone, and the facts
+    // form stands as its own card after the positions.
+    await expect(page.locator("[data-calculation-disclosure]")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "How this is calculated" })).toHaveCount(0);
+    await expect(page.getByText("Assumptions used")).toHaveCount(0);
+    const factsCard = page.locator("[data-facts-card]");
+    await expect(factsCard).toHaveCount(1);
+    await expect(factsCard.getByText("Select your industry and headcount")).toBeVisible();
     await expectNoAxeViolations(page);
 
     // The facts form (AC-11, AC-12): a new headcount is saved, the benchmark is recomputed and the
     // card shows the new cost once the snapshot lands.
-    const form = disclosure.locator("[data-facts-form]");
+    const form = factsCard.locator("[data-facts-form]");
     await expect(form.getByLabel("Industry", { exact: true })).toContainText("23");
     await form.getByLabel("Headcount").fill("500");
     await form.getByRole("button", { name: "Save and recalculate" }).click();

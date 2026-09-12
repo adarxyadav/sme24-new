@@ -1,9 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BenchmarkState } from "@/features/benchmark/catalogue";
 import {
-  type AssumptionRow,
   benchmarkStateOf,
-  loadAssumptionRows,
   loadLatestSnapshot,
   type ParsedSnapshot,
 } from "@/features/benchmark/queries";
@@ -54,8 +52,6 @@ export type CompanyDashboard = {
   /** The newest parsed benchmark snapshot (spec 0008, AC-9), `null` when none is readable. */
   readonly benchmark: ParsedSnapshot | null;
   readonly benchmarkState: BenchmarkState;
-  /** The assumption rows (labels and notes) the disclosure names by key (spec 0008, AC-10). */
-  readonly benchmarkAssumptions: readonly AssumptionRow[];
   /** Every current row of the company, narrowed and ordered by KPI then year descending (spec 0010, AC-10). */
   readonly kpiRows: readonly KpiRow[];
   /** The newest `updated_at` among the client rows (spec 0010, AC-10, AC-13), `null` without one. */
@@ -143,7 +139,6 @@ export async function getCompanyDashboard(
       quota,
       benchmark: null,
       benchmarkState: "unavailable",
-      benchmarkAssumptions: [],
       kpiRows: [],
       clientKpiUpdatedAt: null,
     };
@@ -154,7 +149,6 @@ export async function getCompanyDashboard(
     loadCurrentKpis(supabase, company.id),
     loadLatestSnapshot(supabase, company.id),
   ]);
-  const benchmarkAssumptions = benchmark ? await loadAssumptionRows(supabase) : [];
   const years = newestYears(currentRows);
   const rows = currentRows.filter(
     (row) => row.period_year !== null && years.includes(row.period_year),
@@ -182,7 +176,6 @@ export async function getCompanyDashboard(
     quota,
     benchmark,
     benchmarkState,
-    benchmarkAssumptions,
     kpiRows,
     clientKpiUpdatedAt,
   };

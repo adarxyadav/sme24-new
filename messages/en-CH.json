@@ -1349,7 +1349,6 @@
       "bandOutside": "Band, value beyond p75",
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "card": "Opportunity card",
-      "collapsible": "Collapsible disclosure",
       "pointComparison": "Point comparison"
     },
     "marketing": {
@@ -1829,15 +1828,6 @@
       "missingIncidentRate": "We need an accident rate or an LTIFR to estimate the annual cost.",
       "rangeHeadline": "{low} to {high}"
     },
-    "derived": {
-      "lostTime": "Lost time injuries a year",
-      "recordable": "Recordable injuries a year",
-      "fromClient": "Calculated from your {kpi} for {year}",
-      "fromResearch": "Calculated from the researched {kpi} for {year}",
-      "fromClientSuva": "Calculated from your Suva accident rate for {year}",
-      "fromResearchSuva": "Calculated from the researched Suva accident rate for {year}",
-      "priced": "The franc figure prices lost time accidents only. Recordable injuries are shown for context and are not priced."
-    },
     "gaps": {
       "title": "Priority gaps",
       "description": "What to fix first: ranked by each KPI's own saving at the peer median, then by the distance to the median.",
@@ -1851,7 +1841,7 @@
     },
     "positions": {
       "title": "Your position per KPI",
-      "description": "Where your newest value sits against the published sector figures: a spread across the Suva branches of your sector, scaled to your size band where a ratio exists, or one figure where the source publishes only one. What each comparison rests on is under \"How this is calculated\".",
+      "description": "Where your newest value sits against the published sector figures: a spread across the Suva branches of your sector, scaled to your size band where a ratio exists, or one figure where the source publishes only one.",
       "noValue": "No value",
       "noPeer": "No peer data yet",
       "peer": "{section} · {band} · {year}",
@@ -2011,35 +2001,9 @@
       "250+": "250 and more employees",
       "all": "all sizes"
     },
-    "disclosure": {
-      "title": "How this is calculated",
-      "aboutTitle": "About this calculation",
-      "computedOn": "Computed on {date}",
-      "compared": "{compared} of {total} KPIs compared",
-      "confidenceFrom": "Confidence from {kpi}",
-      "formulaTitle": "The formula in words",
-      "formula": "Incidents per year = accident rate per 1 000 FTE × FTE ÷ 1 000 (with no accident rate: LTIFR × FTE × hours per FTE ÷ 1 000 000). Cost per case = direct cost per case + lost days per incident × cost per absence day. Annual cost = incidents × cost per case × the total cost multiplier; the range uses the low and the high multiplier. The savings repeat the formula at the peer median and at the top quarter.",
-      "fteLine": "Headcount is counted as full time equivalents: every employee counts as one full time job.",
-      "assumptionsTitle": "Assumptions used",
-      "noCost": "No cost was computed for this snapshot, so no assumption was used.",
-      "provisional": "provisional",
-      "effectiveFrom": "as of {date}",
-      "inputsTitle": "Inputs used",
-      "inputValue": "{value} ({year}, {source})",
-      "sourceResearch": "from the research",
-      "sourceClient": "entered by you",
-      "peerUsed": "peer: {section} · {band} · {year}",
-      "comparedAs": "compared as {value}",
-      "noPeerUsed": "no peer row",
-      "headcount": "Headcount: {count}",
-      "noHeadcount": "Headcount: not known",
-      "industry": "Industry: {division} (section {section}), size band {band}",
-      "noIndustry": "Industry: not known, size band {band}",
-      "correctTitle": "Select your industry and headcount",
-      "correctDescription": "Your values take precedence over the research and start a new computation.",
-      "declaredAssumption": "declared assumption"
-    },
     "facts": {
+      "title": "Select your industry and headcount",
+      "description": "Your values take precedence over the research and start a new computation.",
       "industry": "Industry",
       "industryHint": "The NOGA division your company is classified under.",
       "industryPlaceholder": "Choose a division",
