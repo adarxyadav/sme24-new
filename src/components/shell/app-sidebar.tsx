@@ -39,10 +39,25 @@ export type AppSidebarProps = {
   readonly email: string;
   readonly role: string;
   readonly locale: string;
+  /** The signed in client's organization name, null for staff and for a client without one. */
+  readonly organizationName?: string | null;
+  /** `profiles.full_name`, null when the person has not set one. */
+  readonly fullName?: string | null;
 };
 
-function initials(email: string): string {
-  const local = email.split("@")[0] ?? "";
+function initials(source: string): string {
+  const trimmed = source.trim();
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  // A name gives one letter per word ("Musterfirma AG" reads as MA); an address has no words to
+  // take, so its local part gives the first two letters instead.
+  if (words.length > 1) {
+    return words
+      .slice(0, 2)
+      .map((word) => word.slice(0, 1))
+      .join("")
+      .toUpperCase();
+  }
+  const local = trimmed.split("@")[0] ?? "";
   return local.slice(0, 2).toUpperCase() || "?";
 }
 
@@ -51,13 +66,31 @@ function initials(email: string): string {
  * and sign out. Collapses to icons on desktop (state in shadcn's `sidebar_state` cookie) and
  * becomes a sheet below `md`. Runs in the browser inside `SidebarProvider`.
  */
-export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
+export function AppSidebar({
+  area,
+  email,
+  role,
+  locale,
+  organizationName,
+  fullName,
+}: AppSidebarProps) {
   const t = useTranslations();
   const pathname = usePathname();
   const { isMobile } = useSidebar();
   const signOutForm = useRef<HTMLFormElement>(null);
   const items = AREA_NAV[area];
+  // The client sees who they are here: their own company, not the role label every client shares.
+  // Expert and ops keep the label, which is what tells the two staff areas apart. Per area through
+  // `area`, so the area titles in `areas.*` stay as they are for the other two.
+  const isClient = area === "app";
+  const company = organizationName?.trim() || null;
+  // A client with no organization yet still needs a second line under the wordmark, or the header
+  // reflows the moment one is created.
+  const areaLabel = isClient ? (company ?? t("shell.noOrganization")) : t(`areas.${area}.title`);
   const roleLabel = isAppRole(role) ? t(`shell.role.${role}`) : role;
+  const accountPrimary = isClient ? areaLabel : email;
+  const accountSecondary = isClient ? email : roleLabel;
+  const menuName = fullName?.trim() || email;
 
   return (
     <Sidebar collapsible="icon">
@@ -75,9 +108,7 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
                 <span className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
                   {/* 600 like the `Logo` wordmark: the 2026-09-10 weight cap covers the mark too. */}
                   <span className="font-semibold tracking-display">{t("common.appName")}</span>
-                  <span className="text-sidebar-muted-foreground text-xs">
-                    {t(`areas.${area}.title`)}
-                  </span>
+                  <span className="text-sidebar-muted-foreground text-xs">{areaLabel}</span>
                 </span>
               </Link>
             </SidebarMenuButton>
@@ -130,12 +161,12 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
                     aria-hidden="true"
                     className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-primary font-semibold text-sidebar-primary-foreground text-xs"
                   >
-                    {initials(email)}
+                    {initials(accountPrimary)}
                   </span>
                   <span className="flex min-w-0 flex-col leading-tight">
-                    <span className="truncate font-medium text-sm">{email}</span>
+                    <span className="truncate font-medium text-sm">{accountPrimary}</span>
                     <span className="truncate text-sidebar-muted-foreground text-xs">
-                      {roleLabel}
+                      {accountSecondary}
                     </span>
                   </span>
                   <ChevronsUpDownIcon aria-hidden="true" className="ml-auto" />
@@ -147,8 +178,15 @@ export function AppSidebar({ area, email, role, locale }: AppSidebarProps) {
                 className="min-w-56"
               >
                 <DropdownMenuLabel className="flex flex-col gap-0.5">
-                  <span className="truncate font-medium">{email}</span>
-                  <span className="font-normal text-muted-foreground text-xs">{roleLabel}</span>
+                  <span className="truncate font-medium">{menuName}</span>
+                  {/* Not truncated and never omitted: this is the one place the whole address is
+                      readable, which the truncated trigger above cannot promise. */}
+                  <span className="break-all font-normal text-muted-foreground text-xs">
+                    {email}
+                  </span>
+                  {isClient ? null : (
+                    <span className="font-normal text-muted-foreground text-xs">{roleLabel}</span>
+                  )}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>

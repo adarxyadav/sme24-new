@@ -37,6 +37,7 @@
     "menuDescription": "Language, appearance and sign in.",
     "mainNavigation": "Main navigation",
     "notifications": "Notifications",
+    "noOrganization": "No company yet",
     "role": {
       "client": "Client company",
       "expert": "EHS expert",
