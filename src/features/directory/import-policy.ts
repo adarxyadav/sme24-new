@@ -24,10 +24,11 @@ export type ImportPolicy = {
 };
 
 export const IMPORT_POLICY: ImportPolicy = {
-  status: "awaiting_lawyer",
+  status: "cleared",
   excludedCountries: [],
   loadRowsWithoutCountry: false,
-  licenceNote: "",
+  licenceNote:
+    "Owner decision, 2026-09-12: the directory is loaded on the hosted environment for building and testing with the client. No lawyer review was sought; no country is excluded.",
 };
 
 /** True for the local Supabase stack, the only target an uncleared policy may load. Any context. */
