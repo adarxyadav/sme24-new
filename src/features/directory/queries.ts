@@ -206,3 +206,68 @@ export async function listUnlockedContacts(
         : null,
   };
 }
+
+/** One row of the ops table on /admin/directory: an expert with a balance or an unlock (AC-15). */
+export type DirectoryOpsRow = {
+  readonly expertId: string;
+  readonly fullName: string | null;
+  readonly email: string;
+  readonly balance: number;
+  readonly creditsBought: number;
+  readonly unlocks: number;
+  readonly lastUnlockAt: string | null;
+};
+
+/** The experts with credits or unlocks, from `directory_ops_summary()`. Throws. Server component, ops only. */
+export async function getDirectoryOpsSummary(
+  supabase: Client,
+): Promise<readonly DirectoryOpsRow[]> {
+  const { data, error } = await supabase.rpc("directory_ops_summary");
+  if (error) throw queryError(error);
+  return data.map((row) => ({
+    expertId: row.expert_id,
+    fullName: row.full_name ?? null,
+    email: row.email,
+    balance: row.balance,
+    creditsBought: row.credits_bought,
+    unlocks: Number(row.unlocks),
+    lastUnlockAt: row.last_unlock_at ?? null,
+  }));
+}
+
+export type DirectoryImportRow = Database["public"]["Tables"]["directory_imports"]["Row"];
+
+/** The latest import run, or null before the first one. Throws. Server component, ops only. */
+export async function getLatestImport(supabase: Client): Promise<DirectoryImportRow | null> {
+  const { data, error } = await supabase
+    .from("directory_imports")
+    .select("*")
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw queryError(error);
+  return data;
+}
+
+export type DirectoryTotals = {
+  readonly companies: number;
+  readonly contacts: number;
+  readonly suppressed: number;
+};
+
+/** The three counts under the ops policies. Throws. Server component, ops only. */
+export async function getDirectoryTotals(supabase: Client): Promise<DirectoryTotals> {
+  const [companies, contacts, suppressed] = await Promise.all([
+    supabase.from("directory_companies").select("id", { count: "exact", head: true }),
+    supabase.from("directory_contacts").select("id", { count: "exact", head: true }),
+    supabase.from("directory_suppressions").select("email_hash", { count: "exact", head: true }),
+  ]);
+  for (const result of [companies, contacts, suppressed]) {
+    if (result.error) throw queryError(result.error);
+  }
+  return {
+    companies: companies.count ?? 0,
+    contacts: contacts.count ?? 0,
+    suppressed: suppressed.count ?? 0,
+  };
+}

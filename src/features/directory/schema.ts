@@ -118,3 +118,15 @@ export type CreditCheckoutInput = z.output<typeof creditCheckoutSchema>;
 
 /** The billing country of every credit pack order, by owner decision. */
 export const CREDIT_BILLING_COUNTRY = "CH";
+
+/** The suppression reasons, matching the check on `directory_suppressions.reason`. */
+export const REMOVAL_REASONS = ["data_subject_request", "bounce", "ops"] as const;
+export type RemovalReason = (typeof REMOVAL_REASONS)[number];
+
+/** The removeDirectoryContact action input (AC-15): the address, lowercased, and why. */
+export const removeContactSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email("emailInvalid").max(320, "emailLong")),
+  reason: z.enum(REMOVAL_REASONS),
+  locale: z.enum(["de", "en"]).optional(),
+});
+export type RemoveContactInput = z.infer<typeof removeContactSchema>;

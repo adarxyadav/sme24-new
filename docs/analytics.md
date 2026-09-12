@@ -29,7 +29,16 @@ Every name lives in `ANALYTICS_EVENTS` in `src/lib/analytics/catalogue.ts` with 
 | `enquiry.sent` | `submitEnquiry`, after the row insert | server | `topic` (no organization: the sender may be anonymous) |
 | `expert.profile_completed` | `updateExpertProfile`, on the save that flips the status to `active` | server | none (no organization: an expert belongs to none) |
 | `expert.assigned` | `assignExpert`, after the assignment insert | server | `organizationId` |
+| `directory.searched` | `DirectorySearched`, a client child of the directory results, on a fresh submit and on each "Load more" | **browser** | `resultCount`, `hasQuery`, `hasCountry`, `hasTitle`, `page` (no organization: an expert belongs to none; no query text) |
+| `directory.unlocked` | `revealContact`, after the reveal RPC succeeds | server | `contactId`, `alreadyUnlocked`, `balanceAfter` (no organization) |
+| `directory.credits_purchased` | `confirm-order` task, when a credit pack order settles for the first time, `dedupeKey` on the order | server | `orderId`, `packageKey`, `credits`, `grossRappen` (no organization) |
 | `scaffold.test_event` | the ops only `/admin` probe | server | `source` |
+
+The credit funnel of the contact directory (spec 0018, AC-14), `directory.credits_purchased` to
+`directory.unlocked`, is keyed on the person alone: an expert has no organization to break it
+down by. `directory.searched` is a browser event for the same reason `benchmark.viewed` is (a
+server render also happens on a refresh, a back navigation and a bot), so it undercounts by the
+rejection rate and is never compared against the two server steps beside it.
 
 `locale` is the short code `de` or `en`, matching `docs/localization.md`, and every schema requires it, so the language breakdown is never partial. A call site holding a `Locale` maps it through `LOCALE_CODE` rather than passing the tag.
 

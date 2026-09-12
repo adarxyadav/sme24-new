@@ -21,10 +21,12 @@ import {
 } from "@/features/directory/schema";
 import { BalanceBadge } from "@/features/directory/ui/balance-badge";
 import { DirectoryProvider } from "@/features/directory/ui/directory-context";
+import { DirectorySearched } from "@/features/directory/ui/directory-searched";
 import { DirectoryResultsTable } from "@/features/directory/ui/results-table";
 import { DirectorySearchForm, type SearchFormErrors } from "@/features/directory/ui/search-form";
 import { clientMessages } from "@/i18n/client-messages";
 import { Link } from "@/i18n/navigation";
+import { LOCALE_CODE, resolveLocale } from "@/i18n/routing";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 type Props = {
@@ -168,6 +170,15 @@ export default async function ExpertDirectoryPage({ searchParams }: Props) {
             />
           ) : (
             <section className="flex flex-col gap-4" aria-labelledby="directory-results-heading">
+              <DirectorySearched
+                key={`${search.q ?? ""}|${search.title ?? ""}|${search.country ?? ""}|${page.page}`}
+                resultCount={page.rows.length}
+                hasQuery={Boolean(search.q)}
+                hasTitle={Boolean(search.title)}
+                hasCountry={Boolean(search.country)}
+                page={page.page}
+                locale={LOCALE_CODE[resolveLocale(locale)]}
+              />
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 id="directory-results-heading" className="font-semibold text-lg">
                   {t("results.heading")}

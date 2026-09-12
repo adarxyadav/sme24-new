@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { dbAvailable, serviceClient } from "./db";
@@ -82,8 +83,13 @@ async function fixtureContactIds(): Promise<string[]> {
 test.afterAll(async () => {
   const supabase = serviceClient();
   // The contacts cascade from the company; the unlocks and ledger debits of later milestones
-  // cascade from the contacts.
+  // cascade from the contacts. The suppression the ops test wrote is removed so the fixture can
+  // load again on the next run.
   await supabase.from("directory_companies").delete().eq("id", companyId);
+  await supabase
+    .from("directory_suppressions")
+    .delete()
+    .eq("email_hash", createHash("sha256").update("fritz.fixture@zebrafixture.test").digest("hex"));
 });
 
 test.describe("the directory browse (AC-5)", () => {
@@ -258,6 +264,39 @@ test.describe("the directory browse (AC-5)", () => {
     // Clean up: the pgTAP seed guard refuses a database holding orders.
     await supabase.from("invoices").delete().eq("order_id", orderId);
     await supabase.from("orders").delete().eq("id", orderId);
+  });
+
+  test("ops see the directory and remove a person, who never returns (AC-15)", async ({
+    page,
+  }, testInfo) => {
+    await signIn(page, SEED_USERS.ops);
+    await page.goto("/de/admin/directory");
+    await expect(page.getByRole("heading", { level: 1, name: "Kontaktverzeichnis" })).toBeVisible();
+    await expect(page.getByText("Im Verzeichnis")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("directory-admin.png"), fullPage: true });
+    const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+    expect(results.violations).toEqual([]);
+
+    await page.getByTestId("cookie-bar").getByRole("button", { name: "Ablehnen" }).click();
+    await page.getByLabel("E-Mail-Adresse").fill("Fritz.Fixture@zebrafixture.test");
+    await page.getByRole("button", { name: "Entfernen" }).click();
+    await expect(page.getByRole("alert").first()).toContainText("Entfernt.");
+
+    const supabase = serviceClient();
+    const { count } = await supabase
+      .from("directory_contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("email", "fritz.fixture@zebrafixture.test");
+    expect(count).toBe(0);
+    const { data: suppressions } = await supabase
+      .from("directory_suppressions")
+      .select("email_hash, reason")
+      .eq("reason", "data_subject_request");
+    expect(suppressions?.length).toBeGreaterThan(0);
+    // The hash outlives the row: a second removal of the same address is still an honest answer.
+    await page.getByLabel("E-Mail-Adresse").fill("fritz.fixture@zebrafixture.test");
+    await page.getByRole("button", { name: "Entfernen" }).click();
+    await expect(page.getByRole("alert").first()).toContainText("Kein Kontakt mit dieser Adresse");
   });
 
   test("a client cannot open the directory", async ({ page }) => {

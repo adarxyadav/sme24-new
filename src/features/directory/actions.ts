@@ -18,7 +18,12 @@ import { createActionClient } from "@/lib/supabase/action";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServiceClient } from "@/lib/supabase/service";
 import { parseWith } from "@/lib/validation";
-import { CREDIT_BILLING_COUNTRY, creditCheckoutSchema, revealContactSchema } from "./schema";
+import {
+  CREDIT_BILLING_COUNTRY,
+  creditCheckoutSchema,
+  removeContactSchema,
+  revealContactSchema,
+} from "./schema";
 
 /**
  * The directory's server actions (spec 0018, AC-12). Every one authorises the caller here, not
@@ -206,7 +211,7 @@ async function prepareCreditOrder(
     log.error("credit checkout: package read failed", { message: packError.message });
     return { ok: false, error: "unexpected" };
   }
-  if (!pack || pack.kind !== "directory_credits" || pack.credits === null) {
+  if (pack?.kind !== "directory_credits" || pack.credits === null) {
     return { ok: false, error: "package_not_found" };
   }
   if (pack.price_rappen === null) return { ok: false, error: "package_not_purchasable" };
@@ -418,5 +423,69 @@ export async function requestCreditInvoice(
   return {
     ok: true,
     data: { orderId: inserted.order.id, reference: inserted.order.reference },
+  };
+}
+
+/** The ops caller; the removal runs on their own client, the definer function checks the role again. */
+async function requireOps(): Promise<{ supabase: Client; userId: string } | null> {
+  const supabase = await createActionClient();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (roleFromClaims(claims) !== "ops" || typeof claims?.sub !== "string") return null;
+  return { supabase, userId: claims.sub };
+}
+
+export type RemoveContactError = "validation" | "forbidden" | "unexpected";
+
+export type RemoveContactData = {
+  /** `removed` when a row was deleted, `not_found` when only the hash was suppressed. */
+  readonly outcome: "removed" | "not_found";
+  /** How many buyers' unlocks the removal cascaded away, so ops see what it cost. */
+  readonly unlocksCascaded: number;
+};
+
+export type RemoveContactResult =
+  | { ok: true; data: RemoveContactData }
+  | { ok: false; error: RemoveContactError };
+
+/**
+ * Removes a person from the directory (AC-15): `directory_remove_contact` deletes the row,
+ * cascading their unlocks and leaving the ledger debits with `unlock_id` null, and suppresses the
+ * email hash in the same transaction; a not found address is still suppressed, so an objection
+ * lands before the next import. The address reaches neither the log nor an event. Server
+ * action, ops only.
+ */
+export async function removeDirectoryContact(
+  _previous: RemoveContactResult | null,
+  input: unknown,
+): Promise<RemoveContactResult> {
+  const locale = await localeOf(input);
+  const actor = await requireOps();
+  if (!actor) return { ok: false, error: "forbidden" };
+
+  const parsed = parseWith(removeContactSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+
+  const { data, error } = await actor.supabase
+    .rpc("directory_remove_contact", { email: parsed.data.email, reason: parsed.data.reason })
+    .single();
+  if (error) {
+    if (error.code === FORBIDDEN) return { ok: false, error: "forbidden" };
+    Sentry.captureException(error);
+    log.error("directory removal failed", { code: error.code, message: error.message });
+    return { ok: false, error: "unexpected" };
+  }
+  log.info("ops removed a directory contact", {
+    actorId: actor.userId,
+    removed: data.removed,
+    unlocksCascaded: data.unlocks_cascaded,
+    reason: parsed.data.reason,
+  });
+  return {
+    ok: true,
+    data: {
+      outcome: data.removed ? "removed" : "not_found",
+      unlocksCascaded: data.unlocks_cascaded,
+    },
   };
 }
