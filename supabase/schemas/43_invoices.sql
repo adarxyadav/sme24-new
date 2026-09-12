@@ -18,7 +18,9 @@ comment on sequence public.invoice_number_seq is 'Supplies the counter in the <y
 
 create table public.invoices (
   id uuid primary key default gen_random_uuid(),
-  organization_id uuid not null references public.organizations (id) on delete cascade,
+  -- Null for an expert buyer (spec 0018); buyer_expert_id is set instead.
+  organization_id uuid null references public.organizations (id) on delete cascade,
+  buyer_expert_id uuid null references public.profiles (id) on delete restrict,
   -- One invoice per order; restrict, because an issued invoice must outlive any order cleanup.
   order_id uuid not null unique references public.orders (id) on delete restrict,
   -- 2026-0001, formatted from invoice_number_seq.
@@ -41,7 +43,9 @@ create table public.invoices (
   -- Set when ops cancels the order; the row is never deleted.
   cancelled_at timestamptz null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  -- Exactly one buyer shape, the twin of orders_check_buyer (spec 0018, invariant 6).
+  constraint invoices_check_buyer check (num_nonnulls(organization_id, buyer_expert_id) = 1)
 );
 
 comment on table public.invoices is 'One immutable numbered invoice per order. Retained ten years: never deleted, only cancelled. After issue only the PDF columns and cancelled_at may change.';
@@ -50,6 +54,7 @@ comment on column public.invoices.qr_reference is 'ISO 11649 SCOR creditor refer
 comment on column public.invoices.pdf_failed_at is 'Set when the render task exhausts its retries. pdf_path and pdf_failed_at both null means the render is still in flight; pdf_failed_at set means ops must retry. Cleared on a successful retry.';
 
 create index invoices_organization_id_issued_at_idx on public.invoices (organization_id, issued_at desc);
+create index invoices_buyer_expert_id_idx on public.invoices (buyer_expert_id) where buyer_expert_id is not null;
 -- Ops list the rows that need a retry.
 create index invoices_pdf_failed_idx on public.invoices (pdf_failed_at) where pdf_failed_at is not null;
 
@@ -63,6 +68,13 @@ create policy "invoices: members read their organization"
 
 -- No members insert or update policy: an invoice is issued by settleOrder through the service
 -- client, never by a browser. And no assigned experts read policy (see the header).
+
+-- The expert buyer reads the invoices of their own credit pack orders (spec 0018, AC-7).
+create policy "invoices: expert buyers read their own"
+  on public.invoices
+  for select
+  to authenticated
+  using (buyer_expert_id = (select auth.uid()));
 
 create policy "invoices: ops read"
   on public.invoices
@@ -90,6 +102,7 @@ as $$
 begin
   if new.id is distinct from old.id
      or new.organization_id is distinct from old.organization_id
+     or new.buyer_expert_id is distinct from old.buyer_expert_id
      or new.order_id is distinct from old.order_id
      or new.number is distinct from old.number
      or new.issued_at is distinct from old.issued_at

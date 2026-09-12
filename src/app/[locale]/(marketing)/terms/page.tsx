@@ -21,6 +21,16 @@ const SECTIONS = [
   { id: "service", extra: ["service.expert"] },
   { id: "account", extra: ["account.accuracy"] },
   { id: "packages", extra: ["packages.delivery"] },
+  // Spec 0018, AC-16: the contact directory sold to the expert accounts, version 2 of the terms.
+  {
+    id: "purchasedContacts",
+    extra: [
+      "purchasedContacts.resale",
+      "purchasedContacts.extraction",
+      "purchasedContacts.objection",
+      "purchasedContacts.law",
+    ],
+  },
   { id: "cancellation", extra: ["cancellation.refund"] },
   { id: "obligations", extra: ["obligations.safety"] },
   { id: "ip", extra: ["ip.aggregate"] },

@@ -51,7 +51,8 @@
     },
     "expert": {
       "overview": "Übersicht",
-      "profile": "Profil"
+      "profile": "Profil",
+      "directory": "Kontakte"
     },
     "admin": {
       "overview": "Übersicht",
@@ -61,7 +62,8 @@
       "orders": "Bestellungen",
       "companies": "Firmen",
       "experts": "Expertinnen und Experten",
-      "dataRequests": "Datenanfragen"
+      "dataRequests": "Datenanfragen",
+      "directory": "Kontaktverzeichnis"
     }
   },
   "theme": {
@@ -1428,7 +1430,8 @@
       "invoiceAttached": "Die Rechnung finden Sie als PDF im Anhang und jederzeit im Kundenbereich.",
       "invoiceFollows": "Ihre Rechnung stellen wir Ihnen in Kürze zu.",
       "nextStep": "Wir melden uns bei Ihnen, um den Termin für die Begehung vor Ort zu vereinbaren.",
-      "button": "Bestellung ansehen"
+      "button": "Bestellung ansehen",
+      "credits": "Ihre {count} Credits sind auf Ihrem Konto und bereit, Kontakte im Verzeichnis freizuschalten."
     },
     "expert_welcome": {
       "subject": "Willkommen im SME24-Expertennetzwerk",
@@ -2301,7 +2304,8 @@
         "expert_not_assignable": "Diese Person ist nicht mehr aktiv. Wählen Sie eine andere.",
         "date_not_future": "Der Termin muss in der Zukunft liegen.",
         "invalid_transition": "Jemand hat diese Bestellung geändert. Laden Sie die Liste neu.",
-        "unexpected": "Der Termin konnte nicht festgelegt werden. Versuchen Sie es erneut."
+        "unexpected": "Der Termin konnte nicht festgelegt werden. Versuchen Sie es erneut.",
+        "not_deliverable": "Das ist ein Credit-Paket des Kontaktverzeichnisses: hier gibt es nichts zu terminieren."
       }
     },
     "delivery": {
@@ -2346,7 +2350,8 @@
         "invalid_transition": "Jemand hat diese Bestellung geändert. Laden Sie die Liste neu.",
         "unexpected": "Die Änderung konnte nicht gespeichert werden. Versuchen Sie es erneut."
       }
-    }
+    },
+    "creditsBadge": "Credits"
   },
   "adminCompanies": {
     "title": "Firmen",
@@ -2920,7 +2925,8 @@
         "error": "Ihre Zustimmung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
       },
       "changelog": {
-        "1": "Dies sind die ersten Nutzungsbedingungen für SME24. Sie regeln unsere Leistungen, den Inhalt eines Pakets, die Stornierung und das anwendbare Recht."
+        "1": "Dies sind die ersten Nutzungsbedingungen für SME24. Sie regeln unsere Leistungen, den Inhalt eines Pakets, die Stornierung und das anwendbare Recht.",
+        "2": "Version 2 ergänzt eine Klausel zu gekauften Kontakten: Expertenkonten dürfen Kontakte aus unserem lizenzierten Verzeichnis nur für die eigene Geschäftsentwicklung freischalten, sie nie weiterverkaufen oder teilen, die Liste nicht massenhaft extrahieren und müssen einen Widerspruch sowie das Marketingrecht des Landes des Kontakts beachten. Sonst hat sich nichts geändert."
       }
     }
   },
@@ -3073,7 +3079,25 @@
         "audit_log": {
           "purpose": "Wer was geändert hat, der Nachweis, der den Rest überprüfbar macht"
         },
-        "accountingNote": "Bestellungen, Rechnungen und Bestellereignisse bewahren wir zehn Jahre auf, weil Art. 958f OR es verlangt. Rechercheläufe und Benchmark-Momentaufnahmen bewahren wir ohne Enddatum auf: eine Momentaufnahme ist bewusst unveränderlich, damit eine Ihnen gezeigte Zahl jederzeit erklärt werden kann, und der Vergleich von Läufen über die Zeit ist es, was den Dienst genau hält. Wenn Ihnen das nicht recht ist, verlangen Sie die Löschung und wir löschen sie."
+        "accountingNote": "Bestellungen, Rechnungen und Bestellereignisse bewahren wir zehn Jahre auf, weil Art. 958f OR es verlangt. Rechercheläufe und Benchmark-Momentaufnahmen bewahren wir ohne Enddatum auf: eine Momentaufnahme ist bewusst unveränderlich, damit eine Ihnen gezeigte Zahl jederzeit erklärt werden kann, und der Vergleich von Läufen über die Zeit ist es, was den Dienst genau hält. Wenn Ihnen das nicht recht ist, verlangen Sie die Löschung und wir löschen sie.",
+        "directory_companies": {
+          "purpose": "Firmen aus der gekauften Kontaktliste"
+        },
+        "directory_contacts": {
+          "purpose": "Name, Funktion, E-Mail, Telefonnummern und Adresse einer Person aus der gekauften Kontaktliste"
+        },
+        "directory_suppressions": {
+          "purpose": "Ein Hash der E-Mail-Adresse einer Person, die aus dem Verzeichnis entfernt werden wollte, damit sie nie zurückkehrt"
+        },
+        "directory_unlocks": {
+          "purpose": "Welche Kontakte eine Expertin oder ein Experte freigeschaltet hat"
+        },
+        "directory_credit_entries": {
+          "purpose": "Credit-Käufe und Freischaltungen einer Expertin oder eines Experten"
+        },
+        "directory_imports": {
+          "purpose": "Die Zählwerte jedes Verzeichnis-Imports, keine Person"
+        }
       },
       "rights": {
         "title": "Ihre Rechte",
@@ -3101,6 +3125,15 @@
       "changes": {
         "title": "Änderungen dieser Erklärung",
         "body": "Wenn wir ändern, wie wir Ihre Daten bearbeiten, aktualisieren wir diese Seite und sagen es Ihnen bei wesentlichen Änderungen in der App. Das Datum oben ist immer das Datum der letzten Änderung."
+      },
+      "directory": {
+        "title": "Kontaktverzeichnis",
+        "lead": "Ein Teil des Dienstes verarbeitet Daten von Personen, die sich nie bei SME24 registriert haben, und verdient einen eigenen Abschnitt.",
+        "source": "Wir lizenzieren von einem Datenlieferanten eine Liste von Sicherheits- und Betriebskontakten in Unternehmen weltweit (Charge {batch}). Sie enthält Namen, Funktionen, geschäftliche E-Mail-Adressen, geschäftliche Telefonnummern und geschäftliche Postadressen.",
+        "purpose": "Unabhängige EHS-Fachpersonen mit einem SME24-Expertenkonto durchsuchen die Liste nach Firma, Funktion und Land. E-Mail-Adressen und Telefonnummern werden maskiert angezeigt; eine Fachperson schaltet einen Kontakt für einen Credit (CHF {price}) frei, und nur die von ihr freigeschalteten Kontakte werden ihr vollständig angezeigt.",
+        "basis": "Grundlage ist unser berechtigtes Interesse und das der Fachpersonen, die für die Sicherheit in einem Unternehmen verantwortlichen Personen mit einem geschäftlichen Angebot zu erreichen, im Rahmen der Lizenz des Lieferanten. Die Fachpersonen verpflichten sich in den AGB, einen Kontakt nur für die eigene Geschäftsentwicklung zu nutzen, ihn nie weiterzuverkaufen oder weiterzugeben und das Marketingrecht des Landes des Kontakts zu beachten.",
+        "objection": "Wenn Sie auf der Liste stehen und das nicht möchten, schreiben Sie an {email}. Wir entfernen Sie innert {days} Tagen und behalten nur einen Hash Ihrer Adresse, damit Sie mit einer späteren Aktualisierung der Liste nie zurückkehren.",
+        "retention": "Kontakte werden so lange behalten, wie die Lizenz läuft; ein entfernter Kontakt ist endgültig weg. Welche Fachperson welchen Kontakt freigeschaltet hat, bleibt als Nachweis dessen, was verkauft wurde, erhalten."
       }
     },
     "terms": {
@@ -3167,6 +3200,14 @@
       "law": {
         "title": "Recht und Gerichtsstand",
         "body": "Es gilt schweizerisches Recht unter Ausschluss seiner Kollisionsnormen. Gerichtsstand ist {city}, soweit nicht zwingendes Recht einen anderen Ort vorsieht."
+      },
+      "purchasedContacts": {
+        "title": "Gekaufte Kontakte",
+        "body": "Expertenkonten können Credits kaufen und Kontakte aus unserem lizenzierten Verzeichnis von Sicherheits- und Betriebsverantwortlichen freischalten. Ein freigeschalteter Kontakt darf nur für die eigene Geschäftsentwicklung der Fachperson genutzt werden: um diese Person mit den eigenen Dienstleistungen anzusprechen.",
+        "resale": "Kontakte dürfen nicht weiterverkauft, geteilt, an Dritte weitergegeben oder in eine Liste oder ein Werkzeug aufgenommen werden, das jemand anderem als der Fachperson dient, die sie freigeschaltet hat.",
+        "extraction": "Eine Massenextraktion des Verzeichnisses über den Export der eigenen freigeschalteten Kontakte hinaus ist nicht erlaubt; die Suche dient dem Finden von Personen, nicht dem Kopieren der Liste.",
+        "objection": "Bittet eine Person darum, nicht kontaktiert zu werden, oder entfernen wir sie aus dem Verzeichnis, stellt die Fachperson die Nutzung des Kontakts ein. Eine Entfernung wird nicht rückerstattet.",
+        "law": "Die Fachperson ist dafür verantwortlich, das Marketing- und Datenschutzrecht des Landes des Kontakts einzuhalten, einschliesslich aller Regeln zu unerbetenen geschäftlichen E-Mails."
       }
     },
     "imprint": {
@@ -3287,6 +3328,225 @@
         "validation": "Diese Anfrage konnte nicht gelesen werden. Bitte versuchen Sie es erneut.",
         "forbidden": "Bitte melden Sie sich erneut an, um eine Anfrage zu stellen.",
         "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    }
+  },
+  "directory": {
+    "title": "Kontaktverzeichnis",
+    "lead": "EHS- und Betriebskontakte in Unternehmen weltweit. Suchen Sie nach Firma, Funktion und Land; jede E-Mail-Adresse und Telefonnummer bleibt maskiert, bis Sie die Zeile für einen Credit freischalten, und eine freigeschaltete Zeile bleibt Ihnen erhalten.",
+    "header": {
+      "balance": "{count, plural, =1 {1 Credit} other {# Credits}}",
+      "buy": "Credits kaufen",
+      "unlocks": "Ihre Freischaltungen"
+    },
+    "search": {
+      "legend": "Suche",
+      "company": "Firma",
+      "companyPlaceholder": "Teil eines Firmennamens",
+      "title": "Funktion",
+      "titlePlaceholder": "Sicherheit, EHS, Betrieb…",
+      "country": "Land",
+      "allCountries": "Alle Länder",
+      "countryOption": "{label} ({count})",
+      "submit": "Suchen",
+      "reset": "Zurücksetzen",
+      "errors": {
+        "tooShort": "Geben Sie mindestens zwei Zeichen ein.",
+        "tooLong": "Höchstens 100 Zeichen."
+      }
+    },
+    "results": {
+      "heading": "Ergebnisse",
+      "caption": "Seite {page}: {count, plural, =1 {1 Kontakt} other {# Kontakte}} angezeigt",
+      "columns": {
+        "company": "Firma",
+        "contact": "Kontakt",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "unlock": "Freischalten"
+      },
+      "unnamed": "Kein Name angegeben",
+      "none": "—",
+      "price": "1 Credit, {price}",
+      "priceNote": "exkl. MWST",
+      "unlocked": "Freigeschaltet",
+      "more": "Mehr laden",
+      "pageDepth": {
+        "title": "Weiter reicht eine Suche nicht",
+        "description": "Eine Suche zeigt höchstens {pages} Seiten. Grenzen Sie sie nach Firma, Funktion oder Land ein, um die Zeilen dahinter zu erreichen.",
+        "reset": "Zurück zur ersten Seite"
+      },
+      "unlock": "Freischalten · {price}",
+      "unlocking": "Wird freigeschaltet…",
+      "errors": {
+        "insufficient_credits": "Keine Credits mehr.",
+        "buy": "Credits kaufen",
+        "not_found": "Dieser Kontakt ist nicht mehr im Verzeichnis.",
+        "forbidden": "Ihr Expertenkonto ist nicht aktiv.",
+        "validation": "Diese Zeile konnte nicht freigeschaltet werden.",
+        "unexpected": "Etwas ist schiefgelaufen. Versuchen Sie es erneut."
+      }
+    },
+    "empty": {
+      "noRows": {
+        "title": "Das Verzeichnis wird vorbereitet",
+        "description": "Kontakte erscheinen hier, sobald der erste Import gelaufen ist. Ihre Credits bleiben bis dahin erhalten."
+      },
+      "noMatch": {
+        "title": "Keine passenden Kontakte",
+        "description": "Versuchen Sie einen kürzeren Firmennamen, eine breitere Funktion oder ein anderes Land.",
+        "reset": "Suche löschen"
+      }
+    },
+    "unlocks": {
+      "title": "Ihre Freischaltungen",
+      "lead": "Jeder Kontakt, für den Sie einen Credit bezahlt haben, neueste zuerst, mit vollständiger E-Mail-Adresse und Telefonnummer. Sie bleiben Ihnen erhalten: laden Sie sie jederzeit als Datei herunter.",
+      "breadcrumb": "Kontaktverzeichnis",
+      "back": "Zurück zum Verzeichnis",
+      "export": "CSV herunterladen",
+      "heading": "Freigeschaltete Kontakte",
+      "caption": "{count, plural, =1 {1 Kontakt} other {# Kontakte}} angezeigt",
+      "columns": {
+        "company": "Firma",
+        "contact": "Kontakt",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "unlockedAt": "Freigeschaltet"
+      },
+      "unnamed": "Kein Name angegeben",
+      "none": "—",
+      "more": "Mehr laden",
+      "empty": {
+        "title": "Noch nichts freigeschaltet",
+        "description": "Durchsuchen Sie das Verzeichnis und schalten Sie einen Kontakt für einen Credit frei; er erscheint hier und in Ihrer CSV-Datei.",
+        "action": "Verzeichnis öffnen"
+      }
+    },
+    "export": {
+      "columns": {
+        "company": "Firma",
+        "country": "Land",
+        "city": "Ort",
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "title": "Funktion",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "mobile": "Mobil",
+        "unlockedAt": "Freigeschaltet am (UTC)"
+      }
+    },
+    "packs": {
+      "directory_50": {
+        "name": "50 Verzeichnis-Credits",
+        "description": "Fünfzig Freischaltungen im Kontaktverzeichnis. Ein Credit wird erst beim Freischalten einer Zeile verbraucht, und eine freigeschaltete Zeile bleibt Ihnen erhalten."
+      }
+    },
+    "credits": {
+      "title": "Credits kaufen",
+      "lead": "Ein Credit schaltet einen Kontakt frei: vollständige E-Mail-Adresse und Telefonnummern, gespeichert auf Ihrer Seite der Freischaltungen und in Ihrer CSV-Datei. Credits verfallen nicht.",
+      "back": "Zurück zum Verzeichnis",
+      "balance": "Ihr Guthaben",
+      "pack": {
+        "heading": "Das Paket",
+        "credits": "{count} Credits",
+        "unit": "{price} pro Credit",
+        "note": "Preise in CHF exkl. MWST. Die MWST ist auf der Rechnung ausgewiesen.",
+        "billedTo": "Rechnung an eine Schweizer Adresse (das Land ist fest auf die Schweiz gesetzt)."
+      },
+      "form": {
+        "legend": "Rechnungsadresse",
+        "country": "Land",
+        "countryValue": "Schweiz",
+        "uidHint": "Optional. Ihre CHE-Nummer, auf der Rechnung ausgewiesen.",
+        "billingName": "Name oder Firma"
+      },
+      "return": {
+        "confirmingTitle": "Ihre Zahlung wird bestätigt",
+        "paidTitle": "Ihre Credits sind auf Ihrem Konto",
+        "paidBody": "{count, plural, =1 {1 Credit} other {# Credits}} wurden gutgeschrieben. Ihr Guthaben beträgt jetzt {balance, plural, =1 {1 Credit} other {# Credits}}.",
+        "paidAction": "Verzeichnis öffnen",
+        "awaitingTitle": "Rechnung angefordert",
+        "awaitingBody": "Ihre Credits kommen, sobald die Überweisung verbucht ist, zahlbar bis {dueDate}. Laden Sie die Rechnung mit QR-Einzahlungsschein unten herunter.",
+        "invoiceDownload": "Rechnung herunterladen",
+        "invoicePending": "Die Rechnung wird erstellt. Sie ist in Kürze bereit.",
+        "invoiceFailed": "Die Rechnung konnte nicht erstellt werden. Wir beheben das und senden sie Ihnen zu.",
+        "expiredTitle": "Dieser Bezahlvorgang ist abgelaufen",
+        "expiredBody": "Es wurde nichts belastet. Beginnen Sie unten erneut.",
+        "cancelledTitle": "Diese Bestellung wurde storniert",
+        "cancelledBody": "Es wurde nichts belastet. Beginnen Sie unten erneut."
+      },
+      "net": "Nettobetrag",
+      "vat": "MWST {rate}",
+      "gross": "Gesamtbetrag",
+      "unavailableTitle": "Credits können im Moment nicht gekauft werden",
+      "unavailableBody": "Das Credit-Paket ist zurzeit nicht im Verkauf. Versuchen Sie es später erneut."
+    },
+    "admin": {
+      "title": "Kontaktverzeichnis",
+      "lead": "Die gekaufte Liste im aktuellen Stand: der letzte Import, die Zählwerte, wer Credits hält und was freigeschaltet wurde, und die eine Aktion, die zählt, wenn eine Person widerspricht.",
+      "import": {
+        "heading": "Letzter Import",
+        "none": "Noch kein Import gelaufen. Laden Sie die Liste mit pnpm directory:import; die Richtlinie sperrt eine gehostete Datenbank, bis die Antwort der Anwältin oder des Anwalts vorliegt.",
+        "batch": "Charge",
+        "file": "Datei",
+        "when": "Lauf",
+        "dryRun": "Probelauf",
+        "read": "Zeilen gelesen",
+        "loaded": "Geladen",
+        "updated": "Aktualisiert",
+        "skippedInvalid": "Übersprungen, ungültig",
+        "skippedCountry": "Übersprungen, Land",
+        "skippedNoCountry": "Übersprungen, kein Land",
+        "skippedSuppressed": "Übersprungen, gesperrt",
+        "excluded": "Ausgeschlossene Länder",
+        "countries": "Geladen pro Land",
+        "noneExcluded": "keine"
+      },
+      "totals": {
+        "heading": "Im Verzeichnis",
+        "companies": "Firmen",
+        "contacts": "Kontakte",
+        "suppressed": "Gesperrte Adressen"
+      },
+      "experts": {
+        "heading": "Expertinnen und Experten mit Credits oder Freischaltungen",
+        "empty": {
+          "title": "Noch niemand hat Credits gekauft",
+          "description": "Eine Fachperson erscheint hier nach dem ersten Credit-Paket oder der ersten Freischaltung."
+        },
+        "columns": {
+          "name": "Fachperson",
+          "email": "E-Mail",
+          "balance": "Guthaben",
+          "bought": "Credits gekauft",
+          "unlocks": "Freischaltungen",
+          "lastUnlock": "Letzte Freischaltung"
+        },
+        "unnamed": "Kein Name",
+        "never": "—"
+      },
+      "remove": {
+        "heading": "Person entfernen",
+        "description": "Löscht den Kontakt und behält einen Hash der Adresse, damit sie mit dem nächsten Import nie zurückkehrt. Wer die Zeile freigeschaltet hatte, verliert sie; in dieser Ausbaustufe gibt es keine Rückerstattung und keine Benachrichtigung.",
+        "email": "E-Mail-Adresse",
+        "reason": "Grund",
+        "reasons": {
+          "data_subject_request": "Die Person hat um Entfernung gebeten",
+          "bounce": "Die Adresse ist unzustellbar",
+          "ops": "Entscheid Ops"
+        },
+        "submit": "Entfernen",
+        "submitting": "Wird entfernt…",
+        "removed": "Entfernt. {count, plural, =0 {Niemand hatte diese Zeile freigeschaltet.} =1 {Eine Freischaltung wurde mit entfernt.} other {# Freischaltungen wurden mit entfernt.}}",
+        "notFound": "Kein Kontakt mit dieser Adresse; der Hash ist trotzdem gesperrt, damit sie mit dem nächsten Import nicht zurückkehren kann.",
+        "errors": {
+          "validation": "Geben Sie eine gültige E-Mail-Adresse ein und wählen Sie einen Grund.",
+          "forbidden": "Nur Ops dürfen eine Person entfernen.",
+          "unexpected": "Die Entfernung ist fehlgeschlagen. Versuchen Sie es erneut.",
+          "emailInvalid": "Geben Sie eine gültige E-Mail-Adresse ein.",
+          "emailLong": "Diese Adresse ist zu lang."
+        }
       }
     }
   }

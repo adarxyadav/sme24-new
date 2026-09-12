@@ -11,14 +11,15 @@
 
 create table public.order_events (
   id uuid primary key default gen_random_uuid(),
-  organization_id uuid not null references public.organizations (id) on delete cascade,
+  -- Null on the trail row of an expert's credit pack order (spec 0018); the order id is the join.
+  organization_id uuid null references public.organizations (id) on delete cascade,
   order_id uuid not null references public.orders (id) on delete cascade,
   -- Null on the row that records the order's creation.
   from_status text null check (from_status is null or from_status in ('pending', 'paid', 'cancelled', 'refunded', 'expired')),
   to_status text not null check (to_status in ('pending', 'paid', 'cancelled', 'refunded', 'expired')),
   -- No foreign key: the trail outlives the user, the same choice audit_log makes.
   actor_id uuid null,
-  actor_role text not null check (actor_role in ('client', 'ops', 'service', 'system')),
+  actor_role text not null check (actor_role in ('client', 'expert', 'ops', 'service', 'system')),
   reason text null check (reason is null or char_length(reason) <= 500),
   occurred_at timestamptz not null default now()
 );
@@ -52,6 +53,34 @@ create policy "order_events: members record their own order creation"
     and exists (
       select 1 from public.orders o
       where o.id = order_id and o.organization_id = order_events.organization_id
+    )
+  );
+
+-- The expert buyer (spec 0018, AC-7): the history of the credit pack orders they bought, and the
+-- creation row of their own order, the shape the client policy above has.
+create policy "order_events: expert buyers read their own orders"
+  on public.order_events
+  for select
+  to authenticated
+  using (
+    exists (
+      select 1 from public.orders o
+      where o.id = order_id and o.buyer_expert_id = (select auth.uid())
+    )
+  );
+
+create policy "order_events: experts record their own order creation"
+  on public.order_events
+  for insert
+  to authenticated
+  with check (
+    organization_id is null
+    and actor_id = (select auth.uid())
+    and actor_role = 'expert'
+    and to_status = 'pending'
+    and exists (
+      select 1 from public.orders o
+      where o.id = order_id and o.buyer_expert_id = (select auth.uid())
     )
   );
 

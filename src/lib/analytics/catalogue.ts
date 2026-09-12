@@ -138,6 +138,36 @@ const analyticsProperties = {
     locale: localeCode,
   }),
   /**
+   * The contact directory (spec 0018, AC-14). None of the three carries an `organizationId`: an
+   * expert belongs to none, so the credit funnel is keyed on the person alone. No query text, no
+   * name, no email and no company name: `directory.searched` carries only whether each filter was
+   * set and how many rows came back, and `directory.unlocked` the opaque contact id.
+   */
+  /** The search form's submit, a browser event behind the consent gate (never the server read). */
+  "directory.searched": z.object({
+    locale: localeCode,
+    resultCount: z.number().int().nonnegative(),
+    hasQuery: z.boolean(),
+    hasCountry: z.boolean(),
+    hasTitle: z.boolean(),
+    page: z.number().int().positive(),
+  }),
+  /** `revealContact`, after the reveal RPC succeeds. */
+  "directory.unlocked": z.object({
+    locale: localeCode,
+    contactId: z.uuid(),
+    alreadyUnlocked: z.boolean(),
+    balanceAfter: z.number().int().nonnegative(),
+  }),
+  /** `confirm-order`, when a credit pack order settles for the first time; deduped on the order. */
+  "directory.credits_purchased": z.object({
+    locale: localeCode,
+    orderId: z.uuid(),
+    packageKey: z.string().min(1).max(50),
+    credits: z.number().int().positive(),
+    grossRappen: z.number().int().nonnegative(),
+  }),
+  /**
    * The ops only `/admin` scaffold probe that proves the PostHog wiring end to end. Not a funnel
    * event; catalogued because AC-1 makes the name a closed union and a diagnostic escape hatch
    * would weaken exactly the guarantee this spec buys. Carries no organization: ops fire it for

@@ -51,7 +51,8 @@
     },
     "expert": {
       "overview": "Overview",
-      "profile": "Profile"
+      "profile": "Profile",
+      "directory": "Directory"
     },
     "admin": {
       "overview": "Overview",
@@ -61,7 +62,8 @@
       "orders": "Orders",
       "companies": "Companies",
       "experts": "Experts",
-      "dataRequests": "Data requests"
+      "dataRequests": "Data requests",
+      "directory": "Directory"
     }
   },
   "theme": {
@@ -1428,7 +1430,8 @@
       "invoiceAttached": "Your invoice is attached as a PDF and is always available in your account.",
       "invoiceFollows": "We will send your invoice shortly.",
       "nextStep": "We will be in touch to agree the date for the on site assessment.",
-      "button": "View order"
+      "button": "View order",
+      "credits": "Your {count} credits are on your account and ready to unlock contacts in the directory."
     },
     "expert_welcome": {
       "subject": "Welcome to the SME24 expert network",
@@ -2301,7 +2304,8 @@
         "expert_not_assignable": "That assessor is no longer active. Choose another.",
         "date_not_future": "The date must be in the future.",
         "invalid_transition": "Someone else changed this order. Reload the list and try again.",
-        "unexpected": "The assessment could not be scheduled. Try again."
+        "unexpected": "The assessment could not be scheduled. Try again.",
+        "not_deliverable": "This is a credit pack of the contact directory: there is nothing to schedule."
       }
     },
     "delivery": {
@@ -2346,7 +2350,8 @@
         "invalid_transition": "Someone else changed this order. Reload the list and try again.",
         "unexpected": "The change could not be saved. Try again."
       }
-    }
+    },
+    "creditsBadge": "Credits"
   },
   "adminCompanies": {
     "title": "Companies",
@@ -2920,7 +2925,8 @@
         "error": "We could not record your acceptance. Please try again."
       },
       "changelog": {
-        "1": "These are the first terms of use for SME24. They set out what we provide, what a package includes, how cancellation works and which law applies."
+        "1": "These are the first terms of use for SME24. They set out what we provide, what a package includes, how cancellation works and which law applies.",
+        "2": "Version 2 adds a clause on purchased contacts: expert accounts may reveal contacts from our licensed directory for their own business development only, never resell or share them, must not extract the list in bulk, and must respect an objection and the marketing law of the contact's country. Nothing else changed."
       }
     }
   },
@@ -3073,7 +3079,25 @@
         "audit_log": {
           "purpose": "Who changed what, the record that makes the rest verifiable"
         },
-        "accountingNote": "Orders, invoices and order events are kept for ten years because Art. 958f CO requires it. Research runs and benchmark snapshots are kept without an end date: a snapshot is immutable by design, so that a figure you were shown can always be explained, and comparing runs over time is how the service stays accurate. If you would rather they were not, ask us to delete them and we will."
+        "accountingNote": "Orders, invoices and order events are kept for ten years because Art. 958f CO requires it. Research runs and benchmark snapshots are kept without an end date: a snapshot is immutable by design, so that a figure you were shown can always be explained, and comparing runs over time is how the service stays accurate. If you would rather they were not, ask us to delete them and we will.",
+        "directory_companies": {
+          "purpose": "Companies on the purchased contact list"
+        },
+        "directory_contacts": {
+          "purpose": "Name, title, email, phones and address of a person on the purchased contact list"
+        },
+        "directory_suppressions": {
+          "purpose": "A hash of the email address of a person who asked to be removed from the directory, so they never return"
+        },
+        "directory_unlocks": {
+          "purpose": "Which contacts an expert has revealed"
+        },
+        "directory_credit_entries": {
+          "purpose": "An expert’s credit purchases and unlocks"
+        },
+        "directory_imports": {
+          "purpose": "The counts of each directory import, no person"
+        }
       },
       "rights": {
         "title": "Your rights",
@@ -3101,6 +3125,15 @@
       "changes": {
         "title": "Changes to this policy",
         "body": "If we change how we process your data we update this page and, where the change is substantive, tell you in the app. The date at the top is always the date of the last change."
+      },
+      "directory": {
+        "title": "Contact directory",
+        "lead": "One part of the service processes data about people who never signed up to SME24, and it deserves its own section.",
+        "source": "We licence a list of safety and operations contacts at companies worldwide (batch {batch}) from a data supplier. It holds names, job titles, business email addresses, business phone numbers and business postal addresses.",
+        "purpose": "Independent EHS experts with an SME24 expert account search the list by company, job title and country. Email addresses and phone numbers are shown masked; an expert reveals one contact for one credit (CHF {price}), and only the contacts they revealed are shown to them in full.",
+        "basis": "The basis is our legitimate interest, and that of the experts, in reaching the people responsible for safety at a company with a business offer, under the supplier's licence. Experts agree in the terms to use a contact for their own business development only, never to resell or share it, and to respect the marketing law of the contact's country.",
+        "objection": "If you are on the list and do not want to be, write to {email}. We remove you within {days} days and keep only a hash of your address, so you never return with a later update of the list.",
+        "retention": "Contacts are kept while the licence lasts; a removed contact is gone for good. Which expert revealed which contact is kept as the record of what was sold."
       }
     },
     "terms": {
@@ -3167,6 +3200,14 @@
       "law": {
         "title": "Law and jurisdiction",
         "body": "Swiss law applies, without its conflict of law rules. The courts of {city} have jurisdiction, unless mandatory law gives you a different forum."
+      },
+      "purchasedContacts": {
+        "title": "Purchased contacts",
+        "body": "Expert accounts may buy credits and reveal contacts from our licensed directory of safety and operations people. A revealed contact may be used for the expert's own business development only: to approach that person with the expert's own services.",
+        "resale": "Contacts may not be resold, shared, passed to a third party or added to any list or tool that serves anyone but the expert who revealed them.",
+        "extraction": "Bulk extraction of the directory beyond the export of one's own revealed contacts is not permitted; the search exists to find people, not to copy the list.",
+        "objection": "When a person asks not to be contacted, or we remove them from the directory, the expert stops using the contact. A removal is not refunded.",
+        "law": "The expert is responsible for complying with the marketing and data protection law of the contact's country, including any rule on unsolicited business email."
       }
     },
     "imprint": {
@@ -3287,6 +3328,225 @@
         "validation": "That request could not be read. Please try again.",
         "forbidden": "Please sign in again to make a request.",
         "unexpected": "Something went wrong. Please try again."
+      }
+    }
+  },
+  "directory": {
+    "title": "Contact directory",
+    "lead": "EHS and operations contacts at companies worldwide. Search by company, job title and country; every email and phone stays masked until you unlock the row for one credit, and an unlocked row stays yours.",
+    "header": {
+      "balance": "{count, plural, =1 {1 credit} other {# credits}}",
+      "buy": "Buy credits",
+      "unlocks": "Your unlocks"
+    },
+    "search": {
+      "legend": "Search",
+      "company": "Company",
+      "companyPlaceholder": "Part of a company name",
+      "title": "Job title",
+      "titlePlaceholder": "Safety, EHS, operations…",
+      "country": "Country",
+      "allCountries": "All countries",
+      "countryOption": "{label} ({count})",
+      "submit": "Search",
+      "reset": "Reset",
+      "errors": {
+        "tooShort": "Enter at least two characters.",
+        "tooLong": "At most 100 characters."
+      }
+    },
+    "results": {
+      "heading": "Results",
+      "caption": "Page {page}: {count, plural, =1 {1 contact} other {# contacts}} shown",
+      "columns": {
+        "company": "Company",
+        "contact": "Contact",
+        "email": "Email",
+        "phone": "Phone",
+        "unlock": "Unlock"
+      },
+      "unnamed": "No name given",
+      "none": "—",
+      "price": "1 credit, {price}",
+      "priceNote": "excl. VAT",
+      "unlocked": "Unlocked",
+      "more": "Load more",
+      "pageDepth": {
+        "title": "That is as far as one search goes",
+        "description": "A search shows at most {pages} pages. Narrow it by company, title or country to reach the rows past this point.",
+        "reset": "Back to the first page"
+      },
+      "unlock": "Unlock · {price}",
+      "unlocking": "Unlocking…",
+      "errors": {
+        "insufficient_credits": "No credits left.",
+        "buy": "Buy credits",
+        "not_found": "This contact is no longer in the directory.",
+        "forbidden": "Your expert account is not active.",
+        "validation": "This row could not be unlocked.",
+        "unexpected": "Something went wrong. Try again."
+      }
+    },
+    "empty": {
+      "noRows": {
+        "title": "The directory is being prepared",
+        "description": "Contacts appear here once the first import has run. Your credits keep until then."
+      },
+      "noMatch": {
+        "title": "No contacts match",
+        "description": "Try a shorter company name, a broader job title or another country.",
+        "reset": "Clear the search"
+      }
+    },
+    "unlocks": {
+      "title": "Your unlocks",
+      "lead": "Every contact you paid a credit for, newest first, with the full email and phone. They stay yours: download them as a file whenever you like.",
+      "breadcrumb": "Contact directory",
+      "back": "Back to the directory",
+      "export": "Download CSV",
+      "heading": "Unlocked contacts",
+      "caption": "{count, plural, =1 {1 contact} other {# contacts}} shown",
+      "columns": {
+        "company": "Company",
+        "contact": "Contact",
+        "email": "Email",
+        "phone": "Phone",
+        "unlockedAt": "Unlocked"
+      },
+      "unnamed": "No name given",
+      "none": "—",
+      "more": "Load more",
+      "empty": {
+        "title": "Nothing unlocked yet",
+        "description": "Search the directory and unlock a contact for one credit; it appears here and in your CSV.",
+        "action": "Open the directory"
+      }
+    },
+    "export": {
+      "columns": {
+        "company": "Company",
+        "country": "Country",
+        "city": "City",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "title": "Title",
+        "email": "Email",
+        "phone": "Phone",
+        "mobile": "Mobile",
+        "unlockedAt": "Unlocked at (UTC)"
+      }
+    },
+    "packs": {
+      "directory_50": {
+        "name": "50 directory credits",
+        "description": "Fifty unlocks in the contact directory. A credit is spent only when you reveal a row, and a revealed row stays yours."
+      }
+    },
+    "credits": {
+      "title": "Buy credits",
+      "lead": "One credit reveals one contact: the full email and phone numbers, kept on your unlocks page and in your CSV. Credits do not expire.",
+      "back": "Back to the directory",
+      "balance": "Your balance",
+      "pack": {
+        "heading": "The pack",
+        "credits": "{count} credits",
+        "unit": "{price} per credit",
+        "note": "Prices in CHF excl. VAT. The invoice shows the VAT.",
+        "billedTo": "Billed to a Swiss address (the country is fixed to Switzerland)."
+      },
+      "form": {
+        "legend": "Billing address",
+        "country": "Country",
+        "countryValue": "Switzerland",
+        "uidHint": "Optional. Your CHE number, shown on the invoice.",
+        "billingName": "Name or company"
+      },
+      "return": {
+        "confirmingTitle": "Confirming your payment",
+        "paidTitle": "Your credits are on your account",
+        "paidBody": "{count, plural, =1 {1 credit} other {# credits}} were added. Your balance is now {balance, plural, =1 {1 credit} other {# credits}}.",
+        "paidAction": "Open the directory",
+        "awaitingTitle": "Invoice requested",
+        "awaitingBody": "Your credits arrive once the transfer is booked, payable by {dueDate}. Download the invoice with the QR bill below.",
+        "invoiceDownload": "Download invoice",
+        "invoicePending": "The invoice is being prepared. It will be ready in a moment.",
+        "invoiceFailed": "The invoice could not be rendered. We will fix it and send it to you.",
+        "expiredTitle": "This checkout expired",
+        "expiredBody": "Nothing was charged. Start again below.",
+        "cancelledTitle": "This order was cancelled",
+        "cancelledBody": "Nothing was charged. Start again below."
+      },
+      "net": "Net amount",
+      "vat": "VAT {rate}",
+      "gross": "Total",
+      "unavailableTitle": "Credits cannot be bought right now",
+      "unavailableBody": "The credit pack is not on sale at the moment. Try again later."
+    },
+    "admin": {
+      "title": "Contact directory",
+      "lead": "The purchased list as it stands: the latest import, the totals, who holds credits and what they unlocked, and the one action that matters when a person objects.",
+      "import": {
+        "heading": "Latest import",
+        "none": "No import has run yet. Load the list with pnpm directory:import; the policy gate refuses a hosted database until the lawyer's answer is in.",
+        "batch": "Batch",
+        "file": "File",
+        "when": "Run",
+        "dryRun": "Dry run",
+        "read": "Rows read",
+        "loaded": "Loaded",
+        "updated": "Updated",
+        "skippedInvalid": "Skipped, invalid",
+        "skippedCountry": "Skipped, country",
+        "skippedNoCountry": "Skipped, no country",
+        "skippedSuppressed": "Skipped, suppressed",
+        "excluded": "Excluded countries",
+        "countries": "Loaded per country",
+        "noneExcluded": "none"
+      },
+      "totals": {
+        "heading": "In the directory",
+        "companies": "Companies",
+        "contacts": "Contacts",
+        "suppressed": "Suppressed addresses"
+      },
+      "experts": {
+        "heading": "Experts with credits or unlocks",
+        "empty": {
+          "title": "Nobody has bought credits yet",
+          "description": "An expert appears here after their first credit pack or unlock."
+        },
+        "columns": {
+          "name": "Expert",
+          "email": "Email",
+          "balance": "Balance",
+          "bought": "Credits bought",
+          "unlocks": "Unlocks",
+          "lastUnlock": "Last unlock"
+        },
+        "unnamed": "No name",
+        "never": "—"
+      },
+      "remove": {
+        "heading": "Remove a person",
+        "description": "Deletes the contact and keeps a hash of the address, so they never return with the next import. A buyer who had unlocked the row loses it; no refund and no notice in this slice.",
+        "email": "Email address",
+        "reason": "Reason",
+        "reasons": {
+          "data_subject_request": "The person asked to be removed",
+          "bounce": "The address bounces",
+          "ops": "Ops decision"
+        },
+        "submit": "Remove",
+        "submitting": "Removing…",
+        "removed": "Removed. {count, plural, =0 {No buyer had unlocked this row.} =1 {One buyer's unlock was taken with it.} other {# buyers' unlocks were taken with it.}}",
+        "notFound": "No contact with that address; the hash is suppressed anyway, so it cannot return with the next import.",
+        "errors": {
+          "validation": "Enter a valid email address and pick a reason.",
+          "forbidden": "Only ops may remove a person.",
+          "unexpected": "The removal failed. Try again.",
+          "emailInvalid": "Enter a valid email address.",
+          "emailLong": "That address is too long."
+        }
       }
     }
   }

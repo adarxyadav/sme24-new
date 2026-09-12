@@ -5,10 +5,21 @@
 -- number. `src/features/marketing/packages.ts` holds the same key, price and sort order, and
 -- `tests/packages.test.ts` fails when the two drift (AC-14).
 -- Seeded by a data migration, not by seed.sql, because production needs the rows too.
+--
+-- Spec 0018 adds a second kind of package: a credit pack for the contact directory, sold to the
+-- expert accounts on the same rail. `kind` tells the two apart, `credits` is what one purchase
+-- grants, and the key check holds the union of PACKAGE_KEYS and CREDIT_PACK_KEYS
+-- (src/features/directory/catalogue.ts); the two TypeScript lists stay separate so a credit pack
+-- never types the pricing page or checkoutSchema.
 
 create table public.packages (
-  -- Matches PACKAGE_KEYS in src/features/marketing/packages.ts.
-  key text primary key check (key in ('compliance', 'sms', 'culture', 'retainer')),
+  -- Matches PACKAGE_KEYS in src/features/marketing/packages.ts plus CREDIT_PACK_KEYS in
+  -- src/features/directory/catalogue.ts.
+  key text primary key check (key in ('compliance', 'sms', 'culture', 'retainer', 'directory_50')),
+  -- An assessment package of the pricing page, or a credit pack of the directory (spec 0018).
+  kind text not null default 'assessment' check (kind in ('assessment', 'directory_credits')),
+  -- How many directory credits one purchase grants; set exactly on a credit pack.
+  credits integer null,
   -- Net price in whole Rappen excluding VAT (CHF 2'000.00 is 200000). Null for the package sold
   -- by conversation; a null price can never enter checkout (AC-19).
   price_rappen bigint null check (price_rappen is null or price_rappen > 0),
@@ -18,12 +29,17 @@ create table public.packages (
   sort_order integer not null check (sort_order > 0),
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint packages_check_credits check (
+    (kind = 'directory_credits') = (credits is not null) and (credits is null or credits > 0)
+  )
 );
 
 comment on table public.packages is 'The assessment packages and their net prices in Rappen. Read by every signed in user, written by ops only; kept equal to PACKAGES in src/features/marketing/packages.ts by a Vitest test.';
 comment on column public.packages.price_rappen is 'Net price excluding VAT in whole Rappen (1 CHF = 100 Rappen). Null means sold by conversation and not purchasable.';
 comment on column public.packages.vat_rate is 'The MWST rate frozen onto an order at purchase; 0.081 since 2024.';
+comment on column public.packages.kind is 'assessment for the pricing page packages, directory_credits for a credit pack of the contact directory (spec 0018).';
+comment on column public.packages.credits is 'The directory credits one purchase of a credit pack grants; null on an assessment package. Frozen onto orders.credits at purchase.';
 comment on column public.packages.is_active is 'An inactive package cannot start a new checkout; existing orders are unaffected.';
 
 create index packages_sort_order_idx on public.packages (sort_order);

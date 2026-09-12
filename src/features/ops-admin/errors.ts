@@ -12,6 +12,7 @@ export type ScheduleWriteError =
   | "expert_not_assignable"
   | "date_not_future"
   | "invalid_transition"
+  | "not_deliverable"
   | "unexpected";
 
 type PostgrestLike = {
@@ -28,7 +29,9 @@ type PostgrestLike = {
  * - `expert_not_active` comes from `check_expert_assignable` on the assignment insert (AC-4);
  * - `must be in the future` from the `paid -> scheduled` edge (AC-5);
  * - `orders status is already %` from two ops scheduling the same order at once, and any other
- *   `invalid orders transition` from an order that is not where the caller last read it (AC-3).
+ *   `invalid orders transition` from an order that is not where the caller last read it (AC-3);
+ * - `delivery is not available for an expert order` from the same trigger on a credit pack order
+ *   of the contact directory (spec 0018, AC-10), which has nothing to schedule.
  *
  * Anything else is a real fault and reaches Sentry as `unexpected`. Pure.
  */
@@ -38,6 +41,7 @@ export function classifyScheduleError(error: unknown): ScheduleWriteError {
   const message = `${postgrest.message ?? ""} ${postgrest.details ?? ""}`;
   if (message.includes("expert_not_active")) return "expert_not_assignable";
   if (message.includes("must be in the future")) return "date_not_future";
+  if (message.includes("delivery is not available for an expert order")) return "not_deliverable";
   if (message.includes("orders status is already") || message.includes("invalid orders transition"))
     return "invalid_transition";
   // A delivery column guard raising means the write left the row inconsistent, which the action's

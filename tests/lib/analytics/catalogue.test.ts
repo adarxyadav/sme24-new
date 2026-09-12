@@ -46,6 +46,11 @@ const ORGANIZATION_EVENTS: readonly AnalyticsEvent[] = [
 const ANONYMOUS_EVENTS: readonly AnalyticsEvent[] = [
   "enquiry.sent",
   "expert.profile_completed",
+  // Spec 0018, AC-14: an expert belongs to no organization, so the directory's three events
+  // declare none and the credit funnel is keyed on the person alone.
+  "directory.searched",
+  "directory.unlocked",
+  "directory.credits_purchased",
   "scaffold.test_event",
 ];
 

@@ -21,7 +21,7 @@ create table public.profiles (
   -- ordering it would read '10' as older than '2'. Default '1' matches the constant the app ships
   -- with, so nobody becomes stale on the day this deploys. Written only by handle_new_user and
   -- accept_terms(), like terms_accepted_at: the column grant below leaves it out.
-  terms_version text not null default '1',
+  terms_version text not null default '2',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -148,7 +148,9 @@ begin
         end,
         ''
       ),
-      '1'
+      -- The current version, the third mirror of CURRENT_TERMS_VERSION beside the column default
+      -- and the accept_terms default (spec 0018 moved all three to '2').
+      '2'
     )
   );
   return new;
@@ -176,7 +178,7 @@ drop function if exists public.accept_terms();
 -- possible; a repeat call for a version already accepted still changes nothing, so a double
 -- submit stays harmless. Definer because both columns sit outside the authenticated update
 -- grant; the auth.uid() check is what keeps it safe. Runs as the signed in user (PostgREST rpc).
-create or replace function public.accept_terms(version text default '1')
+create or replace function public.accept_terms(version text default '2')
 returns timestamptz
 language plpgsql
 security definer

@@ -8,16 +8,18 @@
 /**
  * The version of the terms currently in force, matching `profiles.terms_version`'s column default.
  *
- * Version 1 is the acceptance that already happened, given a number for the first time, so nobody
- * becomes stale on the day this deploys. Shipping at '2' would block every existing user at once,
- * which is the one way this feature could cause an outage.
+ * Version 1 was the acceptance that already happened, given a number for the first time. Version 2
+ * (spec 0018, AC-16, 2026-09-12) adds the purchased contacts clause for the expert accounts and
+ * deliberately puts the dialog in front of every signed in user once, clients included: spec 0015
+ * designed the bump for exactly this, and a separate expert only acceptance would be a second
+ * consent machine.
  *
  * Bumping it blocks every signed in user behind the re consent dialog until they accept, so bump
  * it only for a change that genuinely alters the deal, and in the same commit add the matching
  * `legal.terms.changelog.<version>` key to both catalogues (a Vitest test fails until you do) and
  * move `TERMS_UPDATED` in `dates.ts`.
  */
-export const CURRENT_TERMS_VERSION = "1";
+export const CURRENT_TERMS_VERSION = "2";
 
 /**
  * Every version that has ever been in force, oldest first, and the reason the list exists: the
@@ -25,7 +27,7 @@ export const CURRENT_TERMS_VERSION = "1";
  * showing an empty dialog. Append, never rewrite: a past version's entry is a record of what
  * people accepted.
  */
-export const TERMS_VERSIONS = ["1"] as const;
+export const TERMS_VERSIONS = ["1", "2"] as const;
 
 /** A version of the terms someone may have accepted. */
 export type TermsVersion = (typeof TERMS_VERSIONS)[number];

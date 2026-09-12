@@ -61,10 +61,15 @@ vi.mock("@/lib/supabase/service", () => ({
     from: (table: string) => ({
       select: () => ({
         eq: () => ({
-          maybeSingle: async () => ({
-            data: boundary.readError ? null : boundary.invoice,
-            error: boundary.readError,
-          }),
+          maybeSingle: async () => {
+            // `buyerLabel` reads the buyer's name from organizations or profiles by id (spec 0018).
+            if (table === "organizations") return { data: { name: "Musterfirma AG" }, error: null };
+            if (table === "profiles") return { data: { full_name: "Erika Expert" }, error: null };
+            return {
+              data: boundary.readError ? null : boundary.invoice,
+              error: boundary.readError,
+            };
+          },
         }),
       }),
       // `invoices` is updated without a `.select()`, so awaiting the builder itself has to
@@ -112,7 +117,8 @@ beforeEach(() => {
   boundary.invoice = {
     number: "2026-0005",
     orders: { reference: "SME24-2026-0003" },
-    organizations: { name: "Musterfirma AG" },
+    organization_id: "org-1",
+    buyer_expert_id: null,
   };
   boundary.readError = null;
   boundary.updates = [];
@@ -255,5 +261,17 @@ describe("the confirmation email is independent of the render (AC-10)", () => {
     // And the email carries no attachment in this slice, so a missing PDF changes nothing
     // about the message the buyer receives.
     expect(source).toContain("invoiceAttached: false");
+  });
+
+  it("names an expert buyer's invoice through the shared buyer label (spec 0018, AC-10)", async () => {
+    boundary.invoice = {
+      number: "2026-0006",
+      orders: { reference: "SME24-2026-0090" },
+      organization_id: null,
+      buyer_expert_id: "expert-1",
+    };
+    const onFailure = await loadHook();
+    await onFailure({ payload: { invoiceId: INVOICE }, error: new Error("boom"), ctx });
+    expect(boundary.alerts[0]?.fields).toMatchObject({ organizationName: "Expert: Erika Expert" });
   });
 });

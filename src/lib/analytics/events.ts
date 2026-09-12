@@ -22,6 +22,9 @@ export const ANALYTICS_EVENTS = [
   "enquiry.sent",
   "expert.profile_completed",
   "expert.assigned",
+  "directory.searched",
+  "directory.unlocked",
+  "directory.credits_purchased",
   "scaffold.test_event",
 ] as const;
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

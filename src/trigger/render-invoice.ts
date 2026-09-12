@@ -5,6 +5,7 @@ import { logger, schemaTask } from "@trigger.dev/sdk";
 import PDFDocument from "pdfkit";
 import { SwissQRBill } from "swissqrbill/pdf";
 import { z } from "zod";
+import { buyerLabel } from "@/features/checkout/buyer";
 import {
   type InvoiceDocument,
   splitSellerAddress,
@@ -55,18 +56,24 @@ export const renderInvoiceTask = schemaTask({
     // would send them hunting.
     const { data: row } = await supabase
       .from("invoices")
-      .select("number, orders!inner(reference), organizations:organization_id(name)")
+      .select("number, organization_id, buyer_expert_id, orders!inner(reference)")
       .eq("id", payload.invoiceId)
       .maybeSingle();
     const order = row?.orders as { reference?: string } | undefined;
-    const organization = row?.organizations as { name?: string } | undefined;
+    // The buyer may be a client organization or an expert (spec 0018, AC-10); one helper names both.
+    const buyer = row
+      ? await buyerLabel(supabase, {
+          organization_id: row.organization_id,
+          buyer_expert_id: row.buyer_expert_id,
+        })
+      : "Unknown organization";
     await raiseAlertFromTask({
       kind: "invoice.render_failed",
       idempotencyKey: `invoice-render-failed/${payload.invoiceId}`,
       fields: {
         invoiceNumber: row?.number ?? payload.invoiceId,
         reference: order?.reference ?? payload.invoiceId,
-        organizationName: organization?.name ?? "Unknown organization",
+        organizationName: buyer,
         errorMessage: (error instanceof Error ? error.message : String(error)).slice(0, 500),
       },
     });
@@ -91,7 +98,9 @@ export const renderInvoiceTask = schemaTask({
     }
 
     const pdf = await drawInvoice(document);
-    const path = `${document.organizationId}/${invoiceId}.pdf`;
+    // `<organization_id>/<invoice id>.pdf` for a client, `experts/<buyer_expert_id>/<invoice
+    // id>.pdf` for an expert buyer (spec 0018, AC-9): the bucket policies read the first segment.
+    const path = `${document.ownerFolder}/${invoiceId}.pdf`;
 
     const { error: uploadError } = await supabase.storage
       .from("invoices")
@@ -118,7 +127,7 @@ export const renderInvoiceTask = schemaTask({
 async function loadDocument(
   supabase: Service,
   invoiceId: string,
-): Promise<(InvoiceDocument & { readonly organizationId: string }) | null> {
+): Promise<(InvoiceDocument & { readonly ownerFolder: string }) | null> {
   const { data, error } = await supabase
     .from("invoices")
     .select("*, orders!inner(*)")
@@ -128,8 +137,12 @@ async function loadDocument(
   if (!data) return null;
 
   const order = data.orders as unknown as Database["public"]["Tables"]["orders"]["Row"];
+  const ownerFolder = data.organization_id ?? `experts/${data.buyer_expert_id}`;
+  if (!data.organization_id && !data.buyer_expert_id) {
+    throw new Error(`invoice ${invoiceId} names no buyer`);
+  }
   return {
-    organizationId: data.organization_id,
+    ownerFolder,
     invoiceNumber: data.number,
     issuedAt: new Date(data.issued_at),
     dueDate: new Date(data.due_date),

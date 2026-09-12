@@ -509,6 +509,322 @@ export type Database = {
           },
         ]
       }
+      directory_companies: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          name: string
+          name_normalised: string
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          name_normalised: string
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          name_normalised?: string
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      directory_contacts: {
+        Row: {
+          city: string | null
+          company_id: string
+          country: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          imported_at: string
+          last_name: string | null
+          mobile: string | null
+          phone: string | null
+          postal_code: string | null
+          source_batch: string
+          state: string | null
+          street: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          company_id: string
+          country?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          imported_at: string
+          last_name?: string | null
+          mobile?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          source_batch: string
+          state?: string | null
+          street?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          company_id?: string
+          country?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          imported_at?: string
+          last_name?: string | null
+          mobile?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          source_batch?: string
+          state?: string | null
+          street?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "directory_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directory_credit_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delta: number
+          expert_id: string
+          id: string
+          note: string | null
+          order_id: string | null
+          reason: string
+          unlock_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          expert_id: string
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          reason: string
+          unlock_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          expert_id?: string
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          reason?: string
+          unlock_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_credit_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_unlock_id_fkey"
+            columns: ["unlock_id"]
+            isOneToOne: false
+            referencedRelation: "directory_unlocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directory_imports: {
+        Row: {
+          countries: Json
+          created_at: string
+          dry_run: boolean
+          excluded_countries: string[]
+          file_name: string
+          finished_at: string | null
+          id: string
+          rows_loaded: number
+          rows_read: number
+          rows_skipped_country: number
+          rows_skipped_invalid: number
+          rows_skipped_no_country: number
+          rows_skipped_suppressed: number
+          rows_updated: number
+          source_batch: string
+          started_at: string
+        }
+        Insert: {
+          countries?: Json
+          created_at?: string
+          dry_run?: boolean
+          excluded_countries?: string[]
+          file_name: string
+          finished_at?: string | null
+          id?: string
+          rows_loaded?: number
+          rows_read?: number
+          rows_skipped_country?: number
+          rows_skipped_invalid?: number
+          rows_skipped_no_country?: number
+          rows_skipped_suppressed?: number
+          rows_updated?: number
+          source_batch: string
+          started_at?: string
+        }
+        Update: {
+          countries?: Json
+          created_at?: string
+          dry_run?: boolean
+          excluded_countries?: string[]
+          file_name?: string
+          finished_at?: string | null
+          id?: string
+          rows_loaded?: number
+          rows_read?: number
+          rows_skipped_country?: number
+          rows_skipped_invalid?: number
+          rows_skipped_no_country?: number
+          rows_skipped_suppressed?: number
+          rows_updated?: number
+          source_batch?: string
+          started_at?: string
+        }
+        Relationships: []
+      }
+      directory_suppressions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email_hash: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email_hash: string
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email_hash?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_suppressions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_suppressions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directory_unlocks: {
+        Row: {
+          contact_id: string
+          created_at: string
+          expert_id: string
+          id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          expert_id: string
+          id?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          expert_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_unlocks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "directory_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_unlocks_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_unlocks_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_deliveries: {
         Row: {
           attempts: number
@@ -933,6 +1249,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          buyer_expert_id: string | null
           cancelled_at: string | null
           created_at: string
           due_date: string
@@ -940,7 +1257,7 @@ export type Database = {
           issued_at: string
           number: string
           order_id: string
-          organization_id: string
+          organization_id: string | null
           pdf_failed_at: string | null
           pdf_path: string | null
           pdf_rendered_at: string | null
@@ -952,6 +1269,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
           created_at?: string
           due_date: string
@@ -959,7 +1277,7 @@ export type Database = {
           issued_at?: string
           number: string
           order_id: string
-          organization_id: string
+          organization_id?: string | null
           pdf_failed_at?: string | null
           pdf_path?: string | null
           pdf_rendered_at?: string | null
@@ -971,6 +1289,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
           created_at?: string
           due_date?: string
@@ -978,7 +1297,7 @@ export type Database = {
           issued_at?: string
           number?: string
           order_id?: string
-          organization_id?: string
+          organization_id?: string | null
           pdf_failed_at?: string | null
           pdf_path?: string | null
           pdf_rendered_at?: string | null
@@ -990,6 +1309,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "invoices_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_order_id_fkey"
             columns: ["order_id"]
@@ -1115,7 +1448,7 @@ export type Database = {
           id: string
           occurred_at: string
           order_id: string
-          organization_id: string
+          organization_id: string | null
           reason: string | null
           to_status: string
         }
@@ -1126,7 +1459,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           order_id: string
-          organization_id: string
+          organization_id?: string | null
           reason?: string | null
           to_status: string
         }
@@ -1137,7 +1470,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           order_id?: string
-          organization_id?: string
+          organization_id?: string | null
           reason?: string | null
           to_status?: string
         }
@@ -1167,10 +1500,12 @@ export type Database = {
           billing_street: string
           billing_town: string
           billing_uid: string | null
+          buyer_expert_id: string | null
           cancelled_at: string | null
-          company_id: string
+          company_id: string | null
           created_at: string
           created_by: string | null
+          credits: number | null
           currency: string
           delivered_at: string | null
           due_date: string | null
@@ -1179,7 +1514,7 @@ export type Database = {
           id: string
           locale: string
           net_rappen: number
-          organization_id: string
+          organization_id: string | null
           package_key: string
           package_name_snapshot: string
           paid_at: string | null
@@ -1202,10 +1537,12 @@ export type Database = {
           billing_street: string
           billing_town: string
           billing_uid?: string | null
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
-          company_id: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
+          credits?: number | null
           currency?: string
           delivered_at?: string | null
           due_date?: string | null
@@ -1214,7 +1551,7 @@ export type Database = {
           id?: string
           locale: string
           net_rappen: number
-          organization_id: string
+          organization_id?: string | null
           package_key: string
           package_name_snapshot: string
           paid_at?: string | null
@@ -1237,10 +1574,12 @@ export type Database = {
           billing_street?: string
           billing_town?: string
           billing_uid?: string | null
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
-          company_id?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
+          credits?: number | null
           currency?: string
           delivered_at?: string | null
           due_date?: string | null
@@ -1249,7 +1588,7 @@ export type Database = {
           id?: string
           locale?: string
           net_rappen?: number
-          organization_id?: string
+          organization_id?: string | null
           package_key?: string
           package_name_snapshot?: string
           paid_at?: string | null
@@ -1275,6 +1614,20 @@ export type Database = {
           {
             foreignKeyName: "orders_assigned_expert_id_fkey"
             columns: ["assigned_expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "orders_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1427,8 +1780,10 @@ export type Database = {
       packages: {
         Row: {
           created_at: string
+          credits: number | null
           is_active: boolean
           key: string
+          kind: string
           price_rappen: number | null
           sort_order: number
           updated_at: string
@@ -1436,8 +1791,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          credits?: number | null
           is_active?: boolean
           key: string
+          kind?: string
           price_rappen?: number | null
           sort_order: number
           updated_at?: string
@@ -1445,8 +1802,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          credits?: number | null
           is_active?: boolean
           key?: string
+          kind?: string
           price_rappen?: number | null
           sort_order?: number
           updated_at?: string
@@ -1739,6 +2098,112 @@ export type Database = {
       }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      directory_countries: {
+        Args: never
+        Returns: {
+          contacts: number
+          country: string
+        }[]
+      }
+      directory_credit_balance: {
+        Args: { expert_id?: string }
+        Returns: number
+      }
+      directory_ops_summary: {
+        Args: never
+        Returns: {
+          balance: number
+          credits_bought: number
+          email: string
+          expert_id: string
+          full_name: string
+          last_unlock_at: string
+          unlocks: number
+        }[]
+      }
+      directory_remove_contact: {
+        Args: { email: string; reason: string }
+        Returns: {
+          removed: boolean
+          unlocks_cascaded: number
+        }[]
+      }
+      directory_reveal: {
+        Args: { contact_id: string }
+        Returns: {
+          already_unlocked: boolean
+          balance: number
+          company_city: string
+          company_country: string
+          company_id: string
+          company_name: string
+          contact_city: string
+          contact_country: string
+          contact_title: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          mobile: string
+          phone: string
+          unlocked_at: string
+        }[]
+      }
+      directory_search: {
+        Args: {
+          after_id?: string
+          after_name?: string
+          after_page?: number
+          country?: string
+          page_size?: number
+          q?: string
+          title?: string
+        }
+        Returns: {
+          company_city: string
+          company_country: string
+          company_id: string
+          company_name: string
+          company_name_normalised: string
+          contact_city: string
+          contact_country: string
+          contact_id: string
+          contact_title: string
+          email: string
+          email_masked: string
+          first_name: string
+          last_name: string
+          mobile: string
+          mobile_masked: string
+          phone: string
+          phone_masked: string
+          unlocked: boolean
+        }[]
+      }
+      directory_unlocked_contacts: {
+        Args: {
+          after_created_at?: string
+          after_id?: string
+          page_size?: number
+        }
+        Returns: {
+          company_city: string
+          company_country: string
+          company_id: string
+          company_name: string
+          contact_city: string
+          contact_country: string
+          contact_title: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          mobile: string
+          phone: string
+          unlock_id: string
+          unlocked_at: string
+        }[]
+      }
       issue_invoice: {
         Args: {
           due_days?: number

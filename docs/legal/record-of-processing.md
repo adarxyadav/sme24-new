@@ -1,7 +1,7 @@
 # Record of processing activities
 
 **Controller**: IC Hotz GmbH, Obermühle 5, 6340 Baar, Switzerland · service@sme24.ch
-**Last reviewed**: 2026-09-09
+**Last reviewed**: 2026-09-12
 **Scope**: every table in the `public` schema of the SME24 production database.
 
 This is the Art. 12 revDSG record. SME24 is very likely exempt from keeping one (the exemption
@@ -59,6 +59,12 @@ two lists differ. A new table is therefore a row here in the same pull request.
 | `notifications` | In app messages to one person | Tell a user what happened | contract | account | Supabase | A purged delivery leaves `delivery_id` null. |
 | `enquiries` | Name, email, message, hashed IP | Answer a contact form enquiry | contract, interest | purged: hashed IP 30d, closed rows 365d | Supabase | `purge-enquiries`, Mondays 03:00 Europe/Zurich. The IP is stored as a SHA 256 hash, a flood guard only, never the address. |
 | `data_requests` | The subject's id, their organization, the kind of request, the ops note | Record that a data subject right was exercised and answered within the Art. 25 window | legal | indefinite | Supabase | Deliberately kept: the row is the evidence that a request was made and answered, so it outlives the profile it is about (`requested_by` is set null, never cascaded). It holds no request text, only the kind and what ops did. |
+| `directory_companies` | Company name and location from the purchased contact list | The company a directory contact works at | interest | indefinite | Supabase | Spec 0018. Unreadable to every app role but ops; experts see it only through `directory_search`. Retention is in the lawyer's brief with the licence question; `indefinite` until it is answered. |
+| `directory_contacts` | Name, title, email, phones and address of a person on the purchased list | Sold to expert accounts, one credit per revealed row | interest | indefinite | Supabase | Spec 0018. The person never signed up to SME24; the basis is legitimate interest under the supplier's licence, confirmed by the lawyer as the launch gate. Removed within 30 days of an objection through `directory_remove_contact`. |
+| `directory_suppressions` | A SHA 256 hash of an objector's email, never the address | Keep a removed person out of every later import | interest | indefinite | Supabase | Spec 0018. Kept by design: the hash is the objection, and dropping it would let the next import bring the person back. |
+| `directory_unlocks` | Which expert revealed which contact, and when | The record of what was sold | contract, legal | indefinite | Supabase | Spec 0018. Never `account`: `anonymisePerson` touches `profiles` and `expert_profiles` only and a profile is never deleted, so nothing would implement it. Cascades away when the contact is removed. |
+| `directory_credit_entries` | The expert's credit ledger: purchases, unlocks, grants, refunds | The balance and the record of what was paid for | contract, legal | indefinite | Supabase | Spec 0018. Append only, like `order_events`; a purchase row points at its order. |
+| `directory_imports` | Counts per outcome and per country of one import run, no person | The audit of every bulk write to the directory | none | indefinite | Supabase | Spec 0018. The four restricted directory tables carry no audit trigger; this row is their audit. |
 | `audit_log` | Who changed which row, and when | Make every sensitive write verifiable | legal, interest | indefinite | Supabase | Deliberately kept: an audit log a subject could erase would not be an audit log. It records ids and column names, not the data itself. |
 | `scaffold_checks` | Build time check rows, no person | Prove the stack is wired end to end | none | n/a | Supabase | Development artefact. |
 

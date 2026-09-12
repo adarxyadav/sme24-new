@@ -49,7 +49,8 @@ describe("what the gate shows (AC-10)", () => {
 
   it("says what changed in this version, from the changelog", () => {
     renderWithIntl(<TermsGate locale="en-CH" />, "en-CH");
-    expect(screen.getByText(/first terms of use for SME24/)).toBeInTheDocument();
+    // The current version's entry: version 2 added the purchased contacts clause (spec 0018).
+    expect(screen.getByText(/Version 2 adds a clause on purchased contacts/)).toBeInTheDocument();
   });
 
   it("links to the full terms in a new tab, so the dialog is not lost to reading them", () => {

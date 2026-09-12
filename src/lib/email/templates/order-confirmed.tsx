@@ -50,7 +50,13 @@ export function OrderConfirmedEmail({ t, locale, data, href }: TemplateProps<Ord
           ? t("email.order_confirmed.invoiceAttached")
           : t("email.order_confirmed.invoiceFollows")}
       </EmailText>
-      <EmailText>{t("email.order_confirmed.nextStep")}</EmailText>
+      {data.credits !== undefined ? (
+        // A credit pack of the contact directory (spec 0018, AC-10): the credits are on the
+        // account, and there is no on site date to agree.
+        <EmailText>{t("email.order_confirmed.credits", { count: data.credits })}</EmailText>
+      ) : (
+        <EmailText>{t("email.order_confirmed.nextStep")}</EmailText>
+      )}
     </EmailLayout>
   );
 }

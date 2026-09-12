@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PRIVACY_UPDATED } from "@/features/legal/dates";
-import { PROCESSORS, RETENTION } from "@/features/legal/processors";
+import { DIRECTORY_PROCESSING, PROCESSORS, RETENTION } from "@/features/legal/processors";
 import { LegalPage, LegalProse, LegalSection } from "@/features/legal/ui/legal-page";
 import { webPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
@@ -106,6 +106,25 @@ export default async function PrivacyPage({ params }: PageProps<"/[locale]/priva
               </div>
             ))}
           </dl>
+        </LegalSection>
+
+        {/* Spec 0018, AC-16: the purchased contact list is processing of people who never signed
+            up, so it gets its own block, every fact from DIRECTORY_PROCESSING and SITE. */}
+        <LegalSection id="directory" title={t("directory.title")} lead={t("directory.lead")}>
+          <LegalProse>
+            {t("directory.source", { batch: DIRECTORY_PROCESSING.sourceBatch })}
+          </LegalProse>
+          <LegalProse>
+            {t("directory.purpose", { price: DIRECTORY_PROCESSING.creditPriceChf })}
+          </LegalProse>
+          <LegalProse>{t("directory.basis")}</LegalProse>
+          <LegalProse>
+            {t("directory.objection", {
+              email: SITE.email,
+              days: DIRECTORY_PROCESSING.removalDays,
+            })}
+          </LegalProse>
+          <LegalProse>{t("directory.retention")}</LegalProse>
         </LegalSection>
 
         <LegalSection id="processors" title={t("processors.title")} lead={t("processors.lead")}>

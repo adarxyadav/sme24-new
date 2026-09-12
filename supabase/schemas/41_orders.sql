@@ -11,6 +11,15 @@
 -- A client inserts a pending order and may never update one: every state change comes from the
 -- webhook task (service role) or an ops action, so UPDATE is revoked from authenticated outright
 -- with no column grant back (AC-12, AC-13).
+--
+-- SECOND BUYER SHAPE (spec 0018, AC-7): an expert buys a credit pack for the contact directory on
+-- this same rail. organization_id and company_id are then null and buyer_expert_id names the
+-- buyer; orders_check_buyer holds exactly one shape per row. Every client policy compares
+-- organization_id to the token's organization, which is false for null, so no client ever sees
+-- an expert order, and an expert reads only the rows where they are the buyer. `credits` is
+-- frozen from packages.credits at purchase and is what settle_order grants; the expert insert
+-- policy is what ties it to the package, because UPDATE is revoked and no check constraint can
+-- read another table. An expert order never enters a delivery state (check_order_transition).
 
 -- The human order reference, SME24-<year>-<counter>. Drawn by the checkout action.
 create sequence if not exists public.order_reference_seq as bigint start 1;
@@ -36,9 +45,17 @@ comment on function public.next_order_reference() is 'The next SME24-<year>-<cou
 
 create table public.orders (
   id uuid primary key default gen_random_uuid(),
-  organization_id uuid not null references public.organizations (id) on delete cascade,
-  -- Which company the assessment is for; restrict, so a company with orders cannot vanish.
-  company_id uuid not null references public.companies (id) on delete restrict,
+  -- Null for an expert buyer (spec 0018).
+  organization_id uuid null references public.organizations (id) on delete cascade,
+  -- Which company the assessment is for; restrict, so a company with orders cannot vanish. Null
+  -- with organization_id.
+  company_id uuid null references public.companies (id) on delete restrict,
+  -- The expert who bought a credit pack (spec 0018); restrict, because an order is kept ten years
+  -- and a profile is anonymised, never deleted.
+  buyer_expert_id uuid null references public.profiles (id) on delete restrict,
+  -- The directory credits this purchase grants, frozen from packages.credits like the price, so a
+  -- resized pack never changes what a pending invoice buyer receives. Null on a client order.
+  credits integer null check (credits is null or credits > 0),
   package_key text not null references public.packages (key),
   -- SME24-2026-0042, allocated at creation and shown to the client and on the invoice.
   reference text not null unique check (reference ~ '^SME24-[0-9]{4}-[0-9]{4,}$'),
@@ -83,7 +100,14 @@ create table public.orders (
   scheduled_by uuid null references public.profiles (id) on delete set null,
   created_by uuid null references public.profiles (id) on delete set null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  -- Exactly one buyer shape (spec 0018, invariant 6): a client organization with its company, or
+  -- an expert with their credits.
+  constraint orders_check_buyer check (
+    num_nonnulls(organization_id, buyer_expert_id) = 1
+    and (company_id is null) = (organization_id is null)
+    and (credits is null) = (buyer_expert_id is null)
+  )
 );
 
 comment on table public.orders is 'One package purchase. Amounts are whole Rappen; price and billing address are frozen at purchase. pending → paid | expired | cancelled, and paid → refunded. Clients insert only; the webhook task and ops actions write every state change.';
@@ -96,6 +120,8 @@ comment on column public.orders.scheduled_at is 'The agreed on site date and tim
 comment on column public.orders.assigned_expert_id is 'The assessor doing the work. Set together with scheduled_at; the ops action also upserts the matching active expert_assignments row, which is what actually grants the expert access.';
 comment on column public.orders.delivered_at is 'When the assessment was delivered. Required by the in_progress -> delivered edge.';
 comment on column public.orders.scheduled_by is 'The ops actor who scheduled the order, from auth.getClaims() in the action.';
+comment on column public.orders.buyer_expert_id is 'The expert who bought a credit pack (spec 0018). Set exactly when organization_id is null; orders_check_buyer holds one buyer shape per row.';
+comment on column public.orders.credits is 'The directory credits a credit pack order grants, frozen from packages.credits at purchase and granted by settle_order. Null on a client order.';
 
 create index orders_organization_id_created_at_idx on public.orders (organization_id, created_at desc);
 create index orders_company_id_created_at_idx on public.orders (company_id, created_at desc);
@@ -110,6 +136,9 @@ create index orders_paid_unscheduled_idx on public.orders (paid_at) where status
 create index orders_scheduled_at_idx on public.orders (scheduled_at) where status in ('scheduled', 'in_progress');
 -- The dashboard and the correction path both look an order up by its assessor.
 create index orders_assigned_expert_id_idx on public.orders (assigned_expert_id);
+-- An expert's own credit pack orders (spec 0018).
+create index orders_buyer_expert_id_created_at_idx
+  on public.orders (buyer_expert_id, created_at desc) where buyer_expert_id is not null;
 
 alter table public.orders enable row level security;
 
@@ -139,6 +168,33 @@ create policy "orders: members create a pending order for their organization"
 
 -- No members update policy at all, and no assigned experts read policy (see the header).
 
+-- The expert buyer (spec 0018, AC-7). An active expert reads the orders where they are the buyer
+-- and inserts a pending one with no organization, themselves as buyer and creator, and a credit
+-- pack whose credits equal the package's. The last condition is not optional: UPDATE is revoked,
+-- so this policy is the only guard, and settle_order grants the frozen `credits`; without it an
+-- expert inserting under their own policy would choose the credits they receive.
+create policy "orders: expert buyers read their own"
+  on public.orders
+  for select
+  to authenticated
+  using (buyer_expert_id = (select auth.uid()));
+
+create policy "orders: experts create a pending credit order"
+  on public.orders
+  for insert
+  to authenticated
+  with check (
+    buyer_expert_id = (select auth.uid())
+    and created_by = (select auth.uid())
+    and organization_id is null
+    and status = 'pending'
+    and (select private.is_active_expert())
+    and exists (
+      select 1 from public.packages p
+      where p.key = package_key and p.kind = 'directory_credits' and p.credits = orders.credits
+    )
+  );
+
 create policy "orders: ops full access"
   on public.orders
   for all
@@ -161,6 +217,14 @@ as $$
 begin
   if old.status = new.status then
     raise exception 'orders status is already %', old.status
+      using errcode = 'check_violation';
+  end if;
+
+  -- An expert's credit pack order has nothing to schedule (spec 0018, AC-10): every edge into a
+  -- delivery state is refused here, whatever the app offers. classifyScheduleError matches the
+  -- fragment 'delivery is not available for an expert order'.
+  if new.buyer_expert_id is not null and new.status in ('scheduled', 'in_progress', 'delivered') then
+    raise exception 'orders delivery is not available for an expert order'
       using errcode = 'check_violation';
   end if;
 

@@ -10,10 +10,10 @@ const CATALOGUES = [
 
 /** The terms version and the re consent comparison (spec 0015, AC-10). */
 describe("terms version", () => {
-  it("ships at version 1, so no existing user is stale on the day this deploys", () => {
-    // Shipping at '2' would block every signed in user behind the dialog at once, which is the
-    // one way this feature could cause an outage.
-    expect(CURRENT_TERMS_VERSION).toBe("1");
+  it("is at version 2 since the purchased contacts clause (spec 0018, AC-16)", () => {
+    // Version 1 shipped first so nobody was stale on the day spec 0015 deployed; version 2 is the
+    // one deliberate bump so far, and it puts the dialog in front of every signed in user once.
+    expect(CURRENT_TERMS_VERSION).toBe("2");
   });
 
   it("names the current version as the newest entry in the version list", () => {

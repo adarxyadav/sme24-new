@@ -142,10 +142,13 @@ export async function listCompanies(
   return data ?? [];
 }
 
-/** One ops row: the order with its client, and whatever invoice it has. */
+/** One ops row: the order with its buyer (a client organization or an expert), and whatever invoice it has. */
 export type OpsOrderRow = {
   readonly order: OrderRow;
+  /** The organization's name, or the expert's name for a credit pack order (spec 0018). */
   readonly organizationName: string;
+  /** True for an expert's credit pack order, which the list marks and never offers to schedule. */
+  readonly isCreditOrder: boolean;
   readonly invoice: Pick<
     InvoiceRow,
     "id" | "number" | "pdf_path" | "pdf_failed_at" | "cancelled_at"
@@ -164,7 +167,7 @@ export async function listAllOrders(
   let query = supabase
     .from("orders")
     .select(
-      "*, organizations:organization_id(name), invoices(id, number, pdf_path, pdf_failed_at, cancelled_at)",
+      "*, organizations:organization_id(name), buyer:profiles!orders_buyer_expert_id_fkey(full_name), invoices(id, number, pdf_path, pdf_failed_at, cancelled_at)",
     )
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
@@ -179,13 +182,16 @@ export async function listAllOrders(
   const hasMore = all.length > ORDERS_PAGE_SIZE;
   const page = hasMore ? all.slice(0, ORDERS_PAGE_SIZE) : all;
   const rows = page.map((row) => {
-    const { organizations, invoices, ...order } = row as typeof row & {
+    const { organizations, buyer, invoices, ...order } = row as typeof row & {
       organizations: { name: string } | null;
+      buyer: { full_name: string | null } | null;
       invoices: OpsOrderRow["invoice"][] | OpsOrderRow["invoice"] | null;
     };
+    const isCreditOrder = order.buyer_expert_id !== null;
     return {
       order: order as unknown as OrderRow,
-      organizationName: organizations?.name ?? "—",
+      organizationName: isCreditOrder ? (buyer?.full_name ?? "—") : (organizations?.name ?? "—"),
+      isCreditOrder,
       invoice: Array.isArray(invoices) ? (invoices[0] ?? null) : invoices,
     };
   });

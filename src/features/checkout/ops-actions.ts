@@ -3,6 +3,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
+import { buyerLabel } from "@/features/checkout/buyer";
 import { rappenToChf } from "@/features/checkout/money";
 import { seller as configuredSeller, invoiceDueDays } from "@/features/checkout/seller";
 import { settleOrder } from "@/features/checkout/settle";
@@ -125,7 +126,7 @@ async function followUpOnSettlement(
   const { data: order, error } = await service
     .from("orders")
     .select(
-      "id, organization_id, created_by, reference, package_name_snapshot, net_rappen, vat_rappen, gross_rappen, vat_rate",
+      "id, organization_id, buyer_expert_id, credits, created_by, reference, package_name_snapshot, net_rappen, vat_rappen, gross_rappen, vat_rate",
     )
     .eq("id", orderId)
     .maybeSingle();
@@ -156,7 +157,8 @@ async function followUpOnSettlement(
       template: "order_confirmed",
       recipient: { userId: order.created_by },
       sourceEvent: "order.confirmed",
-      organizationId: order.organization_id,
+      // Omitted for an expert buyer (spec 0018, AC-10): they belong to no organization.
+      ...(order.organization_id ? { organizationId: order.organization_id } : {}),
       idempotencyKey: `order-confirmed/${order.id}`,
       data: {
         packageName: order.package_name_snapshot,
@@ -168,23 +170,20 @@ async function followUpOnSettlement(
         vatRatePercent: Number(order.vat_rate) * 100,
         // Slice 2 attaches the rendered PDF; until then the email points at the order.
         invoiceAttached: false,
+        // The one extra sentence a credit pack adds (spec 0018, AC-10).
+        ...(order.credits !== null ? { credits: order.credits } : {}),
       },
     });
   } else {
     log.warn("ops settle follow up: the order has no buyer to email", { orderId: order.id });
   }
 
-  const { data: organization } = await service
-    .from("organizations")
-    .select("name")
-    .eq("id", order.organization_id)
-    .maybeSingle();
-
   await sendOpsAlert({
     kind: "payment.received",
     idempotencyKey: `payment-received/${order.id}`,
     fields: {
-      organizationName: organization?.name ?? "Unknown organization",
+      // A client organization or an expert (spec 0018, AC-10); one helper names both.
+      organizationName: await buyerLabel(service, order),
       amountChf: rappenToChf(Number(order.gross_rappen)),
       reference: order.reference,
     },
