@@ -27,14 +27,13 @@ const EXAMPLE_HEADCOUNT = "27000";
  */
 export function FactsCard({ className }: { readonly className?: string }) {
   const t = useTranslations("benchmark.facts");
-  const disclosure = useTranslations("benchmark.disclosure");
   const noga = useTranslations("benchmark.noga");
 
   return (
     <Card className={cn(className)}>
       <CardHeader>
-        <CardTitle>{disclosure("correctTitle")}</CardTitle>
-        <CardDescription>{disclosure("correctDescription")}</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-6">

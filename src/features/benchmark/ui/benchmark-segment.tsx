@@ -15,13 +15,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BenchmarkState } from "@/features/benchmark/catalogue";
 import { roundChf, roundChfRange } from "@/features/benchmark/model";
-import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
-import {
-  type DerivedCount,
-  peerShapeOf,
-  type SnapshotBlocks,
-  type SnapshotGap,
-} from "@/features/benchmark/snapshot";
+import type { ParsedSnapshot } from "@/features/benchmark/queries";
+import { peerShapeOf, type SnapshotBlocks, type SnapshotGap } from "@/features/benchmark/snapshot";
 import {
   confidenceLevel,
   isKpiKey,
@@ -33,8 +28,6 @@ import type { KpiDefinitionRow } from "@/features/research/queries";
 import { ConfidenceBadge } from "@/features/research/ui/badges";
 import { localizedText } from "@/features/research/ui/kpi-table";
 import type { LocaleCode } from "@/i18n/routing";
-import { CalculationContent } from "./calculation-content";
-import { CalculationDisclosure } from "./calculation-disclosure";
 import { FactsForm, type FactsFormProps } from "./facts-form";
 import { formatKpiValue } from "./format";
 
@@ -42,8 +35,6 @@ export type BenchmarkSegmentProps = {
   readonly snapshot: ParsedSnapshot | null;
   readonly state: BenchmarkState;
   readonly catalogue: readonly KpiDefinitionRow[];
-  /** The assumption rows for the disclosure labels (AC-10). */
-  readonly assumptions: readonly AssumptionRow[];
   /** The company facts the form edits (AC-11). */
   readonly company: FactsFormProps["company"];
   readonly locale: LocaleCode;
@@ -93,7 +84,6 @@ export async function BenchmarkSegment({
   snapshot,
   state,
   catalogue,
-  assumptions,
   company,
   locale,
   readOnly = false,
@@ -103,6 +93,9 @@ export async function BenchmarkSegment({
   const research = await getTranslations("research.table");
   const format = await getFormatter();
   const yesNo = { yes: research("yes"), no: research("no") };
+  // The opportunity card carries the facts form itself when it has no cost to show (it names the
+  // missing input beside it), so the standalone card renders only when a cost is on screen.
+  const costShown = Boolean(snapshot?.blocks.cost) && snapshot?.costChf !== null;
 
   return (
     <section
@@ -110,12 +103,9 @@ export async function BenchmarkSegment({
       className="flex flex-col gap-4"
       data-benchmark-state={state}
     >
-      <div className="flex flex-col gap-1">
-        <h2 id="benchmark-heading" className="font-semibold text-lg">
-          {t("heading")}
-        </h2>
-        <p className="max-w-prose text-muted-foreground text-sm">{t("description")}</p>
-      </div>
+      <h2 id="benchmark-heading" className="font-semibold text-lg">
+        {t("heading")}
+      </h2>
       {state === "calculating" ? <CalculatingState label={t("state.calculating")} /> : null}
       {state === "unavailable" ? (
         <Alert variant="info">
@@ -130,27 +120,13 @@ export async function BenchmarkSegment({
             <AlertTitle>{t("state.noData")}</AlertTitle>
           </Alert>
           {readOnly ? null : figuresSlot}
-          {readOnly ? null : (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("disclosure.correctTitle")}</CardTitle>
-                <CardDescription>{t("disclosure.correctDescription")}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FactsForm company={company} />
-              </CardContent>
-            </Card>
-          )}
+          {readOnly ? null : <FactsCard company={company} t={t} />}
         </>
       ) : null}
       {state === "ready" && snapshot ? (
         <>
           {snapshot.peerProvisional ? (
-            <p
-              className="flex items-start gap-2 text-muted-foreground text-xs"
-              data-provisional-note
-            >
-              <InfoIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <p className="max-w-prose text-muted-foreground text-xs" data-provisional-note>
               {t("provisionalNote")}
             </p>
           ) : null}
@@ -163,30 +139,6 @@ export async function BenchmarkSegment({
             company={company}
             readOnly={readOnly}
           />
-          <CalculationDisclosure title={t("disclosure.title")}>
-            <CalculationFacts
-              snapshot={snapshot}
-              catalogue={catalogue}
-              locale={locale}
-              t={t}
-              format={format}
-            />
-            <CalculationContent
-              snapshot={snapshot}
-              catalogue={catalogue}
-              assumptions={assumptions}
-              locale={locale}
-            />
-            {readOnly ? null : (
-              <section className="flex flex-col gap-2" data-correct-facts>
-                <h4 className="font-semibold text-sm">{t("disclosure.correctTitle")}</h4>
-                <p className="max-w-prose text-muted-foreground text-sm">
-                  {t("disclosure.correctDescription")}
-                </p>
-                <FactsForm company={company} />
-              </section>
-            )}
-          </CalculationDisclosure>
           <GapList
             snapshot={snapshot}
             catalogue={catalogue}
@@ -203,9 +155,37 @@ export async function BenchmarkSegment({
             format={format}
             yesNo={yesNo}
           />
+          {readOnly || !costShown ? null : <FactsCard company={company} t={t} />}
         </>
       ) : null}
     </section>
+  );
+}
+
+/**
+ * The company facts card (spec 0008, AC-11): the NOGA division and the headcount form under its
+ * own title. It stands beside the alert in `noData` and after the positions in `ready` whenever
+ * the opportunity card does not already carry the form. Since 2026-09-13 (owner decision) it is
+ * the only piece left of the "How this is calculated" disclosure: the formula, the assumptions,
+ * the inputs used and the derived rows no longer render for the client. Server component.
+ */
+function FactsCard({
+  company,
+  t,
+}: {
+  readonly company: FactsFormProps["company"];
+  readonly t: Translator;
+}) {
+  return (
+    <Card data-facts-card>
+      <CardHeader>
+        <CardTitle>{t("facts.title")}</CardTitle>
+        <CardDescription>{t("facts.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <FactsForm company={company} />
+      </CardContent>
+    </Card>
   );
 }
 
@@ -238,139 +218,12 @@ function kpiName(catalogue: readonly KpiDefinitionRow[], locale: LocaleCode, key
 }
 
 /**
- * The catalogue name without its parenthetical gloss, for use inside a sentence: a column heading
- * wants "LTIFR (lost time injury frequency rate)", a provenance line wants "LTIFR" (spec 0012,
- * AC-4). A name with no parenthesis is returned unchanged. Pure.
- *
- * Assumes a catalogue name uses " (" only to open a gloss, in both languages. A KPI name that
- * ever carries a parenthesis as part of the term itself would be truncated here, so a new
- * `kpi_definitions` name keeps the gloss last and everything before it self contained.
- */
-function shortKpiName(name: string): string {
-  return name.split(" (")[0]?.trim() || name;
-}
-
-/** The KPI whose confidence equals the snapshot's (the one that drove the count), among the cost rows. Pure. */
-export function confidenceDriver(snapshot: ParsedSnapshot): KpiKey | null {
-  const cost = snapshot.blocks.cost;
-  if (!cost || snapshot.confidence === null) return null;
-  const keys: KpiKey[] = [cost.incidentKpi];
-  if (cost.lostDaysSource === "kpi") keys.push("lost_days_per_incident");
-  const driver = snapshot.blocks.inputs.kpis.find(
-    (input) => keys.includes(input.key) && input.confidence === snapshot.confidence,
-  );
-  return driver?.key ?? null;
-}
-
-/**
- * One derived injury count as a plain row of the disclosure (spec 0012): the label, the number to
- * one decimal (AC-8) and a sentence naming the rate and year it came from (AC-4). Its "Calculated
- * from" wording is what marks the number as calculated rather than researched or typed in, now
- * that no badge sits beside it. Never a confidence score (AC-5). Server component.
- */
-function DerivedCountRow({
-  count,
-  label,
-  testId,
-  catalogue,
-  locale,
-  t,
-  format,
-}: {
-  readonly count: DerivedCount;
-  readonly label: string;
-  readonly testId: string;
-  readonly catalogue: readonly KpiDefinitionRow[];
-  readonly locale: LocaleCode;
-  readonly t: Translator;
-  readonly format: Formatter;
-}) {
-  // The Suva rate gets its own short phrase: the catalogue name reads as an unreadable sentence
-  // when interpolated ("Calculated from your Accident rate per 1 000 FTE for 2024").
-  const suva = count.fromKey === "accident_rate_per_1000_fte";
-  const client = count.fromSource === "client";
-  const provenance = suva
-    ? t(client ? "derived.fromClientSuva" : "derived.fromResearchSuva", { year: count.fromYear })
-    : t(client ? "derived.fromClient" : "derived.fromResearch", {
-        kpi: shortKpiName(kpiName(catalogue, locale, count.fromKey)),
-        year: count.fromYear,
-      });
-
-  return (
-    <li data-derived-count={testId}>
-      <span className="text-foreground">{label}</span>
-      {": "}
-      <span className="tabular-nums" data-numeric data-derived-value>
-        {format.number(count.count, "oneDecimal")}
-      </span>
-      {" · "}
-      <span data-derived-from={count.fromKey}>{provenance}</span>
-    </li>
-  );
-}
-
-/**
- * The rows that describe the snapshot rather than price it, at the top of "How this is
- * calculated" (owner decision of 2026-09-13, recorded in spec 0012): the computed on date, how
- * many KPIs were compared, which KPI drove the confidence, and the derived injury counts with
- * their provenance and the note that only lost time accidents are priced (spec 0016, AC-31).
- * They left the opportunity card so it carries the cost and the two savings alone. Server component.
- */
-function CalculationFacts({ snapshot, catalogue, locale, t, format }: BlockProps) {
-  // Absent on a stored version 1 row and whenever nothing could be derived (spec 0012, AC-7, AC-12).
-  const derived = snapshot.blocks.derived ?? null;
-  const driver = confidenceDriver(snapshot);
-  const computedOn = format.dateTime(new Date(snapshot.createdAt), "dateShort");
-
-  return (
-    <section className="flex flex-col gap-2 text-sm" data-calculation-facts>
-      <h4 className="font-semibold">{t("disclosure.aboutTitle")}</h4>
-      <ul className="flex flex-col gap-1 text-muted-foreground">
-        <li data-computed-on>{t("disclosure.computedOn", { date: computedOn })}</li>
-        <li data-compared={snapshot.kpisCompared}>
-          {t("disclosure.compared", { compared: snapshot.kpisCompared, total: catalogue.length })}
-        </li>
-        {driver ? (
-          <li data-confidence-from={driver}>
-            {t("disclosure.confidenceFrom", { kpi: kpiName(catalogue, locale, driver) })}
-          </li>
-        ) : null}
-        {derived?.lostTime ? (
-          <DerivedCountRow
-            count={derived.lostTime}
-            label={t("derived.lostTime")}
-            testId="lost-time"
-            catalogue={catalogue}
-            locale={locale}
-            t={t}
-            format={format}
-          />
-        ) : null}
-        {derived?.recordable ? (
-          <DerivedCountRow
-            count={derived.recordable}
-            label={t("derived.recordable")}
-            testId="recordable"
-            catalogue={catalogue}
-            locale={locale}
-            t={t}
-            format={format}
-          />
-        ) : null}
-        {/* The recordable count is shown for context and never priced: say so beside it (spec
-            0016 amendment, AC-31). */}
-        {derived?.recordable ? <li data-derived-priced>{t("derived.priced")}</li> : null}
-      </ul>
-    </section>
-  );
-}
-
-/**
  * The annual incident cost (spec 0008, AC-9): the title with the confidence spelled out beside
  * it, the outward rounded range (spec 0016, AC-9), one line with the working estimate and the
- * lost time count it is built from (spec 0012, AC-1), then the two savings. Everything that
- * explains the arithmetic sits in the disclosure below (`CalculationFacts`). Without a cost the
- * card names the missing input and offers the facts form. Server component.
+ * lost time count it is built from (spec 0012, AC-1), then the two savings. Nothing on the page
+ * explains the arithmetic since the "How this is calculated" disclosure was cut (owner decision
+ * of 2026-09-13). Without a cost the card names the missing input and offers the facts form.
+ * Server component.
  */
 function OpportunityCard({
   snapshot,
@@ -523,7 +376,7 @@ function GapItem({
   const kind = KPI_CATALOGUE[gap.key].format;
   return (
     <li
-      className="flex flex-col gap-1 rounded-lg border p-4"
+      className="flex flex-col gap-3 rounded-lg border p-4"
       data-gap={gap.key}
       data-rank={gap.rank}
     >
@@ -531,27 +384,35 @@ function GapItem({
         <Badge variant={gap.reason === "fatality" ? "destructive" : "outline"}>
           {t("gaps.rank", { rank: gap.rank })}
         </Badge>
-        <span className="font-medium">{kpiName(catalogue, locale, gap.key)}</span>
+        <span className="font-semibold">{kpiName(catalogue, locale, gap.key)}</span>
       </div>
       {gap.reason === "fatality" ? <p className="text-sm">{t("gaps.fatality")}</p> : null}
-      {input && result?.peer ? (
-        <p className="text-muted-foreground text-sm tabular-nums" data-numeric>
-          {t("gaps.versus", {
-            value: formatKpiValue(input.value, kind, format, yesNo),
-            median: formatQuartile(gap.key, result.peer.median, format, yesNo),
-          })}
+      {gap.savingMedianChf !== null ? (
+        <p className="flex flex-col gap-0.5" data-gap-saving>
+          <span className="font-semibold text-2xl tabular-nums tracking-headline" data-numeric>
+            {format.number(roundChf(gap.savingMedianChf), "chfWhole")}
+          </span>{" "}
+          <span className="text-muted-foreground text-xs">{t("gaps.savingLabel")}</span>
         </p>
       ) : null}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm tabular-nums" data-numeric>
-        {gap.gapRelative !== null ? (
-          <span>{t("gaps.relative", { percent: format.number(gap.gapRelative, "percent") })}</span>
-        ) : null}
-        {gap.savingMedianChf !== null ? (
-          <span className="font-medium" data-gap-saving>
-            {t("gaps.saving", { amount: format.number(roundChf(gap.savingMedianChf), "chfWhole") })}
+      {input && result?.peer ? (
+        <div
+          className="flex flex-wrap gap-x-4 gap-y-1 border-t pt-3 text-sm tabular-nums"
+          data-numeric
+        >
+          <span className="text-muted-foreground">
+            {t("gaps.versus", {
+              value: formatKpiValue(input.value, kind, format, yesNo),
+              median: formatQuartile(gap.key, result.peer.median, format, yesNo),
+            })}
           </span>
-        ) : null}
-      </div>
+          {gap.gapRelative !== null ? (
+            <span>
+              {t("gaps.relative", { percent: format.number(gap.gapRelative, "percent") })}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </li>
   );
 }

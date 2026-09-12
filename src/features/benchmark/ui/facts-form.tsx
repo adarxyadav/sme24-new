@@ -47,8 +47,8 @@ export type FactsFormProps = {
  * The company facts form (spec 0008, AC-11): the NOGA division grouped by section and the
  * headcount. Only a changed field is sent, so an untouched `23.61` is never flattened to `23`;
  * a success refreshes the page, which shows `calculating` until the new snapshot lands. Every id
- * is derived from a `useId` prefix, so the two instances the `ready` state renders when the cost
- * is null (the disclosure and the opportunity card) never collide. Browser.
+ * is derived from a `useId` prefix, so two instances on one page (the facts card and the "Your
+ * figures" card both sit on the dashboard) never collide. Browser.
  */
 export function FactsForm({ company, idPrefix }: FactsFormProps) {
   const t = useTranslations("benchmark.facts");

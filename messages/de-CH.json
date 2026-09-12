@@ -1349,7 +1349,6 @@
       "bandOutside": "Band, Wert jenseits p75",
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
       "card": "Potenzialkarte",
-      "collapsible": "Aufklappbare Erklärung",
       "pointComparison": "Punktvergleich"
     },
     "marketing": {
@@ -1804,13 +1803,12 @@
   },
   "benchmark": {
     "heading": "Benchmark und Potenzial",
-    "description": "Ihre neuesten Kennzahlen im Vergleich mit ähnlichen Unternehmen, was zuerst zu tun ist, und was Unfälle Sie pro Jahr kosten.",
     "state": {
       "calculating": "Wir berechnen Ihren Benchmark. Das dauert einen Moment.",
       "unavailable": "Der Benchmark ist noch nicht verfügbar. Wir zeigen ihn, sobald er berechnet ist.",
       "noData": "Noch nicht genug Daten für einen Vergleich. Wir brauchen mindestens eine Kennzahl mit Vergleichswerten."
     },
-    "provisionalNote": "Einige Werte hinter dieser Schätzung sind eine provisorische erste Lesung der publizierten Statistiken und werden vor dem Start bestätigt.",
+    "provisionalNote": "Einige Kostenannahmen werden noch geprüft.",
     "card": {
       "title": "Jährliche Unfallkosten",
       "savingMedian": "Wenn Sie den Median der Vergleichsgruppe erreichen",
@@ -1829,29 +1827,20 @@
       "missingIncidentRate": "Für die Kostenschätzung brauchen wir eine Unfallrate oder eine LTIFR.",
       "rangeHeadline": "{low} bis {high}"
     },
-    "derived": {
-      "lostTime": "Unfälle mit Ausfallzeit pro Jahr",
-      "recordable": "Meldepflichtige Unfälle pro Jahr",
-      "fromClient": "Berechnet aus Ihrer {kpi} für {year}",
-      "fromResearch": "Berechnet aus der recherchierten {kpi} für {year}",
-      "fromClientSuva": "Berechnet aus Ihrer Suva Unfallrate für {year}",
-      "fromResearchSuva": "Berechnet aus der recherchierten Suva Unfallrate für {year}",
-      "priced": "Der Frankenbetrag bewertet nur Unfälle mit Ausfallzeit. Meldepflichtige Unfälle dienen der Einordnung und werden nicht bewertet."
-    },
     "gaps": {
       "title": "Prioritäre Lücken",
-      "description": "Was zuerst zu tun ist: sortiert nach der Einsparung jeder Kennzahl am Median der Vergleichsgruppe, dann nach dem Abstand zum Median.",
-      "empty": "Keine Lücke gegenüber Ihrer Vergleichsgruppe. Jede verglichene Kennzahl liegt beim Median oder besser.",
+      "description": "Wo Sie schlechter als Ihre Branche liegen, die grösste jährliche Einsparung zuerst, dann die grösste Lücke.",
+      "empty": "Keine Lücke. Jede verglichene Kennzahl liegt beim Branchenmedian oder besser.",
       "rank": "Rang {rank}",
       "versus": "{value} vs. Median {median}",
       "relative": "{percent} über dem Median",
-      "saving": "{amount} pro Jahr am Median, allein aus dieser Kennzahl",
+      "savingLabel": "pro Jahr, wenn diese Kennzahl den Branchenmedian erreicht",
       "fatality": "Ein Todesfall wurde gemeldet. Er kommt zuerst, unabhängig von den übrigen Zahlen.",
       "showAll": "Alle Lücken anzeigen ({count})"
     },
     "positions": {
       "title": "Ihre Position pro Kennzahl",
-      "description": "Wo Ihr neuester Wert im Vergleich zu den publizierten Branchenwerten liegt: eine Spannweite über die Suva-Branchen Ihres Abschnitts, auf Ihre Grössenklasse skaliert, wo ein Verhältnis vorliegt, oder ein einzelner Wert, wo die Quelle nur einen publiziert. Worauf jeder Vergleich beruht, steht unter «So wird gerechnet».",
+      "description": "Wo Ihr neuester Wert im Vergleich zu den publizierten Branchenwerten liegt: eine Spannweite über die Suva-Branchen Ihres Abschnitts, auf Ihre Grössenklasse skaliert, wo ein Verhältnis vorliegt, oder ein einzelner Wert, wo die Quelle nur einen publiziert.",
       "noValue": "Kein Wert",
       "noPeer": "Noch keine Vergleichsdaten",
       "peer": "{section} · {band} · {year}",
@@ -2011,35 +2000,9 @@
       "250+": "250 und mehr Mitarbeitende",
       "all": "alle Grössen"
     },
-    "disclosure": {
-      "title": "So wird gerechnet",
-      "aboutTitle": "Zu dieser Berechnung",
-      "computedOn": "Berechnet am {date}",
-      "compared": "{compared} von {total} Kennzahlen verglichen",
-      "confidenceFrom": "Verlässlichkeit aus {kpi}",
-      "formulaTitle": "Die Formel in Worten",
-      "formula": "Unfälle pro Jahr = Unfallrate pro 1 000 Vollzeitstellen × Vollzeitstellen ÷ 1 000 (ohne Unfallrate: LTIFR × Vollzeitstellen × Stunden pro Vollzeitstelle ÷ 1 000 000). Kosten pro Fall = direkte Kosten pro Fall + Ausfalltage pro Unfall × Kosten pro Absenztag. Jahreskosten = Unfälle × Kosten pro Fall × Gesamtkostenfaktor; die Spanne nutzt den tiefen und den hohen Faktor. Die Einsparungen wiederholen die Formel am Median und im obersten Viertel der Vergleichsgruppe.",
-      "fteLine": "Die Mitarbeiterzahl gilt als Vollzeitäquivalente: jede mitarbeitende Person zählt als eine Vollzeitstelle.",
-      "assumptionsTitle": "Verwendete Annahmen",
-      "noCost": "Für diese Berechnung wurden keine Kosten ermittelt, daher wurde keine Annahme verwendet.",
-      "provisional": "provisorisch",
-      "effectiveFrom": "Stand {date}",
-      "inputsTitle": "Verwendete Eingaben",
-      "inputValue": "{value} ({year}, {source})",
-      "sourceResearch": "aus der Recherche",
-      "sourceClient": "von Ihnen erfasst",
-      "peerUsed": "Vergleich: {section} · {band} · {year}",
-      "comparedAs": "verglichen als {value}",
-      "noPeerUsed": "kein Vergleichswert",
-      "headcount": "Mitarbeiterzahl: {count}",
-      "noHeadcount": "Mitarbeiterzahl: unbekannt",
-      "industry": "Branche: {division} (Abschnitt {section}), Grössenklasse {band}",
-      "noIndustry": "Branche: unbekannt, Grössenklasse {band}",
-      "correctTitle": "Wählen Sie Ihre Branche und Mitarbeiterzahl",
-      "correctDescription": "Ihre Angaben haben Vorrang vor der Recherche und starten eine neue Berechnung.",
-      "declaredAssumption": "deklarierte Annahme"
-    },
     "facts": {
+      "title": "Wählen Sie Ihre Branche und Mitarbeiterzahl",
+      "description": "Ihre Angaben haben Vorrang vor der Recherche und starten eine neue Berechnung.",
       "industry": "Branche",
       "industryHint": "Die NOGA-Abteilung, unter der Ihr Unternehmen eingeordnet ist.",
       "industryPlaceholder": "Abteilung wählen",

@@ -1,13 +1,11 @@
 import { screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import { createFormatter, createTranslator } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 import { roundChf } from "@/features/benchmark/model";
-import { BenchmarkSegment, confidenceDriver } from "@/features/benchmark/ui/benchmark-segment";
+import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
 import { formats, TIME_ZONE } from "@/i18n/formats";
 import {
-  assumptionRow,
   catalogue,
   company,
   derivedBlock,
@@ -25,20 +23,18 @@ import {
 /**
  * The benchmark segment (spec 0008, AC-9, AC-14): the three waiting states, the opportunity
  * card with the range, the working estimate in `chfWhole` with its lost time clause, both
- * savings and the spelled out confidence badge, the provisional note, and the disclosure rows
- * that took the computed on date, the KPI count, the confidence driver and the derived counts
- * off the card; the card naming the missing input with the facts form when no cost exists; the top three gaps with the rest
- * behind a disclosure and the positive empty state; one position row per catalogue KPI with the
- * band, the quartiles, the peer label, "no value" and "no peer data yet". The server translator
- * and formatter, the disclosure body, the server action and the router are the boundaries.
+ * savings and the spelled out confidence badge, the provisional note; the card naming the missing
+ * input with the facts form when no cost exists; the facts card after the positions (the one
+ * piece left of the "How this is calculated" disclosure, cut on 2026-09-13 by owner decision);
+ * the top three gaps with the rest behind a show all disclosure and the positive empty state; one
+ * position row per catalogue KPI with the band, the quartiles, the peer label, "no value" and
+ * "no peer data yet". The server translator and formatter, the server action and the router are
+ * the boundaries.
  */
 vi.mock("next-intl/server", () => ({
   getTranslations: async (namespace: string) =>
     createTranslator({ locale: "en-CH", messages: en, namespace: namespace as never, formats }),
   getFormatter: async () => createFormatter({ locale: "en-CH", formats, timeZone: TIME_ZONE }),
-}));
-vi.mock("@/features/benchmark/ui/calculation-content", () => ({
-  CalculationContent: () => <p data-testid="calculation-content">calculation body</p>,
 }));
 vi.mock("@/features/benchmark/actions", () => ({ updateCompanyFacts: vi.fn() }));
 vi.mock("next/navigation", () => ({
@@ -51,14 +47,12 @@ vi.mock("next/navigation", () => ({
 const b = en.benchmark;
 // The formatter separates CHF from the number with a non breaking space; the DOM matchers collapse it.
 const chf = (value: number) => enFormat.number(roundChf(value), "chfWhole").replace(/\s/g, " ");
-const assumptions = [assumptionRow("direct_cost_per_case_chf")];
 
 async function renderSegment(overrides: Partial<Parameters<typeof BenchmarkSegment>[0]> = {}) {
   const element = await BenchmarkSegment({
     snapshot: parsedSnapshot(),
     state: "ready",
     catalogue,
-    assumptions,
     company,
     locale: "en",
     ...overrides,
@@ -90,7 +84,7 @@ describe("the waiting states (AC-9)", () => {
       state: "noData",
     });
     expect(screen.getByText(b.state.noData)).toBeInTheDocument();
-    expect(screen.getByText(b.disclosure.correctTitle)).toBeInTheDocument();
+    expect(screen.getByText(b.facts.title)).toBeInTheDocument();
     expect(container.querySelector("[data-facts-form]")).toBeInTheDocument();
     expect(container.querySelector("[data-opportunity-card]")).not.toBeInTheDocument();
   });
@@ -132,12 +126,6 @@ describe("the waiting states (AC-9)", () => {
   });
 });
 
-/** Opens "How this is calculated" and returns the facts rows at its top. */
-async function openFacts(container: HTMLElement) {
-  await userEvent.click(screen.getByRole("button", { name: b.disclosure.title }));
-  return container.querySelector("[data-calculation-facts]") as HTMLElement;
-}
-
 describe("the opportunity card (AC-9, AC-14)", () => {
   // The range leads and the working estimate sits beneath it (spec 0016, AC-9). The ends round
   // outward, so 1 060 180 floors to 1 060 000 and 2 650 450 ceils to 2 651 000: the displayed band
@@ -159,8 +147,9 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(card.querySelector("[data-saving-top]")).toHaveTextContent(`${chf(955_340)} a year`);
   });
 
-  // Everything that explained the arithmetic left the card for the disclosure (owner decision of
-  // 2026-09-13, spec 0012): the card carries no description, no date, no KPI count and no driver.
+  // Everything that explained the arithmetic left the card on 2026-09-13 (owner decision, spec
+  // 0012) and the disclosure that took it was cut the same day: the card carries no description,
+  // no date, no KPI count and no driver, and nothing else on the page does either.
   it("carries neither the description, the computed on date, the KPI count nor the confidence driver", async () => {
     const { container } = await renderSegment();
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
@@ -169,18 +158,6 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(card.querySelector("[data-compared]")).not.toBeInTheDocument();
     expect(card.querySelector("[data-confidence-from]")).not.toBeInTheDocument();
     expect(within(card).queryByText(/KPIs compared/)).not.toBeInTheDocument();
-  });
-
-  it("states the computed on date, the KPI count and the confidence driver as rows of the disclosure", async () => {
-    const { container } = await renderSegment();
-    const facts = await openFacts(container);
-    expect(within(facts).getByText(b.disclosure.aboutTitle)).toBeInTheDocument();
-    expect(facts.querySelector("[data-computed-on]")).toHaveTextContent("Computed on 06.09.2026");
-    expect(facts.querySelector("[data-compared]")).toHaveAttribute("data-compared", "5");
-    expect(within(facts).getByText("5 of 8 KPIs compared")).toBeInTheDocument();
-    expect(facts.querySelector("[data-confidence-from]")).toHaveTextContent(
-      "Confidence from accident_rate_per_1000_fte (en)",
-    );
   });
 
   it("rounds a cost below 10 000 to the nearest 100, and each range end at its own step", async () => {
@@ -256,9 +233,6 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(card.querySelector("[data-facts-form]")).toBeInTheDocument();
     expect(card.querySelector("[data-cost-headline]")).not.toBeInTheDocument();
     expect(card.querySelector("[data-computed-on]")).not.toBeInTheDocument();
-    // The date still reaches the reader, in the disclosure, even with no cost to explain.
-    const facts = await openFacts(container);
-    expect(facts.querySelector("[data-computed-on]")).toHaveTextContent("Computed on 06.09.2026");
   });
 
   it("names the missing incident rate when the headcount is known but no cost exists", async () => {
@@ -270,48 +244,36 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(card.querySelector("[data-facts-form]")).toBeInTheDocument();
   });
 
-  /**
-   * The `ready` state with a null cost renders the facts form twice: the opportunity card shows
-   * one beside the missing input warning, and the opened disclosure shows another. Both must keep
-   * their own ids, or the labels and the `aria-describedby` hints resolve to the wrong form. The
-   * e2e spec only walks the cost present path, so axe never sees this page there.
-   */
-  it("keeps the two facts forms free of duplicate ids and axe violations when the cost is null", async () => {
+  // The facts form left the disclosure with it (owner decision of 2026-09-13) and stands as its
+  // own card after the positions, so a client can still correct the industry and the headcount.
+  it("renders no calculation disclosure and offers the facts card once, after the positions", async () => {
+    const { container } = await renderSegment();
+    expect(
+      screen.queryByRole("button", { name: /how this is calculated/i }),
+    ).not.toBeInTheDocument();
+    expect(container.querySelector("[data-calculation-disclosure]")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-calculation-facts]")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-computed-on]")).not.toBeInTheDocument();
+    expect(container.querySelectorAll("[data-facts-form]")).toHaveLength(1);
+    const card = container.querySelector("[data-facts-card]") as HTMLElement;
+    expect(within(card).getByText(b.facts.title)).toBeInTheDocument();
+    expect(within(card).getByText(b.facts.description)).toBeInTheDocument();
+    expect(card.querySelector("[data-facts-form]")).toBeInTheDocument();
+    const position = container.querySelector("[data-position-kpi]") as HTMLElement;
+    expect(position.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  // Without a cost the opportunity card carries the form beside the missing input warning, so a
+  // second card would offer the same edit twice on one page.
+  it("does not repeat the facts card when the opportunity card already carries the form", async () => {
     const { container } = await renderSegment({
       snapshot: parsedSnapshot({ costChf: null }, { cost: null }),
     });
-    await userEvent.click(screen.getByRole("button", { name: b.disclosure.title }));
-    const forms = container.querySelectorAll("[data-facts-form]");
-    expect(forms).toHaveLength(2);
-
-    const ids = [...container.querySelectorAll("[id]")].map((node) => node.id);
-    expect(ids.length).toBe(new Set(ids).size);
-
-    // Each form's label and hint point at a control inside that same form, not the other one.
-    for (const form of forms) {
-      for (const label of form.querySelectorAll("label[for]")) {
-        const target = container.querySelector(`#${CSS.escape(label.getAttribute("for") ?? "")}`);
-        expect(form.contains(target)).toBe(true);
-      }
-      const employees = form.querySelector("input[type='number']") as HTMLElement;
-      const describedBy = employees.getAttribute("aria-describedby") ?? "";
-      expect(form.contains(container.querySelector(`#${CSS.escape(describedBy)}`))).toBe(true);
-    }
-
-    const results = await axe.run(container, {
-      runOnly: ["cat.forms", "cat.aria", "cat.name-role-value", "cat.color"],
-    });
-    expect(results.violations.map((violation) => violation.id)).toEqual([]);
-  });
-
-  it("puts the calculation disclosure under the card, closed, with the correct facts form inside", async () => {
-    const { container } = await renderSegment();
-    const trigger = screen.getByRole("button", { name: b.disclosure.title });
-    expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByTestId("calculation-content")).not.toBeInTheDocument();
-    expect(container.querySelector("[data-calculation-facts]")).not.toBeInTheDocument();
-    const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
-    expect(card.compareDocumentPosition(trigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(container.querySelectorAll("[data-facts-form]")).toHaveLength(1);
+    expect(container.querySelector("[data-facts-card]")).not.toBeInTheDocument();
+    expect(
+      container.querySelector("[data-opportunity-card] [data-facts-form]"),
+    ).toBeInTheDocument();
   });
 });
 
@@ -321,28 +283,17 @@ describe("the derived injury counts (spec 0012)", () => {
   });
 
   // The lost time count is the number the franc figure is built from, so it stays on the card as
-  // a clause of the working estimate; everything else about the counts lives in the disclosure
-  // (owner decision of 2026-09-13).
+  // a clause of the working estimate; everything else about the counts left the page with the
+  // "How this is calculated" disclosure (owner decisions of 2026-09-13).
   it("folds the lost time count and the headcount into the working estimate line (AC-1)", async () => {
     const { container } = await renderSegment(withDerived());
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(
       `Working estimate ${chf(1_961_340)} a year, from about 1.8 lost time injuries across 420 employees.`,
     );
-    expect(card.querySelector("[data-derived-count]")).not.toBeInTheDocument();
-    expect(within(card).queryByText(b.derived.recordable)).not.toBeInTheDocument();
-  });
-
-  it("lists both counts as rows of the disclosure, lost time first (AC-1, AC-2)", async () => {
-    const { container } = await renderSegment(withDerived());
-    const facts = await openFacts(container);
-    const values = [...facts.querySelectorAll("[data-derived-count]")].map((node) =>
-      node.getAttribute("data-derived-count"),
-    );
-    expect(values).toEqual(["lost-time", "recordable"]);
-    const recordable = facts.querySelector('[data-derived-count="recordable"]') as HTMLElement;
-    expect(within(recordable).getByText(b.derived.recordable)).toBeInTheDocument();
-    expect(recordable.querySelector("[data-derived-value]")).toHaveTextContent("4.6");
+    expect(container.querySelector("[data-derived-count]")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-derived-priced]")).not.toBeInTheDocument();
+    expect(within(card).queryByText(/recordable/i)).not.toBeInTheDocument();
   });
 
   it("shows one decimal, so a fraction of an injury never reads as none (AC-8)", async () => {
@@ -353,94 +304,6 @@ describe("the derived injury counts (spec 0012)", () => {
     expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(
       "from about 0.4 lost time",
     );
-    const facts = await openFacts(container);
-    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
-    expect(lostTime.querySelector("[data-derived-value]")).toHaveTextContent("0.4");
-  });
-
-  it("names the figure and year, following the source of the row (AC-4)", async () => {
-    const { container } = await renderSegment(
-      withDerived(
-        derivedBlock({ lostTime: derivedCount({ fromSource: "client", fromYear: 2024 }) }),
-      ),
-    );
-    const facts = await openFacts(container);
-    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
-    // The KPI name comes from the catalogue in the reader's language, not a hardcoded label.
-    // The fixture names are "ltifr (en)" / "trifr (en)", so the gloss is dropped here too.
-    expect(lostTime).toHaveTextContent("Calculated from your ltifr for 2024");
-    expect(lostTime.querySelector("[data-derived-from]")).toHaveAttribute(
-      "data-derived-from",
-      "ltifr",
-    );
-    const recordable = facts.querySelector('[data-derived-count="recordable"]') as HTMLElement;
-    expect(recordable).toHaveTextContent("Calculated from the researched trifr for 2025");
-  });
-
-  it("drops the catalogue name's parenthetical gloss inside the sentence (AC-4)", async () => {
-    const withGloss = catalogue.map((entry) =>
-      entry.key === "ltifr"
-        ? {
-            ...entry,
-            name: {
-              de: "LTIFR (Unfälle mit Ausfallzeit)",
-              en: "LTIFR (lost time injury frequency rate)",
-            },
-          }
-        : entry,
-    );
-    const { container } = await renderSegment({ ...withDerived(), catalogue: withGloss });
-    const facts = await openFacts(container);
-    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
-    expect(lostTime).toHaveTextContent("Calculated from the researched LTIFR for 2025");
-    expect(lostTime).not.toHaveTextContent("lost time injury frequency rate");
-  });
-
-  it("uses the short Suva phrase rather than the catalogue name (AC-4)", async () => {
-    const { container } = await renderSegment(
-      withDerived(
-        derivedBlock({
-          lostTime: derivedCount({
-            count: 28.56,
-            fromKey: "accident_rate_per_1000_fte",
-            fromValue: 68,
-            fromYear: 2024,
-          }),
-        }),
-      ),
-    );
-    const facts = await openFacts(container);
-    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
-    expect(lostTime).toHaveTextContent(
-      "Calculated from the researched Suva accident rate for 2024",
-    );
-  });
-
-  it("says the franc figure prices lost time accidents only, beside the recordable count (spec 0016 amendment, AC-31)", async () => {
-    const { container } = await renderSegment(withDerived());
-    const facts = await openFacts(container);
-    const line = facts.querySelector("[data-derived-priced]") as HTMLElement;
-    expect(line).toHaveTextContent(b.derived.priced);
-    const recordable = facts.querySelector('[data-derived-count="recordable"]') as HTMLElement;
-    expect(
-      recordable.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    // The note qualifies the recordable count, so it goes with it.
-    const without = await renderSegment(withDerived(derivedBlock({ recordable: null })));
-    expect(without.container.querySelector("[data-derived-priced]")).not.toBeInTheDocument();
-  });
-
-  it("carries no confidence score on any derived row (AC-5)", async () => {
-    const { container } = await renderSegment(withDerived());
-    const facts = await openFacts(container);
-    expect(facts.querySelector("[data-confidence]")).not.toBeInTheDocument();
-  });
-
-  it("drops only the missing count and keeps the other showing (AC-6)", async () => {
-    const { container } = await renderSegment(withDerived(derivedBlock({ recordable: null })));
-    const facts = await openFacts(container);
-    expect(facts.querySelector('[data-derived-count="lost-time"]')).toBeInTheDocument();
-    expect(facts.querySelector('[data-derived-count="recordable"]')).not.toBeInTheDocument();
   });
 
   it("renders no count at all on a stored version 1 snapshot (AC-7, AC-12)", async () => {
@@ -450,14 +313,10 @@ describe("the derived injury counts (spec 0012)", () => {
     expect(headline).not.toHaveTextContent("from about");
     // Everything the card showed before this block existed is still there.
     expect(container.querySelector("[data-saving-median]")).toBeInTheDocument();
-    const facts = await openFacts(container);
-    expect(facts.querySelector("[data-derived-count]")).not.toBeInTheDocument();
-    expect(facts.querySelector("[data-derived-priced]")).not.toBeInTheDocument();
   });
 
-  it("passes axe with the counts on the card and in the disclosure (AC-14)", async () => {
+  it("passes axe with the count on the card and the facts card below (AC-14)", async () => {
     const { container } = await renderSegment(withDerived());
-    await openFacts(container);
     const results = await axe.run(container, {
       runOnly: ["cat.forms", "cat.aria", "cat.name-role-value", "cat.color"],
     });
@@ -487,7 +346,7 @@ describe("the priority gaps (AC-9)", () => {
     expect(within(rate).getByText("68.00 vs. median 49.90")).toBeInTheDocument();
     expect(within(rate).getByText(/^36\.3\s?% above the median$/)).toBeInTheDocument();
     expect(rate.querySelector("[data-gap-saving]")).toHaveTextContent(
-      `${chf(522_340)} per year at the median`,
+      `${chf(522_340)} a year if this KPI reached the sector median`,
     );
   });
 
@@ -644,59 +503,6 @@ describe("the positions (AC-9, AC-14)", () => {
     // only because the two strings are identical today (spec 0016, AC-8).
     expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
     expect(trifr).toHaveAttribute("data-position", "");
-  });
-});
-
-describe("confidenceDriver (AC-9)", () => {
-  it("names the cost KPI whose confidence equals the snapshot's", () => {
-    expect(confidenceDriver(parsedSnapshot())).toBe("accident_rate_per_1000_fte");
-  });
-
-  it("names the lost days row when it drove the count and the cost read the KPI", () => {
-    const snapshot = parsedSnapshot(
-      { confidence: 0.6 },
-      {
-        inputs: {
-          ...parsedSnapshot().blocks.inputs,
-          kpis: [
-            inputKpi("accident_rate_per_1000_fte", 68, { confidence: 0.9 }),
-            inputKpi("lost_days_per_incident", 12.5, { confidence: 0.6 }),
-          ],
-        },
-      },
-    );
-    expect(confidenceDriver(snapshot)).toBe("lost_days_per_incident");
-  });
-
-  it("ignores the lost days row when the cost used the default assumption", () => {
-    const base = parsedSnapshot();
-    const snapshot = parsedSnapshot(
-      { confidence: 0.6 },
-      {
-        cost: {
-          ...(base.blocks.cost as NonNullable<typeof base.blocks.cost>),
-          lostDaysSource: "default",
-        },
-        inputs: {
-          ...base.blocks.inputs,
-          kpis: [
-            inputKpi("accident_rate_per_1000_fte", 68, { confidence: 0.9 }),
-            inputKpi("lost_days_per_incident", 12.5, { confidence: 0.6 }),
-          ],
-        },
-      },
-    );
-    expect(confidenceDriver(snapshot)).toBeNull();
-  });
-
-  it("is null without a cost or without a confidence", () => {
-    expect(confidenceDriver(parsedSnapshot({}, { cost: null }))).toBeNull();
-    expect(confidenceDriver(parsedSnapshot({ confidence: null }))).toBeNull();
-    expect(
-      confidenceDriver(
-        parsedSnapshot({}, { results: [result("ltifr", { peer: peer([1, 2, 4]) })] }),
-      ),
-    ).toBe("accident_rate_per_1000_fte");
   });
 });
 

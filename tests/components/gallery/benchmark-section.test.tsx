@@ -1,13 +1,12 @@
 import { screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { BenchmarkSection } from "@/components/gallery/benchmark-section";
 import { en, renderWithIntl } from "../../features/emails/ui/helpers";
 
 /**
  * The benchmark gallery section (spec 0008, AC-14): three quartile bands each with a screen
- * reader sentence, a static opportunity card in the `chfWhole` format and a collapsible
- * disclosure that opens on the trigger, so axe scans every primitive on `/admin/design`.
+ * reader sentence and a static opportunity card in the `chfWhole` format, so axe scans every
+ * primitive on `/admin/design`.
  */
 const labels = en.gallery.benchmark;
 const b = en.benchmark;
@@ -47,21 +46,9 @@ describe("BenchmarkSection (AC-14)", () => {
     expect(screen.getByText(b.card.atOrBelow)).toBeInTheDocument();
   });
 
-  it("keeps the disclosure closed and opens it on the trigger", async () => {
-    const user = userEvent.setup();
-    renderWithIntl(<BenchmarkSection />, "en-CH");
-    const trigger = screen.getByRole("button", { name: b.disclosure.title });
-    expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByText(b.disclosure.fteLine)).not.toBeInTheDocument();
-    await user.click(trigger);
-    expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText(b.disclosure.fteLine)).toBeVisible();
-  });
-
   it("labels each example so the gallery reads as a list of named blocks", () => {
     renderWithIntl(<BenchmarkSection />, "en-CH");
     const card = screen.getByText(labels.card);
     expect(within(card.parentElement as HTMLElement).getByText(b.card.title)).toBeInTheDocument();
-    expect(screen.getByText(labels.collapsible)).toBeInTheDocument();
   });
 });
