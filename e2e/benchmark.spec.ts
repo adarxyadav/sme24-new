@@ -293,7 +293,7 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     // The facts form (AC-11, AC-12): a new headcount is saved, the benchmark is recomputed and the
     // card shows the new cost once the snapshot lands.
     const form = disclosure.locator("[data-facts-form]");
-    await expect(form.getByLabel("Industry (NOGA division)")).toContainText("23");
+    await expect(form.getByLabel("Industry", { exact: true })).toContainText("23");
     await form.getByLabel("Headcount").fill("500");
     await form.getByRole("button", { name: "Save and recalculate" }).click();
     await expect(form.locator("[data-facts-saved]")).toHaveAttribute("data-facts-saved", "true");

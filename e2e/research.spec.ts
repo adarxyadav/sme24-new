@@ -52,7 +52,7 @@ test("a client starts the research from the prefilled form and the run is queued
     await expect(page.getByRole("heading", { level: 1, name: "Your company" })).toBeVisible();
     const name = page.getByLabel("Company name");
     await expect(name).toHaveValue("Lookup Fixture AG");
-    await expect(page.getByRole("list", { name: "What happens next" })).toBeVisible();
+    await expect(page.getByRole("list", { name: "Our proprietary EHS engine" })).toBeVisible();
     await expectNoAxeViolations(page);
 
     await page.getByLabel("Website (optional)").fill("Example.ch/reports?x=1");
@@ -120,7 +120,7 @@ test("an empty result shows the alert and the rerun form, and the rerun starts a
     await expect.poll(() => runStatus(page), RUN_TIMEOUT).toBe("empty");
     await expect(page.getByText("No public disclosures found")).toBeVisible();
     await expect(
-      page.getByText("Entering the KPIs by hand arrives with a later feature."),
+      page.getByText("Enter your figures by hand in the “Your figures” card below."),
     ).toBeVisible();
     await expect(page.getByText("4 of 5 runs left today")).toBeVisible();
     await expectNoAxeViolations(page);

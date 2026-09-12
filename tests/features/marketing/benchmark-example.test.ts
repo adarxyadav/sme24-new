@@ -63,7 +63,7 @@ describe("the public worked example (spec 0016, AC-14)", () => {
     expect(body.savingMedianChf).not.toBeNull();
   });
 
-  // The card is titled "Accident cost gap" ("Kostenlücke bei Unfällen"), so the figure it prints
+  // The card is titled "Estimated EHS losses" ("Geschätzte EHS-Verluste"), and the figure it prints
   // is the saving at the peer median, not the total annual cost: a company at its section's p75
   // moving to the median. Comparing the total here would silently assert a different claim.
   it("matches the franc figure the landing page prints, in both catalogs", () => {

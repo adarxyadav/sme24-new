@@ -92,7 +92,7 @@
     "howItWorks": {
       "meta": {
         "title": "How it works",
-        "description": "From company lookup to a written report with ranked actions: the four steps, what you do and what we do."
+        "description": "Enter your company name, benchmark your risks, choose a fixed price package and let subject matter experts fix the gaps: the four steps, what you do and what we do."
       },
       "og": {
         "statement": "Four steps. One report."
@@ -105,20 +105,20 @@
         "title": "What happens, in order. Four steps, from the name to the report on your desk.",
         "items": {
           "lookup": {
-            "label": "You name the company",
-            "body": "One field on the landing page. We find the public record, the industry and the size band."
+            "label": "Enter",
+            "body": "Your company name. Two minutes."
           },
           "benchmark": {
-            "label": "We benchmark it",
-            "body": "A first read against comparable Swiss companies. Free, before anyone visits."
+            "label": "Benchmark",
+            "body": "See your risk against your peers."
           },
           "package": {
-            "label": "You pick the package",
-            "body": "The price is on the page and it is the price. Need less than you thought? Take the smaller one."
+            "label": "Choose",
+            "body": "A fixed price package, agreed upfront."
           },
           "expert": {
-            "label": "A senior expert visits",
-            "body": "The person who walks your site writes the report. They have run safety in industry for decades."
+            "label": "Fix",
+            "body": "Subject matter experts identify and close the gaps – once. EHS transformations based on industry experience, not theory."
           }
         },
         "navLabel": "The four steps",
@@ -332,15 +332,15 @@
     },
     "landing": {
       "meta": {
-        "title": "Fixed-price EHS consulting",
-        "description": "See what your EHS risk costs in CHF, benchmarked against your peers — free. Then book a senior expert at a fixed price to fix what matters most."
+        "title": "Benchmark your EHS risks. Fix them at one fixed price",
+        "description": "Benchmark your EHS risks against similar companies for free, see your savings in CHF and have subject matter experts fix the gaps – once, at one fixed price."
       },
       "og": {
-        "statement": "Senior experts. No slides. Just results."
+        "statement": "Benchmark your risks. Find your savings. Fix it – once."
       },
       "eyebrow": "Fixed-price EHS consulting",
-      "title": "Your balance sheet already prices every risk but this one",
-      "lead": "SME24 puts a franc figure on your safety and environmental risk, benchmarks it against real peers, and closes the gaps at a fixed price.",
+      "title": "Benchmark your risks. Find your savings. Fix it – once.",
+      "lead": "SME24 compares your safety, health and environmental (EHS) risks to similar companies, shows you where you are overpaying, and brings in subject matter experts to fix it – at one fixed price.",
       "lookup": {
         "label": "Your company",
         "placeholder": "Company name",
@@ -352,9 +352,14 @@
         "heading": "What a benchmark shows",
         "eyebrow": "The number",
         "title": "Turn safety risk into a number your CFO recognises.",
-        "body": "An accident costs more than the claim. Lost days, cover, retraining, disruption and the paperwork that follows all land on the same year's accounts, and none of them appear on the insurance statement.",
+        "body": "Up to 80 percent of the cost of a workplace accident stays hidden. The insurance statement shows the claim; lost days, cover, retraining, disruption and the paperwork that follows land on the same year's accounts with no line of their own. In Switzerland alone, 99 421 accidents at work led to four or more days of absence in 2023.",
         "cta": "See what your risk costs",
-        "imageAlt": "Three safety specialists in helmets and high visibility jackets talking through a walkthrough on an industrial site"
+        "visibleTitle": "Visible costs",
+        "visibleFigure": "At least 20 percent",
+        "hiddenTitle": "Hidden costs",
+        "hiddenFigure": "Up to 80 percent",
+        "graphicLabel": "An iceberg: the visible costs of a workplace accident, at least 20 percent of the total, sit above the waterline; the hidden costs, up to 80 percent, sit below it.",
+        "source": "The hidden share follows the ILO cost iceberg and Heinrich's 1:4 ratio. The count is from Eurostat, European accident statistics, 2023."
       },
       "how": {
         "visual": {
@@ -372,15 +377,15 @@
           }
         },
         "benchmarkCard": {
-          "title": "Accident cost gap",
-          "description": "Against your size band and sector",
+          "title": "Estimated EHS losses",
+          "description": "Against similar companies",
           "action": "Sources",
           "figure": "CHF 101 000",
           "unit": "a year",
           "progressLabel": "Your accident rate against the peer median",
           "you": "You",
           "peer": "Peer median",
-          "footer": "From public UVG figures. Every value shows its source."
+          "footer": "Values based on standardised UVG data."
         }
       },
       "packages": {
@@ -419,7 +424,7 @@
       },
       "experts": {
         "eyebrow": "The people",
-        "title": "Who actually turns up. A senior expert who has run safety in Swiss industry, not a junior with a checklist.",
+        "title": "Who actually turns up. Subject matter experts who have run EHS in the industry, not a junior with a checklist.",
         "listLabel": "Example expert profiles",
         "experienceLabel": "Experience",
         "standardsLabel": "Standards",
@@ -442,8 +447,8 @@
       },
       "trust": {
         "eyebrow": "Trust",
-        "title": "Your figures stay yours.",
-        "lead": "You sign for this data, so the guarantees sit in the database rather than in a policy — and the whole list is public.",
+        "title": "Your data stays yours.",
+        "lead": "Your data belongs to you, always. We secure it to the highest standard — cybersecurity is not an afterthought here.",
         "cta": "Read the privacy page",
         "panelsLabel": "How we handle your data",
         "panels": {
@@ -486,27 +491,27 @@
         "items": {
           "what": {
             "question": "What does SME24 actually do?",
-            "answer": "We benchmark your safety figures against comparable Swiss companies, put a franc figure on the gap, and send a senior expert to your site to close it. The benchmark is free; the visit is a fixed price package."
+            "answer": "Enter your company name and our proprietary EHS engine benchmarks your safety, health and environmental risks against similar companies, free of charge. You see where you are overpaying, in francs. Choose a package at one fixed price, and subject matter experts come to your site and fix the gaps – once."
           },
           "figures": {
             "question": "Where do the peer figures come from?",
-            "answer": "Public Swiss sources — the UVG accident statistics by industry section and size band, and the published reports of comparable companies. Every value we show names the source it came from."
+            "answer": "Public sources: the standardised UVG accident statistics, European accident statistics and the published reports of similar companies. Every value on your benchmark names the source it came from, so you can check it yourself."
           },
           "free": {
             "question": "Is the benchmark really free?",
-            "answer": "Yes. You name your company, we research the public record and show you where you stand, before anyone visits and before you pay anything."
+            "answer": "Yes. Enter your company name and see where you stand against similar companies, before anyone visits and before you pay anything. You pay only when you choose a package, at one fixed price."
           },
           "duration": {
             "question": "How long does the benchmark take?",
-            "answer": "A few minutes. The run searches sustainability, annual and safety reports, extracts the KPIs for the latest three reporting years and checks every value against its source."
+            "answer": "Minutes. Our proprietary EHS engine reads your company's public record and returns your benchmark while you are on the page. Once you choose a package, a site visit typically follows within two weeks and the written report within ten days of the visit."
           },
           "experts": {
             "question": "Who are the experts?",
-            "answer": "Senior EHS people who have run safety in Swiss industry for decades. The person who walks your site is the person who writes the report — there is no junior handover."
+            "answer": "Subject matter experts who have run EHS in Swiss industry, not a junior with a checklist. The person who walks your site is the person who writes the report and closes the gaps with you – industry experience, not theory."
           },
           "price": {
             "question": "What does a package cost?",
-            "answer": "From CHF 2 000 excluding VAT, and the price on the page is the price you pay. If the visit shows you need less than you thought, take the smaller package."
+            "answer": "From CHF 2 000 excluding VAT. Three packages, each at one fixed price agreed before the first visit, and an implementation partner on demand. The price on the page is the price you pay. If the visit shows you need less than you thought, take the smaller package."
           }
         }
       },
@@ -1357,7 +1362,8 @@
       "sectionEyebrow": "How it works",
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
       "heroResearch": "Landing hero object: the client area still",
-      "registerDirectory": "Expert directory"
+      "registerDirectory": "Expert directory",
+      "costIceberg": "Cost iceberg: the landing page's number section"
     },
     "expertAvatar": "Expert avatar",
     "avatarInitials": "With initials",
@@ -1664,8 +1670,8 @@
       "websiteHint": "For example example.ch",
       "submit": "Start research",
       "submitting": "Starting …",
-      "nextTitle": "What happens next",
-      "nextBody": "A background run searches sustainability, annual and safety reports, extracts eight KPIs for the latest three reporting years, and checks every value against its source.",
+      "nextTitle": "Our proprietary EHS engine",
+      "nextBody": "Our EHS AI engine searches sustainability, annual and safety reports, extracts key data for the latest reporting years and checks every value against its source.",
       "durationNote": "Takes a few minutes. You can keep the page open.",
       "quotaNote": "Up to {limit} runs per day.",
       "trustNote": "Every value shows where it came from and how sure the system is.",
@@ -2007,12 +2013,13 @@
       "noHeadcount": "Headcount: not known",
       "industry": "Industry: {division} (section {section}), size band {band}",
       "noIndustry": "Industry: not known, size band {band}",
-      "correctTitle": "Correct industry or headcount",
+      "correctTitle": "Select your industry and headcount",
       "correctDescription": "Your values take precedence over the research and start a new computation.",
       "declaredAssumption": "declared assumption"
     },
     "facts": {
-      "industry": "Industry (NOGA division)",
+      "industry": "Industry",
+      "industryHint": "The NOGA division your company is classified under.",
       "industryPlaceholder": "Choose a division",
       "employees": "Headcount",
       "employeesHint": "Employees, counted as full time jobs.",
