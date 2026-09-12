@@ -52,7 +52,7 @@ test("a client starts the research from the prefilled form and the run is queued
     await expect(page.getByRole("heading", { level: 1, name: "Your company" })).toBeVisible();
     const name = page.getByLabel("Company name");
     await expect(name).toHaveValue("Lookup Fixture AG");
-    await expect(page.getByRole("list", { name: "What happens next" })).toBeVisible();
+    await expect(page.getByRole("list", { name: "Our proprietary EHS engine" })).toBeVisible();
     await expectNoAxeViolations(page);
 
     await page.getByLabel("Website (optional)").fill("Example.ch/reports?x=1");
