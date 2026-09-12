@@ -22,6 +22,19 @@ create policy "invoices bucket: members read their organization"
     and (storage.foldername(name))[1] = (select private.jwt_org_id())::text
   );
 
+-- An expert buyer reads the invoices of their own credit pack orders (spec 0018, AC-9). Their
+-- objects live at `experts/<buyer_expert_id>/<invoice id>.pdf`, so the second path segment is
+-- the buyer and the first is the literal that keeps the two shapes apart.
+create policy "invoices bucket: expert buyers read their own"
+  on storage.objects
+  for select
+  to authenticated
+  using (
+    bucket_id = 'invoices'
+    and (storage.foldername(name))[1] = 'experts'
+    and (storage.foldername(name))[2] = (select auth.uid())::text
+  );
+
 create policy "invoices bucket: ops read"
   on storage.objects
   for select

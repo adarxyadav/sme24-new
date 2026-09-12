@@ -1430,7 +1430,8 @@
       "invoiceAttached": "Your invoice is attached as a PDF and is always available in your account.",
       "invoiceFollows": "We will send your invoice shortly.",
       "nextStep": "We will be in touch to agree the date for the on site assessment.",
-      "button": "View order"
+      "button": "View order",
+      "credits": "Your {count} credits are on your account and ready to unlock contacts in the directory."
     },
     "expert_welcome": {
       "subject": "Welcome to the SME24 expert network",
@@ -2303,7 +2304,8 @@
         "expert_not_assignable": "That assessor is no longer active. Choose another.",
         "date_not_future": "The date must be in the future.",
         "invalid_transition": "Someone else changed this order. Reload the list and try again.",
-        "unexpected": "The assessment could not be scheduled. Try again."
+        "unexpected": "The assessment could not be scheduled. Try again.",
+        "not_deliverable": "This is a credit pack of the contact directory: there is nothing to schedule."
       }
     },
     "delivery": {
@@ -2348,7 +2350,8 @@
         "invalid_transition": "Someone else changed this order. Reload the list and try again.",
         "unexpected": "The change could not be saved. Try again."
       }
-    }
+    },
+    "creditsBadge": "Credits"
   },
   "adminCompanies": {
     "title": "Companies",

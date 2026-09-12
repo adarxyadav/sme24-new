@@ -1430,7 +1430,8 @@
       "invoiceAttached": "Die Rechnung finden Sie als PDF im Anhang und jederzeit im Kundenbereich.",
       "invoiceFollows": "Ihre Rechnung stellen wir Ihnen in Kürze zu.",
       "nextStep": "Wir melden uns bei Ihnen, um den Termin für die Begehung vor Ort zu vereinbaren.",
-      "button": "Bestellung ansehen"
+      "button": "Bestellung ansehen",
+      "credits": "Ihre {count} Credits sind auf Ihrem Konto und bereit, Kontakte im Verzeichnis freizuschalten."
     },
     "expert_welcome": {
       "subject": "Willkommen im SME24-Expertennetzwerk",
@@ -2303,7 +2304,8 @@
         "expert_not_assignable": "Diese Person ist nicht mehr aktiv. Wählen Sie eine andere.",
         "date_not_future": "Der Termin muss in der Zukunft liegen.",
         "invalid_transition": "Jemand hat diese Bestellung geändert. Laden Sie die Liste neu.",
-        "unexpected": "Der Termin konnte nicht festgelegt werden. Versuchen Sie es erneut."
+        "unexpected": "Der Termin konnte nicht festgelegt werden. Versuchen Sie es erneut.",
+        "not_deliverable": "Das ist ein Credit-Paket des Kontaktverzeichnisses: hier gibt es nichts zu terminieren."
       }
     },
     "delivery": {
@@ -2348,7 +2350,8 @@
         "invalid_transition": "Jemand hat diese Bestellung geändert. Laden Sie die Liste neu.",
         "unexpected": "Die Änderung konnte nicht gespeichert werden. Versuchen Sie es erneut."
       }
-    }
+    },
+    "creditsBadge": "Credits"
   },
   "adminCompanies": {
     "title": "Firmen",

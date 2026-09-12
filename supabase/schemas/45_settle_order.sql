@@ -38,6 +38,34 @@ comment on function public.scor_reference(text) is 'ISO 11649 SCOR creditor refe
 
 revoke execute on function public.scor_reference(text) from anon, authenticated, public;
 
+-- Grants the credits of a credit pack order (spec 0018, AC-8, invariant 4): one ledger row per
+-- order, `delta` the order's frozen `credits`, guarded by the partial unique index on
+-- (order_id) where reason = 'purchase', so a settle retry, an ops mark paid racing the webhook or
+-- a second webhook delivery grants exactly once. A client order (no buyer_expert_id) is a no op.
+create or replace function private.grant_order_credits(the_order public.orders)
+returns void
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if the_order.buyer_expert_id is null or the_order.credits is null then
+    return;
+  end if;
+  if not exists (
+    select 1 from public.packages p
+    where p.key = the_order.package_key and p.kind = 'directory_credits'
+  ) then
+    raise exception 'order % names an expert buyer but not a credit pack', the_order.id
+      using errcode = 'check_violation';
+  end if;
+  insert into public.directory_credit_entries (expert_id, delta, reason, order_id)
+  values (the_order.buyer_expert_id, the_order.credits, 'purchase', the_order.id)
+  on conflict (order_id) where reason = 'purchase' do nothing;
+end;
+$$;
+
+revoke execute on function private.grant_order_credits(public.orders) from public;
+
 -- The issuing transaction (spec 0011, invariant 3). One function, called by the service role from
 -- `settleOrder`, that does the whole atomic part of settling a payment and nothing else:
 --
@@ -104,16 +132,19 @@ begin
       new_number := issue_year || '-' || lpad(counter::text, 4, '0');
       new_reference := public.scor_reference(replace(new_number, '-', ''));
       insert into public.invoices (
-        organization_id, order_id, number, issued_at, due_date,
+        organization_id, buyer_expert_id, order_id, number, issued_at, due_date,
         seller_name, seller_address, seller_uid, seller_iban, qr_reference
       ) values (
-        the_order.organization_id, the_order.id, new_number, settle_order.paid_at,
+        the_order.organization_id, the_order.buyer_expert_id, the_order.id, new_number, settle_order.paid_at,
         (settle_order.paid_at at time zone 'Europe/Zurich')::date + settle_order.due_days,
         settle_order.seller_name, settle_order.seller_address, settle_order.seller_uid,
         settle_order.seller_iban, new_reference
       )
       returning * into existing;
     end if;
+    -- A paid credit pack order always holds its grant (invariant 5); the partial unique index
+    -- makes this a no op on every call after the first.
+    perform private.grant_order_credits(the_order);
     return query select existing.id, existing.number, existing.qr_reference, true;
     return;
   end if;
@@ -130,6 +161,10 @@ begin
   values (the_order.organization_id, the_order.id, 'pending', 'paid',
           settle_order.actor_id, settle_order.actor_role);
 
+  -- The credits of a credit pack order are granted in this same transaction as `paid` (spec 0018,
+  -- AC-8, invariant 5): a paid credit order without its ledger row cannot exist.
+  perform private.grant_order_credits(the_order);
+
   -- The bank transfer path already issued its invoice at creation, so only draw a number when
   -- there is none (invariant 11: a pending bank transfer order is simply an unpaid invoice).
   if existing.id is null then
@@ -138,10 +173,10 @@ begin
     new_number := issue_year || '-' || lpad(counter::text, 4, '0');
     new_reference := public.scor_reference(replace(new_number, '-', ''));
     insert into public.invoices (
-      organization_id, order_id, number, issued_at, due_date,
+      organization_id, buyer_expert_id, order_id, number, issued_at, due_date,
       seller_name, seller_address, seller_uid, seller_iban, qr_reference
     ) values (
-      the_order.organization_id, the_order.id, new_number, settle_order.paid_at,
+      the_order.organization_id, the_order.buyer_expert_id, the_order.id, new_number, settle_order.paid_at,
       (settle_order.paid_at at time zone 'Europe/Zurich')::date + settle_order.due_days,
       settle_order.seller_name, settle_order.seller_address, settle_order.seller_uid,
       settle_order.seller_iban, new_reference
@@ -212,10 +247,10 @@ begin
   new_reference := public.scor_reference(replace(new_number, '-', ''));
 
   insert into public.invoices (
-    organization_id, order_id, number, issued_at, due_date,
+    organization_id, buyer_expert_id, order_id, number, issued_at, due_date,
     seller_name, seller_address, seller_uid, seller_iban, qr_reference
   ) values (
-    the_order.organization_id, the_order.id, new_number, issued_at,
+    the_order.organization_id, the_order.buyer_expert_id, the_order.id, new_number, issued_at,
     (issued_at at time zone 'Europe/Zurich')::date + issue_invoice.due_days,
     issue_invoice.seller_name, issue_invoice.seller_address, issue_invoice.seller_uid,
     issue_invoice.seller_iban, new_reference

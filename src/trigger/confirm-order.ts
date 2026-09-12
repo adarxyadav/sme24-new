@@ -3,6 +3,7 @@ import "./instrumentation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger, schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod";
+import { buyerLabel, isCreditOrder } from "@/features/checkout/buyer";
 import { rappenToChf } from "@/features/checkout/money";
 import { SELLER_PLACEHOLDERS, type Seller } from "@/features/checkout/seller-facts";
 import { settleOrder } from "@/features/checkout/settle";
@@ -120,7 +121,7 @@ export const confirmOrderTask = schemaTask({
       kind: "payment.received",
       idempotencyKey: `payment-received/${orderId}`,
       fields: {
-        organizationName: await organizationName(supabase, order.organization_id),
+        organizationName: await buyerLabel(supabase, order),
         amountChf: rappenToChf(Number(order.gross_rappen)),
         reference: order.reference,
       },
@@ -138,8 +139,14 @@ export const confirmOrderTask = schemaTask({
     // the event, so a retry after a crash cannot emit a second one for one payment. The three
     // fields the event needs are on the order row this task already selected, so no second query.
     // The locale is the order's own frozen column, never a request header: the caller is Stripe.
+    // A credit pack order (spec 0018, AC-14) captures `directory.credits_purchased` instead:
+    // `payment.completed` requires an organization and an expert belongs to none.
     if (!settled.data.alreadySettled) {
-      await capturePaymentCompleted(order, settled.data.invoiceNumber);
+      if (isCreditOrder(order)) {
+        await captureCreditsPurchased(order);
+      } else {
+        await capturePaymentCompleted(order, settled.data.invoiceNumber);
+      }
     }
     return { settled: true, invoiceNumber: settled.data.invoiceNumber };
   },
@@ -153,7 +160,7 @@ export const confirmOrderTask = schemaTask({
  * analytics may not fail a settled payment or cause a retry that would send a second email.
  */
 async function capturePaymentCompleted(order: OrderRow, invoiceNumber: string): Promise<void> {
-  if (!order.created_by) {
+  if (!order.created_by || !order.organization_id) {
     logger.warn("payment.completed not captured: the order has no buyer", { orderId: order.id });
     return;
   }
@@ -178,14 +185,32 @@ async function capturePaymentCompleted(order: OrderRow, invoiceNumber: string): 
   }
 }
 
-/** The organization's name for the ops alert. */
-async function organizationName(supabase: Service, organizationId: string): Promise<string> {
-  const { data } = await supabase
-    .from("organizations")
-    .select("name")
-    .eq("id", organizationId)
-    .maybeSingle();
-  return data?.name ?? "Unknown organization";
+/**
+ * Fires `directory.credits_purchased` after a credit pack settles on the webhook path (spec 0018,
+ * AC-14), keyed on the order so a retried attempt that crashed mid run cannot count one purchase
+ * twice. No organization: the buyer is an expert. Never throws, for the same reason as above.
+ */
+async function captureCreditsPurchased(order: OrderRow): Promise<void> {
+  if (!order.buyer_expert_id || order.credits === null) return;
+  try {
+    await captureServerEvent({
+      distinctId: order.buyer_expert_id,
+      event: "directory.credits_purchased",
+      dedupeKey: `directory-credits-purchased/${order.id}`,
+      properties: {
+        locale: LOCALE_CODE[localeFromCode(order.locale)],
+        orderId: order.id,
+        packageKey: order.package_key,
+        credits: order.credits,
+        grossRappen: Number(order.gross_rappen),
+      },
+    });
+  } catch (error) {
+    log.warn("directory.credits_purchased not captured", {
+      orderId: order.id,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 /** Sends the confirmation to the buyer, keyed on the order so a retry sends one email. */
@@ -200,7 +225,8 @@ async function sendConfirmation(order: OrderRow, invoiceNumber: string): Promise
       template: "order_confirmed",
       recipient: { userId: order.created_by },
       sourceEvent: "order.confirmed",
-      organizationId: order.organization_id,
+      // Omitted for an expert buyer (spec 0018, AC-10): they belong to no organization.
+      ...(order.organization_id ? { organizationId: order.organization_id } : {}),
       idempotencyKey: `order-confirmed/${order.id}`,
       data: {
         packageName: order.package_name_snapshot,
@@ -212,6 +238,8 @@ async function sendConfirmation(order: OrderRow, invoiceNumber: string): Promise
         vatRatePercent: Number(order.vat_rate) * 100,
         // Slice 2 attaches the rendered PDF; until then the email points at the order.
         invoiceAttached: false,
+        // The one extra sentence a credit pack adds (spec 0018, AC-10).
+        ...(order.credits !== null ? { credits: order.credits } : {}),
       },
     },
     { idempotencyKey: `order-confirmed-send/${order.id}` },

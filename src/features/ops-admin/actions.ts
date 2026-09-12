@@ -35,6 +35,7 @@ export type ScheduleOrderError =
   | "validation"
   | "not_found"
   | "not_paid"
+  | "not_deliverable"
   | "expert_not_assignable"
   | "date_not_future"
   | "invalid_transition"
@@ -93,7 +94,7 @@ export async function scheduleOrder(
 
   const { data: order, error: readError } = await actor.service
     .from("orders")
-    .select("id, status, organization_id, package_name_snapshot")
+    .select("id, status, organization_id, buyer_expert_id, package_name_snapshot")
     .eq("id", orderId)
     .maybeSingle();
   if (readError) {
@@ -106,6 +107,9 @@ export async function scheduleOrder(
   }
   if (!order) return { ok: false, error: "not_found" };
   if (order.status !== "paid") return { ok: false, error: "not_paid" };
+  // A credit pack order of the contact directory (spec 0018, AC-10) has nothing to schedule; the
+  // database refuses the edge too, this answer just comes before any assignment is written.
+  if (!order.organization_id) return { ok: false, error: "not_deliverable" };
 
   const assigned = await ensureAssignment(actor, order.organization_id, expertId);
   if (!assigned.ok) return { ok: false, error: assigned.error };
@@ -322,6 +326,9 @@ export async function rescheduleOrder(
   }
   if (!order) return { ok: false, error: "not_found" };
   if (!isLiveDeliveryState(order.status)) return { ok: false, error: "not_scheduled" };
+  // Never true for a booked order (the trigger refuses the edge for an expert buyer, spec 0018),
+  // kept so the organization is typed non null for the assignment writes below.
+  if (!order.organization_id) return { ok: false, error: "invalid_transition" };
 
   const previousExpertId = order.assigned_expert_id;
   if (previousExpertId !== expertId) {

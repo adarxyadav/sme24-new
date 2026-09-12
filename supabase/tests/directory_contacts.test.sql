@@ -5,7 +5,7 @@
 -- function, and ops read directory_imports while an expert gets zero rows from it.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(36);
 
 create function pg_temp.impersonate(user_id uuid, app_role text, org_id uuid default null)
 returns void language plpgsql as $$
@@ -123,6 +123,16 @@ select throws_ok($$ select * from public.directory_search() $$, 'SM403', 'forbid
   'a client gets SM403 from directory_search');
 select throws_ok($$ select * from public.directory_countries() $$, 'SM403', 'forbidden',
   'a client gets SM403 from directory_countries');
+select throws_ok($$ select * from public.directory_reveal('dc000000-0000-4000-8000-000000000001') $$, 'SM403', 'forbidden',
+  'a client gets SM403 from directory_reveal');
+select throws_ok($$ select * from public.directory_unlocked_contacts() $$, 'SM403', 'forbidden',
+  'a client gets SM403 from directory_unlocked_contacts');
+select throws_ok($$ select public.directory_credit_balance() $$, 'SM403', 'forbidden',
+  'a client gets SM403 from directory_credit_balance');
+select throws_ok($$ select * from public.directory_ops_summary() $$, 'SM403', 'forbidden',
+  'a client gets SM403 from directory_ops_summary');
+select throws_ok($$ select * from public.directory_remove_contact('x@alpha.test', 'ops') $$, 'SM403', 'forbidden',
+  'a client gets SM403 from directory_remove_contact');
 select is((select count(*) from public.directory_contacts), 0::bigint,
   'a client selecting directory_contacts gets zero rows');
 select is((select count(*) from public.directory_companies), 0::bigint,
@@ -137,6 +147,10 @@ select throws_ok($$ select * from public.directory_search() $$, 'SM403', 'forbid
   'an invited expert gets SM403 from directory_search');
 select throws_ok($$ select * from public.directory_countries() $$, 'SM403', 'forbidden',
   'an invited expert gets SM403 from directory_countries');
+select throws_ok($$ select * from public.directory_reveal('dc000000-0000-4000-8000-000000000001') $$, 'SM403', 'forbidden',
+  'an invited expert gets SM403 from directory_reveal');
+select throws_ok($$ select * from public.directory_remove_contact('x@alpha.test', 'ops') $$, 'SM403', 'forbidden',
+  'an invited expert gets SM403 from directory_remove_contact');
 
 -- ─── Anonymous ───────────────────────────────────────────────────────────────────────────────
 select pg_temp.as_anon();

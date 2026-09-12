@@ -215,3 +215,279 @@ comment on function public.directory_credit_balance(uuid) is 'sum(delta) over an
 
 revoke execute on function public.directory_credit_balance(uuid) from anon, public;
 grant execute on function public.directory_credit_balance(uuid) to authenticated;
+
+-- The paid reveal (AC-11, invariants 2 and 3). One transaction under an advisory lock keyed on
+-- the caller: refuses a caller who is not an active expert (SM403), a missing or suppressed
+-- contact (SM404), returns the full row without a debit when the caller already unlocked it,
+-- otherwise refuses a balance below one (SM402), else inserts the unlock and the -1 ledger row
+-- and returns the full row with the new balance. It is the only write path into
+-- directory_unlocks and the only debit path into directory_credit_entries.
+create or replace function public.directory_reveal(contact_id uuid)
+returns table (
+  id uuid,
+  company_id uuid,
+  company_name text,
+  company_country text,
+  company_city text,
+  first_name text,
+  last_name text,
+  contact_title text,
+  contact_country text,
+  contact_city text,
+  email text,
+  phone text,
+  mobile text,
+  unlocked_at timestamptz,
+  balance integer,
+  already_unlocked boolean
+)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  caller uuid := auth.uid();
+  the_contact public.directory_contacts;
+  the_unlock public.directory_unlocks;
+  balance_now integer;
+  was_unlocked boolean := false;
+begin
+  if not private.is_active_expert() then
+    raise exception 'forbidden' using errcode = 'SM403';
+  end if;
+
+  -- Two reveals from one expert at once would both read the same balance; the lock serialises
+  -- them, so a balance of one pays for exactly one unlock.
+  perform pg_advisory_xact_lock(hashtextextended(caller::text, 0));
+
+  select c.* into the_contact from public.directory_contacts c where c.id = directory_reveal.contact_id;
+  if not found or exists (
+    select 1 from public.directory_suppressions s
+    where s.email_hash = encode(sha256(convert_to(lower(the_contact.email), 'UTF8')), 'hex')
+  ) then
+    raise exception 'not_found' using errcode = 'SM404';
+  end if;
+
+  select u.* into the_unlock
+  from public.directory_unlocks u
+  where u.expert_id = caller and u.contact_id = the_contact.id;
+  if found then
+    was_unlocked := true;
+  else
+    select coalesce(sum(e.delta), 0)::integer into balance_now
+    from public.directory_credit_entries e
+    where e.expert_id = caller;
+    if balance_now < 1 then
+      raise exception 'insufficient_credits' using errcode = 'SM402';
+    end if;
+    insert into public.directory_unlocks (expert_id, contact_id)
+    values (caller, the_contact.id)
+    returning * into the_unlock;
+    insert into public.directory_credit_entries (expert_id, delta, reason, unlock_id)
+    values (caller, -1, 'unlock', the_unlock.id);
+  end if;
+
+  select coalesce(sum(e.delta), 0)::integer into balance_now
+  from public.directory_credit_entries e
+  where e.expert_id = caller;
+
+  return query
+    select
+      the_contact.id,
+      co.id,
+      co.name,
+      co.country,
+      co.city,
+      the_contact.first_name,
+      the_contact.last_name,
+      the_contact.title,
+      the_contact.country,
+      the_contact.city,
+      the_contact.email,
+      the_contact.phone,
+      the_contact.mobile,
+      the_unlock.created_at,
+      balance_now,
+      was_unlocked
+    from public.directory_companies co
+    where co.id = the_contact.company_id;
+end;
+$$;
+
+comment on function public.directory_reveal(uuid) is
+  'Reveals one contact for one credit (spec 0018, AC-11): checks, debits and returns the row in one transaction under a per caller lock. Active experts only; SM402 below one credit, SM404 for a missing contact.';
+
+-- The caller's unlocked contacts, newest first, keyset paged (AC-13): the same masking free
+-- shape as a revealed row. page_size clamps at 500 for the CSV export.
+create or replace function public.directory_unlocked_contacts(
+  after_created_at timestamptz default null,
+  after_id uuid default null,
+  page_size integer default 25
+)
+returns table (
+  unlock_id uuid,
+  id uuid,
+  company_id uuid,
+  company_name text,
+  company_country text,
+  company_city text,
+  first_name text,
+  last_name text,
+  contact_title text,
+  contact_country text,
+  contact_city text,
+  email text,
+  phone text,
+  mobile text,
+  unlocked_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  caller uuid := auth.uid();
+  size integer := least(greatest(coalesce(page_size, 25), 1), 500);
+begin
+  if not private.is_active_expert() then
+    raise exception 'forbidden' using errcode = 'SM403';
+  end if;
+  return query
+    select
+      u.id,
+      c.id,
+      co.id,
+      co.name,
+      co.country,
+      co.city,
+      c.first_name,
+      c.last_name,
+      c.title,
+      c.country,
+      c.city,
+      c.email,
+      c.phone,
+      c.mobile,
+      u.created_at
+    from public.directory_unlocks u
+    join public.directory_contacts c on c.id = u.contact_id
+    join public.directory_companies co on co.id = c.company_id
+    where u.expert_id = caller
+      and (after_created_at is null or after_id is null
+           or (u.created_at, u.id) < (after_created_at, after_id))
+    order by u.created_at desc, u.id desc
+    limit size;
+end;
+$$;
+
+comment on function public.directory_unlocked_contacts(timestamptz, uuid, integer) is
+  'The caller''s unlocked contacts newest first, keyset paged, up to 500 a page (spec 0018, AC-13). Active experts only.';
+
+-- What ops see on /admin/directory (AC-15): one row per expert with a balance or an unlock.
+create or replace function public.directory_ops_summary()
+returns table (
+  expert_id uuid,
+  full_name text,
+  email text,
+  balance integer,
+  credits_bought integer,
+  unlocks bigint,
+  last_unlock_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not private.is_ops() then
+    raise exception 'forbidden' using errcode = 'SM403';
+  end if;
+  return query
+    with ledger as (
+      select e.expert_id,
+             coalesce(sum(e.delta), 0)::integer as balance,
+             coalesce(sum(e.delta) filter (where e.reason = 'purchase'), 0)::integer as credits_bought
+      from public.directory_credit_entries e
+      group by e.expert_id
+    ),
+    unlocked as (
+      select u.expert_id, count(*) as unlocks, max(u.created_at) as last_unlock_at
+      from public.directory_unlocks u
+      group by u.expert_id
+    )
+    select
+      p.id,
+      p.full_name,
+      x.email,
+      coalesce(l.balance, 0),
+      coalesce(l.credits_bought, 0),
+      coalesce(k.unlocks, 0),
+      k.last_unlock_at
+    from public.profiles p
+    join public.expert_profiles x on x.expert_id = p.id
+    left join ledger l on l.expert_id = p.id
+    left join unlocked k on k.expert_id = p.id
+    where l.expert_id is not null or k.expert_id is not null
+    order by k.last_unlock_at desc nulls last, p.full_name;
+end;
+$$;
+
+comment on function public.directory_ops_summary() is
+  'One row per expert with a balance or an unlock: balance, credits bought, unlocks, last unlock (spec 0018, AC-15). Ops only.';
+
+-- An objection (AC-15, invariant 8): deletes the contact (cascading their unlocks and setting the
+-- ledger rows'' unlock_id null) and inserts the email hash into directory_suppressions in one
+-- transaction. A not found email is still suppressed, so an objection lands before the next
+-- import. Answers whether a row was removed and how many unlocks it took with it, so ops see what
+-- the removal cost the buyers (no refund and no notice in this slice, owner decision 2026-09-12).
+create or replace function public.directory_remove_contact(email text, reason text)
+returns table (removed boolean, unlocks_cascaded integer)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  caller uuid := auth.uid();
+  normalised text := lower(trim(directory_remove_contact.email));
+  the_hash text;
+  the_contact_id uuid;
+  cascaded integer := 0;
+begin
+  if not private.is_ops() then
+    raise exception 'forbidden' using errcode = 'SM403';
+  end if;
+  if directory_remove_contact.reason not in ('data_subject_request', 'bounce', 'ops') then
+    raise exception 'validation' using errcode = 'SM400';
+  end if;
+  the_hash := encode(sha256(convert_to(normalised, 'UTF8')), 'hex');
+
+  insert into public.directory_suppressions (email_hash, reason, created_by)
+  values (the_hash, directory_remove_contact.reason, caller)
+  on conflict (email_hash) do nothing;
+
+  select c.id into the_contact_id from public.directory_contacts c where c.email = normalised;
+  if the_contact_id is null then
+    return query select false, 0;
+    return;
+  end if;
+  select count(*)::integer into cascaded from public.directory_unlocks u where u.contact_id = the_contact_id;
+  delete from public.directory_contacts c where c.id = the_contact_id;
+  return query select true, cascaded;
+end;
+$$;
+
+comment on function public.directory_remove_contact(text, text) is
+  'Removes a person from the directory and suppresses their email hash in one transaction (spec 0018, AC-15). Ops only; answers removed and the unlocks cascaded.';
+
+revoke execute on function public.directory_reveal(uuid) from anon, public;
+grant execute on function public.directory_reveal(uuid) to authenticated;
+revoke execute on function public.directory_unlocked_contacts(timestamptz, uuid, integer) from anon, public;
+grant execute on function public.directory_unlocked_contacts(timestamptz, uuid, integer) to authenticated;
+revoke execute on function public.directory_ops_summary() from anon, public;
+grant execute on function public.directory_ops_summary() to authenticated;
+revoke execute on function public.directory_remove_contact(text, text) from anon, public;
+grant execute on function public.directory_remove_contact(text, text) to authenticated;

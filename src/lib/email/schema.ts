@@ -74,6 +74,8 @@ export const orderConfirmedDataSchema = templateDataBaseSchema.extend({
   grossChf: z.number().nonnegative(),
   vatRatePercent: z.number().nonnegative().max(100),
   invoiceAttached: z.boolean(),
+  /** The credits a credit pack order granted (spec 0018, AC-10); absent on an assessment order. */
+  credits: z.number().int().positive().optional(),
 });
 export type OrderConfirmedData = z.infer<typeof orderConfirmedDataSchema>;
 

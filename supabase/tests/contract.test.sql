@@ -111,7 +111,10 @@ select is_empty(
 -- ops view, set null on delete) and data_requests (kind I, spec 0015: the request belongs to the
 -- person, never the tenant — a colleague in the same organization must not read it — so the
 -- organization is a nullable reference for the ops view, set null on delete, and the RLS predicate
--- is auth.uid() = requested_by).
+-- is auth.uid() = requested_by). Since spec 0018, orders, invoices and order_events are recorded
+-- exceptions too: they stay kind T with the spec 0011 deviation, but carry a second buyer shape
+-- (a nullable organization_id beside buyer_expert_id, exactly one of the two set), so the not
+-- null sweep below no longer applies; orders.test.sql proves both shapes row by row.
 create function pg_temp.tenant_tables()
 returns setof name language sql stable as $$
   select c.relname
@@ -121,7 +124,7 @@ returns setof name language sql stable as $$
   where n.nspname = 'public' and c.relkind in ('r', 'p')
     and a.attname = 'organization_id' and not a.attisdropped
     and c.relname not in ('profiles', 'audit_log', 'email_deliveries', 'notifications', 'enquiries',
-                          'data_requests')
+                          'data_requests', 'orders', 'invoices', 'order_events')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.tenant_tables()), '>=', 5::bigint,
@@ -172,7 +175,7 @@ select is_empty(
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('directory_countries'::name), ('directory_search'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('directory_countries'::name), ('directory_credit_balance'::name), ('directory_ops_summary'::name), ('directory_remove_contact'::name), ('directory_reveal'::name), ('directory_search'::name), ('directory_unlocked_contacts'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
   'the only security definer functions in public are the recorded entry points');
 -- The directory functions (spec 0018) are the only read path an expert has into the directory
 -- tables, so they carry the same anon revoke as every other public function; the declarative diff

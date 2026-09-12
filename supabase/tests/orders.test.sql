@@ -5,7 +5,7 @@
 -- Spec 0011 AC-2, AC-3, AC-7, AC-12, AC-13, invariants 1, 4, 5, 7, 8, 9.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(60);
+select plan(84);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`).
 do $$
@@ -293,8 +293,8 @@ select is((select count(*) from public.order_events), 2::bigint,
   'the buyer reads the full history of their order');
 select is((select count(*) from public.stripe_events), 0::bigint,
   'a client never reads the stripe event log');
-select is((select count(*) from public.packages), 4::bigint,
-  'a signed in client reads the package catalogue');
+select is((select count(*) from public.packages), 5::bigint,
+  'a signed in client reads the package catalogue (four assessment packages and one credit pack, spec 0018)');
 
 -- The buyer cannot rewrite the invoice either. The column grant lets the statement through, so
 -- the ops only update policy is what stops it: RLS filters every row rather than raising, which
@@ -425,6 +425,140 @@ select throws_ok(
   $$ select public.settle_order('0e000000-0000-4000-8000-000000000002', now(), null, 'service',
        'S', 'A', 'U', 'CH9300762011623852957', 30) $$,
   '42501', null, 'a client cannot execute settle_order');
+
+-- ─── The expert buyer (spec 0018, AC-7, AC-8, AC-10) ───────────────────────────────────────
+-- A second buyer shape on the same rail: an active expert inserts a pending credit pack order
+-- with no organization, themselves as buyer and creator, and credits equal to the package's.
+select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');
+
+select lives_ok(
+  $$ insert into public.orders (id, buyer_expert_id, credits, package_key, reference,
+       payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen, package_name_snapshot,
+       billing_name, billing_street, billing_postcode, billing_town, locale, created_by)
+     values ('0e000000-0000-4000-8000-00000000000e', 'e0000000-0000-4000-8000-000000000001', 50,
+       'directory_50', 'SME24-2026-0090', 'card', 9950, 0.081, 806, 10756, '50 credits',
+       'Erika Expert', 'Bahnhofstrasse 1', '8001', 'Zurich', 'en',
+       'e0000000-0000-4000-8000-000000000001') $$,
+  'an active expert creates a pending credit pack order');
+select lives_ok(
+  $$ insert into public.order_events (order_id, to_status, actor_id, actor_role)
+     values ('0e000000-0000-4000-8000-00000000000e', 'pending',
+       'e0000000-0000-4000-8000-000000000001', 'expert') $$,
+  'the expert records the creation event of their own order');
+select throws_ok(
+  $$ insert into public.orders (buyer_expert_id, credits, package_key, reference,
+       payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen, package_name_snapshot,
+       billing_name, billing_street, billing_postcode, billing_town, locale, created_by)
+     values ('e0000000-0000-4000-8000-000000000001', 50, 'culture', 'SME24-2026-0091', 'card',
+       200000, 0.081, 16200, 216200, 'Safety Culture', 'Erika Expert', 'Street', '8001',
+       'Zurich', 'en', 'e0000000-0000-4000-8000-000000000001') $$,
+  '42501', null, 'an expert cannot buy an assessment package');
+select throws_ok(
+  $$ insert into public.orders (buyer_expert_id, credits, package_key, reference,
+       payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen, package_name_snapshot,
+       billing_name, billing_street, billing_postcode, billing_town, locale, created_by)
+     values ('e0000000-0000-4000-8000-000000000001', 500, 'directory_50', 'SME24-2026-0092',
+       'card', 9950, 0.081, 806, 10756, '50 credits', 'Erika Expert', 'Street', '8001',
+       'Zurich', 'en', 'e0000000-0000-4000-8000-000000000001') $$,
+  '42501', null, 'an expert cannot choose more credits than the package grants (invariant 12)');
+select throws_ok(
+  $$ insert into public.orders (organization_id, company_id, buyer_expert_id, credits, package_key,
+       reference, payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen,
+       package_name_snapshot, billing_name, billing_street, billing_postcode, billing_town, locale,
+       created_by)
+     values ('0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a',
+       'e0000000-0000-4000-8000-000000000001', 50, 'directory_50', 'SME24-2026-0093', 'card',
+       9950, 0.081, 806, 10756, '50 credits', 'Erika Expert', 'Street', '8001', 'Zurich', 'en',
+       'e0000000-0000-4000-8000-000000000001') $$,
+  null, null, 'an expert cannot set an organization on their order (one buyer shape, invariant 6)');
+select throws_ok(
+  $$ insert into public.orders (buyer_expert_id, credits, package_key, reference,
+       payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen, package_name_snapshot,
+       billing_name, billing_street, billing_postcode, billing_town, locale, created_by)
+     values ('a0000000-0000-4000-8000-000000000002', 50, 'directory_50', 'SME24-2026-0094',
+       'card', 9950, 0.081, 806, 10756, '50 credits', 'Erika Expert', 'Street', '8001',
+       'Zurich', 'en', 'e0000000-0000-4000-8000-000000000001') $$,
+  '42501', null, 'an expert cannot name someone else as the buyer');
+select throws_ok(
+  $$ insert into public.order_events (order_id, to_status, actor_id, actor_role)
+     values ('0e000000-0000-4000-8000-00000000000e', 'pending',
+       'e0000000-0000-4000-8000-000000000001', 'client') $$,
+  '42501', null, 'an expert cannot record an event as a client');
+select is((select count(*) from public.orders), 1::bigint,
+  'the expert reads their own order and no client order');
+select is((select count(*) from public.order_events), 1::bigint,
+  'the expert reads the history of their own order only');
+select is((select count(*) from public.invoices), 0::bigint,
+  'a pending card credit order has no invoice yet');
+
+-- A client never sees an expert order and never sets a buyer expert.
+select pg_temp.impersonate('a0000000-0000-4000-8000-000000000002', 'client', '0a000000-0000-4000-8000-000000000000');
+select is((select count(*) from public.orders where buyer_expert_id is not null), 0::bigint,
+  'a client sees no expert order');
+select throws_ok(
+  $$ insert into public.orders (organization_id, company_id, buyer_expert_id, credits, package_key,
+       reference, payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen,
+       package_name_snapshot, billing_name, billing_street, billing_postcode, billing_town, locale,
+       created_by)
+     values ('0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a',
+       'e0000000-0000-4000-8000-000000000001', 50, 'directory_50', 'SME24-2026-0095', 'card',
+       9950, 0.081, 806, 10756, '50 credits', 'Company A', 'Street', '8001', 'Zurich', 'de',
+       'a0000000-0000-4000-8000-000000000002') $$,
+  null, null, 'a client cannot set a buyer expert');
+
+-- settle_order grants the credits in the same transaction as paid, exactly once (AC-8).
+select pg_temp.as_service_role();
+select lives_ok(
+  $$ select public.settle_order('0e000000-0000-4000-8000-00000000000e', now(), null, 'service',
+       'S', 'A', 'U', 'CH9300762011623852957', 30) $$,
+  'the service role settles a credit pack order');
+select is((select count(*) from public.directory_credit_entries
+           where order_id = '0e000000-0000-4000-8000-00000000000e' and reason = 'purchase'), 1::bigint,
+  'settling a credit pack order writes one purchase ledger row');
+select is((select delta from public.directory_credit_entries
+           where order_id = '0e000000-0000-4000-8000-00000000000e'), 50,
+  'the grant is the order''s frozen credits');
+select lives_ok(
+  $$ select public.settle_order('0e000000-0000-4000-8000-00000000000e', now(), null, 'service',
+       'S', 'A', 'U', 'CH9300762011623852957', 30) $$,
+  'settling it a second time is a no op');
+select is((select count(*) from public.directory_credit_entries
+           where order_id = '0e000000-0000-4000-8000-00000000000e'), 1::bigint,
+  'a second settle grants nothing more (invariant 4)');
+select is((select buyer_expert_id from public.invoices where order_id = '0e000000-0000-4000-8000-00000000000e'),
+  'e0000000-0000-4000-8000-000000000001'::uuid,
+  'the invoice of a credit pack order carries the buyer expert');
+select is((select organization_id from public.invoices where order_id = '0e000000-0000-4000-8000-00000000000e'),
+  null::uuid, 'and no organization');
+-- An expert order never enters a delivery state (AC-10, invariant 13).
+select throws_ok(
+  $$ update public.orders set status = 'scheduled', scheduled_at = now() + interval '1 day',
+       assigned_expert_id = 'e0000000-0000-4000-8000-000000000001'
+     where id = '0e000000-0000-4000-8000-00000000000e' $$,
+  '23514', 'orders delivery is not available for an expert order',
+  'a credit pack order cannot be scheduled');
+
+-- The bank transfer path: issue_invoice copies the buyer expert too (AC-8, AC-9).
+select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');
+select lives_ok(
+  $$ insert into public.orders (id, buyer_expert_id, credits, package_key, reference,
+       payment_method, net_rappen, vat_rate, vat_rappen, gross_rappen, package_name_snapshot,
+       billing_name, billing_street, billing_postcode, billing_town, locale, created_by)
+     values ('0e000000-0000-4000-8000-00000000000f', 'e0000000-0000-4000-8000-000000000001', 50,
+       'directory_50', 'SME24-2026-0096', 'bank_transfer', 9950, 0.081, 806, 10756, '50 credits',
+       'Erika Expert', 'Bahnhofstrasse 1', '8001', 'Zurich', 'en',
+       'e0000000-0000-4000-8000-000000000001') $$,
+  'an expert creates a bank transfer credit pack order');
+select pg_temp.as_service_role();
+select lives_ok(
+  $$ select public.issue_invoice('0e000000-0000-4000-8000-00000000000f', 'S', 'A', 'U', 'CH9300762011623852957', 30) $$,
+  'the service role issues the bank transfer invoice');
+select is((select buyer_expert_id from public.invoices where order_id = '0e000000-0000-4000-8000-00000000000f'),
+  'e0000000-0000-4000-8000-000000000001'::uuid,
+  'the bank transfer invoice carries the buyer expert');
+select is((select count(*) from public.directory_credit_entries
+           where order_id = '0e000000-0000-4000-8000-00000000000f'), 0::bigint,
+  'no credits are granted until ops mark the transfer paid');
 
 select pg_temp.as_postgres();
 select * from finish();

@@ -1249,6 +1249,7 @@ export type Database = {
       }
       invoices: {
         Row: {
+          buyer_expert_id: string | null
           cancelled_at: string | null
           created_at: string
           due_date: string
@@ -1256,7 +1257,7 @@ export type Database = {
           issued_at: string
           number: string
           order_id: string
-          organization_id: string
+          organization_id: string | null
           pdf_failed_at: string | null
           pdf_path: string | null
           pdf_rendered_at: string | null
@@ -1268,6 +1269,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
           created_at?: string
           due_date: string
@@ -1275,7 +1277,7 @@ export type Database = {
           issued_at?: string
           number: string
           order_id: string
-          organization_id: string
+          organization_id?: string | null
           pdf_failed_at?: string | null
           pdf_path?: string | null
           pdf_rendered_at?: string | null
@@ -1287,6 +1289,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
           created_at?: string
           due_date?: string
@@ -1294,7 +1297,7 @@ export type Database = {
           issued_at?: string
           number?: string
           order_id?: string
-          organization_id?: string
+          organization_id?: string | null
           pdf_failed_at?: string | null
           pdf_path?: string | null
           pdf_rendered_at?: string | null
@@ -1306,6 +1309,20 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "invoices_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "invoices_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invoices_order_id_fkey"
             columns: ["order_id"]
@@ -1431,7 +1448,7 @@ export type Database = {
           id: string
           occurred_at: string
           order_id: string
-          organization_id: string
+          organization_id: string | null
           reason: string | null
           to_status: string
         }
@@ -1442,7 +1459,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           order_id: string
-          organization_id: string
+          organization_id?: string | null
           reason?: string | null
           to_status: string
         }
@@ -1453,7 +1470,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           order_id?: string
-          organization_id?: string
+          organization_id?: string | null
           reason?: string | null
           to_status?: string
         }
@@ -1483,10 +1500,12 @@ export type Database = {
           billing_street: string
           billing_town: string
           billing_uid: string | null
+          buyer_expert_id: string | null
           cancelled_at: string | null
-          company_id: string
+          company_id: string | null
           created_at: string
           created_by: string | null
+          credits: number | null
           currency: string
           delivered_at: string | null
           due_date: string | null
@@ -1495,7 +1514,7 @@ export type Database = {
           id: string
           locale: string
           net_rappen: number
-          organization_id: string
+          organization_id: string | null
           package_key: string
           package_name_snapshot: string
           paid_at: string | null
@@ -1518,10 +1537,12 @@ export type Database = {
           billing_street: string
           billing_town: string
           billing_uid?: string | null
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
-          company_id: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
+          credits?: number | null
           currency?: string
           delivered_at?: string | null
           due_date?: string | null
@@ -1530,7 +1551,7 @@ export type Database = {
           id?: string
           locale: string
           net_rappen: number
-          organization_id: string
+          organization_id?: string | null
           package_key: string
           package_name_snapshot: string
           paid_at?: string | null
@@ -1553,10 +1574,12 @@ export type Database = {
           billing_street?: string
           billing_town?: string
           billing_uid?: string | null
+          buyer_expert_id?: string | null
           cancelled_at?: string | null
-          company_id?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
+          credits?: number | null
           currency?: string
           delivered_at?: string | null
           due_date?: string | null
@@ -1565,7 +1588,7 @@ export type Database = {
           id?: string
           locale?: string
           net_rappen?: number
-          organization_id?: string
+          organization_id?: string | null
           package_key?: string
           package_name_snapshot?: string
           paid_at?: string | null
@@ -1591,6 +1614,20 @@ export type Database = {
           {
             foreignKeyName: "orders_assigned_expert_id_fkey"
             columns: ["assigned_expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "orders_buyer_expert_id_fkey"
+            columns: ["buyer_expert_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1743,8 +1780,10 @@ export type Database = {
       packages: {
         Row: {
           created_at: string
+          credits: number | null
           is_active: boolean
           key: string
+          kind: string
           price_rappen: number | null
           sort_order: number
           updated_at: string
@@ -1752,8 +1791,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          credits?: number | null
           is_active?: boolean
           key: string
+          kind?: string
           price_rappen?: number | null
           sort_order: number
           updated_at?: string
@@ -1761,8 +1802,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          credits?: number | null
           is_active?: boolean
           key?: string
+          kind?: string
           price_rappen?: number | null
           sort_order?: number
           updated_at?: string
@@ -2066,6 +2109,46 @@ export type Database = {
         Args: { expert_id?: string }
         Returns: number
       }
+      directory_ops_summary: {
+        Args: never
+        Returns: {
+          balance: number
+          credits_bought: number
+          email: string
+          expert_id: string
+          full_name: string
+          last_unlock_at: string
+          unlocks: number
+        }[]
+      }
+      directory_remove_contact: {
+        Args: { email: string; reason: string }
+        Returns: {
+          removed: boolean
+          unlocks_cascaded: number
+        }[]
+      }
+      directory_reveal: {
+        Args: { contact_id: string }
+        Returns: {
+          already_unlocked: boolean
+          balance: number
+          company_city: string
+          company_country: string
+          company_id: string
+          company_name: string
+          contact_city: string
+          contact_country: string
+          contact_title: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          mobile: string
+          phone: string
+          unlocked_at: string
+        }[]
+      }
       directory_search: {
         Args: {
           after_id?: string
@@ -2095,6 +2178,30 @@ export type Database = {
           phone: string
           phone_masked: string
           unlocked: boolean
+        }[]
+      }
+      directory_unlocked_contacts: {
+        Args: {
+          after_created_at?: string
+          after_id?: string
+          page_size?: number
+        }
+        Returns: {
+          company_city: string
+          company_country: string
+          company_id: string
+          company_name: string
+          contact_city: string
+          contact_country: string
+          contact_title: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          mobile: string
+          phone: string
+          unlock_id: string
+          unlocked_at: string
         }[]
       }
       issue_invoice: {

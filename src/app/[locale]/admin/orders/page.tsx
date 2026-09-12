@@ -102,10 +102,19 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {page.rows.map(({ order, organizationName, invoice }) => (
+                  {page.rows.map(({ order, organizationName, isCreditOrder, invoice }) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono text-xs">{order.reference}</TableCell>
-                      <TableCell>{organizationName}</TableCell>
+                      <TableCell>
+                        <span className="flex flex-wrap items-center gap-2">
+                          {organizationName}
+                          {isCreditOrder ? (
+                            // A credit pack of the contact directory (spec 0018, AC-10): the buyer
+                            // is an expert, and the row has nothing to schedule.
+                            <Badge variant="outline">{t("creditsBadge")}</Badge>
+                          ) : null}
+                        </span>
+                      </TableCell>
                       <TableCell>{order.package_name_snapshot}</TableCell>
                       <TableCell className="text-right tabular-nums">
                         {format.number(rappenToChf(Number(order.gross_rappen)), "chf")}
@@ -148,7 +157,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-2">
-                          {order.status === "paid" ? (
+                          {order.status === "paid" && !isCreditOrder ? (
                             <ScheduleDialog
                               orderId={order.id}
                               reference={order.reference}

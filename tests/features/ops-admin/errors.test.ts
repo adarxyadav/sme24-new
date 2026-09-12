@@ -49,6 +49,12 @@ describe("classifyScheduleError", () => {
     ).toBe("invalid_transition");
   });
 
+  it("reads the expert order refusal off every delivery edge (spec 0018, AC-10)", () => {
+    expect(
+      classifyScheduleError(postgrest("orders delivery is not available for an expert order")),
+    ).toBe("not_deliverable");
+  });
+
   it("matches on details as well as message, since PostgREST splits a raise across both", () => {
     expect(
       classifyScheduleError({
