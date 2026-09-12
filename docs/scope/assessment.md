@@ -32,7 +32,7 @@ Spec: [0019](../specs/0019-structured-assessment-forms/index.md). One questionna
   - [x] Compliance and the status hooks: section exclusions, group headings, the client card and the ops orders table (AC-8, AC-10)
   - [x] The GA tail: the e2e spec, `docs/assessments.md`, the full gate run (AC-13, AC-14, AC-15)
 - [x] Verify it: `/check verify structured assessment forms`
-- [ ] Test it: `/test structured assessment forms`
+- [x] Test it: `/test structured assessment forms` — 149 new Vitest tests over 18 files: the reads in `queries.ts`, the content build mappers, the autosave queue of `section-items.tsx` (debounce, one save in flight, backoff, lock, unload warning), the section exclusion, the item card, the rating control, the save indicator, the rich text, the submit dialog, the details form, the start button, the navigator, the score summary, the page header, the client page section, the state lines, the gallery section, plus the `assessment.submitted` alert presenter and the ops package key; Vitest 2461 passed 1 skipped (the two `send-email .local` files need the local stack, failing before this branch). No product defect found.
 - [ ] Review it (fresh model): `/check review structured assessment forms`
 - [ ] Document it: `/document structured assessment forms`
 

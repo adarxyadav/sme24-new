@@ -506,3 +506,39 @@ describe("listOpsCounts (AC-11)", () => {
     await expect(listOpsCounts(supabase)).rejects.toThrow();
   });
 });
+
+describe("listScheduledAssessments and the package key (spec 0019, AC-10)", () => {
+  it("carries the package key so the card can name the questionnaires the visit runs, and an empty string without one", async () => {
+    const { supabase, calls } = stubClient({
+      orders: {
+        data: [
+          {
+            id: "o1",
+            reference: "SME24-2026-0001",
+            package_key: "compliance",
+            package_name_snapshot: "Assessment Plus",
+            status: "scheduled",
+            scheduled_at: "2030-02-01T08:00:00.000Z",
+            assigned_expert_id: "e1",
+          },
+          {
+            id: "o2",
+            reference: "SME24-2026-0002",
+            package_key: null,
+            package_name_snapshot: "Legacy",
+            status: "in_progress",
+            scheduled_at: "2030-03-01T08:00:00.000Z",
+            assigned_expert_id: "e2",
+          },
+        ],
+        error: null,
+      },
+    });
+
+    const assessments = await listScheduledAssessments(supabase);
+
+    expect(assessments.map((row) => row.packageKey)).toEqual(["compliance", ""]);
+    const select = calls.find((call) => call.table === "orders" && call.method === "select");
+    expect(String(select?.args[0])).toContain("package_key");
+  });
+});
