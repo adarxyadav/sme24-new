@@ -8,7 +8,7 @@ import { computeAmounts } from "@/features/checkout/money";
 import { invoiceDueDays } from "@/features/checkout/seller";
 import { openCheckoutSession } from "@/features/checkout/stripe-session";
 import { getPathname } from "@/i18n/navigation";
-import { LOCALE_CODE, type Locale, resolveLocale } from "@/i18n/routing";
+import { isLocale, LOCALE_CODE, type Locale, localeFromCode, resolveLocale } from "@/i18n/routing";
 import { captureServerEvent } from "@/lib/analytics/server";
 import { roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
@@ -65,10 +65,26 @@ async function requireActiveExpert(): Promise<Actor | null> {
   return { supabase, userId: claims.sub, service };
 }
 
-/** The locale a form posts as its hidden field, falling back to the request's. */
+/** The short locale codes a `localeOf` caller may post, alongside the full tag. */
+const LOCALE_CODES = Object.values(LOCALE_CODE);
+
+/**
+ * The locale a form posts as its hidden field, falling back to the request's. The four call sites
+ * post two spellings on purpose: the reveal and removal forms post the short code their schema
+ * requires (`LOCALE_CODE[locale]`), the credits form the full tag from `useLocale`, so this reads
+ * both and never silently falls back to the default on a German page. An unrecognised value (not
+ * one of the two spellings) is never coerced to English: it falls through to the request's own
+ * locale instead, because `creditCheckoutSchema` carries no `locale` field to catch a bad one.
+ */
 async function localeOf(input: unknown): Promise<Locale> {
   const posted = (input as { locale?: unknown } | null)?.locale;
-  return typeof posted === "string" ? resolveLocale(posted) : resolveLocale(await getLocale());
+  if (typeof posted === "string") {
+    if (isLocale(posted)) return posted;
+    if (LOCALE_CODES.includes(posted as (typeof LOCALE_CODES)[number])) {
+      return localeFromCode(posted);
+    }
+  }
+  return resolveLocale(await getLocale());
 }
 
 /** The SQLSTATE codes the definer functions raise, mapped to the typed errors. */

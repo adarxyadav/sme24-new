@@ -5,6 +5,21 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(13);
 
+-- The suite assumes a database freshly reset (`pnpm db:reset`). A hand run `pnpm directory:import`
+-- against the local stack leaves tens of thousands of rows behind, which sort ahead of the
+-- invented ones and make these assertions fail for a reason that has nothing to do with the code.
+do $$
+begin
+  if exists (select 1 from public.directory_contacts)
+     or exists (select 1 from public.directory_companies)
+     or exists (select 1 from public.directory_imports)
+     or exists (select 1 from public.directory_unlocks)
+     or exists (select 1 from public.directory_credit_entries)
+     or exists (select 1 from public.directory_suppressions) then
+    raise exception 'this database holds rows beyond the seed; run `pnpm db:reset` before the tests';
+  end if;
+end $$;
+
 create function pg_temp.impersonate(user_id uuid, app_role text, org_id uuid default null)
 returns void language plpgsql as $$
 begin

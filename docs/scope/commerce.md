@@ -58,7 +58,7 @@ Spec: [0018](../specs/0018-contact-directory/index.md). The expert becomes a sec
   - [x] Unlock: the credit pack on the rail (packages kind, the expert buyer shape, the grant in `settle_order`), the expert checkout and invoice actions, the null organization branches, `directory_reveal`, the live unlock button, the unlocks page and the CSV export (AC-6 to AC-13)
   - [x] Instruments: the three events, `/admin/directory` with the import card, balances, unlocks and the removal form (AC-14, AC-15)
   - [x] Legal: the privacy block, the retention rows, the terms clause as version 2, the runbook and the launch gate commit that clears the import policy (AC-16, AC-17)
-- [ ] Verify it: `/check verify contact directory`
-- [ ] Test it: `/test contact directory`
-- [ ] Review it (fresh model): `/check review contact directory`
+- [x] Verify it: `/check verify contact directory`
+- [x] Test it: `/test contact directory`
+- [x] Review it (fresh model): `/check review contact directory`
 - [ ] Document it: `/document contact directory`
