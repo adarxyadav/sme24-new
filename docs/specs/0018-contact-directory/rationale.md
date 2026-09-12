@@ -76,7 +76,25 @@ The import is a script rather than a task for the same reason the list is not in
 
 ## What the spec deliberately does not decide
 
-Six points are questions for the owner in `## Follow-up` of `index.md`, not assumptions baked in: whether CHF 1.99 is net or gross, the pack ladder, the rows without a country, the retention period for a purchased contact, the VAT position of a buyer outside Switzerland, and ops grants and refunds. Each has a build assumption stated beside it so `/develop` is never blocked, and each is cheap to change afterwards (a seed row, a flag, a constant, an action).
+Eight points are questions for the owner in `## Follow-up` of `index.md`, not assumptions baked in: whether CHF 1.99 is net or gross, the pack ladder, the rows without a country, the retention period for a purchased contact, the VAT position of a buyer outside Switzerland, ops grants and refunds, what a buyer gets when ops remove a contact they paid for, and the wording of the one credit sentence in the confirmation email. Each has a build assumption stated beside it so `/develop` is never blocked, and each is cheap to change afterwards (a seed row, a flag, a constant, an action, a ledger row, a sentence).
+
+## Cross check
+
+A read only critique on a second model (Claude Opus, 12 September 2026) checked the draft for decision completeness first and soundness second, and every finding was verified against the code before the spec changed. It confirmed Option 2 and the read boundary, and found the gaps in the seam between the new rows and the existing files that assume a tenant. The load bearing ones, all now settled in `index.md`:
+
+- The expert insert policy had to compare `credits` and the package `kind` to `packages`, or an expert inserting their own order row could choose the credits they receive (invariant 12).
+- `contract.test.sql` holds literal lists (the definer functions, the audit exceptions, the tenant sweep) that the spec claimed untouched; `orders.test.sql` pins the package count; the record of processing is four files, not one.
+- An expert's invoice PDF had no readable path: `render-invoice` built it from the organization and the bucket policy compared the first folder to the organization claim. The path is now `experts/<id>/…` with its own policy.
+- `issue_invoice` and the resume branch of `settle_order` insert invoices without `buyer_expert_id`, which the new check would refuse.
+- Nothing stopped ops scheduling a credit order; the transition trigger now refuses the edge.
+- The export route sat under `[locale]` where the shell layout's redirect would not run for a route handler; it moved beside the other handlers under `src/app/api/`.
+- `directory.searched` fired from a server render, the pattern spec 0017 ruled out for `benchmark.viewed`; it is a browser event now, and the scraping signal no longer leans on it.
+- `requireOps` is eager, not lazy; only `requireClient` is the precedent for the lazy service client.
+- The import script runs under plain Node with relative `.ts` imports, so the modules it shares with the app are alias free.
+- `pg_trgm` has no precedent and the engine does not track extensions, so it is a hand written migration.
+- Milestone 2 shipped an inert button and milestone 3 buried the reveal behind the checkout; the plan is read only browse, then the rail, then the reveal, then the checkout.
+
+Two findings were the owner's and became follow up questions with a build assumption beside them: a removal cascading a paid unlock (no refund, no notice), and the one credit sentence added to the confirmation email.
 
 ## References
 
