@@ -1829,12 +1829,12 @@
     },
     "gaps": {
       "title": "Priority gaps",
-      "description": "What to fix first: ranked by each KPI's own saving at the peer median, then by the distance to the median.",
-      "empty": "No gap against your peers. Every compared KPI is at or better than the median.",
+      "description": "Where you sit worse than your sector, the biggest yearly saving first, then the widest gap.",
+      "empty": "No gap. Every compared KPI sits at the sector median or better.",
       "rank": "Rank {rank}",
       "versus": "{value} vs. median {median}",
       "relative": "{percent} above the median",
-      "saving": "{amount} per year at the median, from this KPI alone",
+      "savingLabel": "a year if this KPI reached the sector median",
       "fatality": "A fatality was reported. It comes first, whatever the other numbers say.",
       "showAll": "Show all gaps ({count})"
     },

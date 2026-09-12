@@ -376,7 +376,7 @@ function GapItem({
   const kind = KPI_CATALOGUE[gap.key].format;
   return (
     <li
-      className="flex flex-col gap-1 rounded-lg border p-4"
+      className="flex flex-col gap-3 rounded-lg border p-4"
       data-gap={gap.key}
       data-rank={gap.rank}
     >
@@ -384,27 +384,35 @@ function GapItem({
         <Badge variant={gap.reason === "fatality" ? "destructive" : "outline"}>
           {t("gaps.rank", { rank: gap.rank })}
         </Badge>
-        <span className="font-medium">{kpiName(catalogue, locale, gap.key)}</span>
+        <span className="font-semibold">{kpiName(catalogue, locale, gap.key)}</span>
       </div>
       {gap.reason === "fatality" ? <p className="text-sm">{t("gaps.fatality")}</p> : null}
-      {input && result?.peer ? (
-        <p className="text-muted-foreground text-sm tabular-nums" data-numeric>
-          {t("gaps.versus", {
-            value: formatKpiValue(input.value, kind, format, yesNo),
-            median: formatQuartile(gap.key, result.peer.median, format, yesNo),
-          })}
+      {gap.savingMedianChf !== null ? (
+        <p className="flex flex-col gap-0.5" data-gap-saving>
+          <span className="font-semibold text-2xl tabular-nums tracking-headline" data-numeric>
+            {format.number(roundChf(gap.savingMedianChf), "chfWhole")}
+          </span>{" "}
+          <span className="text-muted-foreground text-xs">{t("gaps.savingLabel")}</span>
         </p>
       ) : null}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm tabular-nums" data-numeric>
-        {gap.gapRelative !== null ? (
-          <span>{t("gaps.relative", { percent: format.number(gap.gapRelative, "percent") })}</span>
-        ) : null}
-        {gap.savingMedianChf !== null ? (
-          <span className="font-medium" data-gap-saving>
-            {t("gaps.saving", { amount: format.number(roundChf(gap.savingMedianChf), "chfWhole") })}
+      {input && result?.peer ? (
+        <div
+          className="flex flex-wrap gap-x-4 gap-y-1 border-t pt-3 text-sm tabular-nums"
+          data-numeric
+        >
+          <span className="text-muted-foreground">
+            {t("gaps.versus", {
+              value: formatKpiValue(input.value, kind, format, yesNo),
+              median: formatQuartile(gap.key, result.peer.median, format, yesNo),
+            })}
           </span>
-        ) : null}
-      </div>
+          {gap.gapRelative !== null ? (
+            <span>
+              {t("gaps.relative", { percent: format.number(gap.gapRelative, "percent") })}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
     </li>
   );
 }

@@ -346,7 +346,7 @@ describe("the priority gaps (AC-9)", () => {
     expect(within(rate).getByText("68.00 vs. median 49.90")).toBeInTheDocument();
     expect(within(rate).getByText(/^36\.3\s?% above the median$/)).toBeInTheDocument();
     expect(rate.querySelector("[data-gap-saving]")).toHaveTextContent(
-      `${chf(522_340)} per year at the median`,
+      `${chf(522_340)} a year if this KPI reached the sector median`,
     );
   });
 

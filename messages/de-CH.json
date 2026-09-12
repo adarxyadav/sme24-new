@@ -1829,12 +1829,12 @@
     },
     "gaps": {
       "title": "Prioritäre Lücken",
-      "description": "Was zuerst zu tun ist: sortiert nach der Einsparung jeder Kennzahl am Median der Vergleichsgruppe, dann nach dem Abstand zum Median.",
-      "empty": "Keine Lücke gegenüber Ihrer Vergleichsgruppe. Jede verglichene Kennzahl liegt beim Median oder besser.",
+      "description": "Wo Sie schlechter als Ihre Branche liegen, die grösste jährliche Einsparung zuerst, dann die grösste Lücke.",
+      "empty": "Keine Lücke. Jede verglichene Kennzahl liegt beim Branchenmedian oder besser.",
       "rank": "Rang {rank}",
       "versus": "{value} vs. Median {median}",
       "relative": "{percent} über dem Median",
-      "saving": "{amount} pro Jahr am Median, allein aus dieser Kennzahl",
+      "savingLabel": "pro Jahr, wenn diese Kennzahl den Branchenmedian erreicht",
       "fatality": "Ein Todesfall wurde gemeldet. Er kommt zuerst, unabhängig von den übrigen Zahlen.",
       "showAll": "Alle Lücken anzeigen ({count})"
     },
