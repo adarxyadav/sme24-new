@@ -24,9 +24,10 @@ import {
 
 /**
  * The benchmark segment (spec 0008, AC-9, AC-14): the three waiting states, the opportunity
- * card with the rounded cost in `chfWhole`, the range, both savings, the confidence badge with
- * the KPI that drove it, the computed on date and the provisional note; the card naming the
- * missing input with the facts form when no cost exists; the top three gaps with the rest
+ * card with the range, the working estimate in `chfWhole` with its lost time clause, both
+ * savings and the spelled out confidence badge, the provisional note, and the disclosure rows
+ * that took the computed on date, the KPI count, the confidence driver and the derived counts
+ * off the card; the card naming the missing input with the facts form when no cost exists; the top three gaps with the rest
  * behind a disclosure and the positive empty state; one position row per catalogue KPI with the
  * band, the quartiles, the peer label, "no value" and "no peer data yet". The server translator
  * and formatter, the disclosure body, the server action and the router are the boundaries.
@@ -131,11 +132,17 @@ describe("the waiting states (AC-9)", () => {
   });
 });
 
+/** Opens "How this is calculated" and returns the facts rows at its top. */
+async function openFacts(container: HTMLElement) {
+  await userEvent.click(screen.getByRole("button", { name: b.disclosure.title }));
+  return container.querySelector("[data-calculation-facts]") as HTMLElement;
+}
+
 describe("the opportunity card (AC-9, AC-14)", () => {
   // The range leads and the working estimate sits beneath it (spec 0016, AC-9). The ends round
   // outward, so 1 060 180 floors to 1 060 000 and 2 650 450 ceils to 2 651 000: the displayed band
   // always contains the computed one.
-  it("leads with the outward rounded range, then the working estimate, both savings, the confidence and the date", async () => {
+  it("leads with the outward rounded range, then the working estimate and both savings", async () => {
     const { container } = await renderSegment();
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(within(card).getByText(b.card.title)).toBeInTheDocument();
@@ -144,15 +151,36 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(range).toHaveAttribute("data-cost-low", "1060000");
     expect(range).toHaveAttribute("data-cost-high", "2651000");
     expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(
-      `Working estimate ${chf(1_961_340)}`,
+      `Working estimate ${chf(1_961_340)} a year`,
     );
-    expect(card.querySelector("[data-saving-median]")).toHaveTextContent(chf(522_340));
-    expect(card.querySelector("[data-saving-top]")).toHaveTextContent(chf(955_340));
-    expect(
-      within(card).getByText("Confidence from accident_rate_per_1000_fte (en)"),
-    ).toBeInTheDocument();
-    expect(card.querySelector("[data-computed-on]")).toHaveTextContent("Computed on 06.09.2026");
-    expect(within(card).getByText("5 of 8 KPIs compared")).toBeInTheDocument();
+    expect(within(card).getByText(b.card.savingMedian)).toBeInTheDocument();
+    expect(card.querySelector("[data-saving-median]")).toHaveTextContent(`${chf(522_340)} a year`);
+    expect(within(card).getByText(b.card.savingTop)).toBeInTheDocument();
+    expect(card.querySelector("[data-saving-top]")).toHaveTextContent(`${chf(955_340)} a year`);
+  });
+
+  // Everything that explained the arithmetic left the card for the disclosure (owner decision of
+  // 2026-09-13, spec 0012): the card carries no description, no date, no KPI count and no driver.
+  it("carries neither the description, the computed on date, the KPI count nor the confidence driver", async () => {
+    const { container } = await renderSegment();
+    const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
+    expect(within(card).queryByText(/estimated from your figures/)).not.toBeInTheDocument();
+    expect(card.querySelector("[data-computed-on]")).not.toBeInTheDocument();
+    expect(card.querySelector("[data-compared]")).not.toBeInTheDocument();
+    expect(card.querySelector("[data-confidence-from]")).not.toBeInTheDocument();
+    expect(within(card).queryByText(/KPIs compared/)).not.toBeInTheDocument();
+  });
+
+  it("states the computed on date, the KPI count and the confidence driver as rows of the disclosure", async () => {
+    const { container } = await renderSegment();
+    const facts = await openFacts(container);
+    expect(within(facts).getByText(b.disclosure.aboutTitle)).toBeInTheDocument();
+    expect(facts.querySelector("[data-computed-on]")).toHaveTextContent("Computed on 06.09.2026");
+    expect(facts.querySelector("[data-compared]")).toHaveAttribute("data-compared", "5");
+    expect(within(facts).getByText("5 of 8 KPIs compared")).toBeInTheDocument();
+    expect(facts.querySelector("[data-confidence-from]")).toHaveTextContent(
+      "Confidence from accident_rate_per_1000_fte (en)",
+    );
   });
 
   it("rounds a cost below 10 000 to the nearest 100, and each range end at its own step", async () => {
@@ -169,11 +197,15 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(range).toHaveAttribute("data-cost-high", "12000");
   });
 
-  it("names the confidence level with the three feature 8 levels", async () => {
+  // The badge sits in the title row with the word spelled out, so the colour is never the only
+  // carrier of the level and no hidden label has to restate the visible text.
+  it("spells the confidence level out in the title row", async () => {
     const { container } = await renderSegment();
     const badge = container.querySelector("[data-opportunity-card] [data-confidence]");
     expect(badge).toHaveAttribute("data-confidence", "high");
-    expect(badge).toHaveTextContent("High");
+    expect(badge).toHaveTextContent(b.card.confidence.high);
+    expect(badge).not.toHaveAttribute("aria-label");
+    expect(badge?.closest('[data-slot="card-header"]')).not.toBeNull();
   });
 
   it("says no peer reference for a saving the model could not compute", async () => {
@@ -183,6 +215,19 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(card.querySelector("[data-saving-median]")).toHaveTextContent(b.card.noReference);
     expect(card.querySelector("[data-saving-top]")).toHaveTextContent(b.card.noReference);
+  });
+
+  // A saving of zero used to print "CHF 0" beside a seven figure headline, which reads as a broken
+  // sum. The model clamps a saving at zero, so zero means the company already sits at or below
+  // that peer mark, and the card says so in words.
+  it("says the company is already at or below a peer mark when the saving is zero", async () => {
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot({ savingMedianChf: 0, savingTopChf: 0 }),
+    });
+    const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
+    expect(card.querySelector("[data-saving-median]")).toHaveTextContent(b.card.atOrBelow);
+    expect(card.querySelector("[data-saving-top]")).toHaveTextContent(b.card.atOrBelow);
+    expect(within(card).queryByText(/CHF\s?0/)).not.toBeInTheDocument();
   });
 
   it("shows the provisional note while the peers are provisional and hides it once they are final", async () => {
@@ -210,7 +255,10 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(within(card).getByText(b.card.missingHeadcount)).toBeInTheDocument();
     expect(card.querySelector("[data-facts-form]")).toBeInTheDocument();
     expect(card.querySelector("[data-cost-headline]")).not.toBeInTheDocument();
-    expect(card.querySelector("[data-computed-on]")).toHaveTextContent("Computed on 06.09.2026");
+    expect(card.querySelector("[data-computed-on]")).not.toBeInTheDocument();
+    // The date still reaches the reader, in the disclosure, even with no cost to explain.
+    const facts = await openFacts(container);
+    expect(facts.querySelector("[data-computed-on]")).toHaveTextContent("Computed on 06.09.2026");
   });
 
   it("names the missing incident rate when the headcount is known but no cost exists", async () => {
@@ -261,6 +309,7 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     const trigger = screen.getByRole("button", { name: b.disclosure.title });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByTestId("calculation-content")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-calculation-facts]")).not.toBeInTheDocument();
     const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
     expect(card.compareDocumentPosition(trigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -271,26 +320,42 @@ describe("the derived injury counts (spec 0012)", () => {
     snapshot: parsedSnapshot({}, { derived }),
   });
 
-  it("shows both counts above the CHF figure, each with a Calculated badge (AC-1, AC-2)", async () => {
+  // The lost time count is the number the franc figure is built from, so it stays on the card as
+  // a clause of the working estimate; everything else about the counts lives in the disclosure
+  // (owner decision of 2026-09-13).
+  it("folds the lost time count and the headcount into the working estimate line (AC-1)", async () => {
     const { container } = await renderSegment(withDerived());
-    const block = container.querySelector("[data-derived-block]") as HTMLElement;
-    expect(block).toBeInTheDocument();
-    // Lost time first, so the number that drives the CHF figure sits nearest to it.
-    const values = [...container.querySelectorAll("[data-derived-count]")].map((node) =>
+    const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
+    expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(
+      `Working estimate ${chf(1_961_340)} a year, from about 1.8 lost time injuries across 420 employees.`,
+    );
+    expect(card.querySelector("[data-derived-count]")).not.toBeInTheDocument();
+    expect(within(card).queryByText(b.derived.recordable)).not.toBeInTheDocument();
+  });
+
+  it("lists both counts as rows of the disclosure, lost time first (AC-1, AC-2)", async () => {
+    const { container } = await renderSegment(withDerived());
+    const facts = await openFacts(container);
+    const values = [...facts.querySelectorAll("[data-derived-count]")].map((node) =>
       node.getAttribute("data-derived-count"),
     );
     expect(values).toEqual(["lost-time", "recordable"]);
-    const headline = container.querySelector("[data-cost-headline]") as HTMLElement;
-    expect(block.compareDocumentPosition(headline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(within(block).getAllByText(b.derived.calculated)).toHaveLength(2);
+    const recordable = facts.querySelector('[data-derived-count="recordable"]') as HTMLElement;
+    expect(within(recordable).getByText(b.derived.recordable)).toBeInTheDocument();
+    expect(recordable.querySelector("[data-derived-value]")).toHaveTextContent("4.6");
   });
 
   it("shows one decimal, so a fraction of an injury never reads as none (AC-8)", async () => {
     const { container } = await renderSegment(
       withDerived(derivedBlock({ lostTime: derivedCount({ count: 0.42 }) })),
     );
-    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
-    expect(within(lostTime).getByText("0.4")).toBeInTheDocument();
+    const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
+    expect(card.querySelector("[data-cost-headline]")).toHaveTextContent(
+      "from about 0.4 lost time",
+    );
+    const facts = await openFacts(container);
+    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    expect(lostTime.querySelector("[data-derived-value]")).toHaveTextContent("0.4");
   });
 
   it("names the figure and year, following the source of the row (AC-4)", async () => {
@@ -299,11 +364,16 @@ describe("the derived injury counts (spec 0012)", () => {
         derivedBlock({ lostTime: derivedCount({ fromSource: "client", fromYear: 2024 }) }),
       ),
     );
-    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    const facts = await openFacts(container);
+    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
     // The KPI name comes from the catalogue in the reader's language, not a hardcoded label.
     // The fixture names are "ltifr (en)" / "trifr (en)", so the gloss is dropped here too.
     expect(lostTime).toHaveTextContent("Calculated from your ltifr for 2024");
-    const recordable = container.querySelector('[data-derived-count="recordable"]') as HTMLElement;
+    expect(lostTime.querySelector("[data-derived-from]")).toHaveAttribute(
+      "data-derived-from",
+      "ltifr",
+    );
+    const recordable = facts.querySelector('[data-derived-count="recordable"]') as HTMLElement;
     expect(recordable).toHaveTextContent("Calculated from the researched trifr for 2025");
   });
 
@@ -320,7 +390,8 @@ describe("the derived injury counts (spec 0012)", () => {
         : entry,
     );
     const { container } = await renderSegment({ ...withDerived(), catalogue: withGloss });
-    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    const facts = await openFacts(container);
+    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
     expect(lostTime).toHaveTextContent("Calculated from the researched LTIFR for 2025");
     expect(lostTime).not.toHaveTextContent("lost time injury frequency rate");
   });
@@ -338,56 +409,55 @@ describe("the derived injury counts (spec 0012)", () => {
         }),
       ),
     );
-    const lostTime = container.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
+    const facts = await openFacts(container);
+    const lostTime = facts.querySelector('[data-derived-count="lost-time"]') as HTMLElement;
     expect(lostTime).toHaveTextContent(
       "Calculated from the researched Suva accident rate for 2024",
     );
   });
 
-  it("says the franc figure prices lost time accidents only (spec 0016 amendment, AC-31)", async () => {
+  it("says the franc figure prices lost time accidents only, beside the recordable count (spec 0016 amendment, AC-31)", async () => {
     const { container } = await renderSegment(withDerived());
-    const block = container.querySelector("[data-derived-block]") as HTMLElement;
-    const line = block.querySelector("[data-derived-priced]") as HTMLElement;
-    expect(line).toBeInTheDocument();
+    const facts = await openFacts(container);
+    const line = facts.querySelector("[data-derived-priced]") as HTMLElement;
     expect(line).toHaveTextContent(b.derived.priced);
-    // The line belongs to the counts it qualifies, after the recordable count and before the figure.
-    const recordable = container.querySelector('[data-derived-count="recordable"]') as HTMLElement;
-    const headline = container.querySelector("[data-cost-headline]") as HTMLElement;
+    const recordable = facts.querySelector('[data-derived-count="recordable"]') as HTMLElement;
     expect(
       recordable.compareDocumentPosition(line) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
-    expect(line.compareDocumentPosition(headline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // The note qualifies the recordable count, so it goes with it.
+    const without = await renderSegment(withDerived(derivedBlock({ recordable: null })));
+    expect(without.container.querySelector("[data-derived-priced]")).not.toBeInTheDocument();
   });
 
-  it("carries no confidence score anywhere on the block (AC-5)", async () => {
+  it("carries no confidence score on any derived row (AC-5)", async () => {
     const { container } = await renderSegment(withDerived());
-    const block = container.querySelector("[data-derived-block]") as HTMLElement;
-    expect(block.querySelector("[data-confidence]")).not.toBeInTheDocument();
+    const facts = await openFacts(container);
+    expect(facts.querySelector("[data-confidence]")).not.toBeInTheDocument();
   });
 
   it("drops only the missing count and keeps the other showing (AC-6)", async () => {
     const { container } = await renderSegment(withDerived(derivedBlock({ recordable: null })));
-    expect(container.querySelector('[data-derived-count="lost-time"]')).toBeInTheDocument();
-    expect(container.querySelector('[data-derived-count="recordable"]')).not.toBeInTheDocument();
+    const facts = await openFacts(container);
+    expect(facts.querySelector('[data-derived-count="lost-time"]')).toBeInTheDocument();
+    expect(facts.querySelector('[data-derived-count="recordable"]')).not.toBeInTheDocument();
   });
 
-  it("renders no block at all on a stored version 1 snapshot (AC-7, AC-12)", async () => {
+  it("renders no count at all on a stored version 1 snapshot (AC-7, AC-12)", async () => {
     const { container } = await renderSegment();
-    expect(container.querySelector("[data-derived-block]")).not.toBeInTheDocument();
+    const headline = container.querySelector("[data-cost-headline]") as HTMLElement;
+    expect(headline).toHaveTextContent(`Working estimate ${chf(1_961_340)} a year`);
+    expect(headline).not.toHaveTextContent("from about");
     // Everything the card showed before this block existed is still there.
-    expect(container.querySelector("[data-cost-headline]")).toBeInTheDocument();
     expect(container.querySelector("[data-saving-median]")).toBeInTheDocument();
+    const facts = await openFacts(container);
+    expect(facts.querySelector("[data-derived-count]")).not.toBeInTheDocument();
+    expect(facts.querySelector("[data-derived-priced]")).not.toBeInTheDocument();
   });
 
-  it("states the exposure from the block rather than recomputing it", async () => {
+  it("passes axe with the counts on the card and in the disclosure (AC-14)", async () => {
     const { container } = await renderSegment(withDerived());
-    const exposure = container.querySelector("[data-derived-exposure]") as HTMLElement;
-    expect(exposure).toHaveTextContent("420");
-    expect(exposure).toHaveTextContent(/1.800/);
-  });
-
-  it("passes axe with the block on the card (AC-14)", async () => {
-    const { container } = await renderSegment(withDerived());
+    await openFacts(container);
     const results = await axe.run(container, {
       runOnly: ["cat.forms", "cat.aria", "cat.name-role-value", "cat.color"],
     });

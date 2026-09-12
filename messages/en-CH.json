@@ -1350,7 +1350,6 @@
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "card": "Opportunity card",
       "collapsible": "Collapsible disclosure",
-      "confidenceMedium": "Medium",
       "pointComparison": "Point comparison"
     },
     "marketing": {
@@ -1814,29 +1813,29 @@
     "provisionalNote": "Some figures behind this estimate are a provisional first reading of the published statistics and will be confirmed before launch.",
     "card": {
       "title": "Annual incident cost",
-      "description": "What workplace incidents cost your company per year, estimated from your figures and stored assumptions.",
-      "range": "Range {low} to {high}",
-      "savingMedian": "Saving at the peer median, all priced figures",
-      "savingTop": "Saving at the top quarter, all priced figures",
+      "savingMedian": "If you matched the peer median",
+      "savingTop": "If you matched the top quarter",
+      "savingValue": "<value>{amount}</value> a year",
+      "atOrBelow": "Already at or below it.",
+      "working": "Working estimate <value>{cost}</value> a year",
+      "workingDerived": "Working estimate <value>{cost}</value> a year, from about {count} lost time injuries across {fte} employees.",
+      "confidence": {
+        "high": "High confidence",
+        "medium": "Medium confidence",
+        "low": "Low confidence"
+      },
       "noReference": "No peer reference",
-      "computedOn": "Computed on {date}",
-      "confidenceFrom": "Confidence from {kpi}",
       "missingHeadcount": "We need your headcount to estimate the annual cost.",
       "missingIncidentRate": "We need an accident rate or an LTIFR to estimate the annual cost.",
-      "compared": "{compared} of {total} KPIs compared",
-      "rangeHeadline": "{low} to {high}",
-      "working": "Working estimate {cost}"
+      "rangeHeadline": "{low} to {high}"
     },
     "derived": {
-      "title": "What that means in injuries",
       "lostTime": "Lost time injuries a year",
       "recordable": "Recordable injuries a year",
-      "calculated": "Calculated",
       "fromClient": "Calculated from your {kpi} for {year}",
       "fromResearch": "Calculated from the researched {kpi} for {year}",
       "fromClientSuva": "Calculated from your Suva accident rate for {year}",
       "fromResearchSuva": "Calculated from the researched Suva accident rate for {year}",
-      "exposure": "Based on {fte} employees and {hours} hours each a year",
       "priced": "The franc figure prices lost time accidents only. Recordable injuries are shown for context and are not priced."
     },
     "gaps": {
@@ -2014,6 +2013,10 @@
     },
     "disclosure": {
       "title": "How this is calculated",
+      "aboutTitle": "About this calculation",
+      "computedOn": "Computed on {date}",
+      "compared": "{compared} of {total} KPIs compared",
+      "confidenceFrom": "Confidence from {kpi}",
       "formulaTitle": "The formula in words",
       "formula": "Incidents per year = accident rate per 1 000 FTE × FTE ÷ 1 000 (with no accident rate: LTIFR × FTE × hours per FTE ÷ 1 000 000). Cost per case = direct cost per case + lost days per incident × cost per absence day. Annual cost = incidents × cost per case × the total cost multiplier; the range uses the low and the high multiplier. The savings repeat the formula at the peer median and at the top quarter.",
       "fteLine": "Headcount is counted as full time equivalents: every employee counts as one full time job.",

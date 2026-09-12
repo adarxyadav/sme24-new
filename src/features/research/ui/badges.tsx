@@ -34,18 +34,29 @@ const CONFIDENCE_VARIANT: Record<ConfidenceLevel, "success" | "warning" | "secon
   low: "secondary",
 };
 
-/** The confidence badge of a KPI value (AC-7): high, medium or low with the level as text. Server or client. */
-export function ConfidenceBadge({ confidence }: { readonly confidence: number }) {
+/**
+ * The confidence badge of a KPI value (AC-7): high, medium or low with the level as text. A caller
+ * that stands the badge alone, away from a "Confidence" column heading, passes `label` with the
+ * word spelled out ("Medium confidence"), so the colour is never the only carrier; the visible
+ * text is then the whole name and no `aria-label` restates it. Server or client.
+ */
+export function ConfidenceBadge({
+  confidence,
+  label,
+}: {
+  readonly confidence: number;
+  readonly label?: string;
+}) {
   const t = useTranslations("research.table.confidence");
   const level = confidenceLevel(confidence);
   return (
     <Badge
       variant={CONFIDENCE_VARIANT[level]}
       data-confidence={level}
-      aria-label={`${t("label")}: ${t(level)}`}
+      aria-label={label ? undefined : `${t("label")}: ${t(level)}`}
       title={`${t("label")}: ${Math.round(confidence * 100)} %`}
     >
-      {t(level)}
+      {label ?? t(level)}
     </Badge>
   );
 }

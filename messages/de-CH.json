@@ -1350,7 +1350,6 @@
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
       "card": "Potenzialkarte",
       "collapsible": "Aufklappbare Erklärung",
-      "confidenceMedium": "Mittel",
       "pointComparison": "Punktvergleich"
     },
     "marketing": {
@@ -1814,29 +1813,29 @@
     "provisionalNote": "Einige Werte hinter dieser Schätzung sind eine provisorische erste Lesung der publizierten Statistiken und werden vor dem Start bestätigt.",
     "card": {
       "title": "Jährliche Unfallkosten",
-      "description": "Was Arbeitsunfälle Ihr Unternehmen pro Jahr kosten, geschätzt aus Ihren Kennzahlen und hinterlegten Annahmen.",
-      "range": "Spanne {low} bis {high}",
-      "savingMedian": "Einsparung am Median der Vergleichsgruppe, alle bewerteten Werte",
-      "savingTop": "Einsparung im obersten Viertel, alle bewerteten Werte",
+      "savingMedian": "Wenn Sie den Median der Vergleichsgruppe erreichen",
+      "savingTop": "Wenn Sie das oberste Viertel erreichen",
+      "savingValue": "<value>{amount}</value> pro Jahr",
+      "atOrBelow": "Bereits erreicht oder darunter.",
+      "working": "Arbeitswert <value>{cost}</value> pro Jahr",
+      "workingDerived": "Arbeitswert <value>{cost}</value> pro Jahr, aus rund {count} Unfällen mit Ausfallzeit bei {fte} Mitarbeitenden.",
+      "confidence": {
+        "high": "Hohe Verlässlichkeit",
+        "medium": "Mittlere Verlässlichkeit",
+        "low": "Niedrige Verlässlichkeit"
+      },
       "noReference": "Kein Vergleichswert",
-      "computedOn": "Berechnet am {date}",
-      "confidenceFrom": "Verlässlichkeit aus {kpi}",
       "missingHeadcount": "Für die Kostenschätzung brauchen wir Ihre Mitarbeiterzahl.",
       "missingIncidentRate": "Für die Kostenschätzung brauchen wir eine Unfallrate oder eine LTIFR.",
-      "compared": "{compared} von {total} Kennzahlen verglichen",
-      "rangeHeadline": "{low} bis {high}",
-      "working": "Arbeitswert {cost}"
+      "rangeHeadline": "{low} bis {high}"
     },
     "derived": {
-      "title": "Was das an Unfällen bedeutet",
       "lostTime": "Unfälle mit Ausfallzeit pro Jahr",
       "recordable": "Meldepflichtige Unfälle pro Jahr",
-      "calculated": "Berechnet",
       "fromClient": "Berechnet aus Ihrer {kpi} für {year}",
       "fromResearch": "Berechnet aus der recherchierten {kpi} für {year}",
       "fromClientSuva": "Berechnet aus Ihrer Suva Unfallrate für {year}",
       "fromResearchSuva": "Berechnet aus der recherchierten Suva Unfallrate für {year}",
-      "exposure": "Basierend auf {fte} Mitarbeitenden und je {hours} Stunden pro Jahr",
       "priced": "Der Frankenbetrag bewertet nur Unfälle mit Ausfallzeit. Meldepflichtige Unfälle dienen der Einordnung und werden nicht bewertet."
     },
     "gaps": {
@@ -2014,6 +2013,10 @@
     },
     "disclosure": {
       "title": "So wird gerechnet",
+      "aboutTitle": "Zu dieser Berechnung",
+      "computedOn": "Berechnet am {date}",
+      "compared": "{compared} von {total} Kennzahlen verglichen",
+      "confidenceFrom": "Verlässlichkeit aus {kpi}",
       "formulaTitle": "Die Formel in Worten",
       "formula": "Unfälle pro Jahr = Unfallrate pro 1 000 Vollzeitstellen × Vollzeitstellen ÷ 1 000 (ohne Unfallrate: LTIFR × Vollzeitstellen × Stunden pro Vollzeitstelle ÷ 1 000 000). Kosten pro Fall = direkte Kosten pro Fall + Ausfalltage pro Unfall × Kosten pro Absenztag. Jahreskosten = Unfälle × Kosten pro Fall × Gesamtkostenfaktor; die Spanne nutzt den tiefen und den hohen Faktor. Die Einsparungen wiederholen die Formel am Median und im obersten Viertel der Vergleichsgruppe.",
       "fteLine": "Die Mitarbeiterzahl gilt als Vollzeitäquivalente: jede mitarbeitende Person zählt als eine Vollzeitstelle.",

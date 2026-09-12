@@ -1,13 +1,14 @@
 "use client";
 
-import { CalculatorIcon, ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Example } from "@/components/gallery/gallery-section";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { QuartileBand } from "@/components/ui/quartile-band";
+import { Separator } from "@/components/ui/separator";
 
 /** The three shapes of the band: inside the top quarter, below the median, beyond p75. */
 const BANDS = [
@@ -18,10 +19,9 @@ const BANDS = [
 
 /**
  * The benchmark primitives (spec 0008, AC-14): the `QuartileBand` in three shapes, a static
- * opportunity card carrying the derived counts and their outline "Calculated" badge (spec 0012,
- * AC-3), and the `Collapsible` disclosure, so axe scans them on the gallery. The badge sits beside
- * the filled confidence badge here on purpose, so the two read as different kinds of number.
- * Runs in the browser.
+ * opportunity card in its cut down shape (the confidence spelled out in the title row, the range,
+ * the working estimate with its lost time clause, a saving and an "already at or below" mark),
+ * and the `Collapsible` disclosure, so axe scans them on the gallery. Runs in the browser.
  */
 export function BenchmarkSection() {
   const t = useTranslations("gallery.benchmark");
@@ -64,77 +64,44 @@ export function BenchmarkSection() {
           <Card>
             <CardHeader>
               <CardTitle>{b("card.title")}</CardTitle>
-              <CardDescription>{b("card.description")}</CardDescription>
+              <CardAction>
+                <Badge variant="warning">{b("card.confidence.medium")}</Badge>
+              </CardAction>
             </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <p className="eyebrow text-muted-foreground">{b("derived.title")}</p>
-                <dl className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex flex-col gap-0.5">
-                    <dt className="eyebrow text-muted-foreground">{b("derived.lostTime")}</dt>
-                    <dd className="flex flex-col gap-0.5">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium tabular-nums" data-numeric>
-                          {format.number(0.9, "oneDecimal")}
-                        </span>
-                        <Badge variant="outline">
-                          <CalculatorIcon aria-hidden="true" />
-                          {b("derived.calculated")}
-                        </Badge>
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {b("derived.fromResearch", { kpi: "LTIFR", year: 2024 })}
-                      </span>
-                    </dd>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <dt className="eyebrow text-muted-foreground">{b("derived.recordable")}</dt>
-                    <dd className="flex flex-col gap-0.5">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium tabular-nums" data-numeric>
-                          {format.number(2.3, "oneDecimal")}
-                        </span>
-                        <Badge variant="outline">
-                          <CalculatorIcon aria-hidden="true" />
-                          {b("derived.calculated")}
-                        </Badge>
-                      </span>
-                      <span className="text-muted-foreground text-xs">
-                        {b("derived.fromClient", { kpi: "TRIFR", year: 2024 })}
-                      </span>
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-              <div className="flex flex-col gap-1">
+            <CardContent className="flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
                 <p className="font-semibold text-3xl tabular-nums" data-numeric>
-                  {chf(1_961_000)}
+                  {b("card.rangeHeadline", { low: chf(1_060_000), high: chf(2_651_000) })}
                 </p>
                 <p className="text-muted-foreground text-sm tabular-nums" data-numeric>
-                  {b("card.range", { low: chf(1_060_000), high: chf(2_651_000) })}
+                  {b.rich("card.workingDerived", {
+                    cost: chf(1_961_000),
+                    count: format.number(1.8, "oneDecimal"),
+                    fte: format.number(420, "integer"),
+                    value: (chunks) => (
+                      <span className="font-medium text-foreground">{chunks}</span>
+                    ),
+                  })}
                 </p>
               </div>
-              <dl className="grid gap-3 sm:grid-cols-2">
+              <Separator />
+              <dl className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-0.5">
-                  <dt className="eyebrow text-muted-foreground">{b("card.savingMedian")}</dt>
-                  <dd className="font-medium tabular-nums" data-numeric>
-                    {chf(522_000)}
+                  <dt className="text-label-13 text-muted-foreground">{b("card.savingMedian")}</dt>
+                  <dd className="text-muted-foreground text-sm tabular-nums" data-numeric>
+                    {b.rich("card.savingValue", {
+                      amount: chf(522_000),
+                      value: (chunks) => (
+                        <span className="font-medium text-foreground text-lg">{chunks}</span>
+                      ),
+                    })}
                   </dd>
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <dt className="eyebrow text-muted-foreground">{b("card.savingTop")}</dt>
-                  <dd className="font-medium tabular-nums" data-numeric>
-                    {chf(955_000)}
-                  </dd>
+                  <dt className="text-label-13 text-muted-foreground">{b("card.savingTop")}</dt>
+                  <dd className="text-sm">{b("card.atOrBelow")}</dd>
                 </div>
               </dl>
-              <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
-                <Badge variant="warning">{t("confidenceMedium")}</Badge>
-                <span>{b("card.computedOn", { date: "06.09.2026" })}</span>
-              </div>
-              <p className="text-muted-foreground text-sm">
-                {b("card.compared", { compared: 5, total: 8 })}
-              </p>
             </CardContent>
           </Card>
         </Example>

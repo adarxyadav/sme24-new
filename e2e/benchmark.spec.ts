@@ -100,45 +100,26 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       page.getByRole("heading", { level: 2, name: "Benchmark and opportunity" }),
     ).toBeVisible();
 
-    // The opportunity card (AC-9 a): rounded headline, range, both savings, the provisional note.
+    // The opportunity card (AC-9 a): the range, the working estimate with the lost time count it
+    // is built from (spec 0012, AC-1, AC-8: 1.818 injuries a year to one decimal), both savings,
+    // the spelled out confidence in the title row, the provisional note. Nothing else: the date,
+    // the KPI count and the derived rows moved to the disclosure (owner decision of 2026-09-13).
     const card = page.locator("[data-opportunity-card]");
     expect(Number(await card.getAttribute("data-cost"))).toBeCloseTo(ANNUAL, 0);
     await expect(card.locator("[data-cost-headline]")).toContainText(/1.961.000/);
+    await expect(card.locator("[data-cost-headline]")).toContainText(
+      `a year, from about ${LOST_TIME.toFixed(1)} lost time injuries across 420 employees.`,
+    );
     await expect(card.locator("[data-saving-median]")).toContainText(/1.081.000/);
-    await expect(card.getByText(/Computed on \d{2}\.\d{2}\.\d{4}/)).toBeVisible();
-    // Four since the peer data refresh (spec 0016 amendment): the Suva rate, the Eurostat lost days
-    // and fatality rows and the BFS absence rate all cover section C.
-    await expect(card.locator("[data-compared]")).toHaveAttribute("data-compared", "4");
-    await expect(card.getByText("4 of 8 KPIs compared")).toBeVisible();
+    await expect(card.locator("[data-saving-median]")).toContainText("a year");
+    await expect(card.locator("[data-confidence]")).toContainText(/confidence$/);
+    await expect(card.getByText(/Computed on/)).toHaveCount(0);
+    await expect(card.locator("[data-compared]")).toHaveCount(0);
+    await expect(card.locator("[data-derived-count]")).toHaveCount(0);
     // Every peer row the fixture company meets is read from its named source since the peer data
     // refresh, but the four cost assumptions are still provisional, so the note stays until the
     // launch gate reads them (spec 0016, AC-1).
     await expect(page.locator("[data-provisional-note]")).toBeVisible();
-
-    // The derived counts (spec 0012, AC-1, AC-3, AC-4, AC-6): the fixture company carries both
-    // LTIFR and TRIFR, so the lost time count comes from LTIFR (the fallback to the Suva accident
-    // rate is never reached) and the recordable count comes from TRIFR. Both name their source.
-    const derived = card.locator("[data-derived-block]");
-    await expect(derived).toBeVisible();
-    const lostTime = derived.locator('[data-derived-count="lost-time"]');
-    // 1.818 injuries a year, shown to one decimal (AC-8).
-    await expect(lostTime.locator("[data-derived-value]")).toHaveText(LOST_TIME.toFixed(1));
-    await expect(lostTime.getByText("Calculated", { exact: true })).toBeVisible();
-    await expect(lostTime.locator("[data-derived-from]")).toHaveAttribute(
-      "data-derived-from",
-      "ltifr",
-    );
-    await expect(lostTime).toContainText("Calculated from the researched LTIFR for");
-    const recordable = derived.locator('[data-derived-count="recordable"]');
-    // 4.622 injuries a year, shown to one decimal (AC-8).
-    await expect(recordable.locator("[data-derived-value]")).toHaveText(RECORDABLE.toFixed(1));
-    await expect(recordable.locator("[data-derived-from]")).toHaveAttribute(
-      "data-derived-from",
-      "trifr",
-    );
-    await expect(recordable).toContainText("Calculated from the researched TRIFR for");
-    // A calculated number never borrows a confidence score (AC-5).
-    await expect(derived.locator("[data-confidence]")).toHaveCount(0);
 
     // The priority gaps (AC-9 b): of the four compared KPIs the accident rate is the only one the
     // fixture company sits above the peer median on (lost days 12.5 against 14.5, no fatality
@@ -248,6 +229,35 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await disclosure.getByRole("button", { name: "How this is calculated" }).click();
     const content = disclosure.locator("[data-calculation-content]");
     await expect(content).toBeVisible();
+
+    // The facts rows at the top of the disclosure: the date and the KPI count that left the card
+    // (four since the peer data refresh, spec 0016 amendment: the Suva rate, the Eurostat lost
+    // days and fatality rows and the BFS absence rate all cover section C), then the derived
+    // counts (spec 0012, AC-1, AC-2, AC-4, AC-6): the fixture company carries both LTIFR and
+    // TRIFR, so the lost time count comes from LTIFR (the fallback to the Suva accident rate is
+    // never reached) and the recordable count comes from TRIFR. Both name their source.
+    const facts = disclosure.locator("[data-calculation-facts]");
+    await expect(facts.getByText(/Computed on \d{2}\.\d{2}\.\d{4}/)).toBeVisible();
+    await expect(facts.locator("[data-compared]")).toHaveAttribute("data-compared", "4");
+    await expect(facts.getByText("4 of 8 KPIs compared")).toBeVisible();
+    const lostTime = facts.locator('[data-derived-count="lost-time"]');
+    await expect(lostTime.locator("[data-derived-value]")).toHaveText(LOST_TIME.toFixed(1));
+    await expect(lostTime.locator("[data-derived-from]")).toHaveAttribute(
+      "data-derived-from",
+      "ltifr",
+    );
+    await expect(lostTime).toContainText("Calculated from the researched LTIFR for");
+    const recordable = facts.locator('[data-derived-count="recordable"]');
+    // 4.622 injuries a year, shown to one decimal (AC-8).
+    await expect(recordable.locator("[data-derived-value]")).toHaveText(RECORDABLE.toFixed(1));
+    await expect(recordable.locator("[data-derived-from]")).toHaveAttribute(
+      "data-derived-from",
+      "trifr",
+    );
+    await expect(recordable).toContainText("Calculated from the researched TRIFR for");
+    await expect(facts.locator("[data-derived-priced]")).toBeVisible();
+    // A calculated number never borrows a confidence score (AC-5).
+    await expect(facts.locator("[data-confidence]")).toHaveCount(0);
     await expect(content.locator("[data-fte-line]")).toBeVisible();
     await expect(content.locator("[data-assumption]")).toHaveCount(6);
     await expect(content.locator('[data-assumption="direct_cost_per_case_chf"]')).toHaveAttribute(
