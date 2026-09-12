@@ -61,4 +61,4 @@ Spec: [0018](../specs/0018-contact-directory/index.md). The expert becomes a sec
 - [x] Verify it: `/check verify contact directory`
 - [x] Test it: `/test contact directory`
 - [x] Review it (fresh model): `/check review contact directory`
-- [ ] Document it: `/document contact directory`
+- [x] Document it: `/document contact directory`
