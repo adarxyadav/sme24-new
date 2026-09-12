@@ -51,7 +51,8 @@
     },
     "expert": {
       "overview": "Übersicht",
-      "profile": "Profil"
+      "profile": "Profil",
+      "directory": "Kontakte"
     },
     "admin": {
       "overview": "Übersicht",
@@ -61,7 +62,8 @@
       "orders": "Bestellungen",
       "companies": "Firmen",
       "experts": "Expertinnen und Experten",
-      "dataRequests": "Datenanfragen"
+      "dataRequests": "Datenanfragen",
+      "directory": "Kontaktverzeichnis"
     }
   },
   "theme": {
@@ -3305,6 +3307,64 @@
         "validation": "Diese Anfrage konnte nicht gelesen werden. Bitte versuchen Sie es erneut.",
         "forbidden": "Bitte melden Sie sich erneut an, um eine Anfrage zu stellen.",
         "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    }
+  },
+  "directory": {
+    "title": "Kontaktverzeichnis",
+    "lead": "EHS- und Betriebskontakte in Unternehmen weltweit. Suchen Sie nach Firma, Funktion und Land; jede E-Mail-Adresse und Telefonnummer bleibt maskiert, bis Sie die Zeile für einen Credit freischalten, und eine freigeschaltete Zeile bleibt Ihnen erhalten.",
+    "header": {
+      "balance": "{count, plural, =1 {1 Credit} other {# Credits}}",
+      "buy": "Credits kaufen",
+      "unlocks": "Ihre Freischaltungen"
+    },
+    "search": {
+      "legend": "Suche",
+      "company": "Firma",
+      "companyPlaceholder": "Teil eines Firmennamens",
+      "title": "Funktion",
+      "titlePlaceholder": "Sicherheit, EHS, Betrieb…",
+      "country": "Land",
+      "allCountries": "Alle Länder",
+      "countryOption": "{label} ({count})",
+      "submit": "Suchen",
+      "reset": "Zurücksetzen",
+      "errors": {
+        "tooShort": "Geben Sie mindestens zwei Zeichen ein.",
+        "tooLong": "Höchstens 100 Zeichen."
+      }
+    },
+    "results": {
+      "heading": "Ergebnisse",
+      "caption": "Seite {page}: {count, plural, =1 {1 Kontakt} other {# Kontakte}} angezeigt",
+      "columns": {
+        "company": "Firma",
+        "contact": "Kontakt",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "unlock": "Freischalten"
+      },
+      "unnamed": "Kein Name angegeben",
+      "none": "—",
+      "price": "1 Credit, {price}",
+      "priceNote": "exkl. MWST",
+      "unlocked": "Freigeschaltet",
+      "more": "Mehr laden",
+      "pageDepth": {
+        "title": "Weiter reicht eine Suche nicht",
+        "description": "Eine Suche zeigt höchstens {pages} Seiten. Grenzen Sie sie nach Firma, Funktion oder Land ein, um die Zeilen dahinter zu erreichen.",
+        "reset": "Zurück zur ersten Seite"
+      }
+    },
+    "empty": {
+      "noRows": {
+        "title": "Das Verzeichnis wird vorbereitet",
+        "description": "Kontakte erscheinen hier, sobald der erste Import gelaufen ist. Ihre Credits bleiben bis dahin erhalten."
+      },
+      "noMatch": {
+        "title": "Keine passenden Kontakte",
+        "description": "Versuchen Sie einen kürzeren Firmennamen, eine breitere Funktion oder ein anderes Land.",
+        "reset": "Suche löschen"
       }
     }
   }

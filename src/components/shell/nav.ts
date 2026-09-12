@@ -1,4 +1,5 @@
 import {
+  BookUserIcon,
   Building2Icon,
   InboxIcon,
   LayoutDashboardIcon,
@@ -39,6 +40,7 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
   expert: [
     { href: "/expert", labelKey: "expert.overview", icon: LayoutDashboardIcon },
     { href: "/expert/profile", labelKey: "expert.profile", icon: UserIcon },
+    { href: "/expert/directory", labelKey: "expert.directory", icon: BookUserIcon },
   ],
   admin: [
     { href: "/admin", labelKey: "admin.overview", icon: LayoutDashboardIcon },
@@ -48,6 +50,7 @@ export const AREA_NAV: Record<Area, readonly NavItem[]> = {
     { href: "/admin/orders", labelKey: "admin.orders", icon: ReceiptIcon },
     { href: "/admin/companies", labelKey: "admin.companies", icon: Building2Icon },
     { href: "/admin/experts", labelKey: "admin.experts", icon: UsersIcon },
+    { href: "/admin/directory", labelKey: "admin.directory", icon: BookUserIcon },
     { href: "/admin/design", labelKey: "admin.design", icon: PaletteIcon },
   ],
 };

@@ -51,7 +51,8 @@
     },
     "expert": {
       "overview": "Overview",
-      "profile": "Profile"
+      "profile": "Profile",
+      "directory": "Directory"
     },
     "admin": {
       "overview": "Overview",
@@ -61,7 +62,8 @@
       "orders": "Orders",
       "companies": "Companies",
       "experts": "Experts",
-      "dataRequests": "Data requests"
+      "dataRequests": "Data requests",
+      "directory": "Directory"
     }
   },
   "theme": {
@@ -3305,6 +3307,64 @@
         "validation": "That request could not be read. Please try again.",
         "forbidden": "Please sign in again to make a request.",
         "unexpected": "Something went wrong. Please try again."
+      }
+    }
+  },
+  "directory": {
+    "title": "Contact directory",
+    "lead": "EHS and operations contacts at companies worldwide. Search by company, job title and country; every email and phone stays masked until you unlock the row for one credit, and an unlocked row stays yours.",
+    "header": {
+      "balance": "{count, plural, =1 {1 credit} other {# credits}}",
+      "buy": "Buy credits",
+      "unlocks": "Your unlocks"
+    },
+    "search": {
+      "legend": "Search",
+      "company": "Company",
+      "companyPlaceholder": "Part of a company name",
+      "title": "Job title",
+      "titlePlaceholder": "Safety, EHS, operations…",
+      "country": "Country",
+      "allCountries": "All countries",
+      "countryOption": "{label} ({count})",
+      "submit": "Search",
+      "reset": "Reset",
+      "errors": {
+        "tooShort": "Enter at least two characters.",
+        "tooLong": "At most 100 characters."
+      }
+    },
+    "results": {
+      "heading": "Results",
+      "caption": "Page {page}: {count, plural, =1 {1 contact} other {# contacts}} shown",
+      "columns": {
+        "company": "Company",
+        "contact": "Contact",
+        "email": "Email",
+        "phone": "Phone",
+        "unlock": "Unlock"
+      },
+      "unnamed": "No name given",
+      "none": "—",
+      "price": "1 credit, {price}",
+      "priceNote": "excl. VAT",
+      "unlocked": "Unlocked",
+      "more": "Load more",
+      "pageDepth": {
+        "title": "That is as far as one search goes",
+        "description": "A search shows at most {pages} pages. Narrow it by company, title or country to reach the rows past this point.",
+        "reset": "Back to the first page"
+      }
+    },
+    "empty": {
+      "noRows": {
+        "title": "The directory is being prepared",
+        "description": "Contacts appear here once the first import has run. Your credits keep until then."
+      },
+      "noMatch": {
+        "title": "No contacts match",
+        "description": "Try a shorter company name, a broader job title or another country.",
+        "reset": "Clear the search"
       }
     }
   }

@@ -41,6 +41,8 @@ describe("the admin emails entry (spec 0006, AC-9)", () => {
       "/admin/companies",
       // Spec 0013, AC-7: the expert network, before the design gallery.
       "/admin/experts",
+      // Spec 0018, AC-15: the contact directory, before the design gallery.
+      "/admin/directory",
       "/admin/design",
     ]);
     expect(emails?.labelKey).toBe("admin.emails");
