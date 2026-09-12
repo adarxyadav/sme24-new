@@ -3417,6 +3417,52 @@
         "mobile": "Mobil",
         "unlockedAt": "Freigeschaltet am (UTC)"
       }
+    },
+    "packs": {
+      "directory_50": {
+        "name": "50 Verzeichnis-Credits",
+        "description": "Fünfzig Freischaltungen im Kontaktverzeichnis. Ein Credit wird erst beim Freischalten einer Zeile verbraucht, und eine freigeschaltete Zeile bleibt Ihnen erhalten."
+      }
+    },
+    "credits": {
+      "title": "Credits kaufen",
+      "lead": "Ein Credit schaltet einen Kontakt frei: vollständige E-Mail-Adresse und Telefonnummern, gespeichert auf Ihrer Seite der Freischaltungen und in Ihrer CSV-Datei. Credits verfallen nicht.",
+      "back": "Zurück zum Verzeichnis",
+      "balance": "Ihr Guthaben",
+      "pack": {
+        "heading": "Das Paket",
+        "credits": "{count} Credits",
+        "unit": "{price} pro Credit",
+        "note": "Preise in CHF exkl. MWST. Die MWST ist auf der Rechnung ausgewiesen.",
+        "billedTo": "Rechnung an eine Schweizer Adresse (das Land ist fest auf die Schweiz gesetzt)."
+      },
+      "form": {
+        "legend": "Rechnungsadresse",
+        "country": "Land",
+        "countryValue": "Schweiz",
+        "uidHint": "Optional. Ihre CHE-Nummer, auf der Rechnung ausgewiesen.",
+        "billingName": "Name oder Firma"
+      },
+      "return": {
+        "confirmingTitle": "Ihre Zahlung wird bestätigt",
+        "paidTitle": "Ihre Credits sind auf Ihrem Konto",
+        "paidBody": "{count, plural, =1 {1 Credit} other {# Credits}} wurden gutgeschrieben. Ihr Guthaben beträgt jetzt {balance, plural, =1 {1 Credit} other {# Credits}}.",
+        "paidAction": "Verzeichnis öffnen",
+        "awaitingTitle": "Rechnung angefordert",
+        "awaitingBody": "Ihre Credits kommen, sobald die Überweisung verbucht ist, zahlbar bis {dueDate}. Laden Sie die Rechnung mit QR-Einzahlungsschein unten herunter.",
+        "invoiceDownload": "Rechnung herunterladen",
+        "invoicePending": "Die Rechnung wird erstellt. Sie ist in Kürze bereit.",
+        "invoiceFailed": "Die Rechnung konnte nicht erstellt werden. Wir beheben das und senden sie Ihnen zu.",
+        "expiredTitle": "Dieser Bezahlvorgang ist abgelaufen",
+        "expiredBody": "Es wurde nichts belastet. Beginnen Sie unten erneut.",
+        "cancelledTitle": "Diese Bestellung wurde storniert",
+        "cancelledBody": "Es wurde nichts belastet. Beginnen Sie unten erneut."
+      },
+      "net": "Nettobetrag",
+      "vat": "MWST {rate}",
+      "gross": "Gesamtbetrag",
+      "unavailableTitle": "Credits können im Moment nicht gekauft werden",
+      "unavailableBody": "Das Credit-Paket ist zurzeit nicht im Verkauf. Versuchen Sie es später erneut."
     }
   }
 }

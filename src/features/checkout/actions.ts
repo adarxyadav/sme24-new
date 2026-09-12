@@ -8,7 +8,7 @@ import { captureServerEvent } from "@/lib/analytics/server";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
-import { stripe, stripeConfigured } from "@/lib/stripe/client";
+import { stripeConfigured } from "@/lib/stripe/client";
 import { createActionClient } from "@/lib/supabase/action";
 import type { Database } from "@/lib/supabase/database.types";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -17,6 +17,7 @@ import { classifyOrderInsertError } from "./errors";
 import { computeAmounts } from "./money";
 import { checkoutSchema } from "./schema";
 import { invoiceDueDays } from "./seller";
+import { openCheckoutSession } from "./stripe-session";
 
 /**
  * The checkout server actions (spec 0011, AC-1, AC-8, AC-11, AC-19). `startCheckout` opens a
@@ -229,72 +230,19 @@ export async function startCheckout(
     log.error("checkout: order event insert failed", { orderId: order.id });
   }
 
-  const client = stripe();
-  if (!client) return { ok: false, error: "stripe_unavailable" };
-
+  // The session and the id write, shared with the expert credit checkout (spec 0018) so the
+  // load bearing ordering lives in one place; the write is scoped to the buyer's organization.
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
-  let session: { id: string; url: string | null };
-  try {
-    session = await client.checkout.sessions.create(
-      {
-        mode: "payment",
-        // The return page is the order's own detail page, so the return is a normal read of a row
-        // the client already owns and the session_id Stripe appends is ignored entirely.
-        success_url: `${appUrl}/${LOCALE_CODE[locale]}/app/orders/${order.id}`,
-        cancel_url: `${appUrl}/${LOCALE_CODE[locale]}/app/orders/${order.id}`,
-        client_reference_id: order.id,
-        locale: order.locale === "de" ? "de" : "en",
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: "chf",
-              // Stripe's minor unit for CHF is the Rappen, so the integer passes unchanged: the
-              // gross already includes the VAT we computed, which is why automatic_tax is off.
-              unit_amount: Number(order.gross_rappen),
-              product_data: { name: order.package_name_snapshot },
-            },
-          },
-        ],
-        metadata: { order_id: order.id, reference: order.reference },
-      },
-      // One session per order, whatever happens to the request.
-      { idempotencyKey: `checkout/${order.id}` },
-    );
-  } catch (error) {
-    Sentry.captureException(error);
-    log.error("checkout: stripe session creation failed", { orderId: order.id });
-    // The pending order stays with a null session id; the sweep expires it in an hour (AC-6).
-    return { ok: false, error: "stripe_unavailable" };
-  }
-
-  try {
-    // App roles cannot update orders. This server-only write is scoped to the order just
-    // inserted under the buyer's RLS policies, never an order id supplied by the caller.
-    const { error: updateError } = await actor
-      .service()
-      .from("orders")
-      .update({ stripe_checkout_session_id: session.id })
-      .eq("id", order.id)
-      .eq("organization_id", actor.organizationId)
-      .select("id")
-      .single();
-    if (updateError) throw updateError;
-  } catch (error) {
-    // Never hand out a payable URL until persistence is confirmed: the sweep treats a null
-    // session id as an unstarted checkout. A zero-row update must fail here too.
-    Sentry.captureException(error);
-    log.error("checkout: could not store the stripe session id", {
-      orderId: order.id,
-      sessionId: session.id,
-    });
-    return { ok: false, error: "unexpected" };
-  }
-
-  if (!session.url) {
-    log.error("checkout: stripe returned no session url", { orderId: order.id });
-    return { ok: false, error: "stripe_unavailable" };
-  }
+  const returnUrl = `${appUrl}/${LOCALE_CODE[locale]}/app/orders/${order.id}`;
+  const session = await openCheckoutSession({
+    order,
+    successUrl: returnUrl,
+    cancelUrl: returnUrl,
+    service: actor.service,
+    scope: { column: "organization_id", value: actor.organizationId },
+    context: "checkout",
+  });
+  if (!session.ok) return { ok: false, error: session.error };
 
   log.info("checkout started", { orderId: order.id, reference: order.reference });
   // After the session id write is confirmed (AC-8), which is the point the checkout is real: an

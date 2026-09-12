@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { billingAddressSchema } from "@/features/checkout/schema";
+import { CREDIT_PACK_KEYS } from "./catalogue";
 import { isCountryCode } from "./countries";
 
 /**
@@ -100,3 +102,19 @@ export const revealContactSchema = z.object({
   locale: z.enum(["de", "en"]),
 });
 export type RevealContactInput = z.infer<typeof revealContactSchema>;
+
+/**
+ * The credit pack purchase (AC-9): which pack, the billing address and the payment method, in the
+ * buyer's language. The billing country is not a field: every expert buyer is established in
+ * Switzerland (owner decision, 2026-09-12), so the rail's 8.1 percent MWST is always right and a
+ * foreign address cannot enter; the action writes the literal `CH`. `packKey` is the credit pack
+ * list, never `PACKAGE_KEYS`, so an assessment package can never reach this action.
+ */
+export const creditCheckoutSchema = billingAddressSchema.omit({ billingCountry: true }).extend({
+  packKey: z.enum(CREDIT_PACK_KEYS),
+  paymentMethod: z.enum(["card", "bank_transfer"]),
+});
+export type CreditCheckoutInput = z.output<typeof creditCheckoutSchema>;
+
+/** The billing country of every credit pack order, by owner decision. */
+export const CREDIT_BILLING_COUNTRY = "CH";

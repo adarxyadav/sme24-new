@@ -199,6 +199,67 @@ test.describe("the directory browse (AC-5)", () => {
     expect(csv).toContain(",'+41 41 000 00 99,");
   });
 
+  test("an expert buys a credit pack by invoice: the order carries the expert buyer shape (AC-9)", async ({
+    page,
+  }, testInfo) => {
+    const supabase = serviceClient();
+    const { data: users } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    const expert = users.users.find((user) => user.email === SEED_USERS.expert);
+    if (!expert) throw new Error("the seeded expert is needed");
+
+    await signIn(page, SEED_USERS.expert);
+    await page.goto("/de/expert/kontakte/guthaben");
+    await expect(page.getByRole("heading", { level: 1, name: "Credits kaufen" })).toBeVisible();
+    // The cookie bar is fixed to the bottom of the viewport and would sit on the submit button.
+    await page.getByTestId("cookie-bar").getByRole("button", { name: "Ablehnen" }).click();
+    await expect(page.getByTestId("cookie-bar")).toHaveCount(0);
+    await expect(page.getByText("50 Verzeichnis-Credits")).toBeVisible();
+    await expect(page.getByText("CHF 99.50")).toBeVisible();
+    await expect(page.getByText("CHF 107.56")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("directory-credits.png"), fullPage: true });
+    const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
+    expect(results.violations).toEqual([]);
+
+    await page.getByLabel("Strasse und Nummer").fill("Bahnhofstrasse 1");
+    await page.getByLabel("PLZ").fill("6340");
+    await page.getByLabel("Ort").fill("Baar");
+    await page.getByRole("radio", { name: /Rechnung/ }).click();
+    await page.getByRole("button", { name: "Rechnung anfordern" }).click();
+    await page.waitForURL(/\/expert\/kontakte\/guthaben\?order=/);
+    await expect(page.getByText("Rechnung angefordert")).toBeVisible();
+
+    const orderId = new URL(page.url()).searchParams.get("order") as string;
+    const { data: order } = await supabase
+      .from("orders")
+      .select(
+        "buyer_expert_id, organization_id, company_id, credits, package_key, payment_method, billing_country, net_rappen, gross_rappen, status",
+      )
+      .eq("id", orderId)
+      .single();
+    expect(order).toMatchObject({
+      buyer_expert_id: expert.id,
+      organization_id: null,
+      company_id: null,
+      credits: 50,
+      package_key: "directory_50",
+      payment_method: "bank_transfer",
+      billing_country: "CH",
+      net_rappen: 9950,
+      gross_rappen: 10756,
+      status: "pending",
+    });
+    // No credits until ops mark the transfer paid.
+    const { count } = await supabase
+      .from("directory_credit_entries")
+      .select("id", { count: "exact", head: true })
+      .eq("order_id", orderId);
+    expect(count).toBe(0);
+
+    // Clean up: the pgTAP seed guard refuses a database holding orders.
+    await supabase.from("invoices").delete().eq("order_id", orderId);
+    await supabase.from("orders").delete().eq("id", orderId);
+  });
+
   test("a client cannot open the directory", async ({ page }) => {
     await signIn(page, SEED_USERS.client);
     await page.goto("/de/expert/kontakte");

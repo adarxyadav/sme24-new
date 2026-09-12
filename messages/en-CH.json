@@ -3417,6 +3417,52 @@
         "mobile": "Mobile",
         "unlockedAt": "Unlocked at (UTC)"
       }
+    },
+    "packs": {
+      "directory_50": {
+        "name": "50 directory credits",
+        "description": "Fifty unlocks in the contact directory. A credit is spent only when you reveal a row, and a revealed row stays yours."
+      }
+    },
+    "credits": {
+      "title": "Buy credits",
+      "lead": "One credit reveals one contact: the full email and phone numbers, kept on your unlocks page and in your CSV. Credits do not expire.",
+      "back": "Back to the directory",
+      "balance": "Your balance",
+      "pack": {
+        "heading": "The pack",
+        "credits": "{count} credits",
+        "unit": "{price} per credit",
+        "note": "Prices in CHF excl. VAT. The invoice shows the VAT.",
+        "billedTo": "Billed to a Swiss address (the country is fixed to Switzerland)."
+      },
+      "form": {
+        "legend": "Billing address",
+        "country": "Country",
+        "countryValue": "Switzerland",
+        "uidHint": "Optional. Your CHE number, shown on the invoice.",
+        "billingName": "Name or company"
+      },
+      "return": {
+        "confirmingTitle": "Confirming your payment",
+        "paidTitle": "Your credits are on your account",
+        "paidBody": "{count, plural, =1 {1 credit} other {# credits}} were added. Your balance is now {balance, plural, =1 {1 credit} other {# credits}}.",
+        "paidAction": "Open the directory",
+        "awaitingTitle": "Invoice requested",
+        "awaitingBody": "Your credits arrive once the transfer is booked, payable by {dueDate}. Download the invoice with the QR bill below.",
+        "invoiceDownload": "Download invoice",
+        "invoicePending": "The invoice is being prepared. It will be ready in a moment.",
+        "invoiceFailed": "The invoice could not be rendered. We will fix it and send it to you.",
+        "expiredTitle": "This checkout expired",
+        "expiredBody": "Nothing was charged. Start again below.",
+        "cancelledTitle": "This order was cancelled",
+        "cancelledBody": "Nothing was charged. Start again below."
+      },
+      "net": "Net amount",
+      "vat": "VAT {rate}",
+      "gross": "Total",
+      "unavailableTitle": "Credits cannot be bought right now",
+      "unavailableBody": "The credit pack is not on sale at the moment. Try again later."
     }
   }
 }
