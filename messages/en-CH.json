@@ -3714,7 +3714,25 @@
         "non_compliant": "Non compliant",
         "partial": "Partially compliant"
       },
-      "inSection": "Section {label}, {title}"
+      "inSection": "Section {label}, {title}",
+      "excludedEntry": "Not applicable to this site; its items were not counted."
+    },
+    "exclusion": {
+      "label": "Not applicable",
+      "lead": "Mark this standard not applicable when the site has no such activity. Its items drop out of the score and the completeness check.",
+      "excludedHint": "This standard is not applicable to this site. Its items are disabled and do not count.",
+      "note": "Reason",
+      "notePlaceholder": "Why this standard does not apply (optional)",
+      "noteHint": "Appears in the score summary and the gap list. Do not record the names of individual workers.",
+      "errors": {
+        "not_allowed": "This questionnaire does not allow excluding a section.",
+        "locked": "This assessment was submitted and is now read only. Your last change was not saved.",
+        "not_found": "This assessment is no longer available to you.",
+        "invalid": "This section is not part of the questionnaire.",
+        "validation": "The reason could not be saved.",
+        "forbidden": "Only an expert can rate an assessment.",
+        "unexpected": "Something went wrong. Please try again."
+      }
     }
   }
 }

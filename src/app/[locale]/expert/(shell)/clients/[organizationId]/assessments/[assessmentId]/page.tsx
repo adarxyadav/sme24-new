@@ -2,10 +2,12 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { PageStack } from "@/components/page-stack";
-import { computeProgress, computeScore, gapList } from "@/features/assessments/model";
+import { QUESTIONNAIRES, type QuestionnaireKey } from "@/features/assessments/catalogue";
+import { computeProgress, computeScore, exclusionsOf, gapList } from "@/features/assessments/model";
 import { getAssessment } from "@/features/assessments/queries";
 import { AssessmentHeader } from "@/features/assessments/ui/assessment-header";
 import { ScoreSummary } from "@/features/assessments/ui/score-summary";
+import { SectionHeading } from "@/features/assessments/ui/section-heading";
 import { SectionItems } from "@/features/assessments/ui/section-items";
 import { SectionNav } from "@/features/assessments/ui/section-nav";
 import { clientMessages } from "@/i18n/client-messages";
@@ -49,16 +51,22 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
   const score = computeScore(version.sections, items, answers);
   const progress = computeProgress(version.sections, items, answers);
   const requested = Array.isArray(section) ? section[0] : section;
-  const openKey =
-    version.sections.find((candidate) => candidate.key === requested)?.key ??
-    version.sections[0]?.key ??
-    "";
+  const openSection =
+    version.sections.find((candidate) => candidate.key === requested) ?? version.sections[0];
+  const openKey = openSection?.key ?? "";
   const openItems = items.filter((item) => item.sectionKey === openKey);
   const openIds = new Set(openItems.map((item) => item.id));
   const openAnswers = answers.filter(
     (answer) => answer.itemId !== null && openIds.has(answer.itemId),
   );
   const submitted = page.status === "submitted";
+  // AC-8: whether a standard may be marked not applicable comes from the catalogue entry of the
+  // row's own questionnaire key; the exclusion itself is the answer row without an item.
+  const allowsExclusion =
+    QUESTIONNAIRES[page.assessment.questionnaire_key as QuestionnaireKey]?.allowsSectionExclusion ??
+    false;
+  const exclusions = exclusionsOf(answers);
+  const excluded = exclusions.has(openKey);
 
   return (
     <NextIntlClientProvider messages={clientMessages(messages, ["assessments"])}>
@@ -83,16 +91,31 @@ export default async function AssessmentPage({ params, searchParams }: Props) {
               locale={localeCode}
             />
           </div>
-          <SectionItems
-            // Remount per section: the local answer state and the autosave queue belong to one
-            // section, and leaving it flushes what is still waiting.
-            key={openKey}
-            assessmentId={assessmentId}
-            items={openItems}
-            answers={openAnswers}
-            locale={localeCode}
-            readOnly={submitted}
-          />
+          <div className="flex min-w-0 flex-col gap-6">
+            {openSection ? (
+              <SectionHeading
+                assessmentId={assessmentId}
+                section={openSection}
+                locale={localeCode}
+                allowsExclusion={allowsExclusion}
+                excluded={excluded}
+                exclusionNote={exclusions.get(openKey) ?? null}
+                readOnly={submitted}
+              />
+            ) : null}
+            <SectionItems
+              // Remount per section: the local answer state and the autosave queue belong to one
+              // section, and leaving it flushes what is still waiting.
+              key={openKey}
+              assessmentId={assessmentId}
+              items={openItems}
+              groups={openSection?.groups ?? []}
+              answers={openAnswers}
+              locale={localeCode}
+              readOnly={submitted}
+              excluded={excluded}
+            />
+          </div>
         </div>
       </PageStack>
     </NextIntlClientProvider>

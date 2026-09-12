@@ -37,6 +37,8 @@ export type ItemCardProps = {
   readonly suggestion: Suggestion | null;
   readonly locale: LocaleCode;
   readonly readOnly: boolean;
+  /** `h4` under a group heading of the technical standards, `h3` (the default) otherwise. */
+  readonly headingLevel?: "h3" | "h4";
   readonly handlers: ItemHandlers;
 };
 
@@ -57,6 +59,7 @@ export function ItemCard({
   suggestion,
   locale,
   readOnly,
+  headingLevel: Heading = "h3",
   handlers,
 }: ItemCardProps) {
   const t = useTranslations("assessments");
@@ -79,9 +82,9 @@ export function ItemCard({
           <span className="font-mono text-muted-foreground text-xs tabular-nums" translate="no">
             {item.label}
           </span>
-          <h3 id={titleId} className="font-medium text-base leading-snug">
+          <Heading id={titleId} className="font-medium text-base leading-snug">
             {item.title[locale]}
-          </h3>
+          </Heading>
         </div>
         {locale === "de" && !item.deReviewed ? <MachineTranslatedNote /> : null}
       </header>

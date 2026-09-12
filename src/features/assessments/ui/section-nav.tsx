@@ -1,3 +1,4 @@
+import { BanIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { Progress } from "@/features/assessments/model";
 import { Link } from "@/i18n/navigation";
@@ -14,8 +15,9 @@ export type SectionNavProps = {
 
 /**
  * The section navigator (spec 0019, AC-6, AC-13): a list of links carrying `?section=`, one per
- * section of the outline, each with its progress and the open one marked `aria-current`. An
- * excluded section is marked as such (the control that excludes it is milestone 4). Server.
+ * section of the outline, each with its progress and the open one marked `aria-current`. A
+ * section marked not applicable (AC-8) carries an icon and the words, never the colour alone, and
+ * its title is muted. Server.
  */
 export async function SectionNav({
   organizationId,
@@ -41,6 +43,7 @@ export async function SectionNav({
                   query: { section: section.key },
                 }}
                 aria-current={open ? "page" : undefined}
+                data-excluded={section.excluded ? "true" : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-sm transition-colors",
                   "hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -53,18 +56,25 @@ export async function SectionNav({
                 >
                   {section.label}
                 </span>
-                <span className="flex-1">{section.title[locale]}</span>
-                <span
-                  className={cn(
-                    "shrink-0 text-xs tabular-nums",
-                    complete ? "text-success" : "text-muted-foreground",
-                  )}
-                  data-numeric
-                >
-                  {section.excluded
-                    ? t("excluded")
-                    : t("progress", { rated: section.rated, required: section.required })}
+                <span className={cn("flex-1", section.excluded && "text-muted-foreground")}>
+                  {section.title[locale]}
                 </span>
+                {section.excluded ? (
+                  <span className="flex shrink-0 items-center gap-1 text-muted-foreground text-xs">
+                    <BanIcon aria-hidden="true" className="size-3.5" />
+                    {t("excluded")}
+                  </span>
+                ) : (
+                  <span
+                    className={cn(
+                      "shrink-0 text-xs tabular-nums",
+                      complete ? "text-success" : "text-muted-foreground",
+                    )}
+                    data-numeric
+                  >
+                    {t("progress", { rated: section.rated, required: section.required })}
+                  </span>
+                )}
               </Link>
             </li>
           );

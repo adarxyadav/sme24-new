@@ -6,12 +6,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { type SaveAnswerResult, saveAnswer } from "@/features/assessments/actions";
 import type { RatingCode } from "@/features/assessments/catalogue";
+import type { ContentGroup } from "@/features/assessments/content-schema";
 import {
   type AssessmentAnswer,
   type AssessmentItem,
   suggestedRating,
 } from "@/features/assessments/model";
 import type { LocaleCode } from "@/i18n/routing";
+import { cn } from "@/lib/utils";
 import { type ItemAnswerState, ItemCard, type ItemHandlers } from "./item-card";
 import type { SaveState } from "./save-indicator";
 
@@ -19,12 +21,41 @@ export type SectionItemsProps = {
   readonly assessmentId: string;
   /** Every item of the open section, sub items included, in position order. */
   readonly items: readonly AssessmentItem[];
+  /** The groups of the open section from the version's outline; empty for ISO 45001. */
+  readonly groups: readonly ContentGroup[];
   /** The stored answers of those items, the starting point of the local state. */
   readonly answers: readonly AssessmentAnswer[];
   readonly locale: LocaleCode;
   /** True once the assessment is submitted: every control disabled, nothing saves. */
   readonly readOnly: boolean;
+  /** True while the section is marked not applicable (AC-8): greyed, every control disabled. */
+  readonly excluded: boolean;
 };
+
+/** One run of top level items under a group heading, or the ungrouped ones with none. */
+export type ItemBlock = {
+  readonly group: ContentGroup | null;
+  readonly items: readonly AssessmentItem[];
+};
+
+/**
+ * The top level items of a section in blocks (AC-8): the ungrouped ones first, then one block
+ * per group of the outline in outline order, empty groups dropped. An item naming a group the
+ * outline does not carry counts as ungrouped rather than vanishing. Pure.
+ */
+export function itemBlocks(
+  items: readonly AssessmentItem[],
+  groups: readonly ContentGroup[],
+): readonly ItemBlock[] {
+  const topLevel = items.filter((item) => item.parentId === null);
+  const known = new Set(groups.map((group) => group.key));
+  const ungrouped = topLevel.filter((item) => item.groupKey === null || !known.has(item.groupKey));
+  const grouped = groups.flatMap((group): ItemBlock[] => {
+    const own = topLevel.filter((item) => item.groupKey === group.key);
+    return own.length === 0 ? [] : [{ group, items: own }];
+  });
+  return ungrouped.length === 0 ? grouped : [{ group: null, items: ungrouped }, ...grouped];
+}
 
 /** A note saves this long after the last keystroke (spec 0019, AC-6). */
 const NOTE_DEBOUNCE_MS = 800;
@@ -55,14 +86,18 @@ const TERMINAL: ReadonlySet<string> = new Set(["not_found", "invalid", "validati
  * thrown away. The browser warns before unload while anything is pending or failed. A save
  * refused with `locked` tells the expert once and switches the page to read only through a
  * server refresh. Every successful save also refreshes the server rendered header and navigator,
- * coalesced, so the progress and the running score keep up. Browser.
+ * coalesced, so the progress and the running score keep up. The technical standards render their
+ * items under group headings from the outline (AC-8), and a section marked not applicable is
+ * greyed with every control disabled. Browser.
  */
 export function SectionItems({
   assessmentId,
   items,
+  groups,
   answers,
   locale,
   readOnly,
+  excluded,
 }: SectionItemsProps) {
   const t = useTranslations("assessments.errors");
   const router = useRouter();
@@ -73,7 +108,7 @@ export function SectionItems({
   const values = useRef<Map<string, Value>>(new Map(initialValues(answers)));
   const queues = useRef<Map<string, Queue>>(new Map());
   const refreshTimer = useRef<number | null>(null);
-  const frozen = readOnly || locked;
+  const frozen = readOnly || locked || excluded;
 
   const patch = useCallback((itemId: string, change: Partial<ItemAnswerState>) => {
     setState((previous) => {
@@ -261,30 +296,68 @@ export function SectionItems({
       })),
     [state],
   );
-  const topLevel = items.filter((item) => item.parentId === null);
+  const blocks = itemBlocks(items, groups);
+
+  const cards = (blockItems: readonly AssessmentItem[], headingLevel: "h3" | "h4") =>
+    blockItems.map((item) => {
+      const subItems = items.filter((candidate) => candidate.parentId === item.id);
+      return (
+        <li key={item.id}>
+          <ItemCard
+            item={item}
+            subItems={subItems}
+            answers={state}
+            suggestion={
+              subItems.length > 0 ? suggestedRating(item.id, items, currentAnswers) : null
+            }
+            locale={locale}
+            readOnly={frozen}
+            headingLevel={headingLevel}
+            handlers={handlers}
+          />
+        </li>
+      );
+    });
 
   return (
-    <ol className="flex flex-col gap-6" data-section-items>
-      {topLevel.map((item) => {
-        const subItems = items.filter((candidate) => candidate.parentId === item.id);
-        return (
-          <li key={item.id}>
-            <ItemCard
-              item={item}
-              subItems={subItems}
-              answers={state}
-              suggestion={
-                subItems.length > 0 ? suggestedRating(item.id, items, currentAnswers) : null
-              }
-              locale={locale}
-              readOnly={frozen}
-              handlers={handlers}
-            />
-          </li>
-        );
-      })}
-    </ol>
+    <div
+      className={cn("flex flex-col gap-8", excluded && "opacity-60")}
+      data-section-items
+      data-excluded={excluded ? "true" : undefined}
+      aria-disabled={excluded || undefined}
+    >
+      {blocks.map((block) =>
+        block.group ? (
+          <section
+            key={block.group.key}
+            aria-labelledby={`group-${slug(block.group.key)}`}
+            data-group={block.group.key}
+            className="flex flex-col gap-4"
+          >
+            <h3
+              id={`group-${slug(block.group.key)}`}
+              className="flex items-baseline gap-3 font-medium text-base leading-snug"
+            >
+              <span className="font-mono text-muted-foreground text-xs tabular-nums" translate="no">
+                {block.group.label}
+              </span>
+              <span>{block.group.title[locale]}</span>
+            </h3>
+            <ol className="flex flex-col gap-6">{cards(block.items, "h4")}</ol>
+          </section>
+        ) : (
+          <ol key="ungrouped" className="flex flex-col gap-6">
+            {cards(block.items, "h3")}
+          </ol>
+        ),
+      )}
+    </div>
   );
+}
+
+/** A group key as an id fragment: `electrical_safety.2` becomes `electrical_safety-2`. */
+function slug(key: string): string {
+  return key.replace(/[^a-z0-9_]+/gi, "-");
 }
 
 function isBusy(save: SaveState): boolean {

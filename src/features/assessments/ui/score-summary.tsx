@@ -20,11 +20,13 @@ export type ScoreSummaryProps = {
 /**
  * The locked score on top of a submitted assessment (spec 0019, AC-9): the overall percentage, a
  * per section table (percentage, rated over total, or excluded with its note) and the gap list,
- * non compliant first then partial, each with label, title, section and note. Every number comes
- * from `computeScore` and `gapList`, the same functions the running score used. Server.
+ * non compliant first then partial, each with label, title, section and note, then every section
+ * marked not applicable with its reason (AC-8). Every number comes from `computeScore` and
+ * `gapList`, the same functions the running score used. Server.
  */
 export async function ScoreSummary({ score, gaps, locale }: ScoreSummaryProps) {
   const [t, format] = await Promise.all([getTranslations("assessments.summary"), getFormatter()]);
+  const excluded = score.sections.filter((section) => section.excluded);
   const percent = (value: number | null) =>
     value === null ? "—" : format.number(value / 100, "percent");
 
@@ -89,9 +91,8 @@ export async function ScoreSummary({ score, gaps, locale }: ScoreSummaryProps) {
 
       <div className="flex flex-col gap-3">
         <h3 className="font-medium text-base">{t("gaps")}</h3>
-        {gaps.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{t("noGaps")}</p>
-        ) : (
+        {gaps.length === 0 ? <p className="text-muted-foreground text-sm">{t("noGaps")}</p> : null}
+        {gaps.length > 0 || excluded.length > 0 ? (
           <ol className="flex flex-col gap-3" data-gap-list>
             {gaps.map((gap) => (
               <li key={gap.itemId} className="flex flex-col gap-1.5 rounded-lg border p-3">
@@ -110,8 +111,29 @@ export async function ScoreSummary({ score, gaps, locale }: ScoreSummaryProps) {
                 {gap.note ? <p className="whitespace-pre-wrap text-sm">{gap.note}</p> : null}
               </li>
             ))}
+            {/* AC-8: a standard marked not applicable is listed after the rated gaps, with its
+                reason, so the list says why a whole section is missing from the score. */}
+            {excluded.map((section) => (
+              <li
+                key={`excluded-${section.key}`}
+                data-excluded-section={section.key}
+                className="flex flex-col gap-1.5 rounded-lg border border-dashed p-3"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary">{t("excluded")}</Badge>
+                  <span className="font-mono text-muted-foreground text-xs" translate="no">
+                    {section.label}
+                  </span>
+                  <span className="font-medium text-sm">{section.title[locale]}</span>
+                </div>
+                <p className="text-muted-foreground text-xs">{t("excludedEntry")}</p>
+                {section.exclusionNote ? (
+                  <p className="whitespace-pre-wrap text-sm">{section.exclusionNote}</p>
+                ) : null}
+              </li>
+            ))}
           </ol>
-        )}
+        ) : null}
       </div>
     </section>
   );

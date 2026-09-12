@@ -3714,7 +3714,25 @@
         "non_compliant": "Nicht erfüllt",
         "partial": "Teilweise erfüllt"
       },
-      "inSection": "Abschnitt {label}, {title}"
+      "inSection": "Abschnitt {label}, {title}",
+      "excludedEntry": "An diesem Standort nicht anwendbar; die Punkte wurden nicht gezählt."
+    },
+    "exclusion": {
+      "label": "Nicht anwendbar",
+      "lead": "Markieren Sie diese Norm als nicht anwendbar, wenn es am Standort keine solche Tätigkeit gibt. Ihre Punkte fallen aus dem Score und aus der Vollständigkeitsprüfung.",
+      "excludedHint": "Diese Norm ist an diesem Standort nicht anwendbar. Ihre Punkte sind deaktiviert und zählen nicht.",
+      "note": "Begründung",
+      "notePlaceholder": "Warum diese Norm nicht anwendbar ist (optional)",
+      "noteHint": "Erscheint in der Score-Übersicht und in der Lückenliste. Erfassen Sie keine Namen einzelner Mitarbeitender.",
+      "errors": {
+        "not_allowed": "Bei diesem Fragebogen kann kein Abschnitt ausgeschlossen werden.",
+        "locked": "Diese Beurteilung wurde eingereicht und ist jetzt schreibgeschützt. Ihre letzte Änderung wurde nicht gespeichert.",
+        "not_found": "Diese Beurteilung ist für Sie nicht mehr verfügbar.",
+        "invalid": "Dieser Abschnitt gehört nicht zum Fragebogen.",
+        "validation": "Die Begründung konnte nicht gespeichert werden.",
+        "forbidden": "Nur eine Fachperson kann eine Beurteilung ausfüllen.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
     }
   }
 }
