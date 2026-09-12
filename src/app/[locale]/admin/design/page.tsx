@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
+import { AssessmentsSection } from "@/components/gallery/assessments-section";
 import { BenchmarkSection } from "@/components/gallery/benchmark-section";
 import { BrandSection } from "@/components/gallery/brand-section";
 import { ButtonsSection } from "@/components/gallery/buttons-section";
@@ -39,6 +40,7 @@ const SECTIONS = [
   ["marketing", MarketingSection],
   ["charts", ChartsSection],
   ["experts", ExpertsSection],
+  ["assessments", AssessmentsSection],
 ] as const;
 
 /**
@@ -57,6 +59,8 @@ export default async function DesignGalleryPage() {
     "research",
     "benchmark",
     "marketing",
+    // The assessments section's save indicator reads `assessments.save` (spec 0019, AC-13).
+    "assessments",
   ]);
 
   return (

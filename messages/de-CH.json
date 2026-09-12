@@ -1011,6 +1011,10 @@
       "experts": {
         "title": "Experten",
         "description": "Die Auswahl und das Bild, die die Expertenseiten verwenden (Spec 0012)."
+      },
+      "assessments": {
+        "title": "Beurteilungen",
+        "description": "Das Bewertungselement und die Speicheranzeige des Fragebogen-Moduls (Spec 0019)."
       }
     },
     "tokens": {
@@ -1375,7 +1379,18 @@
     "comboboxLabel": "Kundenorganisation",
     "comboboxPlaceholder": "Organisation wählen",
     "comboboxSearch": "Organisationen suchen",
-    "comboboxEmpty": "Keine Organisation gefunden."
+    "comboboxEmpty": "Keine Organisation gefunden.",
+    "ratingControl": "Bewertungselement",
+    "ratingControlLabel": "4.1 Verstehen der Organisation und ihres Kontextes",
+    "ratingUnrated": "Nichts gewählt",
+    "ratingChosen": "Teilweise erfüllt gewählt",
+    "ratingDisabled": "Schreibgeschützt nach dem Einreichen",
+    "saveIndicator": "Speicheranzeige",
+    "saveIdle": "Ruhend",
+    "savePending": "Ausstehend",
+    "saveSaving": "Wird gespeichert",
+    "saveSaved": "Gespeichert",
+    "saveFailed": "Fehlgeschlagen mit erneutem Versuch"
   },
   "email": {
     "layout": {
@@ -3554,6 +3569,152 @@
           "emailLong": "Diese Adresse ist zu lang."
         }
       }
+    }
+  },
+  "assessments": {
+    "questionnaires": {
+      "iso45001": "ISO 45001 Gap-Analyse",
+      "compliance": "Compliance-Beurteilung"
+    },
+    "status": {
+      "draft": "In Arbeit",
+      "submitted": "Eingereicht"
+    },
+    "ratings": {
+      "compliant": "Erfüllt",
+      "partial": "Teilweise erfüllt",
+      "non_compliant": "Nicht erfüllt"
+    },
+    "section": {
+      "heading": "Beurteilungen",
+      "lead": "Beurteilen Sie den Kunden während oder nach dem Besuch anhand einer Checkliste. Alles wird laufend gespeichert; ein Einreichen sperrt den Score.",
+      "notStarted": "Noch nicht begonnen",
+      "draftSince": "Entwurf seit {date}",
+      "continue": "Fortsetzen",
+      "noCompany": "Dieser Kunde hat noch kein Unternehmen erfasst, daher gibt es nichts zu beurteilen.",
+      "empty": "Noch keine Beurteilungen.",
+      "open": "Öffnen",
+      "columns": {
+        "questionnaire": "Fragebogen",
+        "status": "Status",
+        "started": "Begonnen",
+        "submitted": "Eingereicht",
+        "score": "Score",
+        "open": "Öffnen"
+      }
+    },
+    "start": {
+      "button": "Beginnen",
+      "starting": "Wird begonnen…",
+      "started": "Die Beurteilung ist geöffnet.",
+      "errors": {
+        "validation": "Prüfen Sie die Anfrage und versuchen Sie es erneut.",
+        "forbidden": "Nur eine Fachperson kann eine Beurteilung beginnen.",
+        "not_assigned": "Sie sind diesem Kunden nicht mehr zugeteilt.",
+        "draft_exists": "Für dieses Unternehmen ist bereits ein Entwurf dieses Fragebogens offen.",
+        "unknown_questionnaire": "Dieser Fragebogen hat noch keine veröffentlichte Version.",
+        "company_mismatch": "Dieses Unternehmen gehört nicht zum Kunden.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "page": {
+      "title": "Beurteilung",
+      "backToClient": "Zurück zu {company}",
+      "lead": "{company}",
+      "status": "Status",
+      "progress": "Fortschritt",
+      "rated": "{rated} von {required} beurteilt",
+      "runningScore": "Laufender Score",
+      "score": "Score",
+      "noScore": "—"
+    },
+    "details": {
+      "site": "Standort",
+      "sitePlaceholder": "Besuchtes Werk oder Standort",
+      "conductedOn": "Besuchsdatum",
+      "save": "Angaben speichern",
+      "saving": "Wird gespeichert…",
+      "saved": "Die Angaben sind gespeichert.",
+      "none": "Nicht erfasst",
+      "errors": {
+        "validation": "Prüfen Sie Standort und Datum.",
+        "forbidden": "Nur eine Fachperson kann eine Beurteilung bearbeiten.",
+        "not_found": "Diese Beurteilung ist für Sie nicht mehr verfügbar.",
+        "locked": "Diese Beurteilung ist eingereicht und kann nicht mehr geändert werden.",
+        "invalid": "Prüfen Sie Standort und Datum.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "nav": {
+      "label": "Abschnitte",
+      "progress": "{rated}/{required}",
+      "excluded": "Nicht anwendbar"
+    },
+    "item": {
+      "question": "Was zu prüfen ist",
+      "showRequirement": "Anforderung anzeigen",
+      "hideRequirement": "Anforderung ausblenden",
+      "note": "Notiz",
+      "noteHint": "Halten Sie fest, was Sie wo gesehen haben. Erfassen Sie keine Namen einzelner Mitarbeitender.",
+      "machineTranslated": "Maschinell übersetzt, noch nicht geprüft.",
+      "subItems": "Anhang-Prüfpunkte",
+      "subItemsLead": "Beurteilen Sie die zutreffenden Prüfpunkte; sie schlagen eine Bewertung für die Klausel vor und zählen nie für sich allein.",
+      "suggestion": "Vorschlag für die Klausel: {rating} ({rated} von {total} Prüfpunkten beurteilt)",
+      "applySuggestion": "Übernehmen"
+    },
+    "save": {
+      "pending": "Nicht gespeichert",
+      "saving": "Wird gespeichert…",
+      "saved": "Gespeichert",
+      "savedAt": "Gespeichert {time}",
+      "failed": "Nicht gespeichert",
+      "retry": "Erneut versuchen"
+    },
+    "errors": {
+      "locked": "Diese Beurteilung wurde eingereicht und ist jetzt schreibgeschützt. Ihre letzte Änderung wurde nicht gespeichert.",
+      "not_found": "Diese Beurteilung ist für Sie nicht mehr verfügbar.",
+      "invalid": "Dieser Punkt kann nicht beurteilt werden.",
+      "validation": "Diese Antwort konnte nicht gespeichert werden.",
+      "forbidden": "Nur eine Fachperson kann eine Beurteilung ausfüllen."
+    },
+    "submit": {
+      "open": "Beurteilung einreichen",
+      "title": "Einreichen und sperren?",
+      "description": "Das Einreichen sperrt jede Bewertung und Notiz endgültig. Der Score unten wird zu dem, den der Kunde und der Bericht sehen. Ein Wiedereröffnen gibt es nicht.",
+      "ready": "Jeder erforderliche Punkt ist beurteilt.",
+      "missing": "{count, plural, one {# Punkt ist} other {# Punkte sind}} noch nicht beurteilt.",
+      "sectionMissing": "{count} offen",
+      "cancel": "Abbrechen",
+      "confirm": "Einreichen und sperren",
+      "submitting": "Wird eingereicht…",
+      "done": "Die Beurteilung ist eingereicht und gesperrt.",
+      "errors": {
+        "validation": "Diese Beurteilung konnte nicht eingereicht werden.",
+        "forbidden": "Nur eine Fachperson kann eine Beurteilung einreichen.",
+        "not_found": "Diese Beurteilung ist für Sie nicht mehr verfügbar.",
+        "locked": "Diese Beurteilung wurde bereits eingereicht.",
+        "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+      }
+    },
+    "summary": {
+      "heading": "Gesperrter Score",
+      "lead": "Der Mittelwert der beurteilten Klauseln: erfüllt zählt 1, teilweise erfüllt 0.5 und nicht erfüllt 0.",
+      "overall": "Gesamt",
+      "counted": "{rated} von {total} Punkten beurteilt",
+      "columns": {
+        "section": "Abschnitt",
+        "rated": "Beurteilt",
+        "percent": "Score"
+      },
+      "excluded": "Nicht anwendbar",
+      "ratedOf": "{rated} von {total}",
+      "gaps": "Lücken",
+      "noGaps": "Keine Lücken: jeder beurteilte Punkt ist erfüllt.",
+      "ratings": {
+        "non_compliant": "Nicht erfüllt",
+        "partial": "Teilweise erfüllt"
+      },
+      "inSection": "Abschnitt {label}, {title}"
     }
   }
 }

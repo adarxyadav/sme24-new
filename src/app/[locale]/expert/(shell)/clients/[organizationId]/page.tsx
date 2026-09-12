@@ -4,6 +4,8 @@ import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
 import { PageStack } from "@/components/page-stack";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { listAssessments } from "@/features/assessments/queries";
+import { AssessmentsSection } from "@/features/assessments/ui/assessments-section";
 import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
 import { getAssignedClient, industrySection } from "@/features/experts/queries";
 import { KpiTable } from "@/features/research/ui/kpi-table";
@@ -38,6 +40,7 @@ export default async function ExpertClientPage({ params }: Props) {
 
   const client = await getAssignedClient(supabase, organizationId);
   if (!client) notFound();
+  const assessments = await listAssessments(supabase, organizationId);
 
   const { dashboard, contacts } = client;
   const { company, latestRun } = dashboard;
@@ -83,6 +86,15 @@ export default async function ExpertClientPage({ params }: Props) {
           </CardContent>
         </Card>
       </section>
+
+      <NextIntlClientProvider messages={clientMessages(messages, ["assessments"])}>
+        <AssessmentsSection
+          organizationId={organizationId}
+          companyId={company?.id ?? null}
+          rows={assessments}
+          locale={localeCode}
+        />
+      </NextIntlClientProvider>
 
       <NextIntlClientProvider
         messages={clientMessages(messages, ["research", "benchmark", "experts"])}

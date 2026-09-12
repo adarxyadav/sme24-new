@@ -1011,6 +1011,10 @@
       "experts": {
         "title": "Experts",
         "description": "The picker and the avatar the expert pages use (spec 0012)."
+      },
+      "assessments": {
+        "title": "Assessments",
+        "description": "The rating control and the save indicator of the questionnaire engine (spec 0019)."
       }
     },
     "tokens": {
@@ -1375,7 +1379,18 @@
     "comboboxLabel": "Client organisation",
     "comboboxPlaceholder": "Choose an organization",
     "comboboxSearch": "Search organizations",
-    "comboboxEmpty": "No organization found."
+    "comboboxEmpty": "No organization found.",
+    "ratingControl": "Rating control",
+    "ratingControlLabel": "4.1 Understanding the organization and its context",
+    "ratingUnrated": "Nothing chosen",
+    "ratingChosen": "Partially compliant chosen",
+    "ratingDisabled": "Read only after submit",
+    "saveIndicator": "Save indicator",
+    "saveIdle": "Idle",
+    "savePending": "Pending",
+    "saveSaving": "Saving",
+    "saveSaved": "Saved",
+    "saveFailed": "Failed with retry"
   },
   "email": {
     "layout": {
@@ -3554,6 +3569,152 @@
           "emailLong": "That address is too long."
         }
       }
+    }
+  },
+  "assessments": {
+    "questionnaires": {
+      "iso45001": "ISO 45001 gap assessment",
+      "compliance": "Compliance assessment"
+    },
+    "status": {
+      "draft": "In progress",
+      "submitted": "Submitted"
+    },
+    "ratings": {
+      "compliant": "Compliant",
+      "partial": "Partially compliant",
+      "non_compliant": "Non compliant"
+    },
+    "section": {
+      "heading": "Assessments",
+      "lead": "Rate the client against a checklist during or after the visit. Everything saves as you go; one Submit locks the score.",
+      "notStarted": "Not started",
+      "draftSince": "Draft since {date}",
+      "continue": "Continue",
+      "noCompany": "This client has not added a company yet, so there is nothing to assess.",
+      "empty": "No assessments yet.",
+      "open": "Open",
+      "columns": {
+        "questionnaire": "Questionnaire",
+        "status": "Status",
+        "started": "Started",
+        "submitted": "Submitted",
+        "score": "Score",
+        "open": "Open"
+      }
+    },
+    "start": {
+      "button": "Start",
+      "starting": "Starting…",
+      "started": "The assessment is open.",
+      "errors": {
+        "validation": "Check the request and try again.",
+        "forbidden": "Only an expert can start an assessment.",
+        "not_assigned": "You are not assigned to this client any more.",
+        "draft_exists": "A draft of this questionnaire is already open for this company.",
+        "unknown_questionnaire": "This questionnaire has no published version yet.",
+        "company_mismatch": "This company does not belong to the client.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "page": {
+      "title": "Assessment",
+      "backToClient": "Back to {company}",
+      "lead": "{company}",
+      "status": "Status",
+      "progress": "Progress",
+      "rated": "{rated} of {required} rated",
+      "runningScore": "Running score",
+      "score": "Score",
+      "noScore": "—"
+    },
+    "details": {
+      "site": "Site",
+      "sitePlaceholder": "Plant or location visited",
+      "conductedOn": "Visit date",
+      "save": "Save details",
+      "saving": "Saving…",
+      "saved": "Details saved.",
+      "none": "Not recorded",
+      "errors": {
+        "validation": "Check the site and the date.",
+        "forbidden": "Only an expert can edit an assessment.",
+        "not_found": "This assessment is no longer available to you.",
+        "locked": "This assessment is submitted and can no longer change.",
+        "invalid": "Check the site and the date.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "nav": {
+      "label": "Sections",
+      "progress": "{rated}/{required}",
+      "excluded": "Not applicable"
+    },
+    "item": {
+      "question": "What to check",
+      "showRequirement": "Show requirement",
+      "hideRequirement": "Hide requirement",
+      "note": "Note",
+      "noteHint": "Record what you saw and where. Do not record the names of individual workers.",
+      "machineTranslated": "Machine translated German, not yet reviewed.",
+      "subItems": "Annex checks",
+      "subItemsLead": "Rate the checks that apply; they suggest a rating for the clause and never count on their own.",
+      "suggestion": "Suggested for the clause: {rating} ({rated} of {total} checks rated)",
+      "applySuggestion": "Apply"
+    },
+    "save": {
+      "pending": "Unsaved",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "savedAt": "Saved {time}",
+      "failed": "Not saved",
+      "retry": "Retry"
+    },
+    "errors": {
+      "locked": "This assessment was submitted and is now read only. Your last change was not saved.",
+      "not_found": "This assessment is no longer available to you.",
+      "invalid": "This item cannot be rated.",
+      "validation": "This answer could not be saved.",
+      "forbidden": "Only an expert can rate an assessment."
+    },
+    "submit": {
+      "open": "Submit assessment",
+      "title": "Submit and lock?",
+      "description": "Submitting locks every rating and note for good. The score below becomes the one the client and the report see. There is no reopening.",
+      "ready": "Every required item is rated.",
+      "missing": "{count, plural, one {# item is} other {# items are}} still unrated.",
+      "sectionMissing": "{count} unrated",
+      "cancel": "Cancel",
+      "confirm": "Submit and lock",
+      "submitting": "Submitting…",
+      "done": "The assessment is submitted and locked.",
+      "errors": {
+        "validation": "This assessment could not be submitted.",
+        "forbidden": "Only an expert can submit an assessment.",
+        "not_found": "This assessment is no longer available to you.",
+        "locked": "This assessment was already submitted.",
+        "unexpected": "Something went wrong. Please try again."
+      }
+    },
+    "summary": {
+      "heading": "Locked score",
+      "lead": "The mean of the rated clauses: compliant counts 1, partially compliant 0.5 and non compliant 0.",
+      "overall": "Overall",
+      "counted": "{rated} of {total} items rated",
+      "columns": {
+        "section": "Section",
+        "rated": "Rated",
+        "percent": "Score"
+      },
+      "excluded": "Not applicable",
+      "ratedOf": "{rated} of {total}",
+      "gaps": "Gaps",
+      "noGaps": "No gaps: every rated item is compliant.",
+      "ratings": {
+        "non_compliant": "Non compliant",
+        "partial": "Partially compliant"
+      },
+      "inSection": "Section {label}, {title}"
     }
   }
 }
