@@ -76,7 +76,7 @@ The import is a script rather than a task for the same reason the list is not in
 
 ## What the spec deliberately does not decide
 
-Eight points are questions for the owner in `## Follow-up` of `index.md`, not assumptions baked in: whether CHF 1.99 is net or gross, the pack ladder, the rows without a country, the retention period for a purchased contact, the VAT position of a buyer outside Switzerland, ops grants and refunds, what a buyer gets when ops remove a contact they paid for, and the wording of the one credit sentence in the confirmation email. Each has a build assumption stated beside it so `/develop` is never blocked, and each is cheap to change afterwards (a seed row, a flag, a constant, an action, a ledger row, a sentence).
+Eight points were questions for the owner when the draft was written: whether CHF 1.99 is net or gross, the pack ladder, the rows without a country, the retention period for a purchased contact, the VAT position of a buyer outside Switzerland, ops grants and refunds, what a buyer gets when ops remove a contact they paid for, and the wording of the one credit sentence in the confirmation email. The owner answered all eight on 12 September 2026, each on the spec's recommendation, and `## Follow-up` of `index.md` records them as decisions. Each stays cheap to change afterwards (a seed row, a flag, a constant, an action, a ledger row, a sentence). What remains open is the lawyer's: the licence, the countries, and now the retention and export questions, all in one brief.
 
 ## Cross check
 
