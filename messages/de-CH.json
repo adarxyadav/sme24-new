@@ -92,7 +92,7 @@
     "howItWorks": {
       "meta": {
         "title": "So funktioniert’s",
-        "description": "Von der Firmensuche zum schriftlichen Bericht mit priorisierten Massnahmen: die vier Schritte, Ihr Teil und unserer."
+        "description": "Firmennamen eingeben, Risiken benchmarken, ein Paket zum Fixpreis wählen und Fachpersonen die Lücken beheben lassen: die vier Schritte, Ihr Teil und unserer."
       },
       "og": {
         "statement": "Vier Schritte. Ein Bericht."
@@ -105,20 +105,20 @@
         "title": "Was passiert, der Reihe nach. Vier Schritte, vom Namen bis zum Bericht.",
         "items": {
           "lookup": {
-            "label": "Sie nennen die Firma",
-            "body": "Ein Feld auf der Startseite. Wir finden den öffentlichen Eintrag, die Branche und die Grössenklasse."
+            "label": "Eingeben",
+            "body": "Ihr Firmenname. Zwei Minuten."
           },
           "benchmark": {
-            "label": "Wir vergleichen",
-            "body": "Eine erste Einordnung gegenüber vergleichbaren Schweizer Firmen. Kostenlos, bevor jemand vorbeikommt."
+            "label": "Benchmarken",
+            "body": "Sehen Sie Ihr Risiko gegenüber Ihren Peers."
           },
           "package": {
-            "label": "Sie wählen das Paket",
-            "body": "Der Preis steht auf der Seite und das ist der Preis. Weniger nötig als gedacht? Nehmen Sie das kleinere."
+            "label": "Wählen",
+            "body": "Ein Paket zum Fixpreis, vorab vereinbart."
           },
           "expert": {
-            "label": "Ein Experte kommt",
-            "body": "Wer Ihren Betrieb begeht, schreibt den Bericht. Er hat jahrzehntelang Sicherheit in der Industrie verantwortet."
+            "label": "Beheben",
+            "body": "Fachpersonen erkennen und schliessen die Lücken – einmal. EHS-Transformationen auf Basis von Erfahrung aus der Industrie, nicht Theorie."
           }
         },
         "navLabel": "Die vier Schritte",
@@ -332,15 +332,15 @@
     },
     "landing": {
       "meta": {
-        "title": "EHS-Beratung zum Fixpreis",
-        "description": "Sehen Sie, was Ihr EHS-Risiko in CHF kostet, im Vergleich zu Ihren Branchenkollegen — kostenlos. Dann buchen Sie eine Senior-Expertin zum Fixpreis."
+        "title": "EHS-Risiken benchmarken. Zu einem Fixpreis beheben",
+        "description": "EHS-Risiken kostenlos mit vergleichbaren Unternehmen benchmarken, Sparpotenzial in CHF sehen, Lücken von Fachpersonen beheben lassen – einmal, zum Fixpreis."
       },
       "og": {
-        "statement": "Senior-Experten. Keine Slides. Nur Resultate."
+        "statement": "Risiken benchmarken. Sparpotenzial finden. Einmal beheben."
       },
       "eyebrow": "EHS-Beratung zum Fixpreis",
-      "title": "Ihre Bilanz beziffert längst jedes Risiko ausser einem einzigen",
-      "lead": "SME24 beziffert Ihr EHS-Risiko in Franken, vergleicht es mit echten Branchenwerten und schliesst die Lücken zum Fixpreis.",
+      "title": "Risiken benchmarken. Sparpotenzial finden. Einmal beheben.",
+      "lead": "SME24 vergleicht Ihre Sicherheits-, Gesundheits- und Umweltrisiken (EHS) mit vergleichbaren Unternehmen, zeigt Ihnen, wo Sie zu viel bezahlen, und holt Fachpersonen dazu, die es beheben – zu einem Fixpreis.",
       "lookup": {
         "label": "Ihr Unternehmen",
         "placeholder": "Name des Unternehmens",
@@ -352,7 +352,7 @@
         "heading": "Was ein Vergleich zeigt",
         "eyebrow": "Die Zahl",
         "title": "Machen Sie aus Sicherheitsrisiko eine Zahl, die Ihr CFO kennt.",
-        "body": "Ein Unfall kostet mehr als den Schadenfall. Ausfalltage, Stellvertretung, Einarbeitung, Betriebsunterbruch und die Administration danach fallen alle im selben Geschäftsjahr an — und keine davon steht auf der Versicherungsabrechnung.",
+        "body": "Bis zu 80 Prozent der Kosten eines Berufsunfalls bleiben verborgen. Die Versicherungsabrechnung zeigt den Schadenfall; Ausfalltage, Stellvertretung, Einarbeitung, Betriebsunterbruch und die Administration danach fallen im selben Geschäftsjahr an, ohne eigene Zeile. Allein in der Schweiz haben 99 421 Berufsunfälle im Jahr 2023 zu vier oder mehr Ausfalltagen geführt.",
         "cta": "Sehen, was Ihr Risiko kostet",
         "visibleTitle": "Sichtbare Kosten",
         "visibleFigure": "Mindestens 20 Prozent",
@@ -377,15 +377,15 @@
           }
         },
         "benchmarkCard": {
-          "title": "Kostenlücke bei Unfällen",
-          "description": "Gegenüber Ihrer Grössenklasse und Branche",
+          "title": "Geschätzte EHS-Verluste",
+          "description": "Gegenüber vergleichbaren Unternehmen",
           "action": "Quellen",
           "figure": "CHF 101 000",
           "unit": "pro Jahr",
           "progressLabel": "Ihre Unfallrate gegenüber dem Median der Vergleichsgruppe",
           "you": "Sie",
           "peer": "Median",
-          "footer": "Aus öffentlichen UVG-Zahlen. Zu jedem Wert ist die Quelle ausgewiesen."
+          "footer": "Werte auf Basis standardisierter UVG-Daten."
         }
       },
       "packages": {
@@ -424,7 +424,7 @@
       },
       "experts": {
         "eyebrow": "Die Menschen",
-        "title": "Wer tatsächlich vorbeikommt. Eine erfahrene Fachperson aus der Schweizer Industrie, keine Junior-Kraft mit Checkliste.",
+        "title": "Wer tatsächlich vorbeikommt. Fachpersonen, die EHS in der Industrie verantwortet haben, keine Junior-Kraft mit Checkliste.",
         "listLabel": "Beispielprofile von Fachpersonen",
         "experienceLabel": "Erfahrung",
         "standardsLabel": "Normen",
@@ -447,8 +447,8 @@
       },
       "trust": {
         "eyebrow": "Vertrauen",
-        "title": "Ihre Zahlen bleiben Ihre.",
-        "lead": "Sie unterschreiben für diese Daten, also liegen die Garantien in der Datenbank — und die Liste ist offen.",
+        "title": "Ihre Daten bleiben Ihre.",
+        "lead": "Ihre Daten gehören Ihnen, immer. Wir sichern sie nach dem höchsten Standard – Cybersicherheit ist hier keine Nebensache.",
         "cta": "Datenschutzseite lesen",
         "panelsLabel": "Wie wir mit Ihren Daten umgehen",
         "panels": {
@@ -491,27 +491,27 @@
         "items": {
           "what": {
             "question": "Was macht SME24 genau?",
-            "answer": "Wir vergleichen Ihre Sicherheitskennzahlen mit vergleichbaren Schweizer Unternehmen, beziffern die Lücke in Franken und schicken eine erfahrene Fachperson zu Ihnen vor Ort. Der Vergleich ist kostenlos, der Besuch ist ein Paket zum Festpreis."
+            "answer": "Geben Sie Ihren Firmennamen ein, und unsere proprietäre EHS-Engine benchmarkt Ihre Sicherheits-, Gesundheits- und Umweltrisiken kostenlos gegenüber vergleichbaren Unternehmen. Sie sehen in Franken, wo Sie zu viel bezahlen. Wählen Sie ein Paket zu einem Fixpreis, und Fachpersonen kommen zu Ihnen vor Ort und beheben die Lücken – einmal."
           },
           "figures": {
             "question": "Woher stammen die Vergleichszahlen?",
-            "answer": "Aus öffentlichen Schweizer Quellen — der UVG-Unfallstatistik nach Branchenabschnitt und Grössenklasse sowie den veröffentlichten Berichten vergleichbarer Unternehmen. Zu jedem Wert nennen wir die Quelle."
+            "answer": "Öffentliche Quellen: die standardisierte UVG-Unfallstatistik, die europäische Unfallstatistik und die veröffentlichten Berichte vergleichbarer Unternehmen. Zu jedem Wert in Ihrem Benchmark ist die Quelle ausgewiesen, damit Sie ihn selbst prüfen können."
           },
           "free": {
             "question": "Ist der Vergleich wirklich kostenlos?",
-            "answer": "Ja. Sie nennen Ihr Unternehmen, wir recherchieren den öffentlichen Datenbestand und zeigen Ihnen, wo Sie stehen — bevor jemand vorbeikommt und bevor Sie etwas bezahlen."
+            "answer": "Ja. Geben Sie Ihren Firmennamen ein und sehen Sie, wo Sie gegenüber vergleichbaren Unternehmen stehen, bevor jemand vorbeikommt und bevor Sie etwas bezahlen. Sie zahlen erst, wenn Sie ein Paket wählen, zu einem Fixpreis."
           },
           "duration": {
             "question": "Wie lange dauert der Vergleich?",
-            "answer": "Wenige Minuten. Die Recherche durchsucht Nachhaltigkeits-, Geschäfts- und Sicherheitsberichte, entnimmt die Kennzahlen der letzten drei Berichtsjahre und prüft jeden Wert gegen seine Quelle."
+            "answer": "Minuten. Unsere proprietäre EHS-Engine liest den öffentlichen Datenbestand Ihres Unternehmens und liefert Ihren Benchmark, während Sie auf der Seite sind. Sobald Sie ein Paket wählen, folgt der Besuch üblicherweise innerhalb von zwei Wochen und der schriftliche Bericht innerhalb von zehn Tagen nach dem Besuch."
           },
           "experts": {
             "question": "Wer sind die Fachpersonen?",
-            "answer": "Erfahrene EHS-Fachleute, die seit Jahrzehnten Sicherheit in der Schweizer Industrie verantworten. Wer bei Ihnen vor Ort ist, schreibt auch den Bericht — es gibt keine Übergabe an Junior-Kräfte."
+            "answer": "Fachpersonen, die EHS in der Schweizer Industrie verantwortet haben, keine Junior-Kraft mit Checkliste. Wer bei Ihnen vor Ort ist, schreibt auch den Bericht und schliesst die Lücken mit Ihnen – Erfahrung aus der Industrie, nicht Theorie."
           },
           "price": {
             "question": "Was kostet ein Paket?",
-            "answer": "Ab CHF 2 000 exklusive MwSt., und der Preis auf der Seite ist der Preis, den Sie zahlen. Zeigt der Besuch, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere Paket."
+            "answer": "Ab CHF 2 000 exklusive MwSt. Drei Pakete, jedes zu einem Fixpreis, vereinbart vor dem ersten Besuch, und ein Umsetzungspartner auf Anfrage. Der Preis auf der Seite ist der Preis, den Sie zahlen. Zeigt der Besuch, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere Paket."
           }
         }
       },
@@ -1670,8 +1670,8 @@
       "websiteHint": "Zum Beispiel example.ch",
       "submit": "Recherche starten",
       "submitting": "Wird gestartet …",
-      "nextTitle": "Was als Nächstes passiert",
-      "nextBody": "Ein Hintergrundlauf durchsucht Nachhaltigkeits-, Geschäfts- und Sicherheitsberichte, zieht acht Kennzahlen für die letzten drei Berichtsjahre heraus und prüft jeden Wert gegen seine Quelle.",
+      "nextTitle": "Unsere proprietäre EHS-Engine",
+      "nextBody": "Unsere EHS-KI-Engine durchsucht Nachhaltigkeits-, Geschäfts- und Sicherheitsberichte, entnimmt die Kerndaten der letzten Berichtsjahre und prüft jeden Wert gegen seine Quelle.",
       "durationNote": "Dauert einige Minuten. Sie können die Seite offen lassen.",
       "quotaNote": "Bis zu {limit} Läufe pro Tag.",
       "trustNote": "Jeder Wert zeigt seine Quelle und wie sicher das System ist.",
@@ -2013,12 +2013,12 @@
       "noHeadcount": "Mitarbeiterzahl: unbekannt",
       "industry": "Branche: {division} (Abschnitt {section}), Grössenklasse {band}",
       "noIndustry": "Branche: unbekannt, Grössenklasse {band}",
-      "correctTitle": "Branche oder Mitarbeiterzahl korrigieren",
+      "correctTitle": "Wählen Sie Ihre Branche und Mitarbeiterzahl",
       "correctDescription": "Ihre Angaben haben Vorrang vor der Recherche und starten eine neue Berechnung.",
       "declaredAssumption": "deklarierte Annahme"
     },
     "facts": {
-      "industry": "Branche (NOGA-Abteilung)",
+      "industry": "Branche",
       "industryHint": "Die NOGA-Abteilung, unter der Ihr Unternehmen eingeordnet ist.",
       "industryPlaceholder": "Abteilung wählen",
       "employees": "Mitarbeiterzahl",

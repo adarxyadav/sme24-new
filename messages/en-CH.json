@@ -378,7 +378,7 @@
         },
         "benchmarkCard": {
           "title": "Estimated EHS losses",
-          "description": "Against your size band and sector",
+          "description": "Against similar companies",
           "action": "Sources",
           "figure": "CHF 101 000",
           "unit": "a year",
