@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../src/lib/supabase/database.types";
 
@@ -239,4 +240,60 @@ export async function seedCompanyKpi(input: {
     sources: [],
   });
   if (error) throw error;
+}
+
+/** The local stack's Postgres, the one place `purgeAuditRows` may connect. */
+const LOCAL_DB_URL = "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Removes the audit rows a spec's own writes produced, so the pgTAP suites that count audit
+ * rows per table (`assessment_answers.test.sql` counts every insert) still see only what the
+ * seed and their own statements produce. `audit_log` is append only for every role including the
+ * service role, guarded by the `audit_log_protect` trigger, which yields only to the
+ * `app.audit_maintenance` setting inside the deleting transaction; that needs a SQL session, so
+ * this shells out to `psql` against the local stack (`SUPABASE_DB_URL` overrides the default).
+ * A no op away from the local stack, where pgTAP never runs. Every id is checked to be a UUID
+ * before it is interpolated. Playwright, after a spec's fixtures are gone.
+ */
+export function purgeAuditRows(input: {
+  /** The tables whose rows with one of `rowIds` are removed. */
+  readonly tables: readonly string[];
+  readonly rowIds: readonly string[];
+  /** Answer rows are keyed by their assessment, because the UI created them and their ids are unknown. */
+  readonly assessmentIds?: readonly string[];
+}) {
+  if (!localStack) return;
+  const ids = [...input.rowIds, ...(input.assessmentIds ?? [])];
+  for (const id of ids) {
+    if (!UUID.test(id)) throw new Error(`purgeAuditRows: not a UUID: ${id}`);
+  }
+  for (const table of input.tables) {
+    if (!/^[a-z_]+$/.test(table)) throw new Error(`purgeAuditRows: not a table name: ${table}`);
+  }
+  const list = (values: readonly string[]) => values.map((value) => `'${value}'`).join(", ");
+  const statements = [
+    "begin;",
+    "set local app.audit_maintenance = 'on';",
+    input.rowIds.length > 0
+      ? `delete from public.audit_log where table_name in (${list(input.tables)}) and row_id in (${list(input.rowIds)});`
+      : "",
+    input.assessmentIds && input.assessmentIds.length > 0
+      ? `delete from public.audit_log where table_name = 'assessment_answers' and coalesce(new_data, old_data) ->> 'assessment_id' in (${list(input.assessmentIds)});`
+      : "",
+    "commit;",
+  ].filter(Boolean);
+  execFileSync(
+    "psql",
+    [
+      process.env.SUPABASE_DB_URL ?? LOCAL_DB_URL,
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-q",
+      "-c",
+      statements.join("\n"),
+    ],
+    { stdio: ["ignore", "ignore", "pipe"] },
+  );
 }
