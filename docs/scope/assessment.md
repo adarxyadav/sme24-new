@@ -31,7 +31,7 @@ Spec: [0019](../specs/0019-structured-assessment-forms/index.md). One questionna
   - [x] ISO 45001 end to end: the pure model, the actions and queries, the expert client page section, the assessment page with autosave, the annex suggestion, submit and the locked score, both catalogs, the gallery (AC-5, AC-6, AC-7, AC-9, AC-11, AC-12, AC-13)
   - [x] Compliance and the status hooks: section exclusions, group headings, the client card and the ops orders table (AC-8, AC-10)
   - [x] The GA tail: the e2e spec, `docs/assessments.md`, the full gate run (AC-13, AC-14, AC-15)
-- [ ] Verify it: `/check verify structured assessment forms`
+- [x] Verify it: `/check verify structured assessment forms`
 - [ ] Test it: `/test structured assessment forms`
 - [ ] Review it (fresh model): `/check review structured assessment forms`
 - [ ] Document it: `/document structured assessment forms`
