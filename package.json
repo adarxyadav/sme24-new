@@ -21,6 +21,7 @@
     "db:reset": "supabase db reset",
     "db:diff": "supabase db schema declarative sync --no-apply --name",
     "db:types": "supabase gen types typescript --local --schema public > src/lib/supabase/database.types.ts",
+    "i18n:key": "node scripts/i18n-key.mts",
     "user:invite": "node scripts/invite-user.mts",
     "users:seed": "node scripts/seed-users.mts",
     "trigger:dev": "trigger dev --env-file .env.local",
