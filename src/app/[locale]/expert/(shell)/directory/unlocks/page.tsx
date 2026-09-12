@@ -122,7 +122,7 @@ export default async function DirectoryUnlocksPage({ searchParams }: Props) {
                     .join(", ");
                   return (
                     <TableRow key={row.unlockId}>
-                      <TableCell>
+                      <TableCell className="min-w-56 max-w-[18rem] break-words whitespace-normal">
                         <span className="flex flex-col gap-0.5">
                           <span className="font-medium">{row.companyName}</span>
                           {place ? (
@@ -130,7 +130,7 @@ export default async function DirectoryUnlocksPage({ searchParams }: Props) {
                           ) : null}
                         </span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="min-w-48 max-w-[16rem] break-words whitespace-normal">
                         <span className="flex flex-col gap-0.5">
                           <span className={name ? "font-medium" : "text-muted-foreground"}>
                             {name || t("unnamed")}

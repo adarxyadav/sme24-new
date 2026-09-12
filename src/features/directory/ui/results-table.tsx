@@ -59,13 +59,16 @@ export async function DirectoryResultsTable({ rows, countryLabel }: Props) {
             const name = fullName(row);
             return (
               <TableRow key={row.contactId}>
-                <TableCell>
+                {/* The two text cells wrap inside a bounded width, so a long company name or
+                    title widens neither the table nor the page; the identifier cells stay on one
+                    line and the box scrolls when the viewport is narrower than the five columns. */}
+                <TableCell className="min-w-56 max-w-[18rem] break-words whitespace-normal">
                   <span className="flex flex-col gap-0.5">
                     <span className="font-medium">{row.companyName}</span>
                     {place ? <span className="text-muted-foreground text-xs">{place}</span> : null}
                   </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="min-w-48 max-w-[16rem] break-words whitespace-normal">
                   <span className="flex flex-col gap-0.5">
                     <span className={name ? "font-medium" : "text-muted-foreground"}>
                       {name ?? t("unnamed")}
