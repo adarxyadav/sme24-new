@@ -50,6 +50,8 @@ two lists differ. A new table is therefore a row here in the same pull request.
 | `benchmarks` | Peer values, no person | Peer comparison data | none | n/a | Supabase | Seeded from `supabase/seed-data/`. |
 | `benchmark_assumptions` | Model assumptions, no person | Peer comparison data | none | n/a | Supabase | Seeded from `supabase/seed-data/`. |
 | `kpi_definitions` | Catalogue, no person | Define what a KPI means | none | n/a | Supabase | Seed data. |
+| `questionnaire_versions` | Checklist outline, no person | The versioned content an assessment is rated against | none | n/a | Supabase | Seeded from `src/features/assessments/content/` through `pnpm questionnaires:migration`. |
+| `questionnaire_items` | Checklist items and texts, no person | The versioned content an assessment is rated against | none | n/a | Supabase | As `questionnaire_versions`. |
 | `orders` | Buyer, amounts, schedule, assigned expert | The purchase and its delivery | contract, legal | ten years | Supabase, Stripe | Deliberately untouched by anonymisation: it belongs to the organisation and Art. 958f CO requires it. |
 | `order_events` | What happened to an order and when | Audit of the order lifecycle | contract, legal | ten years | Supabase | As `orders`. |
 | `invoices` | Invoice number, amounts, buyer address | The invoice itself | legal | ten years | Supabase | As `orders`. The PDF lives in a private bucket. |

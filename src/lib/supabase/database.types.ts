@@ -1857,6 +1857,108 @@ export type Database = {
           },
         ]
       }
+      questionnaire_items: {
+        Row: {
+          created_at: string
+          de_reviewed: boolean
+          group_key: string | null
+          id: string
+          label: string
+          parent_id: string | null
+          position: number
+          question: Json
+          rateable: boolean
+          requirement: Json | null
+          section_key: string
+          title: Json
+          updated_at: string
+          version_key: string
+        }
+        Insert: {
+          created_at?: string
+          de_reviewed?: boolean
+          group_key?: string | null
+          id: string
+          label: string
+          parent_id?: string | null
+          position: number
+          question: Json
+          rateable: boolean
+          requirement?: Json | null
+          section_key: string
+          title: Json
+          updated_at?: string
+          version_key: string
+        }
+        Update: {
+          created_at?: string
+          de_reviewed?: boolean
+          group_key?: string | null
+          id?: string
+          label?: string
+          parent_id?: string | null
+          position?: number
+          question?: Json
+          rateable?: boolean
+          requirement?: Json | null
+          section_key?: string
+          title?: Json
+          updated_at?: string
+          version_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questionnaire_items_version_key_fkey"
+            columns: ["version_key"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_versions"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      questionnaire_versions: {
+        Row: {
+          created_at: string
+          item_count: number
+          key: string
+          questionnaire_key: string
+          sections: Json
+          source_note: string | null
+          title: Json
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          item_count: number
+          key: string
+          questionnaire_key: string
+          sections: Json
+          source_note?: string | null
+          title: Json
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          item_count?: number
+          key?: string
+          questionnaire_key?: string
+          sections?: Json
+          source_note?: string | null
+          title?: Json
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       research_runs: {
         Row: {
           company_id: string

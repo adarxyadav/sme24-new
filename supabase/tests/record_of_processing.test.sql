@@ -42,6 +42,8 @@ returns table (name text) language sql as $$
     ('organizations'),
     ('packages'),
     ('profiles'),
+    ('questionnaire_items'),
+    ('questionnaire_versions'),
     ('research_runs'),
     ('scaffold_checks'),
     ('stripe_events')

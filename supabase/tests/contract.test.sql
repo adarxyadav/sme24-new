@@ -39,6 +39,9 @@ select is_empty(
 -- `id`, which private.audit_row() requires for audit_log.row_id (the same reason kpi_definitions
 -- and benchmark_assumptions are exceptions), and order_events is itself the append only history
 -- of public.orders, so auditing it would only duplicate rows the audit log already holds.
+-- Spec 0019 adds the two questionnaire content tables (questionnaire_versions and
+-- questionnaire_items): kind G reference data keyed on `key` and `id` text, seeded by a migration
+-- like kpi_definitions.
 -- Spec 0018 adds the four restricted directory tables (directory_companies, directory_contacts,
 -- directory_suppressions, directory_imports): an import writes tens of thousands of rows in one
 -- run and the directory_imports row is the audit of that run; the two expert owned directory
@@ -47,7 +50,8 @@ create function pg_temp.audited_tables()
 returns setof name language sql stable as $$
   select t from pg_temp.public_tables() t
   where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events',
-                   'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports')
+                   'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports',
+                   'questionnaire_versions', 'questionnaire_items')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.audited_tables()), '>=', 7::bigint,
@@ -86,8 +90,9 @@ select is_empty(
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
        and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events',
-                   'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports') $$,
-  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events, order_events and the four restricted directory tables are not audited');
+                   'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports',
+                   'questionnaire_versions', 'questionnaire_items') $$,
+  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events, order_events, the four restricted directory tables and the two questionnaire content tables are not audited');
 -- private.audit_row() writes row_id (not null) from the `id` column, falling back to a single
 -- column primary key when the table has no `id` (spec 0012: expert_profiles and expert_ops_notes
 -- are keyed on expert_id). So an audited table needs one or the other, and a composite key with
@@ -257,13 +262,14 @@ select results_eq(
 -- on either side is watching for a live change, and the row names a person exercising a right.
 -- The six directory tables (spec 0018) are out: a search is a page render, an unlock answers in
 -- the click handler that awaited it, and the contact rows hold personal data no channel may carry.
+-- The two questionnaire content tables (spec 0019) are out: seeded reference data a page reads.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
   values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('data_requests'),
          ('directory_companies'), ('directory_contacts'), ('directory_credit_entries'), ('directory_imports'), ('directory_suppressions'), ('directory_unlocks'),
          ('enquiries'), ('expert_assignments'),
          ('expert_ops_notes'), ('expert_profiles'), ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'),
-         ('organization_members'), ('organizations'), ('packages'), ('profiles'), ('stripe_events')
+         ('organization_members'), ('organizations'), ('packages'), ('profiles'), ('questionnaire_items'), ('questionnaire_versions'), ('stripe_events')
 $$;
 select is_empty(
   $$ select t from pg_temp.public_tables() t
