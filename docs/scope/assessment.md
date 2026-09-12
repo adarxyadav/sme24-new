@@ -29,7 +29,7 @@ Spec: [0019](../specs/0019-structured-assessment-forms/index.md). One questionna
   - [x] Content: the catalogue and content schema, the fixes and the German draft behind `pnpm questionnaires:build`, the two content files, the two kind G tables and their seed behind `pnpm questionnaires:migration`, the pgTAP file and the Vitest equality tests (AC-1, AC-2)
   - [x] Tables: `assessments` and `assessment_answers` with the expert bookings view, the two triggers, the policies and their pgTAP files, the record of processing (AC-3, AC-4, AC-14)
   - [x] ISO 45001 end to end: the pure model, the actions and queries, the expert client page section, the assessment page with autosave, the annex suggestion, submit and the locked score, both catalogs, the gallery (AC-5, AC-6, AC-7, AC-9, AC-11, AC-12, AC-13)
-  - [ ] Compliance and the status hooks: section exclusions, group headings, the client card and the ops orders table (AC-8, AC-10)
+  - [x] Compliance and the status hooks: section exclusions, group headings, the client card and the ops orders table (AC-8, AC-10)
   - [ ] The GA tail: the e2e spec, `docs/assessments.md`, the full gate run (AC-13, AC-14, AC-15)
 - [ ] Verify it: `/check verify structured assessment forms`
 - [ ] Test it: `/test structured assessment forms`
