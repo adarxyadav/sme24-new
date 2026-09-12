@@ -1803,13 +1803,12 @@
   },
   "benchmark": {
     "heading": "Benchmark und Potenzial",
-    "description": "Ihre neuesten Kennzahlen im Vergleich mit ähnlichen Unternehmen, was zuerst zu tun ist, und was Unfälle Sie pro Jahr kosten.",
     "state": {
       "calculating": "Wir berechnen Ihren Benchmark. Das dauert einen Moment.",
       "unavailable": "Der Benchmark ist noch nicht verfügbar. Wir zeigen ihn, sobald er berechnet ist.",
       "noData": "Noch nicht genug Daten für einen Vergleich. Wir brauchen mindestens eine Kennzahl mit Vergleichswerten."
     },
-    "provisionalNote": "Einige Werte hinter dieser Schätzung sind eine provisorische erste Lesung der publizierten Statistiken und werden vor dem Start bestätigt.",
+    "provisionalNote": "Einige Kostenannahmen werden noch geprüft.",
     "card": {
       "title": "Jährliche Unfallkosten",
       "savingMedian": "Wenn Sie den Median der Vergleichsgruppe erreichen",

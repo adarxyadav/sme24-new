@@ -103,12 +103,9 @@ export async function BenchmarkSegment({
       className="flex flex-col gap-4"
       data-benchmark-state={state}
     >
-      <div className="flex flex-col gap-1">
-        <h2 id="benchmark-heading" className="font-semibold text-lg">
-          {t("heading")}
-        </h2>
-        <p className="max-w-prose text-muted-foreground text-sm">{t("description")}</p>
-      </div>
+      <h2 id="benchmark-heading" className="font-semibold text-lg">
+        {t("heading")}
+      </h2>
       {state === "calculating" ? <CalculatingState label={t("state.calculating")} /> : null}
       {state === "unavailable" ? (
         <Alert variant="info">
@@ -129,11 +126,7 @@ export async function BenchmarkSegment({
       {state === "ready" && snapshot ? (
         <>
           {snapshot.peerProvisional ? (
-            <p
-              className="flex items-start gap-2 text-muted-foreground text-xs"
-              data-provisional-note
-            >
-              <InfoIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            <p className="max-w-prose text-muted-foreground text-xs" data-provisional-note>
               {t("provisionalNote")}
             </p>
           ) : null}

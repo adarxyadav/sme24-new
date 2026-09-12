@@ -1803,13 +1803,12 @@
   },
   "benchmark": {
     "heading": "Benchmark and opportunity",
-    "description": "Your newest figures against companies like yours, what to fix first, and what incidents cost you per year.",
     "state": {
       "calculating": "We are calculating your benchmark. This takes a moment.",
       "unavailable": "The benchmark is not available yet. We will show it as soon as it is computed.",
       "noData": "Not enough data to compare yet. We need at least one KPI with peer data."
     },
-    "provisionalNote": "Some figures behind this estimate are a provisional first reading of the published statistics and will be confirmed before launch.",
+    "provisionalNote": "Some cost assumptions are still being verified.",
     "card": {
       "title": "Annual incident cost",
       "savingMedian": "If you matched the peer median",
