@@ -25,6 +25,8 @@ export const ANALYTICS_EVENTS = [
   "directory.searched",
   "directory.unlocked",
   "directory.credits_purchased",
+  "assessment.started",
+  "assessment.submitted",
   "scaffold.test_event",
 ] as const;
 export type AnalyticsEvent = (typeof ANALYTICS_EVENTS)[number];

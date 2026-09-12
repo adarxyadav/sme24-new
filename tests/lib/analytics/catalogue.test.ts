@@ -36,6 +36,9 @@ const ORGANIZATION_EVENTS: readonly AnalyticsEvent[] = [
   "checkout.started",
   "payment.completed",
   "expert.assigned",
+  // Spec 0019, AC-12: the assigned expert works for a client organization.
+  "assessment.started",
+  "assessment.submitted",
 ];
 
 /**
