@@ -62,9 +62,13 @@ vi.mock("@/lib/logger", () => ({
 }));
 vi.mock("next-intl/server", () => ({ getLocale: async () => "de-CH" }));
 
-const { saveAnswer, startAssessment, submitAssessment, updateAssessmentDetails } = await import(
-  "@/features/assessments/actions"
-);
+const {
+  saveAnswer,
+  setSectionExclusion,
+  startAssessment,
+  submitAssessment,
+  updateAssessmentDetails,
+} = await import("@/features/assessments/actions");
 
 const EXPERT_ID = "0e000000-0000-4000-8000-000000000001";
 const ORG_ID = "0e000000-0000-4000-8000-000000000002";
@@ -456,6 +460,164 @@ describe("saveAnswer (AC-6)", () => {
       data: { savedAt: "2026-09-12T10:02:00Z" },
     });
     expect(callsOn("assessment_answers")).toHaveLength(3);
+  });
+});
+
+describe("setSectionExclusion (AC-8)", () => {
+  const input = {
+    assessmentId: ASSESSMENT_ID,
+    sectionKey: "hot_work",
+    excluded: true,
+    note: "No hot work on this site",
+  };
+  const draft = {
+    organization_id: ORG_ID,
+    status: "draft",
+    questionnaire_key: "compliance",
+    questionnaire_version_key: "compliance@1",
+  };
+  const outline = {
+    sections: [
+      { key: "electrical_safety", label: "1", title: text("Electrical safety"), groups: [] },
+      { key: "hot_work", label: "8", title: text("Hot work"), groups: [] },
+    ],
+  };
+  /** The draft, the outline and no existing exclusion row; the write answers `written`. */
+  const answering =
+    (written: Answer, existing: unknown = null) =>
+    (call: Call): Answer => {
+      if (call.table === "assessments") return { data: draft, error: null };
+      if (call.table === "questionnaire_versions") return { data: outline, error: null };
+      return nth(call) === 0 ? { data: existing, error: null } : written;
+    };
+
+  it("refuses a caller who is not an expert before reading anything", async () => {
+    boundary.claims = clientClaims;
+    expect(await setSectionExclusion(null, input)).toEqual({ ok: false, error: "forbidden" });
+    expect(boundary.calls).toEqual([]);
+  });
+
+  it("answers not_found for a hidden assessment and locked for a submitted one", async () => {
+    expect(await setSectionExclusion(null, input)).toEqual({ ok: false, error: "not_found" });
+    boundary.answer = () => ({ data: { ...draft, status: "submitted" }, error: null });
+    expect(await setSectionExclusion(null, input)).toEqual({ ok: false, error: "locked" });
+    expect(callsOn("assessment_answers")).toEqual([]);
+  });
+
+  it("answers not_allowed for ISO 45001 from the row's own questionnaire key, before any write", async () => {
+    boundary.answer = () => ({
+      data: { ...draft, questionnaire_key: "iso45001", questionnaire_version_key: "iso45001@1" },
+      error: null,
+    });
+    expect(await setSectionExclusion(null, { ...input, sectionKey: "c4" })).toEqual({
+      ok: false,
+      error: "not_allowed",
+    });
+    expect(callsOn("questionnaire_versions")).toEqual([]);
+    expect(callsOn("assessment_answers")).toEqual([]);
+  });
+
+  it("answers invalid for a section the pinned outline does not name", async () => {
+    boundary.answer = answering({ data: null, error: null });
+    expect(await setSectionExclusion(null, { ...input, sectionKey: "excavation" })).toEqual({
+      ok: false,
+      error: "invalid",
+    });
+    expect(callsOn("assessment_answers")).toEqual([]);
+  });
+
+  it("inserts the exclusion row with no item and the note for the assessment's organization", async () => {
+    boundary.answer = answering({ data: { id: "row" }, error: null });
+    expect(await setSectionExclusion(null, input)).toEqual({
+      ok: true,
+      data: { sectionKey: "hot_work", excluded: true },
+    });
+    const read = callsOn("assessment_answers")[0];
+    expect(ops(read, "is")).toEqual([["item_id", null]]);
+    const insert = callsOn("assessment_answers")[1];
+    expect(ops(insert, "insert")).toEqual([
+      [
+        {
+          organization_id: ORG_ID,
+          assessment_id: ASSESSMENT_ID,
+          item_id: null,
+          section_key: "hot_work",
+          rating: null,
+          note: "No hot work on this site",
+        },
+      ],
+    ]);
+  });
+
+  it("updates only the note when the section is already excluded", async () => {
+    boundary.answer = answering({ data: { id: "row" }, error: null }, { id: "row" });
+    expect(await setSectionExclusion(null, { ...input, note: "" })).toEqual({
+      ok: true,
+      data: { sectionKey: "hot_work", excluded: true },
+    });
+    const update = callsOn("assessment_answers")[1];
+    expect(ops(update, "update")).toEqual([[{ note: null }]]);
+    expect(ops(update, "eq")).toEqual([
+      ["assessment_id", ASSESSMENT_ID],
+      ["section_key", "hot_work"],
+    ]);
+    expect(ops(update, "is")).toEqual([["item_id", null]]);
+    expect(callsOn("assessment_answers")).toHaveLength(2);
+  });
+
+  it("deletes the row by its id when the section is included again", async () => {
+    boundary.answer = answering({ data: { id: "row" }, error: null }, { id: "row" });
+    expect(await setSectionExclusion(null, { ...input, excluded: false, note: null })).toEqual({
+      ok: true,
+      data: { sectionKey: "hot_work", excluded: false },
+    });
+    const remove = callsOn("assessment_answers")[1];
+    expect(ops(remove, "delete")).toEqual([[]]);
+    expect(ops(remove, "eq")).toEqual([["id", "row"]]);
+  });
+
+  it("answers ok without a write when including a section that is not excluded", async () => {
+    boundary.answer = answering({ data: null, error: null });
+    expect(await setSectionExclusion(null, { ...input, excluded: false })).toEqual({
+      ok: true,
+      data: { sectionKey: "hot_work", excluded: false },
+    });
+    expect(callsOn("assessment_answers")).toHaveLength(1);
+  });
+
+  it("reads a late insert refused by the lock trigger and a late delete filtered to zero rows as locked", async () => {
+    boundary.answer = answering({
+      data: null,
+      error: { code: "23514", message: `assessment_locked: ${ASSESSMENT_ID}` },
+    });
+    expect(await setSectionExclusion(null, input)).toEqual({ ok: false, error: "locked" });
+    boundary.calls = [];
+    boundary.answer = answering({ data: null, error: null }, { id: "row" });
+    expect(await setSectionExclusion(null, { ...input, excluded: false })).toEqual({
+      ok: false,
+      error: "locked",
+    });
+  });
+
+  it("falls through to the note update when a concurrent exclusion won the race", async () => {
+    boundary.answer = (call) => {
+      if (call.table === "assessments") return { data: draft, error: null };
+      if (call.table === "questionnaire_versions") return { data: outline, error: null };
+      if (nth(call) === 0) return { data: null, error: null };
+      if (nth(call) === 1) return { data: null, error: { code: "23505", message: "duplicate" } };
+      return { data: { id: "row" }, error: null };
+    };
+    expect(await setSectionExclusion(null, input)).toEqual({
+      ok: true,
+      data: { sectionKey: "hot_work", excluded: true },
+    });
+    expect(callsOn("assessment_answers")).toHaveLength(3);
+  });
+
+  it("reports an unknown failure as unexpected and to Sentry", async () => {
+    boundary.answer = answering({ data: null, error: { code: "XX000", message: "boom" } });
+    expect(await setSectionExclusion(null, input)).toEqual({ ok: false, error: "unexpected" });
+    expect(boundary.captureException).toHaveBeenCalledTimes(1);
   });
 });
 

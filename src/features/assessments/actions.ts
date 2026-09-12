@@ -11,13 +11,14 @@ import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
 import type { Database } from "@/lib/supabase/database.types";
 import { parseWith } from "@/lib/validation";
-import { PACKAGE_QUESTIONNAIRES } from "./catalogue";
-import type { LocalizedText } from "./content-schema";
+import { PACKAGE_QUESTIONNAIRES, QUESTIONNAIRES, type QuestionnaireKey } from "./catalogue";
+import { contentSectionSchema, type LocalizedText } from "./content-schema";
 import { classifyAssessmentError } from "./errors";
 import { computeProgress, computeScore } from "./model";
 import { getAssessment, getNewestVersion, listExpertBookings } from "./queries";
 import {
   saveAnswerSchema,
+  setSectionExclusionSchema,
   startAssessmentSchema,
   submitAssessmentSchema,
   updateAssessmentDetailsSchema,
@@ -64,6 +65,20 @@ export type SaveAnswerResult =
   | {
       ok: false;
       error: "validation" | "forbidden" | "not_found" | "locked" | "invalid" | "unexpected";
+    };
+
+export type SetSectionExclusionResult =
+  | { ok: true; data: { sectionKey: string; excluded: boolean } }
+  | {
+      ok: false;
+      error:
+        | "validation"
+        | "forbidden"
+        | "not_allowed"
+        | "not_found"
+        | "locked"
+        | "invalid"
+        | "unexpected";
     };
 
 /** One section still missing ratings, for the submit dialog to name (AC-9). */
@@ -340,6 +355,133 @@ export async function saveAnswer(
     return { ok: true, data: { savedAt: updated.updated_at } };
   } catch (error) {
     return unexpected("save-answer", error, { assessmentId });
+  }
+}
+
+/**
+ * Marks one section not applicable, or applicable again (AC-8). Whether the questionnaire allows
+ * it comes from the catalogue entry of the assessment's own `questionnaire_key`, never from the
+ * page, so ISO 45001 answers `not_allowed` whatever a client sends. An exclusion is an
+ * `assessment_answers` row with `item_id` null and the `section_key`: excluding inserts it (or
+ * updates the note when it already exists), including again deletes it, so it rides the same
+ * lock trigger, policies and audit as a rating. The row is read first, the `saveAnswer` shape:
+ * a late insert refused by the lock trigger and a late update or delete filtered to zero rows
+ * both answer `locked`; a section the pinned outline does not name is `invalid` before any write;
+ * including a section that is not excluded is a no op that answers ok. Server action, expert.
+ */
+export async function setSectionExclusion(
+  _previous: SetSectionExclusionResult | null,
+  input: unknown,
+): Promise<SetSectionExclusionResult> {
+  const locale = resolveLocale(await getLocale());
+  const actor = await requireExpert();
+  if (!actor) return { ok: false, error: "forbidden" };
+  const parsed = parseWith(setSectionExclusionSchema, input, locale);
+  if (!parsed.success) return { ok: false, error: "validation" };
+  const { supabase } = actor;
+  const { assessmentId, sectionKey, excluded, note } = parsed.data;
+
+  try {
+    const { data: assessment, error: readError } = await supabase
+      .from("assessments")
+      .select("organization_id, status, questionnaire_key, questionnaire_version_key")
+      .eq("id", assessmentId)
+      .maybeSingle();
+    if (readError) return unexpected("set-section-exclusion", readError, { assessmentId });
+    if (!assessment) return { ok: false, error: "not_found" };
+    if (assessment.status !== "draft") return { ok: false, error: "locked" };
+
+    const definition = QUESTIONNAIRES[assessment.questionnaire_key as QuestionnaireKey];
+    if (!definition?.allowsSectionExclusion) return { ok: false, error: "not_allowed" };
+
+    const { data: version, error: versionError } = await supabase
+      .from("questionnaire_versions")
+      .select("sections")
+      .eq("key", assessment.questionnaire_version_key)
+      .maybeSingle();
+    if (versionError) return unexpected("set-section-exclusion", versionError, { assessmentId });
+    const outline = contentSectionSchema.array().safeParse(version?.sections ?? []);
+    if (!outline.success || !outline.data.some((section) => section.key === sectionKey)) {
+      return { ok: false, error: "invalid" };
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from("assessment_answers")
+      .select("id")
+      .eq("assessment_id", assessmentId)
+      .eq("section_key", sectionKey)
+      .is("item_id", null)
+      .maybeSingle();
+    if (existingError) {
+      return unexpected("set-section-exclusion", existingError, { assessmentId });
+    }
+
+    if (!excluded) {
+      if (!existing) return { ok: true, data: { sectionKey, excluded } };
+      const { data: deleted, error } = await supabase
+        .from("assessment_answers")
+        .delete()
+        .eq("id", existing.id)
+        .select("id")
+        .maybeSingle();
+      if (error) {
+        const classified = classifyAssessmentError(error);
+        if (classified.code === "locked") return { ok: false, error: "locked" };
+        if (classified.code === "not_found") return { ok: false, error: "not_found" };
+        return unexpected("set-section-exclusion", error, { assessmentId });
+      }
+      // Zero rows: the policy filtered the row, which after the read above means it locked.
+      if (!deleted) return { ok: false, error: "locked" };
+      log.info("assessment section included", { assessmentId, sectionKey });
+      return { ok: true, data: { sectionKey, excluded } };
+    }
+
+    if (!existing) {
+      const { data: inserted, error } = await supabase
+        .from("assessment_answers")
+        .insert({
+          organization_id: assessment.organization_id,
+          assessment_id: assessmentId,
+          item_id: null,
+          section_key: sectionKey,
+          rating: null,
+          note,
+        })
+        .select("id")
+        .maybeSingle();
+      if (!error) {
+        if (!inserted) return { ok: false, error: "locked" };
+        log.info("assessment section excluded", { assessmentId, sectionKey });
+        return { ok: true, data: { sectionKey, excluded } };
+      }
+      const classified = classifyAssessmentError(error);
+      // Another exclusion of the same section landed first: fall through to the note update.
+      if (classified.code !== "draft_exists") {
+        if (classified.code === "locked") return { ok: false, error: "locked" };
+        if (classified.code === "not_found") return { ok: false, error: "not_found" };
+        if (classified.code === "invalid") return { ok: false, error: "invalid" };
+        return unexpected("set-section-exclusion", error, { assessmentId });
+      }
+    }
+
+    const { data: updated, error: updateError } = await supabase
+      .from("assessment_answers")
+      .update({ note })
+      .eq("assessment_id", assessmentId)
+      .eq("section_key", sectionKey)
+      .is("item_id", null)
+      .select("id")
+      .maybeSingle();
+    if (updateError) {
+      const classified = classifyAssessmentError(updateError);
+      if (classified.code === "locked") return { ok: false, error: "locked" };
+      if (classified.code === "not_found") return { ok: false, error: "not_found" };
+      return unexpected("set-section-exclusion", updateError, { assessmentId });
+    }
+    if (!updated) return { ok: false, error: "locked" };
+    return { ok: true, data: { sectionKey, excluded } };
+  } catch (error) {
+    return unexpected("set-section-exclusion", error, { assessmentId });
   }
 }
 
