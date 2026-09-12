@@ -29,7 +29,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 14 | Legal, privacy & cookie consent | Slice 4 | done |
 | 15 | Analytics & monitoring | Slice 4 | done |
 | 16 | Expert accounts & profiles | Slice 5 | done |
-| 17 | Structured assessment forms | Slice 5 | planned |
+| 17 | Structured assessment forms | Slice 5 | in-progress |
 | 18 | Gap report | Slice 5 | planned |
 | 19 | Expert matching | Slice 6 | planned |
 | 20 | Program builder & progress updates | Slice 6 | planned |

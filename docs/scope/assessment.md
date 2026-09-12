@@ -20,10 +20,21 @@ Spec: [0013](../specs/0013-expert-accounts-profiles/index.md). One expert owned 
 - [x] Review it (fresh model): `/check review expert accounts & profiles` — reviewed on Claude Sonnet 5 (Opus wrote the code), Approve with nits over 105 files ([review](../reviews/2026-09-08-feat-expert-accounts-profiles.md)); one major (no unit tests for `src/features/experts/actions.ts`, the branch's highest risk authorization file), three minors, three nits, no blockers. The major, the missing deactivation confirmation and the silent locale fallback are fixed (Vitest 1504); the photo MIME sniffing minor and the three nits are kept deliberately, the former recorded as an accepted risk in the spec's Follow-up.
 - [x] Document it: `/document expert accounts & profiles` — PR description written from the 19 commits and the diff vs `main` (108 files), with the accepted photo sniffing risk under Risk & rollout and the per environment checklist in [experts.md](../experts.md) named as the deploy follow up.
 
-### 17. Structured assessment forms · needs a decision
+### 17. Structured assessment forms · in-progress
 The three questionnaires the expert completes in the app during or after the on site visit: Compliance (35 plus standards and guides), Safety Management System (ISO 45001, 7 categories), and Safety Culture (8 categories at 5 maturity levels). Questionnaire content, versioning, scoring and evidence notes are the decisions; the model must survive standards changing.
 **Done when:** the assigned expert can complete, save partially and submit each of the three assessment types with per item scores and notes; a submitted assessment is locked and versioned; the client sees status but not the working draft.
-- [ ] Design it (spec): `/architect structured assessment forms`
+Spec: [0019](../specs/0019-structured-assessment-forms/index.md). One questionnaire engine over versioned content rows (two kind G tables seeded from JSON files a hand run script builds from Phillip's HTML, position based ids, a pinned version per assessment), each questionnaire its own assessment row, page, score and gap list, section exclusions stored as answer rows, the single submit and the lock enforced by triggers, and one pure scoring function feature 18 reuses. Safety Culture arrives later as content plus a rating scale decision.
+- [x] Design it (spec): `/architect structured assessment forms`
+- [ ] Build it: `/develop structured assessment forms` — code in `src/features/assessments/`, `scripts/build-questionnaires.mts`, `scripts/questionnaires-migration.mts`, `supabase/schemas/60_questionnaire_versions.sql`, `61_questionnaire_items.sql`
+  - [x] Content: the catalogue and content schema, the fixes and the German draft behind `pnpm questionnaires:build`, the two content files, the two kind G tables and their seed behind `pnpm questionnaires:migration`, the pgTAP file and the Vitest equality tests (AC-1, AC-2)
+  - [ ] Tables: `assessments` and `assessment_answers` with the expert bookings view, the two triggers, the policies and their pgTAP files, the record of processing (AC-3, AC-4, AC-14)
+  - [ ] ISO 45001 end to end: the pure model, the actions and queries, the expert client page section, the assessment page with autosave, the annex suggestion, submit and the locked score, both catalogs, the gallery (AC-5, AC-6, AC-7, AC-9, AC-11, AC-12, AC-13)
+  - [ ] Compliance and the status hooks: section exclusions, group headings, the client card and the ops orders table (AC-8, AC-10)
+  - [ ] The GA tail: the e2e spec, `docs/assessments.md`, the full gate run (AC-13, AC-14, AC-15)
+- [ ] Verify it: `/check verify structured assessment forms`
+- [ ] Test it: `/test structured assessment forms`
+- [ ] Review it (fresh model): `/check review structured assessment forms`
+- [ ] Document it: `/document structured assessment forms`
 
 ### 18. Gap report · needs a decision
 From a submitted assessment the system generates a per client gap overview: findings ranked by risk, the standards or categories they map to, and recommended actions, in the client's language, readable in the dashboard and downloadable as a document. The expert reviews and releases it.
