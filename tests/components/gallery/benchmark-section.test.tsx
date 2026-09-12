@@ -30,15 +30,21 @@ describe("BenchmarkSection (AC-14)", () => {
     expect(screen.getByText(labels.bandOutside)).toBeInTheDocument();
   });
 
-  it("renders the opportunity card with the headline, the range, the savings and the compared line", () => {
+  it("renders the opportunity card with the spelled out confidence, the range, the working estimate and both saving shapes", () => {
     renderWithIntl(<BenchmarkSection />, "en-CH");
     expect(screen.getByText(b.card.title)).toBeInTheDocument();
-    expect(screen.getByText(/CHF\s?1.961.000/)).toBeInTheDocument();
-    expect(screen.getByText(/^Range CHF\s?1.060.000 to CHF\s?2.651.000$/)).toBeInTheDocument();
+    expect(screen.getByText(b.card.confidence.medium)).toBeInTheDocument();
+    expect(screen.getByText(/^CHF\s?1.060.000 to CHF\s?2.651.000$/)).toBeInTheDocument();
+    // The amounts sit in their own span, so the sentence is read from the enclosing element.
+    expect(screen.getByText(/CHF\s?1.961.000/).closest("p")).toHaveTextContent(
+      /^Working estimate CHF\s?1.961.000 a year, from about 1.8 lost time injuries across 420 employees\.$/,
+    );
     expect(screen.getByText(b.card.savingMedian)).toBeInTheDocument();
+    expect(screen.getByText(/CHF\s?522.000/).closest("dd")).toHaveTextContent(
+      /^CHF\s?522.000 a year$/,
+    );
     expect(screen.getByText(b.card.savingTop)).toBeInTheDocument();
-    expect(screen.getByText("5 of 8 KPIs compared")).toBeInTheDocument();
-    expect(screen.getByText("Computed on 06.09.2026")).toBeInTheDocument();
+    expect(screen.getByText(b.card.atOrBelow)).toBeInTheDocument();
   });
 
   it("keeps the disclosure closed and opens it on the trigger", async () => {

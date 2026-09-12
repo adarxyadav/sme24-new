@@ -1,9 +1,17 @@
-import { CalculatorIcon, InfoIcon, TriangleAlertIcon } from "lucide-react";
+import { InfoIcon, TriangleAlertIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { QuartileBand } from "@/components/ui/quartile-band";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BenchmarkState } from "@/features/benchmark/catalogue";
 import { roundChf, roundChfRange } from "@/features/benchmark/model";
@@ -12,10 +20,10 @@ import {
   type DerivedCount,
   peerShapeOf,
   type SnapshotBlocks,
-  type SnapshotDerived,
   type SnapshotGap,
 } from "@/features/benchmark/snapshot";
 import {
+  confidenceLevel,
   isKpiKey,
   KPI_CATALOGUE,
   type KpiFormat,
@@ -156,6 +164,13 @@ export async function BenchmarkSegment({
             readOnly={readOnly}
           />
           <CalculationDisclosure title={t("disclosure.title")}>
+            <CalculationFacts
+              snapshot={snapshot}
+              catalogue={catalogue}
+              locale={locale}
+              t={t}
+              format={format}
+            />
             <CalculationContent
               snapshot={snapshot}
               catalogue={catalogue}
@@ -248,9 +263,10 @@ export function confidenceDriver(snapshot: ParsedSnapshot): KpiKey | null {
 }
 
 /**
- * One derived injury count (spec 0012): the number, a "Calculated" badge that reads as neither a
- * confidence badge nor a client "Your figure" badge, and a line naming the rate and year it came
- * from. Never a confidence score (AC-5). Server component.
+ * One derived injury count as a plain row of the disclosure (spec 0012): the label, the number to
+ * one decimal (AC-8) and a sentence naming the rate and year it came from (AC-4). Its "Calculated
+ * from" wording is what marks the number as calculated rather than researched or typed in, now
+ * that no badge sits beside it. Never a confidence score (AC-5). Server component.
  */
 function DerivedCountRow({
   count,
@@ -281,51 +297,45 @@ function DerivedCountRow({
       });
 
   return (
-    // A wrapper inside a `dl` may hold only `dt` and `dd`, so the provenance line lives inside the
-    // `dd` rather than beside it (axe `definition-list`).
-    <div className="flex flex-col gap-0.5" data-derived-count={testId}>
-      <dt className="eyebrow text-muted-foreground">{label}</dt>
-      <dd className="flex flex-col gap-0.5">
-        <span className="flex flex-wrap items-center gap-2">
-          <span className="font-medium tabular-nums" data-numeric data-derived-value>
-            {format.number(count.count, "oneDecimal")}
-          </span>
-          <Badge variant="outline">
-            <CalculatorIcon aria-hidden="true" />
-            {t("derived.calculated")}
-          </Badge>
-        </span>
-        <span className="text-muted-foreground text-xs" data-derived-from={count.fromKey}>
-          {provenance}
-        </span>
-      </dd>
-    </div>
+    <li data-derived-count={testId}>
+      <span className="text-foreground">{label}</span>
+      {": "}
+      <span className="tabular-nums" data-numeric data-derived-value>
+        {format.number(count.count, "oneDecimal")}
+      </span>
+      {" · "}
+      <span data-derived-from={count.fromKey}>{provenance}</span>
+    </li>
   );
 }
 
 /**
- * The derived counts inside the opportunity card (spec 0012): lost time first, so the number that
- * drives the CHF figure sits nearest to it. Absent entirely when nothing could be derived, and each
- * count independent of the other (AC-6, AC-7). Server component.
+ * The rows that describe the snapshot rather than price it, at the top of "How this is
+ * calculated" (owner decision of 2026-09-13, recorded in spec 0012): the computed on date, how
+ * many KPIs were compared, which KPI drove the confidence, and the derived injury counts with
+ * their provenance and the note that only lost time accidents are priced (spec 0016, AC-31).
+ * They left the opportunity card so it carries the cost and the two savings alone. Server component.
  */
-function DerivedBlock({
-  derived,
-  catalogue,
-  locale,
-  t,
-  format,
-}: {
-  readonly derived: SnapshotDerived;
-  readonly catalogue: readonly KpiDefinitionRow[];
-  readonly locale: LocaleCode;
-  readonly t: Translator;
-  readonly format: Formatter;
-}) {
+function CalculationFacts({ snapshot, catalogue, locale, t, format }: BlockProps) {
+  // Absent on a stored version 1 row and whenever nothing could be derived (spec 0012, AC-7, AC-12).
+  const derived = snapshot.blocks.derived ?? null;
+  const driver = confidenceDriver(snapshot);
+  const computedOn = format.dateTime(new Date(snapshot.createdAt), "dateShort");
+
   return (
-    <div className="flex flex-col gap-2" data-derived-block>
-      <p className="eyebrow text-muted-foreground">{t("derived.title")}</p>
-      <dl className="grid gap-3 sm:grid-cols-2">
-        {derived.lostTime ? (
+    <section className="flex flex-col gap-2 text-sm" data-calculation-facts>
+      <h4 className="font-semibold">{t("disclosure.aboutTitle")}</h4>
+      <ul className="flex flex-col gap-1 text-muted-foreground">
+        <li data-computed-on>{t("disclosure.computedOn", { date: computedOn })}</li>
+        <li data-compared={snapshot.kpisCompared}>
+          {t("disclosure.compared", { compared: snapshot.kpisCompared, total: catalogue.length })}
+        </li>
+        {driver ? (
+          <li data-confidence-from={driver}>
+            {t("disclosure.confidenceFrom", { kpi: kpiName(catalogue, locale, driver) })}
+          </li>
+        ) : null}
+        {derived?.lostTime ? (
           <DerivedCountRow
             count={derived.lostTime}
             label={t("derived.lostTime")}
@@ -336,7 +346,7 @@ function DerivedBlock({
             format={format}
           />
         ) : null}
-        {derived.recordable ? (
+        {derived?.recordable ? (
           <DerivedCountRow
             count={derived.recordable}
             label={t("derived.recordable")}
@@ -347,26 +357,23 @@ function DerivedBlock({
             format={format}
           />
         ) : null}
-      </dl>
-      <p className="text-muted-foreground text-xs" data-derived-exposure>
-        {t("derived.exposure", {
-          fte: format.number(derived.fte, "integer"),
-          hours: format.number(derived.hoursPerFte, "integer"),
-        })}
-      </p>
-      {/* The recordable count sits beside a franc figure that ignores it (spec 0016 amendment,
-          AC-31): say so here, where the two meet, rather than only in the disclosure. */}
-      <p className="text-muted-foreground text-xs" data-derived-priced>
-        {t("derived.priced")}
-      </p>
-    </div>
+        {/* The recordable count is shown for context and never priced: say so beside it (spec
+            0016 amendment, AC-31). */}
+        {derived?.recordable ? <li data-derived-priced>{t("derived.priced")}</li> : null}
+      </ul>
+    </section>
   );
 }
 
+/**
+ * The annual incident cost (spec 0008, AC-9): the title with the confidence spelled out beside
+ * it, the outward rounded range (spec 0016, AC-9), one line with the working estimate and the
+ * lost time count it is built from (spec 0012, AC-1), then the two savings. Everything that
+ * explains the arithmetic sits in the disclosure below (`CalculationFacts`). Without a cost the
+ * card names the missing input and offers the facts form. Server component.
+ */
 function OpportunityCard({
   snapshot,
-  catalogue,
-  locale,
   t,
   format,
   company,
@@ -382,36 +389,47 @@ function OpportunityCard({
     snapshot.costLowChf !== null && snapshot.costHighChf !== null
       ? roundChfRange(snapshot.costLowChf, snapshot.costHighChf)
       : null;
-  // Absent on a stored version 1 row and whenever nothing could be derived; the card then renders
-  // exactly as it did before this block existed (spec 0012, AC-7, AC-12).
+  // Absent on a stored version 1 row and whenever nothing could be derived; the working estimate
+  // then stands without its injuries clause (spec 0012, AC-7, AC-12).
   const derived = snapshot.blocks.derived ?? null;
-  const driver = confidenceDriver(snapshot);
-  const computedOn = format.dateTime(new Date(snapshot.createdAt), "dateShort");
-  const activeCount = catalogue.length;
+  const value = (chunks: React.ReactNode) => (
+    <span className="font-medium text-foreground">{chunks}</span>
+  );
+  // A saving of zero is a position, not a broken sum: the company already sits at or below that
+  // peer mark. `null` means the model had no peer reference to measure against at all.
+  const saving = (amount: number | null) =>
+    amount === null ? (
+      t("card.noReference")
+    ) : amount <= 0 ? (
+      <span className="text-foreground">{t("card.atOrBelow")}</span>
+    ) : (
+      t.rich("card.savingValue", {
+        amount: chf(amount),
+        value: (chunks) => <span className="font-medium text-foreground text-lg">{chunks}</span>,
+      })
+    );
 
   return (
     <Card data-opportunity-card data-cost={snapshot.costChf ?? ""}>
       <CardHeader>
         <CardTitle>{t("card.title")}</CardTitle>
-        <CardDescription>{t("card.description")}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {derived ? (
-          <DerivedBlock
-            derived={derived}
-            catalogue={catalogue}
-            locale={locale}
-            t={t}
-            format={format}
-          />
+        {snapshot.confidence !== null ? (
+          <CardAction>
+            <ConfidenceBadge
+              confidence={snapshot.confidence}
+              label={t(`card.confidence.${confidenceLevel(snapshot.confidence)}`)}
+            />
+          </CardAction>
         ) : null}
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
         {cost && snapshot.costChf !== null ? (
           <>
             {/* The range leads and the point estimate sits beneath it as the working estimate
                 (spec 0016, AC-9): the multiplier behind the single figure is a declared assumption,
                 so the honest headline is the band it sits in. The ends round outward, so the shown
                 band always contains the computed one. */}
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1.5">
               {range ? (
                 <>
                   <p
@@ -431,7 +449,14 @@ function OpportunityCard({
                     data-numeric
                     data-cost-headline
                   >
-                    {t("card.working", { cost: chf(snapshot.costChf) })}
+                    {derived?.lostTime
+                      ? t.rich("card.workingDerived", {
+                          cost: chf(snapshot.costChf),
+                          count: format.number(derived.lostTime.count, "oneDecimal"),
+                          fte: format.number(derived.fte, "integer"),
+                          value,
+                        })
+                      : t.rich("card.working", { cost: chf(snapshot.costChf), value })}
                   </p>
                 </>
               ) : (
@@ -440,37 +465,29 @@ function OpportunityCard({
                 </p>
               )}
             </div>
-            <dl className="grid gap-3 sm:grid-cols-2">
+            <Separator />
+            <dl className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-0.5">
-                <dt className="eyebrow text-muted-foreground">{t("card.savingMedian")}</dt>
-                <dd className="font-medium tabular-nums" data-numeric data-saving-median>
-                  {snapshot.savingMedianChf === null
-                    ? t("card.noReference")
-                    : chf(snapshot.savingMedianChf)}
+                <dt className="text-label-13 text-muted-foreground">{t("card.savingMedian")}</dt>
+                <dd
+                  className="text-muted-foreground text-sm tabular-nums"
+                  data-numeric
+                  data-saving-median
+                >
+                  {saving(snapshot.savingMedianChf)}
                 </dd>
               </div>
               <div className="flex flex-col gap-0.5">
-                <dt className="eyebrow text-muted-foreground">{t("card.savingTop")}</dt>
-                <dd className="font-medium tabular-nums" data-numeric data-saving-top>
-                  {snapshot.savingTopChf === null
-                    ? t("card.noReference")
-                    : chf(snapshot.savingTopChf)}
+                <dt className="text-label-13 text-muted-foreground">{t("card.savingTop")}</dt>
+                <dd
+                  className="text-muted-foreground text-sm tabular-nums"
+                  data-numeric
+                  data-saving-top
+                >
+                  {saving(snapshot.savingTopChf)}
                 </dd>
               </div>
             </dl>
-            <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
-              {snapshot.confidence !== null ? (
-                <span className="flex items-center gap-1.5">
-                  <ConfidenceBadge confidence={snapshot.confidence} />
-                  {driver ? (
-                    <span>
-                      {t("card.confidenceFrom", { kpi: kpiName(catalogue, locale, driver) })}
-                    </span>
-                  ) : null}
-                </span>
-              ) : null}
-              <span data-computed-on>{t("card.computedOn", { date: computedOn })}</span>
-            </div>
           </>
         ) : (
           <>
@@ -481,16 +498,10 @@ function OpportunityCard({
                   ? t("card.missingHeadcount")
                   : t("card.missingIncidentRate")}
               </AlertTitle>
-              <AlertDescription>
-                <p data-computed-on>{t("card.computedOn", { date: computedOn })}</p>
-              </AlertDescription>
             </Alert>
             {readOnly ? null : <FactsForm company={company} />}
           </>
         )}
-        <p className="text-muted-foreground text-sm" data-compared={snapshot.kpisCompared}>
-          {t("card.compared", { compared: snapshot.kpisCompared, total: activeCount })}
-        </p>
       </CardContent>
     </Card>
   );
