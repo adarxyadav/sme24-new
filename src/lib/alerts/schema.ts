@@ -18,6 +18,7 @@ export const ALERT_KINDS = [
   "expert.onboarded",
   "data_request.received",
   "task.failed",
+  "assessment.submitted",
 ] as const;
 export type AlertKind = (typeof ALERT_KINDS)[number];
 
@@ -102,6 +103,18 @@ const alertFields = {
     attempts: z.number().int().positive(),
     error: z.string().min(1).max(500),
   }),
+  /**
+   * Spec 0019 (AC-12): an expert submitted an assessment and its score is now locked. Ops read it
+   * to chase the delivery and the report; the company and the expert are named, the score is the
+   * whole percent `computeScore` answered (null when nothing was rated, which the trigger makes
+   * impossible but the type keeps honest).
+   */
+  "assessment.submitted": z.object({
+    companyName: z.string().min(1).max(200),
+    questionnaireTitle: z.string().min(1).max(200),
+    expertName: z.string().min(1).max(200),
+    scorePercent: z.number().int().min(0).max(100).nullable(),
+  }),
 } as const satisfies Record<AlertKind, z.ZodType>;
 
 /** The typed fields of one kind. */
@@ -134,5 +147,6 @@ export const opsAlertPayloadSchema = z.discriminatedUnion("kind", [
   entry("expert.onboarded"),
   entry("data_request.received"),
   entry("task.failed"),
+  entry("assessment.submitted"),
 ]);
 export type OpsAlertPayload = z.infer<typeof opsAlertPayloadSchema>;

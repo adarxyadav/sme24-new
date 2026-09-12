@@ -21,6 +21,11 @@ export type StructuredOutputInput<Schema extends z.ZodType> = {
    * research task then continues with the provider's values and marks the run `skipped`.
    */
   readonly maxRetries?: number;
+  /**
+   * The output token cap for the call. The provider's default (a few thousand tokens) is enough
+   * for a research verdict; a batch of translated texts (spec 0019) needs more.
+   */
+  readonly maxOutputTokens?: number;
 };
 
 /**
@@ -34,6 +39,7 @@ export async function structuredOutput<Schema extends z.ZodType>({
   system,
   prompt,
   maxRetries = 2,
+  maxOutputTokens,
 }: StructuredOutputInput<Schema>): Promise<z.output<Schema>> {
   const gateway = createGateway({ apiKey });
   const { output } = await generateText({
@@ -43,6 +49,7 @@ export async function structuredOutput<Schema extends z.ZodType>({
     prompt,
     temperature: 0,
     maxRetries,
+    maxOutputTokens,
   });
   return output as z.output<Schema>;
 }

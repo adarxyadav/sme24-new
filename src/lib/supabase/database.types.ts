@@ -9,6 +9,162 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      assessment_answers: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          item_id: string | null
+          note: string | null
+          organization_id: string
+          rating: string | null
+          section_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          note?: string | null
+          organization_id: string
+          rating?: string | null
+          section_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          note?: string | null
+          organization_id?: string
+          rating?: string | null
+          section_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_answers_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_answers_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_answers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessments: {
+        Row: {
+          company_id: string
+          conducted_on: string | null
+          created_at: string
+          expert_id: string
+          id: string
+          order_id: string | null
+          organization_id: string
+          questionnaire_key: string
+          questionnaire_version_key: string
+          site: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          conducted_on?: string | null
+          created_at?: string
+          expert_id: string
+          id?: string
+          order_id?: string | null
+          organization_id: string
+          questionnaire_key: string
+          questionnaire_version_key: string
+          site?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          conducted_on?: string | null
+          created_at?: string
+          expert_id?: string
+          id?: string
+          order_id?: string | null
+          organization_id?: string
+          questionnaire_key?: string
+          questionnaire_version_key?: string
+          site?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "assessments_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "expert_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_questionnaire_version_fkey"
+            columns: ["questionnaire_key", "questionnaire_version_key"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_versions"
+            referencedColumns: ["questionnaire_key", "key"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -677,6 +833,13 @@ export type Database = {
             foreignKeyName: "directory_credit_entries_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
+            referencedRelation: "expert_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
@@ -1327,6 +1490,13 @@ export type Database = {
             foreignKeyName: "invoices_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: true
+            referencedRelation: "expert_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
             referencedRelation: "orders"
             referencedColumns: ["id"]
           },
@@ -1475,6 +1645,13 @@ export type Database = {
           to_status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "expert_bookings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "order_events_order_id_fkey"
             columns: ["order_id"]
@@ -1857,6 +2034,108 @@ export type Database = {
           },
         ]
       }
+      questionnaire_items: {
+        Row: {
+          created_at: string
+          de_reviewed: boolean
+          group_key: string | null
+          id: string
+          label: string
+          parent_id: string | null
+          position: number
+          question: Json
+          rateable: boolean
+          requirement: Json | null
+          section_key: string
+          title: Json
+          updated_at: string
+          version_key: string
+        }
+        Insert: {
+          created_at?: string
+          de_reviewed?: boolean
+          group_key?: string | null
+          id: string
+          label: string
+          parent_id?: string | null
+          position: number
+          question: Json
+          rateable: boolean
+          requirement?: Json | null
+          section_key: string
+          title: Json
+          updated_at?: string
+          version_key: string
+        }
+        Update: {
+          created_at?: string
+          de_reviewed?: boolean
+          group_key?: string | null
+          id?: string
+          label?: string
+          parent_id?: string | null
+          position?: number
+          question?: Json
+          rateable?: boolean
+          requirement?: Json | null
+          section_key?: string
+          title?: Json
+          updated_at?: string
+          version_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questionnaire_items_version_key_fkey"
+            columns: ["version_key"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_versions"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      questionnaire_versions: {
+        Row: {
+          created_at: string
+          item_count: number
+          key: string
+          questionnaire_key: string
+          sections: Json
+          source_note: string | null
+          title: Json
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          item_count: number
+          key: string
+          questionnaire_key: string
+          sections: Json
+          source_note?: string | null
+          title: Json
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          item_count?: number
+          key?: string
+          questionnaire_key?: string
+          sections?: Json
+          source_note?: string | null
+          title?: Json
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       research_runs: {
         Row: {
           company_id: string
@@ -2077,6 +2356,64 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "research_runs"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      expert_bookings: {
+        Row: {
+          company_id: string | null
+          delivered_at: string | null
+          id: string | null
+          organization_id: string | null
+          package_key: string | null
+          package_name_snapshot: string | null
+          reference: string | null
+          scheduled_at: string | null
+          status: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          delivered_at?: string | null
+          id?: string | null
+          organization_id?: string | null
+          package_key?: string | null
+          package_name_snapshot?: string | null
+          reference?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          delivered_at?: string | null
+          id?: string | null
+          organization_id?: string | null
+          package_key?: string | null
+          package_name_snapshot?: string | null
+          reference?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_package_key_fkey"
+            columns: ["package_key"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["key"]
           },
         ]
       }

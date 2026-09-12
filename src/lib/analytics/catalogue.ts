@@ -168,6 +168,28 @@ const analyticsProperties = {
     grossRappen: z.number().int().nonnegative(),
   }),
   /**
+   * Structured assessment forms (spec 0019, AC-12). Both are fired by the assigned expert for a
+   * client organization, so `organizationId` is required; `orderId` is null when the expert
+   * started the checklist without a booking. Ids and codes only: the questionnaire key, never a
+   * title, and no note text.
+   */
+  /** `startAssessment`, after the draft insert. */
+  "assessment.started": z.object({
+    organizationId: z.uuid(),
+    locale: localeCode,
+    assessmentId: z.uuid(),
+    questionnaireKey: z.string().min(1).max(50),
+    orderId: z.uuid().nullable(),
+  }),
+  /** `submitAssessment`, after the status write that locked the draft. */
+  "assessment.submitted": z.object({
+    organizationId: z.uuid(),
+    locale: localeCode,
+    assessmentId: z.uuid(),
+    questionnaireKey: z.string().min(1).max(50),
+    orderId: z.uuid().nullable(),
+  }),
+  /**
    * The ops only `/admin` scaffold probe that proves the PostHog wiring end to end. Not a funnel
    * event; catalogued because AC-1 makes the name a closed union and a diagnostic escape hatch
    * would weaken exactly the guarantee this spec buys. Carries no organization: ops fire it for

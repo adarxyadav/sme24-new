@@ -280,3 +280,54 @@ describe("the benchmark.failed kind (spec 0008, AC-8)", () => {
     ).toBe(false);
   });
 });
+
+describe("the assessment.submitted kind (spec 0019, AC-12)", () => {
+  const fields: {
+    companyName: string;
+    questionnaireTitle: string;
+    expertName: string;
+    scorePercent: number | null;
+  } = {
+    companyName: "Musterfirma AG",
+    questionnaireTitle: "ISO 45001 Gap Assessment",
+    expertName: "Nina Keller",
+    scorePercent: 94,
+  };
+
+  it("presents the company, the questionnaire, the expert, the score and the time with an Open orders button", () => {
+    expect(presentAlert("assessment.submitted", fields, { now: AT })).toEqual({
+      title: "Assessment submitted",
+      fields: [
+        ["Company", "Musterfirma AG"],
+        ["Questionnaire", "ISO 45001 Gap Assessment"],
+        ["Expert", "Nina Keller"],
+        ["Score", "94 %"],
+        ["Time", "05.09.2026, 12:00"],
+      ],
+      buttonLabel: "Open orders",
+    });
+  });
+
+  it("says No score rather than a blank when nothing was rated", () => {
+    const view = presentAlert(
+      "assessment.submitted",
+      { ...fields, scorePercent: null },
+      { now: AT },
+    );
+    expect(view.fields).toContainEqual(["Score", "No score"]);
+  });
+
+  it("accepts a whole percent or null and rejects a fraction, an out of range score or an empty name", () => {
+    const payload = (overrides: Partial<typeof fields>) => ({
+      kind: "assessment.submitted",
+      fields: { ...fields, ...overrides },
+      link: "/admin/orders",
+      idempotencyKey: "assessment-submitted/0e000000-0000-4000-8000-000000000005",
+    });
+    expect(opsAlertPayloadSchema.safeParse(payload({})).success).toBe(true);
+    expect(opsAlertPayloadSchema.safeParse(payload({ scorePercent: null })).success).toBe(true);
+    expect(opsAlertPayloadSchema.safeParse(payload({ scorePercent: 94.5 })).success).toBe(false);
+    expect(opsAlertPayloadSchema.safeParse(payload({ scorePercent: 101 })).success).toBe(false);
+    expect(opsAlertPayloadSchema.safeParse(payload({ expertName: "" })).success).toBe(false);
+  });
+});

@@ -71,6 +71,8 @@ export type RetentionTable =
   | "expert_profiles"
   | "companies"
   | "company_kpis"
+  | "assessments"
+  | "assessment_answers"
   | "notifications"
   | "email_deliveries"
   | "enquiries"
@@ -107,6 +109,11 @@ export const RETENTION: readonly Retention[] = [
   { table: "expert_profiles", kind: "account", days: null },
   { table: "companies", kind: "account", days: null },
   { table: "company_kpis", kind: "account", days: null },
+  // The on site assessment and its findings (spec 0019, AC-14): both belong to the client
+  // organisation and cascade with it; an expert's free text notes may name people, which is why
+  // the form asks them not to record individual workers' names.
+  { table: "assessments", kind: "account", days: null },
+  { table: "assessment_answers", kind: "account", days: null },
   { table: "notifications", kind: "account", days: null },
   { table: "email_deliveries", kind: "purged", days: EMAIL_DELIVERY_RETENTION_DAYS },
   { table: "enquiries", kind: "purged", days: CLOSED_RETENTION_DAYS },

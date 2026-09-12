@@ -47,6 +47,12 @@ export const PATHNAMES = {
     "de-CH": "/expert/kunden/[organizationId]",
     "en-CH": "/expert/clients/[organizationId]",
   },
+  // Spec 0019: the assessment page. The German slug uses the term the de-CH catalog uses for an
+  // assessment (Beurteilung), beside the client page's kunden.
+  "/expert/clients/[organizationId]/assessments/[assessmentId]": {
+    "de-CH": "/expert/kunden/[organizationId]/beurteilungen/[assessmentId]",
+    "en-CH": "/expert/clients/[organizationId]/assessments/[assessmentId]",
+  },
   "/admin": "/admin",
   "/admin/design": "/admin/design",
   "/admin/emails": "/admin/emails",

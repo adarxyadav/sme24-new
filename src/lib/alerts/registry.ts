@@ -126,6 +126,17 @@ export const ALERT_REGISTRY: { readonly [K in AlertKind]: Presenter<K> } = {
     ],
     buttonLabel: "Open run",
   }),
+  "assessment.submitted": (fields, context) => ({
+    title: "Assessment submitted",
+    fields: [
+      ["Company", fields.companyName],
+      ["Questionnaire", fields.questionnaireTitle],
+      ["Expert", fields.expertName],
+      ["Score", fields.scorePercent === null ? "No score" : `${fields.scorePercent} %`],
+      ["Time", format.dateTime(context.now, "dateTime")],
+    ],
+    buttonLabel: "Open orders",
+  }),
   "invoice.render_failed": (fields, context) => ({
     title: "Invoice render failed",
     fields: [

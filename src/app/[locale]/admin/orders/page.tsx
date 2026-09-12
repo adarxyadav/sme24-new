@@ -14,6 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { listAssessmentStates } from "@/features/assessments/queries";
+import { AssessmentStateLines } from "@/features/assessments/ui/assessment-state-lines";
 import { rappenToChf } from "@/features/checkout/money";
 import { listAllOrders } from "@/features/checkout/queries";
 import { OrderActions } from "@/features/checkout/ui/order-actions";
@@ -67,13 +69,18 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   // Both reads are for the delivery column: the picker's options, and the names behind the ids
   // this page of orders already carries. The experts list is fetched whatever the page holds,
   // because the dialog is rendered per paid row rather than once.
-  const [assignableExperts, scheduledNames] = await Promise.all([
+  const [assignableExperts, scheduledNames, assessmentStates] = await Promise.all([
     listAssignableExperts(supabase),
     expertNames(
       supabase,
       page.rows.flatMap(({ order }) =>
         order.assigned_expert_id ? [order.assigned_expert_id] : [],
       ),
+    ),
+    // Spec 0019, AC-10: the state of each booked order's assessments, the same lines the client sees.
+    listAssessmentStates(
+      supabase,
+      page.rows.flatMap(({ order }) => (order.scheduled_at ? [order.id] : [])),
     ),
   ]);
 
@@ -150,6 +157,13 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
                                 ? scheduledNames.get(order.assigned_expert_id)
                                 : null) ?? t("schedule.unnamed")}
                             </span>
+                            {isCreditOrder ? null : (
+                              <AssessmentStateLines
+                                packageKey={order.package_key}
+                                states={assessmentStates.get(order.id) ?? []}
+                                className="mt-1 text-xs"
+                              />
+                            )}
                           </div>
                         ) : (
                           <span className="text-muted-foreground text-sm">{t("notScheduled")}</span>

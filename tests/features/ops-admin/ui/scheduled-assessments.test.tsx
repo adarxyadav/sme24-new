@@ -109,7 +109,10 @@ describe("matching each booking to its own assessor (AC-10)", () => {
       [assigned(NINA, "Nina Keller"), assigned(UELI, "Ueli Roth")],
     );
 
-    const rows = screen.getAllByRole("listitem");
+    const list = screen.getByRole("list", { name: "Your assessments" });
+    const rows = within(list)
+      .getAllByRole("listitem")
+      .filter((row) => row.parentElement === list);
     expect(rows).toHaveLength(2);
     expect(within(rows[0] as HTMLElement).getByText("With Nina Keller")).toBeInTheDocument();
     expect(
@@ -170,7 +173,64 @@ describe("how the section reads", () => {
       [assessment(), assessment({ orderId: "0a000000-0000-4000-8000-000000000002" })],
       [assigned(NINA, "Nina Keller")],
     );
-    expect(screen.getByRole("list")).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    const list = screen.getByRole("list", { name: "Your assessments" });
+    expect(list).toBeInTheDocument();
+    expect(
+      within(list)
+        .getAllByRole("listitem")
+        .filter((row) => row.parentElement === list),
+    ).toHaveLength(2);
+  });
+});
+
+describe("the state of the linked assessments (spec 0019, AC-10)", () => {
+  it("shows one not started line per questionnaire the package runs when nothing is linked", async () => {
+    await renderCard([assessment({ packageKey: "compliance" })]);
+    const lines = within(screen.getByRole("list", { name: "Assessment status" })).getAllByRole(
+      "listitem",
+    );
+    expect(lines.map((line) => line.textContent)).toEqual([
+      "Compliance assessment: Not started",
+      "ISO 45001 gap assessment: Not started",
+    ]);
+  });
+
+  it("reads a draft as in progress since its start and a submission as submitted on its date, nothing more", async () => {
+    wrap(
+      await ScheduledAssessments({
+        assessments: [assessment({ packageKey: "compliance" })],
+        experts: [assigned(NINA, "Nina Keller")],
+        states: new Map([
+          [
+            assessment().orderId,
+            [
+              {
+                orderId: assessment().orderId,
+                questionnaireKey: "compliance",
+                status: "draft",
+                createdAt: "2026-10-14T09:00:00.000Z",
+                submittedAt: null,
+              },
+              {
+                orderId: assessment().orderId,
+                questionnaireKey: "iso45001",
+                status: "submitted",
+                createdAt: "2026-10-14T09:00:00.000Z",
+                submittedAt: "2026-10-15T15:00:00.000Z",
+              },
+            ],
+          ],
+        ]),
+      }),
+    );
+    const lines = screen
+      .getAllByRole("listitem")
+      .filter((item) => item.hasAttribute("data-assessment-state"));
+    expect(lines.map((line) => line.textContent)).toEqual([
+      `Compliance assessment: In progress since ${format.dateTime(new Date("2026-10-14T09:00:00.000Z"), "dateShort")}`,
+      `ISO 45001 gap assessment: Submitted on ${format.dateTime(new Date("2026-10-15T15:00:00.000Z"), "dateShort")}`,
+    ]);
+    // Only a state and a date ever reach the client: no score, no rating, no note.
+    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
   });
 });
