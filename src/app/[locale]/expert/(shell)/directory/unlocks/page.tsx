@@ -140,10 +140,16 @@ export default async function DirectoryUnlocksPage({ searchParams }: Props) {
                           ) : null}
                         </span>
                       </TableCell>
-                      <TableCell className="font-mono text-xs" translate="no">
+                      <TableCell
+                        className="min-w-40 max-w-[16rem] break-all font-mono text-xs whitespace-normal"
+                        translate="no"
+                      >
                         {row.email}
                       </TableCell>
-                      <TableCell className="font-mono text-xs" translate="no">
+                      <TableCell
+                        className="min-w-32 max-w-[12rem] font-mono text-xs whitespace-normal"
+                        translate="no"
+                      >
                         <span className="flex flex-col gap-0.5">
                           <span>{row.phone ?? row.mobile ?? t("none")}</span>
                           {row.phone && row.mobile ? (

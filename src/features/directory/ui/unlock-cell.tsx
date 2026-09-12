@@ -90,10 +90,19 @@ export function UnlockCell({
 
   return (
     <>
-      <TableCell className="font-mono text-xs" translate="no">
+      {/* Both identifier cells wrap inside a bound, so the longest address or number on the page
+          never sets the width of the whole column: an address breaks anywhere (no spaces to break
+          at), a number breaks at its spaces. The unlock cell stays on one line. */}
+      <TableCell
+        className="min-w-40 max-w-[16rem] break-all font-mono text-xs whitespace-normal"
+        translate="no"
+      >
         {revealed ? revealed.email : emailMasked}
       </TableCell>
-      <TableCell className="font-mono text-xs" translate="no">
+      <TableCell
+        className="min-w-32 max-w-[12rem] font-mono text-xs whitespace-normal"
+        translate="no"
+      >
         <span className="flex flex-col gap-0.5">
           <span>{primaryPhone ?? t("none")}</span>
           {secondaryPhone ? <span className="text-muted-foreground">{secondaryPhone}</span> : null}
