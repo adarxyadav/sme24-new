@@ -20,7 +20,7 @@ No PostHog request is made while the cookie is absent, denied, or stamped with a
 
 ## The terms version
 
-`CURRENT_TERMS_VERSION` in `src/features/legal/terms.ts` ships at `'1'`, matching the column default, so nobody became stale on the day this deployed.
+`CURRENT_TERMS_VERSION` in `src/features/legal/terms.ts` shipped at `'1'`, matching the column default, so nobody became stale on the day this deployed. It moved to `'2'` on 2026-09-12 with the purchased contacts clause of the contact directory (spec 0018, AC-16; runbook in [directory.md](directory.md)): the migration `20260912…_terms_version_2` moved the column default and the `accept_terms` default with it, so the comment in `terms.ts` stays true, and every user who accepted version 1 sees the dialog once.
 
 **Bumping it blocks every signed in user behind a dialog they cannot dismiss until they accept**, so bump it only for a change that genuinely alters the deal. In the same commit: add the `legal.terms.changelog.<version>` key to both catalogues (a Vitest test fails until you do), append the version to `TERMS_VERSIONS`, and move `TERMS_UPDATED` in `dates.ts`.
 

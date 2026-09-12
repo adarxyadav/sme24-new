@@ -130,3 +130,20 @@ export const RETENTION: readonly Retention[] = [
   { table: "directory_credit_entries", kind: "indefinite", days: null },
   { table: "directory_imports", kind: "indefinite", days: null },
 ] as const;
+
+/**
+ * The facts of the contact directory block on the privacy page (spec 0018, AC-16): the purchased
+ * list is processing of people who never signed up, so the page names the source batch, the
+ * purpose, the legal basis and the promise made to an objector. Every fact is a constant here so
+ * the prose cannot claim something the code does not do; the objection address is `SITE.email`.
+ */
+export const DIRECTORY_PROCESSING = {
+  /** The supplier's batch name, recorded on every contact row and import run. */
+  sourceBatch: "20260902 Global Account Lists",
+  /** The basis code of the record of processing: legitimate interest under the supplier's licence. */
+  basis: "interest",
+  /** Days within which an objection is honoured; the hash then keeps the person out for good. */
+  removalDays: 30,
+  /** What one reveal costs, as the page states it. */
+  creditPriceChf: 1.99,
+} as const;

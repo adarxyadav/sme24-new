@@ -2925,7 +2925,8 @@
         "error": "Ihre Zustimmung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
       },
       "changelog": {
-        "1": "Dies sind die ersten Nutzungsbedingungen für SME24. Sie regeln unsere Leistungen, den Inhalt eines Pakets, die Stornierung und das anwendbare Recht."
+        "1": "Dies sind die ersten Nutzungsbedingungen für SME24. Sie regeln unsere Leistungen, den Inhalt eines Pakets, die Stornierung und das anwendbare Recht.",
+        "2": "Version 2 ergänzt eine Klausel zu gekauften Kontakten: Expertenkonten dürfen Kontakte aus unserem lizenzierten Verzeichnis nur für die eigene Geschäftsentwicklung freischalten, sie nie weiterverkaufen oder teilen, die Liste nicht massenhaft extrahieren und müssen einen Widerspruch sowie das Marketingrecht des Landes des Kontakts beachten. Sonst hat sich nichts geändert."
       }
     }
   },
@@ -3124,6 +3125,15 @@
       "changes": {
         "title": "Änderungen dieser Erklärung",
         "body": "Wenn wir ändern, wie wir Ihre Daten bearbeiten, aktualisieren wir diese Seite und sagen es Ihnen bei wesentlichen Änderungen in der App. Das Datum oben ist immer das Datum der letzten Änderung."
+      },
+      "directory": {
+        "title": "Kontaktverzeichnis",
+        "lead": "Ein Teil des Dienstes verarbeitet Daten von Personen, die sich nie bei SME24 registriert haben, und verdient einen eigenen Abschnitt.",
+        "source": "Wir lizenzieren von einem Datenlieferanten eine Liste von Sicherheits- und Betriebskontakten in Unternehmen weltweit (Charge {batch}). Sie enthält Namen, Funktionen, geschäftliche E-Mail-Adressen, geschäftliche Telefonnummern und geschäftliche Postadressen.",
+        "purpose": "Unabhängige EHS-Fachpersonen mit einem SME24-Expertenkonto durchsuchen die Liste nach Firma, Funktion und Land. E-Mail-Adressen und Telefonnummern werden maskiert angezeigt; eine Fachperson schaltet einen Kontakt für einen Credit (CHF {price}) frei, und nur die von ihr freigeschalteten Kontakte werden ihr vollständig angezeigt.",
+        "basis": "Grundlage ist unser berechtigtes Interesse und das der Fachpersonen, die für die Sicherheit in einem Unternehmen verantwortlichen Personen mit einem geschäftlichen Angebot zu erreichen, im Rahmen der Lizenz des Lieferanten. Die Fachpersonen verpflichten sich in den AGB, einen Kontakt nur für die eigene Geschäftsentwicklung zu nutzen, ihn nie weiterzuverkaufen oder weiterzugeben und das Marketingrecht des Landes des Kontakts zu beachten.",
+        "objection": "Wenn Sie auf der Liste stehen und das nicht möchten, schreiben Sie an {email}. Wir entfernen Sie innert {days} Tagen und behalten nur einen Hash Ihrer Adresse, damit Sie mit einer späteren Aktualisierung der Liste nie zurückkehren.",
+        "retention": "Kontakte werden so lange behalten, wie die Lizenz läuft; ein entfernter Kontakt ist endgültig weg. Welche Fachperson welchen Kontakt freigeschaltet hat, bleibt als Nachweis dessen, was verkauft wurde, erhalten."
       }
     },
     "terms": {
@@ -3190,6 +3200,14 @@
       "law": {
         "title": "Recht und Gerichtsstand",
         "body": "Es gilt schweizerisches Recht unter Ausschluss seiner Kollisionsnormen. Gerichtsstand ist {city}, soweit nicht zwingendes Recht einen anderen Ort vorsieht."
+      },
+      "purchasedContacts": {
+        "title": "Gekaufte Kontakte",
+        "body": "Expertenkonten können Credits kaufen und Kontakte aus unserem lizenzierten Verzeichnis von Sicherheits- und Betriebsverantwortlichen freischalten. Ein freigeschalteter Kontakt darf nur für die eigene Geschäftsentwicklung der Fachperson genutzt werden: um diese Person mit den eigenen Dienstleistungen anzusprechen.",
+        "resale": "Kontakte dürfen nicht weiterverkauft, geteilt, an Dritte weitergegeben oder in eine Liste oder ein Werkzeug aufgenommen werden, das jemand anderem als der Fachperson dient, die sie freigeschaltet hat.",
+        "extraction": "Eine Massenextraktion des Verzeichnisses über den Export der eigenen freigeschalteten Kontakte hinaus ist nicht erlaubt; die Suche dient dem Finden von Personen, nicht dem Kopieren der Liste.",
+        "objection": "Bittet eine Person darum, nicht kontaktiert zu werden, oder entfernen wir sie aus dem Verzeichnis, stellt die Fachperson die Nutzung des Kontakts ein. Eine Entfernung wird nicht rückerstattet.",
+        "law": "Die Fachperson ist dafür verantwortlich, das Marketing- und Datenschutzrecht des Landes des Kontakts einzuhalten, einschliesslich aller Regeln zu unerbetenen geschäftlichen E-Mails."
       }
     },
     "imprint": {

@@ -52,12 +52,12 @@ A global directory of EHS and operations contacts (about 80,000 people at about 
 Supersedes the "Contact directory: decide what the cleaned export is for" row on the Loose Ends artifact (`docs/artifacts/README.md`).
 Spec: [0018](../specs/0018-contact-directory/index.md). The expert becomes a second buyer shape on `orders` and `invoices` (`buyer_expert_id`, exactly one shape per row), `settle_order` grants the credits in the same transaction as `paid`, credits are an append only ledger debited by one `directory_reveal` function that checks, debits and returns the row atomically, and the directory tables have no read policy for any app role, so the database is the only thing that ever masks or reveals a value. The import script refuses a hosted database until the policy file carries the lawyer's answer.
 - [x] Design it (spec): `/architect contact directory`
-- [ ] Build it: `/develop contact directory`
+- [x] Build it: `/develop contact directory`
   - [x] Data: the six directory tables with their restricted read policies, the masking functions, `directory_search`, the pgTAP proofs, the record of processing rows, and `pnpm directory:import` with its policy gate (AC-1, AC-2, AC-3, AC-4)
   - [x] Browse: `/expert/directory` with search, masked results, keyset paging, the balance header and the `directory` namespace (AC-5)
   - [x] Unlock: the credit pack on the rail (packages kind, the expert buyer shape, the grant in `settle_order`), the expert checkout and invoice actions, the null organization branches, `directory_reveal`, the live unlock button, the unlocks page and the CSV export (AC-6 to AC-13)
   - [x] Instruments: the three events, `/admin/directory` with the import card, balances, unlocks and the removal form (AC-14, AC-15)
-  - [ ] Legal: the privacy block, the retention rows, the terms clause as version 2, the runbook and the launch gate commit that clears the import policy (AC-16, AC-17)
+  - [x] Legal: the privacy block, the retention rows, the terms clause as version 2, the runbook and the launch gate commit that clears the import policy (AC-16, AC-17)
 - [ ] Verify it: `/check verify contact directory`
 - [ ] Test it: `/test contact directory`
 - [ ] Review it (fresh model): `/check review contact directory`

@@ -7,7 +7,7 @@
  */
 
 /** The day the privacy policy text last changed, ISO 8601. */
-export const PRIVACY_UPDATED = "2026-09-09";
+export const PRIVACY_UPDATED = "2026-09-12";
 
 /** The day the terms text last changed, ISO 8601. */
-export const TERMS_UPDATED = "2026-09-09";
+export const TERMS_UPDATED = "2026-09-12";

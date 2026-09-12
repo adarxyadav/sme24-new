@@ -102,15 +102,15 @@ select is(
   'handle_new_user copies the version the sign up form showed');
 select is(
   (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000001'),
-  '1',
+  '2',
   'a sign up without a version key falls back to the default');
 select is(
   (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000006'),
-  '1',
+  '2',
   'handle_new_user ignores a version that is not version shaped');
 select is(
   (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000002'),
-  '1',
+  '2',
   'a sign up with no consent at all still gets the default version');
 
 -- Direct writes are refused ---------------------------------------------------------------------
@@ -146,13 +146,13 @@ select is(
   'a second accept_terms call for the same version returns the stored value and changes nothing');
 select is(
   (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000002'),
-  '1',
-  'the default argument records version 1, the version the zero argument callers were written for');
+  '2',
+  'the default argument records version 2, the current version (spec 0018 moved the default)');
 
 select pg_temp.as_postgres();
 select pg_temp.impersonate('f0000000-0000-4000-8000-000000000001', 'client');
 select is(
-  (select public.accept_terms()),
+  (select public.accept_terms('2')),
   '2026-09-01T08:00:00Z'::timestamptz,
   'accept_terms leaves a consent already recorded for the same version untouched');
 
@@ -160,20 +160,20 @@ select is(
 -- whole mechanism. Before spec 0015 this call was a no op, because the write was guarded on the
 -- stamp being null rather than on the version differing.
 select isnt(
-  (select public.accept_terms('2')),
+  (select public.accept_terms('3')),
   '2026-09-01T08:00:00Z'::timestamptz,
   'accepting a new version restamps terms_accepted_at');
 select is(
   (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000001'),
-  '2',
+  '3',
   'accepting a new version stores that version');
 select ok(
   (select terms_accepted_at from public.profiles where id = 'f0000000-0000-4000-8000-000000000001')
     between now() - interval '1 minute' and now(),
   'the two consent columns move together: the stamp is now, not the old acceptance');
 
--- Equality, never ordering (AC-10). A profile at '10' against a constant of '2' is a *different*
--- version, so accepting '2' must move it; a `<` comparison would read '10' as already older and
+-- Equality, never ordering (AC-10). A profile at '10' against a constant of '3' is a *different*
+-- version, so accepting '3' must move it; a `<` comparison would read '10' as already older and
 -- the app would treat the profile as current. Both directions are asserted, because a text
 -- comparison is wrong in one direction and accidentally right in the other.
 select is((select public.accept_terms('10')), (select terms_accepted_at from public.profiles
@@ -182,7 +182,7 @@ select is((select public.accept_terms('10')), (select terms_accepted_at from pub
 select is(
   (select terms_version from public.profiles where id = 'f0000000-0000-4000-8000-000000000001'),
   '10',
-  'moving from ''2'' to ''10'' is stored, though ''10'' < ''2'' as text');
+  'moving from ''3'' to ''10'' is stored, though ''10'' < ''3'' as text');
 
 -- The argument is a compliance value, so its shape is checked in the body rather than trusted.
 select throws_ok($$ select public.accept_terms('not a version at all, far too long') $$,

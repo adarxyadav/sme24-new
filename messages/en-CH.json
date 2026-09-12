@@ -2925,7 +2925,8 @@
         "error": "We could not record your acceptance. Please try again."
       },
       "changelog": {
-        "1": "These are the first terms of use for SME24. They set out what we provide, what a package includes, how cancellation works and which law applies."
+        "1": "These are the first terms of use for SME24. They set out what we provide, what a package includes, how cancellation works and which law applies.",
+        "2": "Version 2 adds a clause on purchased contacts: expert accounts may reveal contacts from our licensed directory for their own business development only, never resell or share them, must not extract the list in bulk, and must respect an objection and the marketing law of the contact's country. Nothing else changed."
       }
     }
   },
@@ -3124,6 +3125,15 @@
       "changes": {
         "title": "Changes to this policy",
         "body": "If we change how we process your data we update this page and, where the change is substantive, tell you in the app. The date at the top is always the date of the last change."
+      },
+      "directory": {
+        "title": "Contact directory",
+        "lead": "One part of the service processes data about people who never signed up to SME24, and it deserves its own section.",
+        "source": "We licence a list of safety and operations contacts at companies worldwide (batch {batch}) from a data supplier. It holds names, job titles, business email addresses, business phone numbers and business postal addresses.",
+        "purpose": "Independent EHS experts with an SME24 expert account search the list by company, job title and country. Email addresses and phone numbers are shown masked; an expert reveals one contact for one credit (CHF {price}), and only the contacts they revealed are shown to them in full.",
+        "basis": "The basis is our legitimate interest, and that of the experts, in reaching the people responsible for safety at a company with a business offer, under the supplier's licence. Experts agree in the terms to use a contact for their own business development only, never to resell or share it, and to respect the marketing law of the contact's country.",
+        "objection": "If you are on the list and do not want to be, write to {email}. We remove you within {days} days and keep only a hash of your address, so you never return with a later update of the list.",
+        "retention": "Contacts are kept while the licence lasts; a removed contact is gone for good. Which expert revealed which contact is kept as the record of what was sold."
       }
     },
     "terms": {
@@ -3190,6 +3200,14 @@
       "law": {
         "title": "Law and jurisdiction",
         "body": "Swiss law applies, without its conflict of law rules. The courts of {city} have jurisdiction, unless mandatory law gives you a different forum."
+      },
+      "purchasedContacts": {
+        "title": "Purchased contacts",
+        "body": "Expert accounts may buy credits and reveal contacts from our licensed directory of safety and operations people. A revealed contact may be used for the expert's own business development only: to approach that person with the expert's own services.",
+        "resale": "Contacts may not be resold, shared, passed to a third party or added to any list or tool that serves anyone but the expert who revealed them.",
+        "extraction": "Bulk extraction of the directory beyond the export of one's own revealed contacts is not permitted; the search exists to find people, not to copy the list.",
+        "objection": "When a person asks not to be contacted, or we remove them from the directory, the expert stops using the contact. A removal is not refunded.",
+        "law": "The expert is responsible for complying with the marketing and data protection law of the contact's country, including any rule on unsolicited business email."
       }
     },
     "imprint": {
