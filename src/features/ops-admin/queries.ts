@@ -74,6 +74,8 @@ export async function expertNames(
 export type ScheduledAssessment = {
   readonly orderId: string;
   readonly reference: string;
+  /** Which questionnaires the visit runs (spec 0019, AC-10) is read off this through `PACKAGE_QUESTIONNAIRES`. */
+  readonly packageKey: string;
   readonly packageName: string;
   readonly status: string;
   readonly scheduledAt: string;
@@ -95,7 +97,9 @@ export async function listScheduledAssessments(
 ): Promise<readonly ScheduledAssessment[]> {
   const { data, error } = await supabase
     .from("orders")
-    .select("id, reference, package_name_snapshot, status, scheduled_at, assigned_expert_id")
+    .select(
+      "id, reference, package_key, package_name_snapshot, status, scheduled_at, assigned_expert_id",
+    )
     .in("status", ["scheduled", "in_progress", "delivered"])
     .order("scheduled_at", { ascending: true });
   if (error) throw queryError(error);
@@ -108,6 +112,7 @@ export async function listScheduledAssessments(
           {
             orderId: row.id,
             reference: row.reference,
+            packageKey: row.package_key ?? "",
             packageName: row.package_name_snapshot,
             status: row.status,
             scheduledAt: row.scheduled_at,

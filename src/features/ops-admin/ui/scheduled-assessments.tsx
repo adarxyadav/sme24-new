@@ -2,6 +2,8 @@ import { CalendarCheckIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import type { AssessmentState } from "@/features/assessments/states";
+import { AssessmentStateLines } from "@/features/assessments/ui/assessment-state-lines";
 import type { AssignedExpertSummary } from "@/features/experts/queries";
 import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
 import type { ScheduledAssessment } from "../queries";
@@ -10,6 +12,8 @@ export type ScheduledAssessmentsProps = {
   readonly assessments: readonly ScheduledAssessment[];
   /** The organization's assigned experts, from `listAssignedExperts`; matched by `expertId`. */
   readonly experts: readonly AssignedExpertSummary[];
+  /** The linked assessments per order, from `listAssessmentStates` (spec 0019, AC-10). */
+  readonly states?: ReadonlyMap<string, readonly AssessmentState[]>;
 };
 
 /**
@@ -22,9 +26,15 @@ export type ScheduledAssessmentsProps = {
  * the visit, say) still shows its date, because the booking is the fact the client needs.
  *
  * The section is absent, not empty, when nothing is booked: an empty state here would tell every
- * client without a booking that they are missing something. Server component.
+ * client without a booking that they are missing something. Spec 0019 (AC-10) adds one state
+ * line per questionnaire the visit runs: not started, in progress since a date, or submitted on a
+ * date, and nothing else about the assessment. Server component.
  */
-export async function ScheduledAssessments({ assessments, experts }: ScheduledAssessmentsProps) {
+export async function ScheduledAssessments({
+  assessments,
+  experts,
+  states = new Map(),
+}: ScheduledAssessmentsProps) {
   if (assessments.length === 0) return null;
 
   const [t, orders, format] = await Promise.all([
@@ -46,7 +56,7 @@ export async function ScheduledAssessments({ assessments, experts }: ScheduledAs
         </h2>
         <p className="max-w-prose text-muted-foreground text-sm">{t("description")}</p>
       </div>
-      <ul className="grid gap-4">
+      <ul className="grid gap-4" aria-labelledby="scheduled-assessments-heading">
         {assessments.map((assessment) => {
           const expert = byExpert.get(assessment.expertId);
           return (
@@ -79,6 +89,10 @@ export async function ScheduledAssessments({ assessments, experts }: ScheduledAs
                     {expert?.headline ? (
                       <p className="text-muted-foreground text-sm">{expert.headline}</p>
                     ) : null}
+                    <AssessmentStateLines
+                      packageKey={assessment.packageKey}
+                      states={states.get(assessment.orderId) ?? []}
+                    />
                     <p className="font-mono text-muted-foreground text-xs">
                       {assessment.reference}
                     </p>

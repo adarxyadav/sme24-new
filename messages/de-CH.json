@@ -3733,6 +3733,13 @@
         "forbidden": "Nur eine Fachperson kann eine Beurteilung ausfüllen.",
         "unexpected": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
       }
+    },
+    "state": {
+      "notStarted": "Noch nicht begonnen",
+      "inProgressSince": "In Arbeit seit {date}",
+      "submittedOn": "Eingereicht am {date}",
+      "line": "{title}: {state}",
+      "label": "Status der Beurteilungen"
     }
   }
 }

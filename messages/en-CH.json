@@ -3733,6 +3733,13 @@
         "forbidden": "Only an expert can rate an assessment.",
         "unexpected": "Something went wrong. Please try again."
       }
+    },
+    "state": {
+      "notStarted": "Not started",
+      "inProgressSince": "In progress since {date}",
+      "submittedOn": "Submitted on {date}",
+      "line": "{title}: {state}",
+      "label": "Assessment status"
     }
   }
 }

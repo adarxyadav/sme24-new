@@ -10,6 +10,7 @@ import {
   localizedTextSchema,
 } from "./content-schema";
 import { type AssessmentAnswer, type AssessmentItem, computeScore } from "./model";
+import type { AssessmentState } from "./states";
 
 /**
  * The reads of the assessment feature (spec 0019). Queries throw on a database error, per the
@@ -317,4 +318,38 @@ export async function getNewestVersion(
   if (!data) return null;
   const items = await listItems(supabase, [data.key]);
   return { ...toVersion(data), items };
+}
+
+/**
+ * The state of the assessments linked to each of `orderIds` (AC-10), keyed by order: the
+ * questionnaire, the status and the two dates, and nothing else. Reads `assessments` only, never
+ * `assessment_answers`, so a client member's own policy answers it (their organization's rows)
+ * and ops read every order's; an order with no linked row is simply absent from the map, which
+ * the presenter reads as not started. Throws. Server component.
+ */
+export async function listAssessmentStates(
+  supabase: Client,
+  orderIds: readonly string[],
+): Promise<ReadonlyMap<string, readonly AssessmentState[]>> {
+  const ids = [...new Set(orderIds.filter(isUuid))];
+  if (ids.length === 0) return new Map();
+  const { data, error } = await supabase
+    .from("assessments")
+    .select("order_id, questionnaire_key, status, created_at, submitted_at")
+    .in("order_id", ids)
+    .order("created_at", { ascending: true });
+  if (error) throw queryError(error);
+
+  return (data ?? []).reduce((map, row) => {
+    if (!row.order_id) return map;
+    const state: AssessmentState = {
+      orderId: row.order_id,
+      questionnaireKey: row.questionnaire_key,
+      status: toStatus(row.status),
+      createdAt: row.created_at,
+      submittedAt: row.submitted_at,
+    };
+    map.set(row.order_id, [...(map.get(row.order_id) ?? []), state]);
+    return map;
+  }, new Map<string, readonly AssessmentState[]>());
 }

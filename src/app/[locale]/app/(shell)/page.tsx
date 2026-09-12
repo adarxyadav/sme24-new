@@ -13,6 +13,7 @@ import { PageStack } from "@/components/page-stack";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProgressList } from "@/components/ui/progress-list";
+import { listAssessmentStates } from "@/features/assessments/queries";
 import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
 import { BenchmarkViewed } from "@/features/benchmark/ui/benchmark-viewed";
 import { listAssignedExperts } from "@/features/experts/queries";
@@ -72,12 +73,22 @@ export default async function AppPage() {
     listAssignedExperts(supabase, organizationId),
     listScheduledAssessments(supabase),
   ]);
+  // Spec 0019, AC-10: the state of each booking's assessments, read from `assessments` alone under
+  // the member policy; this route never queries an answer row.
+  const assessmentStates = await listAssessmentStates(
+    supabase,
+    assessments.map((assessment) => assessment.orderId),
+  );
   // Spec 0013, AC-12 and spec 0014, AC-10: both cards sit immediately after the header in every
   // state of the dashboard, and each renders nothing at all while it has nothing to show. The
   // booking comes first: a date the client is waiting on outranks the profile of who is coming.
   const experts = (
     <>
-      <ScheduledAssessments assessments={assessments} experts={assignedExperts} />
+      <ScheduledAssessments
+        assessments={assessments}
+        experts={assignedExperts}
+        states={assessmentStates}
+      />
       <AssignedExperts experts={assignedExperts} />
     </>
   );

@@ -60,6 +60,7 @@ export function assessment(overrides: Partial<ScheduledAssessment> = {}): Schedu
   return {
     orderId: ORDER_ID,
     reference: REFERENCE,
+    packageKey: "compliance",
     packageName: "Assessment Plus",
     status: "scheduled",
     scheduledAt: "2026-10-14T07:30:00.000Z",
