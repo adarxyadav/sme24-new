@@ -1,0 +1,1237 @@
+{
+  "key": "iso45001",
+  "version": 1,
+  "title": {
+    "de": "ISO 45001 Gap-Analyse",
+    "en": "ISO 45001 Gap Assessment"
+  },
+  "sourceNote": "Built from iso45001_assessment.html (\"ISO 45001 Gap Assessment\"), export dated 2026-09-12.",
+  "sections": [
+    {
+      "key": "c4",
+      "label": "4",
+      "title": {
+        "de": "Kontext der Organisation",
+        "en": "Context of the organization"
+      },
+      "groups": []
+    },
+    {
+      "key": "c5",
+      "label": "5",
+      "title": {
+        "de": "Führung",
+        "en": "Leadership"
+      },
+      "groups": []
+    },
+    {
+      "key": "c6",
+      "label": "6",
+      "title": {
+        "de": "Planung",
+        "en": "Planning"
+      },
+      "groups": []
+    },
+    {
+      "key": "c7",
+      "label": "7",
+      "title": {
+        "de": "Unterstützung",
+        "en": "Support"
+      },
+      "groups": []
+    },
+    {
+      "key": "c8",
+      "label": "8",
+      "title": {
+        "de": "Betrieb",
+        "en": "Operation"
+      },
+      "groups": []
+    },
+    {
+      "key": "c9",
+      "label": "9",
+      "title": {
+        "de": "Bewertung der Leistung",
+        "en": "Performance Evaluation"
+      },
+      "groups": []
+    },
+    {
+      "key": "c10",
+      "label": "10",
+      "title": {
+        "de": "Verbesserung",
+        "en": "Improvement"
+      },
+      "groups": []
+    }
+  ],
+  "items": [
+    {
+      "position": 1,
+      "label": "4.1",
+      "sectionKey": "c4",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Verstehen der Organisation und ihres Kontextes",
+        "en": "Understanding the organization and its context"
+      },
+      "requirement": {
+        "de": "Bestimmen Sie die externen und internen Themen, die für den Zweck und die strategische Ausrichtung relevant sind und die die Fähigkeit beeinflussen, das (die) beabsichtigte(n) Ergebnis(se) des OH&S-Managementsystems zu erreichen.",
+        "en": "Determine the external and internal issues that are relevant to the purpose and strategic direction and that affect the ability to achieve the intended result(s) of the OH&S management system."
+      },
+      "question": {
+        "de": "Hat die Organisation externe und interne Themen bestimmt, die für ihren Zweck relevant sind und die ihre Fähigkeit beeinflussen, das (die) beabsichtigte(n) Ergebnis(se) ihres OH&S-Managementsystems zu erreichen?\n\nAchten Sie auf: Nachweise für eine laufende Überprüfung, Diskussionen, Massnahmen und die Klärung dieser Themen?",
+        "en": "Has the organization determined external and internal issues that are relevant to its purpose and that affect its ability to achieve the intended outcome(s) of its OH&S Management System?\n\nLook for: evidence of ongoing review, discussions, actions, and resolution of these issues?"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 2,
+      "label": "4.2",
+      "sectionKey": "c4",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Verstehen der Erfordernisse und Erwartungen der Beschäftigten und anderer interessierter Parteien",
+        "en": "Understanding the needs and expectations of interested parties"
+      },
+      "requirement": {
+        "de": "Bestimmen Sie die interessierten Parteien, die zusätzlich zu den Beschäftigten für das OH&S-Managementsystem relevant sind; die relevanten Erfordernisse und Erwartungen der Beschäftigten und anderer interessierter Parteien; welche dieser Erfordernisse und Erwartungen rechtliche Verpflichtungen und andere Anforderungen sind oder werden könnten.",
+        "en": "Determine the interested parties, in addition to workers, that are relevant to the OH&S management system; the relevant needs and expectations of workers and other interested parties; which of these needs and expectations are, or could become, legal requirements and other requirements."
+      },
+      "question": {
+        "de": "Hat die Organisation die INTERESSIERTEN PARTEIEN und deren Anforderungen bestimmt?\n\nÜberprüfen Sie, ob die Organisation die interessierten Parteien und deren Anforderungen überwacht und überprüft, während sich diese im Laufe der Zeit ändern.\n\nAchten Sie auf: Nachweise in Plänen, Strategiedokumenten und Sitzungsprotokollen.",
+        "en": "Has the organization determined INTERESTED PARTIES and their requirements?\n\nVerify that the organization monitors and reviews the interested parties and their requirements as they change over time.\n\nLook for: evidence in plans, strategy documents, and meeting minutes."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 3,
+      "label": "4.3",
+      "sectionKey": "c4",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Festlegen des Anwendungsbereichs des OH&S-Managementsystems",
+        "en": "Determining the scope of the OH&S management system"
+      },
+      "requirement": {
+        "de": "Bestimmen Sie die Grenzen und die Anwendbarkeit des OH&S-Managementsystems, um dessen Anwendungsbereich festzulegen, unter Berücksichtigung von:\nexternen und internen Themen;\nAnforderungen relevanter interessierter Parteien;\ngeplanten oder durchgeführten arbeitsbezogenen Tätigkeiten.\nDer Anwendungsbereich ist als dokumentierte Information verfügbar und wird aufrechterhalten, wobei Folgendes anzugeben ist:\ndie vom OH&S-Managementsystem abgedeckten Tätigkeiten, Produkte und Dienstleistungen;\ndie Begründung für jeden Fall, in dem eine Anforderung der ISO 45001:2018 nicht angewendet werden kann.",
+        "en": "Determine the boundaries and applicability of the OH&S management system to establish the scope, considering:\nexternal and internal issues;\nrequirements of relevant interested parties;\nplanned or performed work-related activities.\nThe scope is available and maintained as documented information stating the:\nactivities, products and services covered by the OH&S management system;\njustification for any instance where a requirement of ISO 45001:2018 cannot be applied."
+      },
+      "question": {
+        "de": "Falls bereits ein OH&S-Managementsystem vorhanden ist, überprüfen Sie, ob dessen Anwendungsbereich festgelegt und intern sowie extern kommuniziert ist.\n\nÜberprüfen Sie, ob die Erklärung zum Anwendungsbereich noch anwendbar und zutreffend ist.\n\nAchten Sie auf: Nachweise in Strategiepläne, Katalogen, Websites oder Zertifikaten der Zertifizierungsstelle.",
+        "en": "If a OH&S Management System is already in place, verify that its scope is defined, communicated internally and externally.\n\nVerify that the scope statement is still applicable and accurate.\n\nLook for: evidence in strategic plans, catalogs,  websites, or registrar certificates."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 4,
+      "label": "4.4",
+      "sectionKey": "c4",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "OH&S-Managementsystem und seine Prozesse",
+        "en": "OH&S management system and its processes"
+      },
+      "requirement": {
+        "de": "Erstellen, verwirklichen, aufrechterhalten und fortlaufend verbessern Sie das OH&S-Managementsystem, einschliesslich der benötigten Prozesse und ihrer Wechselwirkungen.\nBestimmen Sie für die benötigten Prozesse:\n• die erforderlichen Eingaben und die erwarteten Ergebnisse;\n• ihre Abfolge und Wechselwirkung;\n• die Kriterien, Methoden, einschliesslich Überwachung, Messungen und zugehöriger Leistungsindikatoren, die notwendig sind, um deren wirksamen Betrieb und Steuerung sicherzustellen;\n• die benötigten Ressourcen und deren Verfügbarkeit;\n• die Zuordnung der Verantwortlichkeiten und Befugnisse;\n• die Risiken und Chancen sowie die Planung und Umsetzung geeigneter Massnahmen, um mit diesen umzugehen;\n• die Bewertung und, falls erforderlich, Änderungen der Prozesse, um sicherzustellen, dass sie die beabsichtigten Ergebnisse erzielen;\n• und Verbesserung.",
+        "en": "Establish, implement, maintain and continually improve the OH&S management system, including the processes needed and their interactions.\nFor the processes needed, determine:\n• the inputs required, and the outputs expected;\n• their sequence and interaction;\n• the criteria, methods, including monitoring, measurements and related performance indicators needed to ensure their effective operation, and control;\n• the resources needed and their availability;\n• the assignment of the responsibilities and authorities;\n• the risks and opportunities, and plan and implement the appropriate actions to address them;\n• the evaluation and, if needed, the changes to processes to ensure that they achieve intended results;\n• and improvement."
+      },
+      "question": {
+        "de": "Legen Prozesspläne, Beschreibungen, Standardarbeitsanweisungen, Flussdiagramme, Arbeitsanweisungen oder andere Dokumente Folgendes fest:\nProzessverantwortung und -befugnis;\nProzesseingaben und deren Quellen;\nProzesstätigkeiten/-funktionen;\nProzessergebnisse und deren Bestimmungsorte;\nProzesssteuerungen;\nAbfolge und Wechselwirkung mit anderen Prozessen in Form von Informationen, Material, Arbeitskraft oder Entscheidungen;\nProzessrisiken/-chancen?\n\nAchten Sie auf: Nachweise für dokumentierte Informationen, die den Prozessbetrieb und dessen Absicherung unterstützen.",
+        "en": "Do process plans, descriptions, standard operating procedures, flowcharts, work instructions, or other documents define:\nProcess responsibility and authority;\nProcess inputs and their sources;\nProcess activities/functions;\nProcess outputs and their destinations;\nProcess controls;\nSequence and Interaction with other processes in the form of information, material, labor, or decisions;\nProcess risks/opportunities?\n\nLook for: evidence of documented information supporting process operation and assurance."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 5,
+      "label": "5.1",
+      "sectionKey": "c5",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Führung und Verpflichtung/Allgemeines",
+        "en": "Leadership and commitment/General"
+      },
+      "requirement": {
+        "de": "Führung und Verpflichtung in Bezug auf das OH&S-Managementsystem nachweisen, indem:\n\n• die Gesamtverantwortung und Rechenschaftspflicht für die Verhütung von arbeitsbedingten Verletzungen und Erkrankungen sowie für die Bereitstellung sicherer und gesunder Arbeitsplätze und Tätigkeiten übernommen wird;\n\n• eine OH&S-Politik und damit zusammenhängende OH&S-Ziele festgelegt werden, die mit dem Kontext und der strategischen Ausrichtung vereinbar sind;\n\n• die OH&S-Anforderungen in die Geschäftsprozesse integriert werden;\n\n• die Bedeutung eines wirksamen OH&S-Managements und der Konformität mit dessen Anforderungen kommuniziert wird;\n\n• die beabsichtigten Ergebnisse erreicht werden;\n\n• Personen angeleitet und unterstützt werden, damit sie zum OH&S-Managementsystem beitragen;\n\n• die fortlaufende Verbesserung gefördert wird;\n\n• andere massgebliche Führungsrollen dabei unterstützt werden, ihre Führung in Bezug auf ihre Verantwortungsbereiche nachzuweisen;\n\n• eine Kultur in der Organisation entwickelt, geführt und gefördert wird, die die beabsichtigten Ergebnisse des OH&S-Managementsystems unterstützt;\n\n• Beschäftigte vor Repressalien geschützt werden, wenn sie Vorfälle, Gefährdungen, Risiken und Chancen melden;\n\n• sichergestellt wird, dass die Organisation Prozess(e) für die Konsultation und Beteiligung der Beschäftigten festlegt und umsetzt;\n\n• die Einrichtung und Funktionsweise von Arbeitssicherheits- und Gesundheitsschutzausschüssen unterstützt wird",
+        "en": "Demonstrate leadership and commitment with respect to the OH&S management system by:\n\n• taking overall responsibility and accountability for the prevention of work-related injury and ill health, as well as the provision of safe and healthy workplaces and activities;\n\n• establishing a OH&S policy and related OH&S objectives that are compatible with the context and strategic direction;\n\n• integrating the OH&S requirements into business processes;\n\n• communicating the importance of OH&S management and conforming to its requirements;\n\n• achieving intended results;\n\n• directing and supporting people to contribute to the OHSMS;\n\n• promoting continual improvement;\n\n• supporting other relevant management roles to demonstrate their leadership as it applies to their areas of responsibility.\n\n• developing, leading and promoting a culture in the organization that supports the intended outcomes of the OHSMS.\n\n• protecting workers from reprisals when reporting incidents, hazards, risks and opportunities\n\n• ensuring the organization establishes and implements a process(es) for consultation and participation of workers.\n\n• supporting the establishment and functioning of health and safety committees"
+      },
+      "question": {
+        "de": "Hat die Organisation eine organisatorische Verantwortung für OH&S festgelegt, die den Managementfokus auf die Beteiligung der Beschäftigten aufrechterhält, eine OH&S-Kultur fördert und angemessene Investitionen und Ressourcen für OH&S und fortlaufende Verbesserung sicherstellt?\n\nGibt es Nachweise für Führung und Verpflichtung der OBERSTEN LEITUNG?\n\nAchten Sie auf: Organigramme, strategische oder operative Pläne, Sitzungsagenden und -protokolle, Kommunikationstafeln und -mitteilungen,",
+        "en": "Has the organization established\nOrganizational responsibility for OH&S that maintains management focus on worker participation, promotes a OH&S culture, assures appropriate investment and resources for OH&S and continuous improvement?\n\nIs there evidence of Leadership and Commitment of TOP MANAGEMENT?\n\nLook for: organization charts, strategic or operational plans, meeting agendas and minutes, communications boards and messaging,"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 6,
+      "label": "5.2",
+      "sectionKey": "c5",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Politik",
+        "en": "Policy"
+      },
+      "requirement": {
+        "de": "Eine OH&S-Politik festlegen, umsetzen und aufrechterhalten, die:\n• eine Verpflichtung zur Bereitstellung sicherer und gesunder Arbeitsbedingungen zur Verhütung von arbeitsbedingten Verletzungen und Erkrankungen enthält und dem Zweck, der Grösse und dem Kontext der Organisation sowie der spezifischen Art ihrer OH&S-Risiken und OH&S-Chancen angemessen ist;\n• einen Rahmen für die Festlegung von OH&S-Zielen bietet;\n• eine Verpflichtung zur Erfüllung rechtlicher Verpflichtungen und anderer Anforderungen enthält;\n• eine Verpflichtung zur Beseitigung von Gefährdungen und zur Minderung von OH&S-Risiken enthält;\n• eine Verpflichtung zur fortlaufenden Verbesserung des OH&S-Managementsystems enthält;\n• eine Verpflichtung zur Konsultation und Beteiligung der Beschäftigten und, sofern vorhanden, der Beschäftigtenvertreter enthält.\n\n• Unsere OH&S-Politik ist:\no  als dokumentierte Information verfügbar;\no  innerhalb der Organisation kommuniziert;\no  interessierten Parteien, sofern angemessen, zugänglich;\no  relevant und angemessen.",
+        "en": "Establish, implement and maintain an OHSMS policy that:\n• Includes a commitment to provide safe and healthy working conditions for the prevention of work-related injury and ill health and is appropriate to the purpose, size and context of the organization and to the specific nature of its OH&S risks and OH&S opportunities;\n• provides a framework for setting OH&S objectives;\n• includes a commitment to fulfil legal requirements and other requirements;\n• includes a commitment to eliminate hazards and reduce OH&S risks;\n• includes a commitment to continual improvement of the OH&S management system.\n• Includes a commitment to consultation and participation of workers, and, where they exist workers’ representatives.\n\n• Our OH&S policy is:\no  available as documented information;\no  communicated within the organization;\no  available to interested parties, as appropriate;\no  relevant and appropriate."
+      },
+      "question": {
+        "de": "Gibt es eine POLITIK zu Arbeitssicherheit und Gesundheitsschutz und erfüllt diese die Anforderungen der Norm? Unterstützt sie die Strategie des Unternehmens und beinhaltet sie die Verpflichtung, Anforderungen zu erfüllen und die OH&S-Leistung fortlaufend zu verbessern?\n\nWird die Politik den interessierten Parteien kommuniziert? Ist sie intern ausgehängt? Ist sie für interessierte Parteien verfügbar?\n\nAchten Sie auf: OH&S-Politik, Kommunikation zu OH&S in Form von E-Mails, Aushängen, Präsentationen, Sitzungsprotokollen.",
+        "en": "Is there an Occupational Health & Safety POLICY and does it meet the requirements of the standard?  Does it support the strategy for the company and commit to meeting requirements and continually improving OH&S performance?\n\nIs the Policy communicated to interested parties? Is it internally posted. Is it available to interested parties?\n\nLook for: OH&S policy, communications about OH&S in for the form of emails, postings, presentations, meeting minutes."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 7,
+      "label": "5.3",
+      "sectionKey": "c5",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Rollen, Verantwortlichkeiten und Befugnisse in der Organisation",
+        "en": "Organizational roles, responsibilities and authorities"
+      },
+      "requirement": {
+        "de": "Sicherstellen, dass die Verantwortlichkeiten und Befugnisse für massgebliche Rollen innerhalb des OH&S-Managementsystems auf allen Ebenen der Organisation zugewiesen und kommuniziert sowie als dokumentierte Information aufrechterhalten werden. Beschäftigte auf jeder Ebene der Organisation sollen die Verantwortung für diejenigen Aspekte des OH&S-Managementsystems übernehmen, über die sie Kontrolle haben.\nDie oberste Leitung soll die Verantwortung und Befugnis zuweisen für:\n• das Sicherstellen, dass das OH&S-Managementsystem den Anforderungen dieses Dokuments entspricht;\n• das Berichten über die Leistung des OH&S-Managementsystems an die oberste Leitung.",
+        "en": "Ensure that the responsibilities and authorities for relevant roles within the OH&S management system are assigned and communicated at all levels within the organization and maintained as documented information.  Workers at each level of the organization shall assume responsibility for those aspects of the OH&S management system over which they have control.\nTop management shall assign the responsibility and authority for:\n• ensuring that it the OH&S management system conforms to the requirements of this document;\n• reporting on its performance of the OH&S management system to top management."
+      },
+      "question": {
+        "de": "Wurden die organisatorischen ROLLEN, VERANTWORTLICHKEITEN UND BEFUGNISSE angemessen zugewiesen, mit Ressourcen ausgestattet und kommuniziert?\n\nAchten Sie auf: Organigramme, strategische oder operative Pläne, Sitzungsagenden und -protokolle, Kommunikationstafeln und -mitteilungen,",
+        "en": "Have the organizational ROLES, RESPONSIBILITIES & AUTHORITIES been appropriately assigned, resourced and communicated?\n\nLook for: Organization charts, strategic or operational plans, meeting agendas and minutes, communications boards and messaging,"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 8,
+      "label": "5.4",
+      "sectionKey": "c5",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Konsultation und Beteiligung der Beschäftigten",
+        "en": "Consultation and Participation of workers"
+      },
+      "requirement": {
+        "de": "Einen Prozess für die Konsultation und Beteiligung der Beschäftigten auf allen Ebenen und Funktionen sowie, sofern vorhanden, der Beschäftigtenvertreter bei der Entwicklung, Planung, Umsetzung, Leistungsbewertung und den Massnahmen zur Verbesserung des OH&S-Managementsystems festlegen, umsetzen und aufrechterhalten; die erforderlichen Mechanismen, Zeit, Schulung und Ressourcen bereitstellen; rechtzeitigen Zugang zu klaren und relevanten Informationen gewähren; Hindernisse für die Beteiligung beseitigen oder minimieren; die Konsultation nicht leitender Beschäftigter zu den in 5.4 d) aufgeführten Angelegenheiten und ihre Beteiligung an den in 5.4 e) aufgeführten Angelegenheiten besonders betonen.",
+        "en": "Establish, implement and maintain a process for consultation and participation of workers at all levels and functions, and of workers' representatives where they exist, in the development, planning, implementation, performance evaluation and actions for improvement of the OH&S management system; provide the mechanisms, time, training and resources needed; give timely access to clear and relevant information; remove or minimise barriers to participation; emphasise the consultation of non managerial workers on the matters listed in 5.4 d) and their participation in those listed in 5.4 e)."
+      },
+      "question": {
+        "de": "Gibt es einen wirksamen Prozess für die Konsultation und Beteiligung der Beschäftigten auf allen Ebenen und Funktionen sowie, sofern vorhanden, der Beschäftigtenvertreter (5.4 a-c)?\n\nLegt die Organisation besonderen Wert auf die Konsultation nicht leitender Beschäftigter gemäss (5.4 d)?\n\nAchten Sie auf: Anwesenheitsaufzeichnungen von Sitzungen, Sitzungsagenden und -protokolle, Kommunikationstafeln und -mitteilungen,",
+        "en": "Is there an effective process for consultation & participation of workers at all levels and functions, and where they exist workers’ representatives (5.4 a-c)?\n\nDoes the organization have emphasis of consultation with non-managerial workers per (5.4.d)?\n\nLook for: Meeting attendance records, meeting agendas and minutes, communications boards and messaging,"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 9,
+      "label": "6.1.1",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Massnahmen zum Umgang mit Risiken und Chancen / Allgemeines",
+        "en": "Actions to address risks and opportunities / General"
+      },
+      "requirement": {
+        "de": "Bei der Planung für das OH&S-Managementsystem sind die Themen (4.1) und die Anforderungen (4.2) und (4.3) zu berücksichtigen, und es sind die Risiken und Chancen zu bestimmen, die behandelt werden müssen, um:\n• sicherzustellen, dass das OH&S-Managementsystem seine(n) beabsichtigte(n) Ergebnis(se) erreichen kann;\n• unerwünschte Auswirkungen zu verhindern oder zu verringern;\n• eine fortlaufende Verbesserung zu erreichen.\nBei der Bestimmung der Risiken und Chancen für das OH&S-Managementsystem und dessen beabsichtigte Ergebnisse, die behandelt werden müssen, muss die Organisation Folgendes berücksichtigen:\n• Gefährdungen;\n• OH&S-Risiken und andere Risiken;\n• OH&S-Chancen und andere Chancen;\n• rechtliche Verpflichtungen und andere Anforderungen.\n\nDie Organisation muss in ihrem(n) Planungsprozess(en) die Risiken und Chancen bestimmen und bewerten, die für die beabsichtigten Ergebnisse des OH&S-Managementsystems relevant sind und die mit Änderungen der Organisation, ihrer Prozesse oder des OH&S-Managementsystems zusammenhängen. Im Falle geplanter Änderungen, dauerhaft oder vorübergehend, muss diese Bewertung durchgeführt werden, bevor die Änderung umgesetzt wird.\n\nDie Organisation muss dokumentierte Information aufbewahren über:\n• die Risiken und Chancen;\n• den(die) Prozess(e) und die Massnahmen, die notwendig sind, um ihre Risiken und Chancen zu bestimmen und zu behandeln, in dem Umfang, der notwendig ist, um Vertrauen darauf zu haben, dass sie wie geplant durchgeführt werden.",
+        "en": "When planning for the OHSMS, consider the issues (4.1) and the requirements (4.2) and (4.3), and determine the risks and opportunities that need to be addressed to:\n• assure that the OHSMS can achieve its intended result(s);\n• prevent, or reduce, undesired effects;\n• achieve continual improvement.\nWhen determining the risks and opportunities for the OH&S management system and its intended outcomes that need to be addressed, the organization shall take into account:\n• hazards;\n• OH&S risks and other risks;\n• OH&S opportunities and other opportunities;\n• Legal requirements and other requirements.\n\nThe organization, in its planning process(es), shall determine and assess the risks and opportunities that are relevant to the intended outcomes of the OH&S management system associated with changes in the organization, its processes or the OH&S management system. In the case of planned changes, permanent or temporary, this assessment shall be undertaken before the change is implemented.\n\nThe organization shall maintain documented information on:\n• Risks and opportunities\n• The process(es) and actions needed to determine and address its risks and opportunities to the extent necessary to have confidence that they are carried out as planned."
+      },
+      "question": {
+        "de": "Nachweis, dass RISIKEN UND CHANCEN im Zusammenhang mit OH&S-Gefährdungen und -Risiken, Compliance-Verpflichtungen und anderen Themen ermittelt und behandelt wurden\n\nAchten Sie auf: Strategische Pläne, Betriebspläne, Risikobeurteilungen sowie zugehörige Entscheidungen und Massnahmen.",
+        "en": "Evidence that RISKS AND OPPPORTUNITIES related to OH&S hazards & risks, compliance obligations and other issues have been identified and addressed\n\nLook for: Strategic plans, operating plans, risk assessments,  and related decisions and actions."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 10,
+      "label": "6.1.2.1",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Ermittlung von Gefährdungen",
+        "en": "Hazard identification"
+      },
+      "requirement": {
+        "de": "Einen Prozess für die laufende, proaktive Ermittlung entstehender Gefährdungen festlegen, umsetzen und aufrechterhalten.",
+        "en": "Establish, implement, and maintain a process for the on-going proactive identification of hazards arising."
+      },
+      "question": {
+        "de": "Hat die Organisation einen Prozess für die Ermittlung von Gefährdungen festgelegt, umgesetzt und aufrechterhalten, der laufend und proaktiv ist? Falls ja, siehe Anhang A und tragen Sie hier die abschliessenden Ergebnisse ein",
+        "en": "Has the organization established, implemented & maintained a process for hazard identification that is on-going and proactive? If yes see Annex A and enter final results here"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 11,
+      "label": "A.1",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "a) wie die Arbeit organisiert ist, soziale Faktoren (einschliesslich Arbeitsbelastung, Arbeitszeiten, Viktimisierung, Belästigung und Mobbing), Führung und die Kultur in der Organisation;",
+        "en": "a) how work is organized, social factors (including workload, work hours, victimization, harassment and bullying), leadership and the culture in the organization;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "a) wie die Arbeit organisiert ist, soziale Faktoren (einschliesslich Arbeitsbelastung, Arbeitszeiten, Viktimisierung, Belästigung und Mobbing), Führung und die Kultur in der Organisation;",
+        "en": "a) how work is organized, social factors (including workload, work hours, victimization, harassment and bullying), leadership and the culture in the organization;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 12,
+      "label": "A.2",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "b) routinemässige und nicht routinemässige Tätigkeiten und Situationen, einschliesslich Gefährdungen, die sich ergeben aus:",
+        "en": "b) routine and non-routine activities and situations, including hazards arising from:"
+      },
+      "requirement": null,
+      "question": {
+        "de": "b) routinemässige und nicht routinemässige Tätigkeiten und Situationen, einschliesslich Gefährdungen, die sich ergeben aus:",
+        "en": "b) routine and non-routine activities and situations, including hazards arising from:"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 13,
+      "label": "A.3",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "Infrastruktur, Ausrüstung, Materialien, Stoffen und den physischen Bedingungen des Arbeitsplatzes;",
+        "en": "infrastructure, equipment, materials, substances and the physical conditions of the workplace;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "Infrastruktur, Ausrüstung, Materialien, Stoffen und den physischen Bedingungen des Arbeitsplatzes;",
+        "en": "infrastructure, equipment, materials, substances and the physical conditions of the workplace;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 14,
+      "label": "A.4",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "Produkt- und Dienstleistungsgestaltung, Forschung, Entwicklung, Erprobung, Produktion, Montage, Bau, Erbringung von Dienstleistungen, Instandhaltung und Entsorgung;",
+        "en": "product and service design, research, development, testing, production, assembly, construction, service delivery, maintenance and disposal;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "Produkt- und Dienstleistungsgestaltung, Forschung, Entwicklung, Erprobung, Produktion, Montage, Bau, Erbringung von Dienstleistungen, Instandhaltung und Entsorgung;",
+        "en": "product and service design, research, development, testing, production, assembly, construction, service delivery, maintenance and disposal;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 15,
+      "label": "A.5",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "menschliche Faktoren;",
+        "en": "human factors;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "menschliche Faktoren;",
+        "en": "human factors;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 16,
+      "label": "A.6",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "wie die Arbeit ausgeführt wird;",
+        "en": "how the work is performed;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "wie die Arbeit ausgeführt wird;",
+        "en": "how the work is performed;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 17,
+      "label": "A.7",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "c) frühere relevante Vorfälle, intern oder extern der Organisation, einschliesslich Notfälle, und deren Ursachen;",
+        "en": "c) past relevant incidents, internal or external to the organization, including emergencies, and their causes;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "c) frühere relevante Vorfälle, intern oder extern der Organisation, einschliesslich Notfälle, und deren Ursachen;",
+        "en": "c) past relevant incidents, internal or external to the organization, including emergencies, and their causes;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 18,
+      "label": "A.8",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "d) potenzielle Notfallsituationen;",
+        "en": "d) potential emergency situations;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "d) potenzielle Notfallsituationen;",
+        "en": "d) potential emergency situations;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 19,
+      "label": "A.9",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "e) Personen, einschliesslich Berücksichtigung von:",
+        "en": "e) people, including consideration of:"
+      },
+      "requirement": null,
+      "question": {
+        "de": "e) Personen, einschliesslich Berücksichtigung von:",
+        "en": "e) people, including consideration of:"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 20,
+      "label": "A.10",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "Personen mit Zugang zum Arbeitsplatz und deren Tätigkeiten, einschliesslich Beschäftigten, Auftragnehmern, Besuchern und anderen Personen;",
+        "en": "those with access to the workplace and their activities, including workers, contractors, visitors and other persons;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "Personen mit Zugang zum Arbeitsplatz und deren Tätigkeiten, einschliesslich Beschäftigten, Auftragnehmern, Besuchern und anderen Personen;",
+        "en": "those with access to the workplace and their activities, including workers, contractors, visitors and other persons;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 21,
+      "label": "A.11",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "Personen in der Umgebung des Arbeitsplatzes, die durch die Tätigkeiten der Organisation betroffen sein können;",
+        "en": "those in the vicinity of the workplace who can be affected by the activities of the organization;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "Personen in der Umgebung des Arbeitsplatzes, die durch die Tätigkeiten der Organisation betroffen sein können;",
+        "en": "those in the vicinity of the workplace who can be affected by the activities of the organization;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 22,
+      "label": "A.12",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "Beschäftigte an einem Ort, der nicht unter der direkten Kontrolle der Organisation steht;",
+        "en": "workers at a location not under the direct control of the organization;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "Beschäftigte an einem Ort, der nicht unter der direkten Kontrolle der Organisation steht;",
+        "en": "workers at a location not under the direct control of the organization;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 23,
+      "label": "A.13",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "f) andere Themen, einschliesslich Berücksichtigung von:",
+        "en": "f) other issues, including consideration of:"
+      },
+      "requirement": null,
+      "question": {
+        "de": "f) andere Themen, einschliesslich Berücksichtigung von:",
+        "en": "f) other issues, including consideration of:"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 24,
+      "label": "A.14",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "der Gestaltung von Arbeitsbereichen, Prozessen, Anlagen, Maschinen/Ausrüstung, Betriebsabläufen und Arbeitsorganisation, einschliesslich ihrer Anpassung an die Bedürfnisse und Fähigkeiten der beteiligten Beschäftigten;",
+        "en": "the design of work areas, processes, installations, machinery/equipment, operating procedures and work organization, including their adaptation to the needs and capabilities of the workers involved;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "der Gestaltung von Arbeitsbereichen, Prozessen, Anlagen, Maschinen/Ausrüstung, Betriebsabläufen und Arbeitsorganisation, einschliesslich ihrer Anpassung an die Bedürfnisse und Fähigkeiten der beteiligten Beschäftigten;",
+        "en": "the design of work areas, processes, installations, machinery/equipment, operating procedures and work organization, including their adaptation to the needs and capabilities of the workers involved;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 25,
+      "label": "A.15",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "Situationen, die in der Umgebung des Arbeitsplatzes auftreten und durch arbeitsbezogene Tätigkeiten unter der Kontrolle der Organisation verursacht werden;",
+        "en": "situations occurring in the vicinity of the workplace caused by work-related activities under the control of the organization;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "Situationen, die in der Umgebung des Arbeitsplatzes auftreten und durch arbeitsbezogene Tätigkeiten unter der Kontrolle der Organisation verursacht werden;",
+        "en": "situations occurring in the vicinity of the workplace caused by work-related activities under the control of the organization;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 26,
+      "label": "A.16",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": false,
+      "title": {
+        "de": "Situationen, die nicht von der Organisation kontrolliert werden und in der Umgebung des Arbeitsplatzes auftreten und die Verletzungen und Erkrankungen bei Personen am Arbeitsplatz verursachen können;",
+        "en": "situations not controlled by the organization and occurring in the vicinity of the workplace that can cause injury and ill health to persons in the workplace;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "Situationen, die nicht von der Organisation kontrolliert werden und in der Umgebung des Arbeitsplatzes auftreten und die Verletzungen und Erkrankungen bei Personen am Arbeitsplatz verursachen können;",
+        "en": "situations not controlled by the organization and occurring in the vicinity of the workplace that can cause injury and ill health to persons in the workplace;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 27,
+      "label": "A.17",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "g) tatsächliche oder vorgeschlagene Änderungen bei Organisation, Betrieb, Prozessen, Tätigkeiten und dem OH&S-Managementsystem (siehe 8.1.3);",
+        "en": "g) actual or proposed changes in organization, operations, processes, activities and the OH&S management system (see 8.1.3);"
+      },
+      "requirement": null,
+      "question": {
+        "de": "g) tatsächliche oder vorgeschlagene Änderungen bei Organisation, Betrieb, Prozessen, Tätigkeiten und dem OH&S-Managementsystem (siehe 8.1.3);",
+        "en": "g) actual or proposed changes in organization, operations, processes, activities and the OH&S management system (see 8.1.3);"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 28,
+      "label": "A.18",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 10,
+      "rateable": true,
+      "title": {
+        "de": "h) Änderungen im Wissen über und in den Informationen zu Gefährdungen.",
+        "en": "h) changes in knowledge of, and information about, hazards."
+      },
+      "requirement": null,
+      "question": {
+        "de": "h) Änderungen im Wissen über und in den Informationen zu Gefährdungen.",
+        "en": "h) changes in knowledge of, and information about, hazards."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 29,
+      "label": "6.1.3",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Bestimmen von rechtlichen Verpflichtungen und anderen Anforderungen",
+        "en": "Determination of legal requirements and other requirements"
+      },
+      "requirement": {
+        "de": "Einen Prozess festlegen, umsetzen und aufrechterhalten, um:\n\n• die aktuellen rechtlichen Verpflichtungen und anderen Anforderungen, denen sich die Organisation unterstellt und die auf ihre Gefährdungen und OH&S-Risiken anwendbar sind, zu bestimmen und Zugang dazu zu haben;\n\n• zu bestimmen, wie diese rechtlichen Verpflichtungen und anderen Anforderungen für die Organisation gelten und was kommuniziert werden muss (siehe 7.4);\n\n• diese rechtlichen Verpflichtungen und anderen Anforderungen bei der Festlegung, Umsetzung, Aufrechterhaltung und fortlaufenden Verbesserung ihres OH&S-Managementsystems zu berücksichtigen.\n\nDie Organisation muss dokumentierte Information über ihre anwendbaren rechtlichen Verpflichtungen und anderen Anforderungen aufrechterhalten und aufbewahren und sicherstellen, dass diese aktualisiert wird, um Änderungen widerzuspiegeln.",
+        "en": "Establish, implement, and maintain a process to:\n\n• determine and have access to up-to-date legal requirements and other requirements to which the organization subscribes that are applicable to its hazards and OH&S risks;\n\n• determine how these legal requirements and other requirements apply to the organization and what needs to be communicated (see 7.4);\n\n• take these legal requirements and other requirements into account when establishing, implementing maintaining and continually improving its OH&S management system.\n\nThe organization shall maintain and retain documented information on its applicable legal requirements and other requirements and shall ensure that it is updated to reflect any changes."
+      },
+      "question": {
+        "de": "Gibt es einen Prozess zur Bestimmung von RECHTLICHEN VERPFLICHTUNGEN & anderen Anforderungen für OH&S?\n\nAchten Sie auf: Liste rechtlicher oder anderer Anforderungen, OHSHA- oder behördliche Dokumentation oder Compliance-Pläne.",
+        "en": "Is there a process for the Determination of LEGAL REQUIREMENTS & Other Requirements for OH&S?\n\nLook for: list of legal or other requirements, OHSHA or government documentation or compliance plans."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 30,
+      "label": "6.1.4",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Planen von Massnahmen",
+        "en": "Planning action"
+      },
+      "requirement": {
+        "de": "Planen von:\n\n• Massnahmen, um:\n\no  diese Risiken und Chancen zu behandeln (siehe 6.1.2.3 und 6.1.2.4);\n\no  anwendbare rechtliche Verpflichtungen und andere Anforderungen zu behandeln (siehe 6.1.3);\n\no  sich auf Notfallsituationen vorzubereiten und auf diese zu reagieren (siehe 8.6);\n\n• wie:\n\no  die Massnahmen in die Prozesse ihres OH&S-Managementsystems oder andere Geschäftsprozesse integriert und umgesetzt werden;\n\no  die Wirksamkeit dieser Massnahmen bewertet wird.\n\nDie Organisation muss die Massnahmenhierarchie (siehe 8.1.2) und Ergebnisse aus dem OH&S-Managementsystem (siehe 10.2.2) bei der Planung von Massnahmen berücksichtigen.\n\nBei der Planung ihrer Massnahmen muss die Organisation bewährte Praktiken, technologische Optionen sowie finanzielle, betriebliche und geschäftliche Anforderungen und Einschränkungen berücksichtigen.",
+        "en": "Plan:\n\n• actions to:\n\no  address these risks and opportunities (see 6.1.2.3 and 6.1.2.4);\n\no  address applicable legal requirements and other requirements (see 6.1.3);\n\no  prepare for, and respond to, emergency situations (see 8.6);\n\n• How to\n\no  integrate and implement the actions into its OH&S management system processes or          other business processes;\n\no  Evaluate the effectiveness of these actions.\n\nThe organization shall take into account the hierarchy of controls (see 8.1.2) and outputs from the OH&S management system (see 10.2.2) when planning to take action.\n\nWhen planning its actions, the organization shall consider best practices, technological options, financial, operational, and business requirements and constraints."
+      },
+      "question": {
+        "de": "Hat die Organisation Massnahmen geplant? (6.1.4.) Falls ja, siehe Anhang B und tragen Sie die endgültigen Ergebnisse hier ein.",
+        "en": "Has the organization planned actions? (6.1.4.) If yes, see Annex B and enter final esults here."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 31,
+      "label": "B.1",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": true,
+      "title": {
+        "de": "a) Massnahmen, um:",
+        "en": "a) actions to:"
+      },
+      "requirement": null,
+      "question": {
+        "de": "a) Massnahmen, um:",
+        "en": "a) actions to:"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 32,
+      "label": "B.2",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": true,
+      "title": {
+        "de": "diese Risiken und Chancen zu behandeln (siehe 6.1.2.2 und 6.1.2.3);",
+        "en": "address these risks and opportunities (see 6.1.2.2 and 6.1.2.3);"
+      },
+      "requirement": null,
+      "question": {
+        "de": "diese Risiken und Chancen zu behandeln (siehe 6.1.2.2 und 6.1.2.3);",
+        "en": "address these risks and opportunities (see 6.1.2.2 and 6.1.2.3);"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 33,
+      "label": "B.3",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": false,
+      "title": {
+        "de": "rechtliche Verpflichtungen und andere Anforderungen zu behandeln (siehe 6.1.3);",
+        "en": "address legal requirements and other requirements (see 6.1.3);"
+      },
+      "requirement": null,
+      "question": {
+        "de": "rechtliche Verpflichtungen und andere Anforderungen zu behandeln (siehe 6.1.3);",
+        "en": "address legal requirements and other requirements (see 6.1.3);"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 34,
+      "label": "B.4",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": false,
+      "title": {
+        "de": "sich auf Notfallsituationen vorzubereiten und auf diese zu reagieren (siehe 8.2);",
+        "en": "prepare for and respond to emergency situations (see 8.2);"
+      },
+      "requirement": null,
+      "question": {
+        "de": "sich auf Notfallsituationen vorzubereiten und auf diese zu reagieren (siehe 8.2);",
+        "en": "prepare for and respond to emergency situations (see 8.2);"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 35,
+      "label": "B.5",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": true,
+      "title": {
+        "de": "b) wie:",
+        "en": "b) how to:"
+      },
+      "requirement": null,
+      "question": {
+        "de": "b) wie:",
+        "en": "b) how to:"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 36,
+      "label": "B.6",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": true,
+      "title": {
+        "de": "die Massnahmen in die Prozesse ihres OH&S-Managementsystems oder andere Geschäftsprozesse integriert und umgesetzt werden;",
+        "en": "integrate and implement the actions into its OH&S management system processes or other business processes;"
+      },
+      "requirement": null,
+      "question": {
+        "de": "die Massnahmen in die Prozesse ihres OH&S-Managementsystems oder andere Geschäftsprozesse integriert und umgesetzt werden;",
+        "en": "integrate and implement the actions into its OH&S management system processes or other business processes;"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 37,
+      "label": "B.7",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": false,
+      "title": {
+        "de": "die Wirksamkeit dieser Massnahmen bewertet wird.",
+        "en": "evaluate the effectiveness of these actions."
+      },
+      "requirement": null,
+      "question": {
+        "de": "die Wirksamkeit dieser Massnahmen bewertet wird.",
+        "en": "evaluate the effectiveness of these actions."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 38,
+      "label": "B.8",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": false,
+      "title": {
+        "de": "Die Organisation muss die Massnahmenhierarchie (siehe 8.1.2) und Ergebnisse aus dem OH&S-Managementsystem bei der Planung von Massnahmen berücksichtigen.",
+        "en": "The organization shall take into account the hierarchy of controls (see 8.1.2) and outputs from the OH&S management system when planning to take action."
+      },
+      "requirement": null,
+      "question": {
+        "de": "Die Organisation muss die Massnahmenhierarchie (siehe 8.1.2) und Ergebnisse aus dem OH&S-Managementsystem bei der Planung von Massnahmen berücksichtigen.",
+        "en": "The organization shall take into account the hierarchy of controls (see 8.1.2) and outputs from the OH&S management system when planning to take action."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 39,
+      "label": "B.9",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": 30,
+      "rateable": true,
+      "title": {
+        "de": "Bei der Planung ihrer Massnahmen muss die Organisation bewährte Praktiken, technologische Optionen und finanzielle, betriebliche und geschäftliche Anforderungen berücksichtigen.",
+        "en": "When planning its actions, the organization shall consider best practices, technological options and financial, operational and business requirements."
+      },
+      "requirement": null,
+      "question": {
+        "de": "Bei der Planung ihrer Massnahmen muss die Organisation bewährte Praktiken, technologische Optionen und finanzielle, betriebliche und geschäftliche Anforderungen berücksichtigen.",
+        "en": "When planning its actions, the organization shall consider best practices, technological options and financial, operational and business requirements."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 40,
+      "label": "6.2.1",
+      "sectionKey": "c6",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "OH&S-Ziele und Planung zu deren Erreichung",
+        "en": "OH&S objectives and planning to achieve them"
+      },
+      "requirement": {
+        "de": "Legen Sie OH&S-Ziele für relevante Funktionen, Ebenen und Prozesse fest, unter Berücksichtigung bedeutender Umweltaspekte, Einhaltungsverpflichtungen sowie Risiken und Chancen, die:\n\n• mit der OHSMS-Politik übereinstimmen,\n\n• messbar und überwacht sind;\n\n• zutreffende Anforderungen berücksichtigen;\n\n• relevant für die OH&S-Politik und die Verbesserung der OH&S-Leistung sind;\n\n• überwacht werden;\n\n• kommuniziert werden;\n\n• bei Bedarf aktualisiert werden.\n\nBewahren Sie Dokumentation zu den Zielen auf.",
+        "en": "Establish OH&S objectives at relevant functions, levels, and processes, taking into account significant environmental aspects, compliance obligations, and risks and opportunities that:\n\n• are consistent with the OHSMS policy,\n\n• are measurable and monitored;\n\n• take into account applicable requirements;\n\n• are relevant to the OH&S policy and to the improvement of OH&S performance;\n\n• are monitored;\n\n• are communicated;\n\n• are updated as appropriate.\n\nRetain documentation on the objectives."
+      },
+      "question": {
+        "de": "Wurden OH&S-ZIELE festgelegt, die mit dem Kontext der OH&S-Politik und den interessierten Parteien übereinstimmen, und werden diese entsprechend ÜBERWACHT, KOMMUNIZIERT und AKTUALISIERT?\n\nAchten Sie auf: E-Mails, Datenprotokolle, Berichte, Sitzungsprotokolle oder andere dokumentierte Informationen wie Messpläne.",
+        "en": "Have OH&S OBJECTIVES that are consistent with the OH&S  policy context and interested parties, been established, MONITORED, COMMUNICATED & UPDATED as appropriate?\n\nLook for:  emails, data logs, reports, meeting minutes, or any other documented information such as measurment plans."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 41,
+      "label": "7.2",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Kompetenz",
+        "en": "Competence"
+      },
+      "requirement": {
+        "de": "Die Organisation muss:\n\n• die notwendige Kompetenz der Beschäftigten festlegen, die ihre OH&S-Leistung beeinflusst oder beeinflussen kann;\n\n• sicherstellen, dass die Beschäftigten auf der Grundlage von angemessener Ausbildung, Schulung oder Erfahrung kompetent sind (einschliesslich der Fähigkeit, Gefährdungen zu erkennen);\n\n• soweit anwendbar, Massnahmen ergreifen, um die notwendige Kompetenz zu erwerben und aufrechtzuerhalten, und die Wirksamkeit der ergriffenen Massnahmen bewerten;\n\n• geeignete dokumentierte Information als Nachweis der Kompetenz aufbewahren.",
+        "en": "The organization shall:\n\n• determine the necessary competence of workers that affects or can affect its OH&S performance\n\n• ensure that workers are competent (including the ability to identify hazards) on the basis of education, training, or experience;\n\n• where applicable, take actions to acquire and maintain the necessary competence, and evaluate the effectiveness of the actions taken;\n\n• retain appropriate documentation as evidence of competence."
+      },
+      "question": {
+        "de": "Gibt es einen Prozess, um die notwendige KOMPETENZ, die notwendige Schulung und dokumentierte Information zur Unterstützung der Kompetenz gemäss den Anforderungen von ISO 45001:2018 festzulegen?\nWird Kompetenz sowohl zum Zeitpunkt der Einstellung als auch während der Beschäftigungsdauer festgelegt?\nWird während der Beschäftigung eine fortlaufende Schulung geplant und durchgeführt?\nWird die Wirksamkeit der Schulung bewertet?\n\nAchten Sie auf: Stellenausschreibungen, Stellenbeschreibungen, Lebensläufe, Bewerbungsunterlagen, Schulungspläne, Schulungsnachweise, Nachweise über die Ausbildung am Arbeitsplatz einschliesslich Bestätigungsblätter.\nFormulare zur Schulungsbewertung, Sitzungsprotokolle oder andere Nachweise dafür, dass die Wirksamkeit der Schulung bewertet wird.",
+        "en": "Is there a process in place to determine necessary COMPETENCE, necessary training and documented information to support competence supporting requirements of ISO 45001:2018?\nIs competence defined both at time of hire, and during the period of employment?\nDuring employent is ongoing training planned and provided?\nIs effectiveness of training evaluated?\n\nLook for: job postings, job descriptions, resumes, job applications, training plans, training records, on-the-job training evidence inclluding sign-off sheets.\nTraining evaluation forms, meeting minutes, or any other evidence that training effectiveness is evaluated."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 42,
+      "label": "7.3",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Bewusstsein",
+        "en": "Awareness"
+      },
+      "requirement": {
+        "de": "Die Beschäftigten müssen sich bewusst sein über:\n\n• die OH&S-Politik;\n\n• die OH&S-Ziele;\n\n• ihren Beitrag zum OH&S-Managementsystem und den Nutzen einer verbesserten OH&S-Leistung;\n\n• die Auswirkungen und möglichen Folgen einer Nichteinhaltung der Anforderungen des OH&S-Managementsystems;\n\n• Vorfälle und die Ergebnisse von Untersuchungen, die für sie relevant sind;\n\n• Gefährdungen, OH&S-Risiken und festgelegte Massnahmen, die für sie relevant sind;\n\n• die Möglichkeit, sich aus Arbeitssituationen zu entfernen, die ihrer Ansicht nach eine unmittelbare und ernsthafte Gefahr für ihr Leben oder ihre Gesundheit darstellen, sowie die Vorkehrungen, um sie vor unangemessenen Folgen zu schützen, wenn sie dies tun.",
+        "en": "Workers shall be made aware of:\n\n• the OH&S policy;\n\n• the OH&S objectives;\n\n• their contribution to the OHSMS and the benefits of improved OH&S performance;\n\n• the implications and potential consequences of not conforming to the OH&S management system requirements;\n\n• incidents and the outcomes of investigations that are relevant to them;\n\n• hazards, OH&S risks, and actions determined that are relevant to them;\n\n• the ability to remove themselves from work situations that they consider present an imminent and danger to their life or health, as well as the arrangements for protecting them from undue consequences for doing so."
+      },
+      "question": {
+        "de": "Gibt es dokumentierte Information, die das BEWUSSTSEIN der unter der Kontrolle der Organisation tätigen Personen unterstützt? (7.3) Falls ja, siehe Anhang C und tragen Sie die Endergebnisse hier ein.\n\nAchten Sie auf: jegliche systematische oder periodische Kommunikation mit Beschäftigten über das OH&S-System, die Politik, die Unternehmensleistung, die fortlaufende Verbesserung. Diese können in Form von E-Mails, Anschlagtafeln, Präsentationen und Mitarbeiterversammlungen vorliegen.",
+        "en": "Is there documented information supporting AWARENESS of persons working under the organizations control? (7.3) If yes, see Annex C and enter final results here\n\nLook for: any systematic or periodic communicaitons with employees about the OH&S system , the policy, company performance, continuous improvement. these can be in the form of emails, communications boards, presentations and employee meetings."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 43,
+      "label": "C.1",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": 42,
+      "rateable": true,
+      "title": {
+        "de": "a) die OH&S-Politik und die OH&S-Ziele",
+        "en": "a) the OH&S policy and OH&S objectives"
+      },
+      "requirement": null,
+      "question": {
+        "de": "a) die OH&S-Politik und die OH&S-Ziele",
+        "en": "a) the OH&S policy and OH&S objectives"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 44,
+      "label": "C.2",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": 42,
+      "rateable": true,
+      "title": {
+        "de": "b) ihren Beitrag zur Wirksamkeit des OH&S-Managementsystems, einschliesslich des Nutzens einer verbesserten OH&S-Leistung",
+        "en": "b) their contribution to the effectiveness of the OH&S Management System, including the benefits of improved OH&S performance"
+      },
+      "requirement": null,
+      "question": {
+        "de": "b) ihren Beitrag zur Wirksamkeit des OH&S-Managementsystems, einschliesslich des Nutzens einer verbesserten OH&S-Leistung",
+        "en": "b) their contribution to the effectiveness of the OH&S Management System, including the benefits of improved OH&S performance"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 45,
+      "label": "C.3",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": 42,
+      "rateable": true,
+      "title": {
+        "de": "c) die Auswirkungen und möglichen Folgen einer Nichteinhaltung der Anforderungen des OH&S-Managementsystems",
+        "en": "c) the implications and potential consequences of not conforming to the OH&S Management System requirements"
+      },
+      "requirement": null,
+      "question": {
+        "de": "c) die Auswirkungen und möglichen Folgen einer Nichteinhaltung der Anforderungen des OH&S-Managementsystems",
+        "en": "c) the implications and potential consequences of not conforming to the OH&S Management System requirements"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 46,
+      "label": "C.4",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": 42,
+      "rateable": true,
+      "title": {
+        "de": "d) Vorfälle und die Ergebnisse von Untersuchungen, die für sie relevant sind",
+        "en": "d) incidents and the outcomes of investigations that are relevant to them"
+      },
+      "requirement": null,
+      "question": {
+        "de": "d) Vorfälle und die Ergebnisse von Untersuchungen, die für sie relevant sind",
+        "en": "d) incidents and the outcomes of investigations that are relevant to them"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 47,
+      "label": "C.5",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": 42,
+      "rateable": true,
+      "title": {
+        "de": "e) Gefährdungen, OH&S-Risiken und festgelegte Massnahmen, die für sie relevant sind",
+        "en": "e) hazards, OH&S risks and actions determined that are relevant to them"
+      },
+      "requirement": null,
+      "question": {
+        "de": "e) Gefährdungen, OH&S-Risiken und festgelegte Massnahmen, die für sie relevant sind",
+        "en": "e) hazards, OH&S risks and actions determined that are relevant to them"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 48,
+      "label": "C.6",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": 42,
+      "rateable": true,
+      "title": {
+        "de": "f) die Möglichkeit, sich aus Arbeitssituationen zu entfernen, die ihrer Ansicht nach eine unmittelbare und ernsthafte Gefahr für ihr Leben oder ihre Gesundheit darstellen, sowie die Vorkehrungen, um sie vor unangemessenen Folgen zu schützen, wenn sie dies tun.",
+        "en": "f) the ability to remove themselves from work situations that they consider present an imminent and serious danger to their life or health, as well as the arrangements for protecting them from undue consequences for doing so."
+      },
+      "requirement": null,
+      "question": {
+        "de": "f) die Möglichkeit, sich aus Arbeitssituationen zu entfernen, die ihrer Ansicht nach eine unmittelbare und ernsthafte Gefahr für ihr Leben oder ihre Gesundheit darstellen, sowie die Vorkehrungen, um sie vor unangemessenen Folgen zu schützen, wenn sie dies tun.",
+        "en": "f) the ability to remove themselves from work situations that they consider present an imminent and serious danger to their life or health, as well as the arrangements for protecting them from undue consequences for doing so."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 49,
+      "label": "7.4",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Kommunikation",
+        "en": "Communication"
+      },
+      "requirement": {
+        "de": "Den für das OH&S-Managementsystem relevanten Prozess für die interne und externe Kommunikation festlegen, umsetzen und aufrechterhalten, einschliesslich der Festlegung:\n\n• was kommuniziert wird;\n\n• wann kommuniziert wird;\n\n• mit wem intern kommuniziert wird, zwischen den verschiedenen Ebenen und Funktionen der Organisation, Auftragnehmern und Besuchern des Arbeitsplatzes sowie anderen interessierten Parteien;\n\n• wie kommuniziert wird.\n\nBei der Berücksichtigung ihres Kommunikationsbedarfs Aspekte der Vielfalt (z. B. Geschlecht, Sprache, Kultur, Lese- und Schreibfähigkeit, Behinderung) berücksichtigen.\n\nSicherstellen, dass die Ansichten externer interessierter Parteien bei der Festlegung des Kommunikationsprozesses berücksichtigt werden.\n\nBei der Festlegung des Kommunikationsprozesses:\n\n• ihre rechtlichen Verpflichtungen und andere Anforderungen berücksichtigen;\n\n• sicherstellen, dass die zu kommunizierende OH&S-Information mit der innerhalb des OH&S-Managementsystems erzeugten Information übereinstimmt und verlässlich ist.\n\nAuf relevante Kommunikation zu ihrem OH&S-Managementsystem reagieren.\n\nDokumentierte Information als Nachweis ihrer Kommunikation, soweit angemessen, aufbewahren.",
+        "en": "Establish, implement, and maintain the process needed for the internal and external communications relevant to the OH&S management system including determining:\n\n• what it will communicate;\n\n• when to communicate;\n\n• with whom to communicate internally among, the various levels and functions of the organization, contractors and visitors to the workplace and other interested parties;\n\n• how to communicate.\n\nTake into account diversity aspects (e.g., gender, language, culture, literacy, disability) when considering its communication needs.\n\nEnsure that the views of external interested parties are considered in establishing its communication process.\n\nWhen establishing its communication process:\n\n• take into account its legal requirements and other requirements;\n\n• ensure that OH&S information to be communicated is consistent with information generated within the OH&S management system and is reliable.\n\nRespond to relevant communications on its OH&S management system.\n\nRetain documented information as evidence of its communications, as appropriate."
+      },
+      "question": {
+        "de": "Wurde ein Prozess für die INTERNE UND EXTERNE KOMMUNIKATION im Einklang mit ISO 45001:2018 festgelegt?\n\nAchten Sie auf: jegliche systematische oder periodische Kommunikation mit Beschäftigten, Auftragnehmern, Besuchern und anderen interessierten Parteien über OH&S-Angelegenheiten.",
+        "en": "Is there a process for INTERNAL & EXTERNAL COMMUNICATIONS has been established consistent with ISO 45001:2018? '\n\nLook for: any systematic or periodic communications with workers, contractors, visitors and other interested parties about OH&S matters."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 50,
+      "label": "7.5",
+      "sectionKey": "c7",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Dokumentierte Information / Allgemeines",
+        "en": "Documented information /General"
+      },
+      "requirement": {
+        "de": "Das OH&S-Managementsystem der Organisation umfasst:\n\n• von der ISO-Norm geforderte dokumentierte Information;\n\n• von der Organisation als notwendig erachtete dokumentierte Information für die Wirksamkeit des OH&S-Managementsystems.",
+        "en": "The organization’s OH&S management system will include:\n\n• documented information required by the ISO standard\n\n• documented information deemed necessary by the organization for the effectiveness of the OH&S management system."
+      },
+      "question": {
+        "de": "Ist die DOKUMENTIERTE INFORMATION im Einklang mit ISO 45001:2018?\n\nAchten Sie auf: Dokumente oder Aufzeichnungen zu:\nOH&S-Politik, -Zielen, KPI\nProzess, Verfahren, Arbeitsanweisungen\nProduktions- oder Dienstleistungsplänen\nAufzeichnungen zu Produktions- oder Dienstleistungsarbeiten\nInspektionsaufzeichnungen, Nichtkonformitäten,\nKorrekturmassnahmen",
+        "en": "Is DOCUMENTED INFORMATION consistent with ISO 45001:2018?\n\nLook for: documents or records of:\nOH&S policy, objectives, KPI\nProcess, procedure, work instructions\nProduction or service plans\nRecords of production or service work\ninspection records nonfonformities,\ncorrective actions"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 51,
+      "label": "8.1.2",
+      "sectionKey": "c8",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Beseitigung von Gefährdungen und Minderung von OH&S-Risiken",
+        "en": "Eliminating hazards and reducing OH&S risks"
+      },
+      "requirement": {
+        "de": "Einen Prozess zur Beseitigung von Gefährdungen und Minderung von OH&S-Risiken festlegen, verwirklichen und aufrechterhalten, unter Anwendung der folgenden Massnahmenhierarchie:\n\n• die Gefährdung beseitigen\n\n• durch weniger gefährliche Prozesse, Vorgänge, Materialien oder Ausrüstung ersetzen,\n\n• technische Massnahmen und Reorganisation der Arbeit anwenden;\n\n• administrative Massnahmen anwenden, einschliesslich Schulung\n\n• geeignete persönliche Schutzausrüstung verwenden.",
+        "en": "Establish, implement and maintain a process for the elimination of hazards and reduction of OH&S risks using the following hierarchy of controls:\n\n• eliminate the hazard\n\n• substitute with less hazardous processes, operations, materials or equipment,\n\n• use engineering controls and reorganization of work;\n\n• use administrative controls, including training\n\n• use adequate personal protective equipment."
+      },
+      "question": {
+        "de": "Hat die Organisation die notwendigen Prozesse festgelegt, um die Kriterien des OH&S-Managementsystems für Betriebsprozesse zu erfüllen und die Betriebsprozesse gemäss der Massnahmenhierarchie zu steuern?\n\nAchten Sie auf: Nachweise, dass Pläne und Beurteilungen vorhanden sind.",
+        "en": "Has the organization established processes needed to meet OH&SMS in operating process criteria and control of operating processes following hierarchy of controls ?\n\nLook for: evidence that plans and assesments are in place."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 52,
+      "label": "8.1.3",
+      "sectionKey": "c8",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Änderungsmanagement",
+        "en": "Management of change"
+      },
+      "requirement": {
+        "de": "Einen Prozess für die Umsetzung und Steuerung geplanter vorübergehender und dauerhafter Änderungen festlegen, die sich auf die OH&S-Leistung auswirken, einschliesslich:\n\n• neuer Produkte, Dienstleistungen und Prozesse oder Änderungen an bestehenden Produkten, Dienstleistungen und Prozessen, einschliesslich:\n\no  Arbeitsplatzstandorte und deren Umgebung;\n\no  Arbeitsorganisation;\n\no  Arbeitsbedingungen;\n\no  Ausrüstung;\n\no  Personal;\n\n• Änderungen der rechtlichen Verpflichtungen und anderer Anforderungen;\n\n• Änderungen von Kenntnissen oder Informationen über Gefährdungen und OH&S-Risiken;\n\n• Entwicklungen in Wissen und Technologie.\n\nDie Folgen unbeabsichtigter Änderungen überprüfen und, falls erforderlich, Massnahmen zur Minderung nachteiliger Auswirkungen ergreifen.",
+        "en": "Establish a process for the implementation and control of planned temporary and permanent changes that impact OH&S performance, including:\n\n• new products, services and processes, or changes to existing products, services, and processes, including:\n\no  workplace locations and surroundings;\n\no  work organization;\n\no  working conditions;\n\no  equipment;\n\no  work force;\n\n• changes to legal requirements and other requirements;\n\n• changes in knowledge or information about hazards and OH&S risks;\n\n• developments in knowledge and technology.\n\nReview the consequences of unintended changes, taking action to mitigate any adverse effects, as necessary."
+      },
+      "question": {
+        "de": "Hat die Organisation einen Prozess für das Änderungsmanagement festgelegt?\n\nAchten Sie auf: Nachweise, dass Pläne und Mechanismen vorhanden sind, um die Informationen, Ressourcen und Prozesse zur Steuerung von Änderungen wirksam zu kontrollieren, wie z. B. JHA-Managementwerkzeuge, Sitzungsprotokolle usw.",
+        "en": "Has the Organization established a process for Management of Change?\n\nLook for: evidence that plans and mechansisms are in place to effectively control the information, resources, and processes to manage change such as JHA management tools, meeting minutes etc."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 53,
+      "label": "8.1.4",
+      "sectionKey": "c8",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Beschaffung, Allgemeines und Auftragnehmer 8.1.4.2 und Ausgliederung 8.1.4.3",
+        "en": "Procurement General and contractors 8.1.4.2 and out sourcing 8.1.4.3"
+      },
+      "requirement": {
+        "de": "Einen Prozess zur Steuerung der Beschaffung von Produkten und Dienstleistungen festlegen, verwirklichen und aufrechterhalten, um deren Konformität mit dem OH&S-Managementsystem sicherzustellen.\n\nDen Beschaffungsprozess mit Auftragnehmern koordinieren, um Gefährdungen zu ermitteln sowie OH&S-Risiken zu beurteilen und zu steuern.\nSicherstellen, dass die Anforderungen des OH&S-Managementsystems von Auftragnehmern und deren Beschäftigten erfüllt werden. Der Beschaffungsprozess muss Kriterien für Arbeitssicherheit und Gesundheitsschutz für die Auswahl von Auftragnehmern festlegen und anwenden.\n\nSicherstellen, dass ausgegliederte Funktionen und Prozesse gesteuert werden. Sicherstellen, dass Ausgliederungsvereinbarungen mit den rechtlichen Verpflichtungen und anderen Anforderungen sowie mit dem Erreichen der beabsichtigten Ergebnisse des OH&S-Managementsystems im Einklang stehen. Die Art und der Umfang der auf diese Funktionen und Prozesse anzuwendenden Steuerung müssen im OH&S-Managementsystem festgelegt werden.",
+        "en": "Establish, implement, and maintain a process to control the procurement of products and services to ensure their conformity to its OH&S management system.\n\nCoordinate the procurement process with contractors, in order to identify hazards and to assess and control the OH&S risks.\nEnsure that the requirements of the OH&S management system are met by contractors and their workers. The procurement process shall define and apply occupational health and safety criteria for the selection of contractors.\n\nEnsure that the outsource functions and processes are controlled.  Ensure that outsourcing arrangement are consistent with legal requirements and other requirements and with achieving the intended outcomes of the OH&S management system.  The type and degree of control to be applied to these functions and processes shall be defined within the OH&S management system."
+      },
+      "question": {
+        "de": "Hat die Organisation einen Beschaffungsprozess für Ausgliederung festgelegt?\n\nAchten Sie auf: Pläne, Kommunikation mit Lieferanten oder Auftragnehmern, Verträge und Sitzungsprotokolle.",
+        "en": "Has the organization established a procurement process for, outsourcing?\n\nLook for:  Look for plans, communications with suppliers or contractors, contracts and meeting minutes."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 54,
+      "label": "9.1.1",
+      "sectionKey": "c9",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Überwachung, Messung, Analyse und Leistungsbewertung/Allgemeines",
+        "en": "Monitoring, measurement, analysis and evaluation/General"
+      },
+      "requirement": {
+        "de": "Festlegen:\n\n• was überwacht und gemessen werden muss;\n\no  das Ausmass, in dem rechtliche Verpflichtungen und andere Anforderungen erfüllt sind;\n\no  die Tätigkeiten und Vorgänge im Zusammenhang mit ermittelten Gefährdungen, Risiken und Chancen;\n\no  der Fortschritt bei der Erreichung der OH&S-Ziele;\n\no  die Wirksamkeit von betrieblichen und anderen Massnahmen;\n\n• die Methoden für Überwachung, Messung, Analyse und Leistungsbewertung, um gültige Ergebnisse sicherzustellen;\n\n• die Kriterien, anhand derer die Organisation ihre OH&S-Leistung bewertet;\n\n• wann die Überwachung und Messung durchgeführt wird;\n\n• wann die Ergebnisse aus Überwachung und Messung analysiert, bewertet und kommuniziert werden.\n\nDie OH&S-Leistung bewerten und die Wirksamkeit des OH&S-Managementsystems bestimmen.\n\nSicherstellen, dass Überwachungs- und Messmittel, soweit zutreffend, kalibriert oder verifiziert sowie angemessen verwendet und gewartet werden.\n\nGeeignete dokumentierte Information aufbewahren:\n\n• als Nachweis der Ergebnisse von Überwachung, Messung, Analyse und Leistungsbewertung;\n\n• zur Wartung, Kalibrierung oder Verifizierung von Messmitteln.",
+        "en": "Determine:\n\n• what needs to be monitored and measured;\n\no  the extent to which legal requirements and other requirements are fulfilled;\n\no  the activities and operations related to identified hazards, risks and opportunities;\n\no  progress towards achievement of the OH&S objectives;\n\no  effectiveness of operational and other controls;\n\n• the methods for monitoring, measurement, analysis and performance evaluation to ensure valid results;\n\n• the criteria against which the organization will evaluate its OH&S performance;\n\n• when the monitoring and measuring will be performed;\n\n• when the results from monitoring and measurement will be analyzed, evaluated and communicated.\n\nEvaluate the OH&S performance and determine the effectiveness of the OH&S management system.\n\nEnsure that monitoring and measuring equipment is calibrated or verified as applicable and is used and maintained as appropriate.\n\nRetain appropriate documented information:\n\n• as evidence of the results of monitoring, measurement, analysis and performance evaluation;\n\n• on the maintenance, calibration or verification of measuring equipment."
+      },
+      "question": {
+        "de": "Sind OH&S-Ziele, wichtige Prozesskennzahlen oder andere Messgrössen der OH&S-Leistung definiert, gemessen, überwacht und berichtet?\n\nSind für diese Messgrössen erwartete Werte (Zielwerte) festgelegt, und wird die Leistung bewertet, um festzustellen, ob die Zielwerte erreicht werden?\n\nWerden Massnahmen ergriffen, wenn Zielwerte nicht erreicht werden?\n\nAchten Sie auf: Definitionen von Messgrössen, Datenprotokolle, Berichte, Besprechungsprotokolle oder andere dokumentierte Information, die zeigt, dass Messungen die OH&S-Leistung vorantreiben.",
+        "en": "Are OH&S objectives, key process indicators or other measures of OH&S performance defined, measured, monitored, reported?\n\nAre expected values (targets) set for these measures and is performance assessed to determine whether or not targets are being met?\n\nWhen targets are not met, is action taken?\n\nLook for definitions of measures, data logs, reports, meeting minutes, or any other documented information showing that measurements are driving OH&S performance."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 55,
+      "label": "9.1.2",
+      "sectionKey": "c9",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Bewertung der Einhaltung von Verpflichtungen",
+        "en": "Evaluation of compliance"
+      },
+      "requirement": {
+        "de": "Einen Prozess zur Bewertung der Einhaltung rechtlicher Verpflichtungen und anderer Anforderungen festlegen, umsetzen und aufrechterhalten. Die Organisation muss:\n\n• die Häufigkeit und Methode(n) zur Bewertung der Einhaltung festlegen;\n\n• die Einhaltung bewerten und bei Bedarf Massnahmen ergreifen;\n\n• Kenntnis und Verständnis ihres Einhaltungsstatus in Bezug auf rechtliche Verpflichtungen und andere Anforderungen aufrechterhalten;\n\n• dokumentierte Information über die Ergebnisse der Bewertung der Einhaltung aufbewahren",
+        "en": "Establish, implement, and maintain a process for evaluating compliance with legal requirements and other requirements.  The organization shall:\n\n• determine the frequency and method(s) for evaluation of compliance;\n\n• evaluate compliance and take action if needed\n\n• maintain knowledge and understanding of tis compliance status with legal requirements and other requirements;\n\n• retain documented information of the compliance evaluation result(s)"
+      },
+      "question": {
+        "de": "Beschreiben Sie, wie Sie die Einhaltung ermitteln und überwachen?\n\nAchten Sie auf: Compliance-Pläne, andere Pläne, Bewertungsformulare usw.",
+        "en": "Describe how you obtain and monitor compliance?\n\nLook for: compliance plans, other plans, evaluation forms etc."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 56,
+      "label": "9.2",
+      "sectionKey": "c9",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Internes Audit",
+        "en": "Internal Audit"
+      },
+      "requirement": {
+        "de": "In geplanten Abständen interne Audits durchführen, um Informationen darüber zu liefern, ob das OH&S-Managementsystem den Anforderungen entspricht, umgesetzt und aufrechterhalten wird.\nDie Organisation muss:\n• ein Auditprogramm planen, festlegen, umsetzen und aufrechterhalten, einschliesslich der Häufigkeit, Methoden, Verantwortlichkeiten, Konsultation, Planungsanforderungen und Berichterstattung, wobei die Bedeutung der betroffenen Prozesse und die Ergebnisse früherer Audits berücksichtigt werden;\n• die Auditkriterien und den Auditumfang für jedes Audit festlegen;\n• Auditoren auswählen und Audits durchführen, um die Objektivität und Unparteilichkeit des Auditprozesses sicherzustellen;\n• sicherstellen, dass die Ergebnisse der Audits der relevanten Leitung berichtet werden; sicherstellen, dass relevante Auditergebnisse den Beschäftigten und, soweit vorhanden, den Beschäftigtenvertretern sowie anderen relevanten interessierten Parteien berichtet werden;\n• Massnahmen ergreifen, um Nichtkonformitäten zu behandeln und die OH&S-Leistung fortlaufend zu verbessern;\n• dokumentierte Information als Nachweis für die Umsetzung des Auditprogramms und der Auditergebnisse aufbewahren.",
+        "en": "Conduct internal audits at planned intervals to provide information on whether the OHSMS conforms to requirements, is implemented, and maintained.\nThe organization shall:\n• plan, establish, implement, and maintain an audit program including the frequency, methods, responsibilities, consultation, planning requirements and reporting, which takes into consideration, the importance of the processes concerned, and the results of previous audits;\n• define the audit criteria and scope for each audit;\n• select auditors and conduct audits to ensure objectivity and impartiality of the audit process;\n• ensure that the results of the audits are reported to relevant management; ensure that relevant audit results are reported to workers, and where they exist, workers’ representatives, and other relevant interested parties;\n• take action to address nonconformities and continually improve the OH&S performance;\n• retain documented information as evidence of the implementation of the audit program and audit results."
+      },
+      "question": {
+        "de": "Gibt es ein internes Auditprogramm? Werden Audits geplant? Sind die Auditoren geschult oder zertifiziert?\n\nWerden die Auditergebnisse der Leitung berichtet? Werden Auditmassnahmen zugewiesen, nachverfolgt, abgeschlossen und verifiziert?\n\nAchten Sie auf: Auditaufzeichnungen, Korrekturmassnahmen aus den Auditfeststellungen.",
+        "en": "Is there an internal audit program? Are audits planned. Are auditors trained or certified.\n\nAre audit results reported to management. Are audit actions assigned, tracked, closed, and verified.\n\nLook for: audit records, corrective actions from the audit findings."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 57,
+      "label": "9.3",
+      "sectionKey": "c9",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Managementbewertung",
+        "en": "Management review"
+      },
+      "requirement": {
+        "de": "Die Managementbewertung muss Folgendes berücksichtigen:\n• den Status von Massnahmen aus früheren Managementbewertungen;\n• Änderungen bei externen und internen Themen, die für das OH&S-Managementsystem relevant sind, einschliesslich der Erfordernisse und Erwartungen interessierter Parteien, rechtlicher Verpflichtungen und anderer Anforderungen, Risiken und Chancen;\n• das Ausmass, in dem die OH&S-Politik und die OH&S-Ziele erreicht wurden;\n• Informationen zur OH&S-Leistung, einschliesslich Trends bei Vorfällen, Nichtkonformitäten, Korrekturmassnahmen und fortlaufender Verbesserung, Ergebnissen von Überwachung und Messung, Ergebnissen der Bewertung der Einhaltung rechtlicher Verpflichtungen und anderer Anforderungen, Auditergebnissen, Konsultation und Beteiligung der Beschäftigten, Risiken und Chancen;\n• die Angemessenheit der Ressourcen zur Aufrechterhaltung eines wirksamen OH&S-Managementsystems;\n• relevante Kommunikation mit interessierten Parteien;\n• Möglichkeiten zur fortlaufenden Verbesserung.\nDie Ergebnisse der Managementbewertung müssen Entscheidungen zu Folgendem umfassen:\n• die fortlaufende Eignung, Angemessenheit und Wirksamkeit des OH&S-Managementsystems bei der Erreichung seiner beabsichtigten Ergebnisse;\n• Möglichkeiten zur fortlaufenden Verbesserung;\n• jeglichen Bedarf an Änderungen am OH&S-Managementsystem;\n• benötigte Ressourcen;\n• Massnahmen, falls erforderlich;\n• Möglichkeiten zur Verbesserung der Integration des OH&S-Managementsystems mit anderen Geschäftsprozessen;\n• etwaige Auswirkungen auf die strategische Ausrichtung der Organisation.\nDie oberste Leitung muss die relevanten Ergebnisse der Managementbewertungen den Beschäftigten und, soweit vorhanden, den Beschäftigtenvertretern kommunizieren.\nDie Organisation muss dokumentierte Information als Nachweis der Ergebnisse von Managementbewertungen aufbewahren.",
+        "en": "The management review shall include consideration of:\n• the status of actions from previous management reviews;\n• changes in external and internal issues that are relevant to the OHSMS including, the needs and expectations of interested parties, legal requirements and other requirements, risks and opportunities;\n• the extent to which the OH&S policy and the OH&S objectives have been met;\n• information on the OH&S performance including trends in incidents, nonconformities, corrective actions and continual improvement, monitoring and measurement results, results of evaluation of compliance with legal requirements and other requirements, audit results, consultation and participation of workers, risks and opportunities;\n• adequacy of resources for maintaining an effective OH&S management system;\n• relevant communication(s) with interested parties;\n• opportunities for continual improvement.\nThe outputs of the management review shall include decisions related to:\n• the continuing suitability, adequacy and effectiveness of the OH&S management system in achieving its intended outcomes;\n• continual improvement opportunities;\n• any need for changes to the OH&S management system;\n• resources needed;\n• actions, if needed;\n• opportunities to improve integration of the OH&S management system with other business processes;\n• any implications for the strategic direction of the organization.\nTop management shall communicate the relevant outputs of management reviews to workers, and where they exist, workers’ representatives.\nThe organization shall retain documented information as evidence of the results of management reviews."
+      },
+      "question": {
+        "de": "Trifft sich das Führungs-/Leitungsteam regelmässig, um Angelegenheiten im Zusammenhang mit OH&S zu besprechen?\n\nBesprechungen müssen nicht ausschliesslich auf OH&S ausgerichtet sein – zum Beispiel kann eine monatliche Geschäftsübersicht zu Rückstand, Betrieb, Verkaufsleistung usw. ebenfalls einen OH&S-Fokus enthalten.\n\nAchten Sie auf: jegliche Besprechungsprotokolle, die Folgendes enthalten könnten: Nichtkonformitäten, Korrekturmassnahmen oder Verbesserungsmassnahmen, Überwachung von Ergebnissen, Konsultation und Beteiligung der Beschäftigten, Sicherheitsaufzeichnungen oder Ergebnisse von Sicherheitsbesprechungen. Achten Sie auch auf Entscheidungen/Ergebnisse wie Ressourcen, Massnahmen, Möglichkeiten für die Ausrichtung usw.\n\nAchten Sie auf: Wenn Sie Besprechungsprotokolle haben, die regelmässige Leitungssitzungen belegen, achten Sie auf Nachweise, dass die in 9.3 genannten Eingabethemen behandelt werden.",
+        "en": "Does the leadership/management team meet periodically to discuss matters related to OH&S.\n\nMeetings do not have to be exclusively OH&S focused - for example a monthly business review of backlog, operations, sales performance etc. can also include an OH&S focus.\n\nLook for: any records of meetings that might include: nonconformances, corrective actions or improvement actions, monitoring of results, consultation and participation of workers, safety records or safety meeting results. Also look decisions / outputs such as resources, actions, opportunities for direction etc.\n\nLook for: If you have meeting records that show periodic management meetings, look for evidence that the input topics identified in 9.3. are addressed."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 58,
+      "label": "10.1",
+      "sectionKey": "c10",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Verbesserung / Allgemeines",
+        "en": "Improvement / General"
+      },
+      "requirement": {
+        "de": "Verbesserungsmöglichkeiten ermitteln und notwendige Massnahmen umsetzen, um die beabsichtigten Ergebnisse des OH&S-Managementsystems zu erreichen.",
+        "en": "Determine opportunities for improvement and implement necessary actions to achieve the intended outcomes of its OH&S management system."
+      },
+      "question": {
+        "de": "Wie werden Verbesserungsmöglichkeiten ermittelt und umgesetzt? Verbessern sie die OH&S-Leistung?\n\nAchten Sie auf: Nachweise dafür, dass notwendige Verbesserungen der OH&S- oder Betriebsprozesse identifiziert, diskutiert und umgesetzt werden. Dies kann sich in Korrekturmassnahmen, technischen Änderungen, Schulungsaufzeichnungen, Bewertungen, Protokollen von Managementsitzungen usw. zeigen.",
+        "en": "How are opportunities for improvement determined and implemented?  Do they improve OH&S performance?\n\nLook for: evidence that necessary improvements in OH&S or operational processes are identified, discussed, and acted on. This may be in corrective actions, engineered changes, training records, reviews, management meeting records…"
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 59,
+      "label": "10.2",
+      "sectionKey": "c10",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Vorfall, Nichtkonformität und Korrekturmassnahmen",
+        "en": "Incident, Nonconformity and corrective action"
+      },
+      "requirement": {
+        "de": "Wenn eine Nichtkonformität auftritt, einschliesslich solcher, die sich aus Beschwerden ergeben, gehen wir wie folgt vor:\n• wir reagieren zeitnah auf den Vorfall oder die Nichtkonformität und, soweit zutreffend:\no  ergreifen wir Massnahmen, um sie zu beherrschen und zu korrigieren;\no  gehen wir mit den Folgen um;\n• wir bewerten unter Beteiligung der Beschäftigten und Einbeziehung anderer relevanter interessierter Parteien die Notwendigkeit von Korrekturmassnahmen zur Beseitigung der Ursache(n) des Vorfalls oder der Nichtkonformität, damit dieser bzw. diese nicht erneut oder an anderer Stelle auftritt, indem:\no  der Vorfall untersucht oder die Nichtkonformität überprüft wird;\n• wir die Ursachen des Vorfalls oder der Nichtkonformität ermitteln;\n• wir feststellen, ob ähnliche Vorfälle aufgetreten sind, Nichtkonformitäten bestehen oder potenziell auftreten könnten;\n• wir bestehende Beurteilungen der OH&S-Risiken und anderer Risiken, soweit angemessen, überprüfen;\n• wir alle erforderlichen Massnahmen, einschliesslich Korrekturmassnahmen, in Übereinstimmung mit der Massnahmenhierarchie und dem Änderungsmanagement bestimmen und umsetzen;\n• wir OH&S-Risiken im Zusammenhang mit neuen oder veränderten Gefährdungen beurteilen, bevor Massnahmen ergriffen werden;\n• wir die Wirksamkeit aller ergriffenen Massnahmen, einschliesslich Korrekturmassnahmen, überprüfen;\n• wir, falls erforderlich, Änderungen am OH&S-Managementsystem vornehmen.\nKorrekturmassnahmen entsprechen den Auswirkungen oder potenziellen Auswirkungen der aufgetretenen Vorfälle oder Nichtkonformitäten.\nDokumentierte Information wird als Nachweis aufbewahrt für:\n• die Art der Vorfälle oder Nichtkonformitäten und alle daraufhin ergriffenen Massnahmen;\n• die Ergebnisse aller Massnahmen und Korrekturmassnahmen, einschliesslich ihrer Wirksamkeit\nDie Organisation muss diese dokumentierte Information den betroffenen Beschäftigten sowie, sofern vorhanden, den Beschäftigtenvertretern und anderen relevanten interessierten Parteien mitteilen.",
+        "en": "When a nonconformity occurs, including those arising from complaints, we:\n• react in a timely manner to the incident or nonconformity, and as applicable:\no  take action to control and correct it;\no  deal with the consequences;\n• evaluate, with the participation of workers and the involvement of other relevant interested parties, the need for corrective action to eliminate the cause(s) of the incident or nonconformity, in order that it does not recur or occur elsewhere by:\no  investigating the incident or reviewing the nonconformity;\n• determine the causes of the incident or nonconformity;\n• determine if similar incidents have occurred, if nonconformities exist, or could potentially occur;\n• review existing assessments of OH&S risks and other risks, as appropriate;\n• determine and implement any action needed, including corrective action, in accordance with the hierarchy of controls and the management of change;\n• assess OH&S risks that relate to new or changed hazards, prior to taking action;\n• review the effectiveness of any action taken, including corrective action;\n• make changes to the OH&S management system, if necessary.\nCorrective actions are appropriate to the effects or potential effects of the incidents or the nonconformities encountered.\nRetain documented information as evidence of:\n• the nature of the incidents or nonconformities and any subsequent actions taken;\n• the results of any action and corrective action, including their effectiveness\nThe organization shall communicate this documented information to relevant workers, and, where they exist, workers’ representatives, and other relevant interested parties."
+      },
+      "question": {
+        "de": "Wie werden Vorfälle, Nichtkonformitäten und Korrekturmassnahmen behandelt? Wird die Grundursache ermittelt und dokumentiert? Wird die Wirksamkeit der Korrekturmassnahmen festgestellt? Werden dauerhafte Änderungen am OH&S-Managementsystem vorgenommen?\n\nAchten Sie auf: Nachweise dafür, dass Nichtkonformitäten systematisch identifiziert, zugewiesen, korrigiert, hinsichtlich der Grundursache analysiert und mit Präventivmassnahmen versehen werden.\nAchten Sie auf die Kommunikation von Massnahmen an interessierte Parteien und Beschäftigte über E-Mails, Anschlagbretter usw.",
+        "en": "How are Incidents, Nonconformances and Corrective Actions addressed? Is root cause determined and documented? Are corrective actions determined to be effective? Are permanent changes made to the OH&S Management System?\n\nLook for: evidence that nonconformities  are systematically identified, assigned, corrected, analyzed for root cause, and preventive action taken.\n. Look for communication of actions to interested parties and workers through emails, bulletin boards etc."
+      },
+      "deReviewed": false
+    },
+    {
+      "position": 60,
+      "label": "10.3",
+      "sectionKey": "c10",
+      "groupKey": null,
+      "parentPosition": null,
+      "rateable": true,
+      "title": {
+        "de": "Fortlaufende Verbesserung",
+        "en": "Continual improvement"
+      },
+      "requirement": {
+        "de": "Die Eignung, Angemessenheit und Wirksamkeit des OH&S-Managementsystems fortlaufend verbessern, durch:\nVerbesserung der OH&S-Leistung;\nFörderung einer Kultur, die ein OH&S-Managementsystem unterstützt;\nFörderung der Beteiligung der Beschäftigten bei der Umsetzung von Massnahmen zur fortlaufenden Verbesserung des OH&S-Managementsystems;\n•Kommunikation der relevanten Ergebnisse der fortlaufenden Verbesserung an die Beschäftigten und, sofern vorhanden, an die Beschäftigtenvertreter;\n•Aufrechterhaltung und Aufbewahrung dokumentierter Information als Nachweis der fortlaufenden Verbesserung.",
+        "en": "Continually improve the suitability, adequacy, and effectiveness of the OH&S management system, by:\nenhancing OH&S performance;\npromoting a culture that supports an OH&S management system;\npromoting the participation of workers in implementing actions for the continual improvement of the OH&S management system;\n•communicating the relevant results of continual improvement to workers, and, where they exist, workers’ representatives;\n•maintaining and retaining documented information as evidence of continual improvement."
+      },
+      "question": {
+        "de": "Finden proaktive Gespräche über Geschäfts- und Betriebsprozesse statt, die zu festgelegten Massnahmen führen, welche umgesetzt werden, um die Sicherheitsergebnisse und die Mitarbeiterzufriedenheit zu verbessern?\n\nAchten Sie auf: Sitzungsprotokolle, Massnahmenlisten, Korrekturmassnahmenprotokolle, Nichtkonformitätsprotokolle oder Verbesserungsprotokolle.",
+        "en": "Are proactive discussions about business and operational processes taking place that they lead to defined actions that are implemented to improve safety outcomes and employee satisfaction?\n\nLook for: records of meeting minutes, action itemas, corrective action logs, nonconformance logs, or improvement logs."
+      },
+      "deReviewed": false
+    }
+  ]
+}
