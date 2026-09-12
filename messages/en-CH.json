@@ -3049,6 +3049,12 @@
         "company_kpis": {
           "purpose": "The safety figures you entered or we found"
         },
+        "assessments": {
+          "purpose": "Which expert assessed your company against which checklist, when and where"
+        },
+        "assessment_answers": {
+          "purpose": "The ratings and notes your expert recorded per checklist item"
+        },
         "notifications": {
           "purpose": "What we showed you in the app"
         },

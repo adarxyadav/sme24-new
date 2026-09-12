@@ -15,6 +15,8 @@ select plan(3);
 create function pg_temp.documented_tables()
 returns table (name text) language sql as $$
   values
+    ('assessment_answers'),
+    ('assessments'),
     ('audit_log'),
     ('benchmark_assumptions'),
     ('benchmark_snapshots'),

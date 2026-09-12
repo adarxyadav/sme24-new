@@ -3049,6 +3049,12 @@
         "company_kpis": {
           "purpose": "Die Sicherheitskennzahlen, die Sie erfasst haben oder die wir gefunden haben"
         },
+        "assessments": {
+          "purpose": "Welche Expertin oder welcher Experte Ihr Unternehmen wann, wo und anhand welcher Checkliste beurteilt hat"
+        },
+        "assessment_answers": {
+          "purpose": "Die Bewertungen und Notizen, die Ihr Experte oder Ihre Expertin pro Checklistenpunkt erfasst hat"
+        },
         "notifications": {
           "purpose": "Was wir Ihnen in der App angezeigt haben"
         },

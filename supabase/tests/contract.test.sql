@@ -236,14 +236,17 @@ select has_view('public', 'company_kpi_current', 'company_kpi_current exists');
 -- client may see the summary of an expert whose expert_profiles row their own policies hide.
 -- The where clause in the view body is the access boundary instead, and it is proved row by row
 -- in assigned_expert_summaries.test.sql. The exception is named here rather than allowed by a
--- pattern, so a second definer view has to argue its own case.
+-- pattern, so a second definer view has to argue its own case. expert_bookings (spec 0019) is
+-- that second one: an expert has no select policy on orders at all, so the view is the one read
+-- they have of a booking, its column list keeps every money and billing column out, and its where
+-- clause (own bookings, or ops) is proved row by row in assessments.test.sql.
 select results_eq(
   $$ select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
      where n.nspname = 'public' and c.relkind = 'v'
        and (c.reloptions is null or not c.reloptions @> array['security_invoker=true'])
      order by 1 $$,
-  $$ values ('assigned_expert_summaries'::name) $$,
-  'assigned_expert_summaries is the only definer view in public; every other view runs as the caller');
+  $$ values ('assigned_expert_summaries'::name), ('expert_bookings'::name) $$,
+  'assigned_expert_summaries and expert_bookings are the only definer views in public; every other view runs as the caller');
 -- Realtime membership is an explicit decision per table (spec 0001), so this list is by hand.
 -- A new table is not silently in or out: it has to be added here or to realtime_optional below.
 select results_eq(
@@ -263,9 +266,12 @@ select results_eq(
 -- The six directory tables (spec 0018) are out: a search is a page render, an unlock answers in
 -- the click handler that awaited it, and the contact rows hold personal data no channel may carry.
 -- The two questionnaire content tables (spec 0019) are out: seeded reference data a page reads.
+-- assessments and assessment_answers (spec 0019) are out too: the expert's autosave is a server
+-- action that answers the click that awaited it, the client card reloads with the page, and a
+-- note may name a person, so nothing there belongs on a channel.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
-  values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('data_requests'),
+  values ('assessment_answers'::name), ('assessments'), ('audit_log'), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('data_requests'),
          ('directory_companies'), ('directory_contacts'), ('directory_credit_entries'), ('directory_imports'), ('directory_suppressions'), ('directory_unlocks'),
          ('enquiries'), ('expert_assignments'),
          ('expert_ops_notes'), ('expert_profiles'), ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'),
@@ -326,13 +332,15 @@ select is_empty(
   $$ select t from pg_temp.tenant_tables() t
      where not exists (select 1 from pg_temp.tenant_policies() p where p.tbl = t) $$,
   'every kind T table carries at least one policy');
--- Every tenancy predicate resolves the tenant one of three ways: the organization_id column, the
--- assigned expert helper, or the ops bypass. A policy naming none of them is not a tenant policy.
+-- Every tenancy predicate resolves the tenant one of four ways: the organization_id column, the
+-- assigned expert helper, the ops bypass, or (spec 0019) the parent assessment through
+-- private.owns_assessment, a definer helper that compares the parent's expert_id to auth.uid().
+-- A policy naming none of them is not a tenant policy.
 select is_empty(
   $$ select tbl || '.' || polname from pg_temp.tenant_policies()
      where coalesce(qual, withcheck) is not null
-       and coalesce(qual, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid'
-       and coalesce(withcheck, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid' $$,
+       and coalesce(qual, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid|owns_assessment'
+       and coalesce(withcheck, '') !~ 'organization_id|is_assigned_expert|is_ops|auth\.uid|owns_assessment' $$,
   'every policy on a kind T table names organization_id, a tenancy helper or auth.uid()');
 -- `using (true)` on a tenant table reads every tenant's rows. kpi_definitions is the recorded
 -- exception (kind G, global reference data) and is not in the tenant sweep.
