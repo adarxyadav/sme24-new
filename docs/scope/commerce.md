@@ -43,3 +43,11 @@ spec [0014](../specs/0014-ops-admin-orders-scheduling/index.md)
 Signups, research runs, benchmarks viewed, checkouts started and paid, revenue, active assessments and programs, in the admin area. Reads the same funnel events feature 15 records.
 **Done when:** the admin shows those counts for a chosen period with week over week change, and the numbers reconcile with the orders and events tables.
 - [ ] Build it: `/develop ops metrics dashboard`
+
+## Slice 9: Sell to the network
+
+### 28. Contact directory · needs a decision
+A global directory of EHS and operations contacts (about 80,000 people at about 40,000 companies from a purchased list) sold to the expert accounts as pay per unlock: an expert searches by company, title and country, sees masked emails and phones, and spends one credit (CHF 1.99) from a prepaid pack to reveal a row, which then stays visible. Decided by the owner on 12 September 2026: the directory is global, not a Swiss slice; buyers are the existing expert accounts of feature 16; payment is credit packs on the order rail of feature 11; the import loads only the countries the lawyer clears. The raw list holds personal data and the repo is public, so it never enters git, a migration, a seed, a fixture or a screenshot and reaches the database only through a hand run import.
+**Done when:** an expert can search the directory, buy a credit pack by card or invoice, unlock a contact for one credit and keep it visible, and export their own unlocks as CSV; no expert can read a raw email or phone through any other path (pgTAP proves it); ops see unlocks and balances under `/admin`; the two events carry ids only; the privacy page, the record of processing and the terms carry the new processing; the lawyer's licence and country answer is folded into the import list before the feature goes live (a launch gate, not a build blocker).
+Supersedes the "Contact directory: decide what the cleaned export is for" row on the Loose Ends artifact (`docs/artifacts/README.md`).
+- [ ] Design it (spec): `/architect contact directory`
