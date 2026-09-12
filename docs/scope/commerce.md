@@ -62,3 +62,10 @@ Spec: [0018](../specs/0018-contact-directory/index.md). The expert becomes a sec
 - [x] Test it: `/test contact directory`
 - [x] Review it (fresh model): `/check review contact directory`
 - [x] Document it: `/document contact directory`
+
+## Slice 10: Europe, country by country
+
+### 31. EU VAT & multi currency at checkout · needs a decision
+Deferred since the first plan ("only CHF with Swiss MWST is in scope now"); the 13 Sep 2026 market decision brings it in, after feature 29 gives a company a country. A client outside Switzerland pays in its own currency with the right tax treatment: reverse charge for a VAT registered EU business with a validated VAT number, and whatever registrations your accountant says SME24 needs for anyone else. The invoice meets that country's rules, and the QR-bill is Swiss only, so a bank transfer elsewhere needs a plain IBAN and reference line. Package prices per currency, how the Swiss seller facts of feature 25b extend to an EU registration, and where tax is calculated are the decisions; the accountant's answer on registrations comes before any line of code.
+**Done when:** a client with a German company buys a package in EUR; the invoice and receipt show the right VAT treatment and the buyer's VAT number where reverse charge applies; the order settles through the same webhook and `settleOrder` path as today; the Swiss path is unchanged and its tests still pass; and the ops order list shows the currency on every row.
+- [ ] Design it (spec): `/architect EU VAT & multi currency`

@@ -1,6 +1,6 @@
 # Client funnel · SME24
 
-Part of the [SME24 scope](index.md). The free half of the promise: a client signs in, enters a company name, and sees its EHS risk benchmarked in CHF. Slice 1 is the walking skeleton, the thinnest real thread through auth, database, background jobs, AI and UI. Later slices thicken it.
+Part of the [SME24 scope](index.md). The free half of the promise: a client signs in, enters a company name, and sees its EHS risk benchmarked against its own country's figures and priced in its own currency (Swiss figures and CHF first; Slice 10 opens the other countries). Slice 1 is the walking skeleton, the thinnest real thread through auth, database, background jobs, AI and UI. Later slices thicken it.
 
 ## Slice 1: Core loop (the walking skeleton)
 
@@ -110,3 +110,42 @@ Carried over from earlier specs: members join only through `public.add_organizat
 A bell in the dashboard with unread items mirroring the emails: benchmark ready, assessment scheduled, expert assigned, gap report ready, program updated. Works for clients and experts.
 **Done when:** each notified event appears in the bell with an unread count, opening an item marks it read and deep links to the right page, and the list is scoped to the user's organization.
 - [ ] Build it: `/develop in app notification center`
+
+## Slice 10: Europe, country by country
+
+The 13 Sep 2026 market decision (regulated companies in Europe, Switzerland first, a wider region later) turns the Swiss specifics into the first country. These rows make the country a real input and put named companies beside the sector statistics. Build order (owner decision of 13 Sep 2026, after the country spec was written): the named peers of feature 30 first, because the peers and the companies are the product; feature 29 (spec 0020, already written) follows, and feature 31 after it. Feature 30 needs from the country only what exists today, `companies.country` with its Swiss default, so it does not wait for 29.
+
+### 29. Client country as a benchmark input · in-progress
+Today every company is Swiss by default (`companies.country` defaults to `CH`), the benchmark reads the Suva and Eurostat rows for Switzerland and the cost model prices the gap in CHF with Swiss assumptions. This row makes the country a real input: the research or the client sets it, the peer lookup picks that country's national sector table (Eurostat publishes accidents by NACE section for every EU member, so the industry code already carries across), the cost model prices in that country's currency with that country's wage, hours and absence assumptions, and a country without a seeded table says so rather than borrowing the Swiss one. Which countries get a table first, how the assumption rows split per country and how a currency travels through the snapshot, the email and the marketing example are the decisions.
+**Done when:** a company carries a country the client can confirm or correct; the benchmark for a German company compares against Germany's sector rows and prices the gap in EUR with German assumptions; a country with no seeded table shows "no national figure yet" for that country and never a Swiss value; existing Swiss snapshots render unchanged; and the launch gate lists which countries are covered.
+spec [0020](../specs/0020-client-country-benchmark-input/index.md)
+- [x] Design it (spec): `/architect client country as a benchmark input`
+- [ ] Build it: `/develop client country as a benchmark input`
+  - [ ] The catalogue and the thin thread: `src/lib/countries.ts`, the country select at lookup and on the facts card with `Intl.DisplayNames` labels, the lookup writes the chosen code, the research prompt asks for the NACE division and a canton only for CH (AC-1, AC-2, AC-3)
+  - [ ] Schema, seed and model: `country` on peer, assumption and snapshot rows with defaults, the renamed assumption keys beside the old two, `benchmark-model@5` with country, currency and the stored skipped cost, the task filters by country, the reader normalises old rows to CH and CHF, no recompute owed (AC-4 to AC-8, AC-17)
+  - [ ] The surfaces: money in the snapshot currency on the card, gaps, positions and the `benchmark_ready` email, the country named, the per country pending text, the uncovered country no data text, the grouped select, the byte identical Swiss render test (AC-9 to AC-13)
+  - [ ] Germany, the gate and the runbook: the DE peer rows read from DGUV and the Eurostat API by hand, the four DE assumptions, the coverage gate query, the "Adding a country" runbook section with the recorded requests, the German fixture thread end to end (AC-14 to AC-16, AC-18, AC-19)
+- [ ] Verify it: `/check verify client country as a benchmark input`
+- [ ] Test it: `/test client country as a benchmark input`
+- [ ] Review it (fresh model): `/check review client country as a benchmark input`
+- [ ] Document it: `/document client country as a benchmark input`
+
+### 30. Named published peers · in-progress
+Today's peers are nameless sector statistics. This row puts at least three named companies next to the client's figures: companies in the same industry, from any country, that print their LTIFR, TRIFR, lost days or ISO 45001 status in a public report, each with its country, report year, basis (employees only or including contractors) and the source page. They are chosen by a geography ladder, the client's country first, then its region, then Europe, then the world, and the industry never widens before the geography does. The client sees a rank card (the rank among the published peers, the gap to the safest, a table with the client's own saving at each peer's figure) and a bubble chart (frequency across, severity up, headcount as bubble area). Money appears only on the client's own row, never as an estimate against a named company. The peer library is curated by ops, drafted by the research provider where that helps, and an unverified row never reaches a client. Design reference: the Peer Standing page (artifact `3ef5da7c-9080-44f9-8405-b49b75a2cbc5`, indexed in the local `docs/artifacts/README.md`). Four owner calls wait in that page for `/architect`: whether larger listed peers are an acceptable comparison for a 300 person client, where the ladder stops by default, whether money is priced per peer or only at the safest, and whether the chart is client facing or expert only at first.
+**Done when:** a company in a covered industry sees, per KPI with named peers, its rank among at least three published companies with the rung the ladder reached written under the table; every peer row shows country, year, basis and a link to its source page; a rate per 200,000 hours is converted to per million before it is compared; fewer than three even worldwide reads "no published peer yet"; the bubble chart has a keyboard focus ring per bubble and a table for screen readers; a point sector row still never says "median"; and the launch gate blocks an unverified peer row the way it blocks a provisional sector row.
+spec [0021](../specs/0021-named-published-peers/index.md)
+- [x] Design it (spec): `/architect named published peers`
+- [ ] Build it: `/develop named published peers`
+  - [ ] The thin thread: the whole country catalogue with regions and currencies, the two peer tables with pgTAP, both CSVs with three verified manufacturers, the seed script extension, the task's library read, `benchmark-model@5` with the ladder's happy path and the `peers` block, a first rank card in place of the LTIFR row (AC-1, AC-2, AC-3, AC-5, AC-9)
+  - [ ] The rules: freshness, latest year, basis preference, the four rungs and the minimum of three, rank ties, the gap to the best, the ISO share, the saving per peer on one arm, the unknown country rule, the unit conversion (AC-6, AC-7, AC-8, AC-13)
+  - [ ] The card: the strip with its screen reader sentence, both rank line shapes, the rung sentence, the linked rows, the no saving text, the gallery section, both catalogs, the forbidden word test on the new keys, the "no published peer yet" text (AC-10, AC-11, AC-12)
+  - [ ] Curation, gate and thread: manufacturing and construction peers read and verified, the third gate query, the "Peer library" runbook section, the recompute obligation, the fixture thread end to end (AC-4, AC-14, AC-15, AC-16, AC-17)
+- [ ] Verify it: `/check verify named published peers`
+- [ ] Test it: `/test named published peers`
+- [ ] Review it (fresh model): `/check review named published peers`
+- [ ] Document it: `/document named published peers`
+
+### 32. Peer bubble chart · planned
+The picture the Peer Standing page promised, split out of feature 30 after its cross check (spec 0021 AC-11, owner decision of 13 Sep 2026): one hand drawn SVG under the positions with LTIFR across, lost days per incident up and headcount as bubble area, the client always drawn, a dashed line at the sector median where one exists, a focusable element per bubble with a tooltip on hover and focus, and a table for screen readers. The snapshot already carries the peers it draws (`chart.peerKeys`), so no model version moves. The contract is written in the spec's rationale under "The chart slice".
+**Done when:** a client in manufacturing sees the chart under the positions with at least three published peers that print both figures; every bubble is reachable by keyboard and named by the screen reader table; the chart is hidden with one sentence when the client or the peers lack a figure; axe passes on the client page and the gallery. Gated on the curation of feature 30 yielding three such peers. `from spec 0021`
+- [ ] Build it: `/develop peer bubble chart`

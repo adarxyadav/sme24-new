@@ -1,6 +1,6 @@
 # SME24
 
-AI powered EHS consulting marketplace for regulated companies in Switzerland. This repo holds the
+AI powered EHS consulting marketplace for regulated companies in Europe, Switzerland first. This repo holds the
 whole product: marketing site, client, expert and ops areas, background tasks and the database
 schema. The stack and its reasons are in [spec 0001](docs/specs/0001-stack-architecture/index.md);
 the plan is in [docs/scope](docs/scope/index.md).
