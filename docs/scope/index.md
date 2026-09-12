@@ -42,7 +42,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 25c | Peer data refresh (UVG 2026 & Eurostat) | Slice 4 | in-progress |
 | 26 | Production environment & go live | Slice 4 | planned |
 | 27 | Derived injury counts | Slice 2 | done |
-| 28 | Contact directory | Slice 9 | planned |
+| 28 | Contact directory | Slice 9 | in-progress |
 
 ## Epics
 

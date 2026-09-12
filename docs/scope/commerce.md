@@ -46,8 +46,19 @@ Signups, research runs, benchmarks viewed, checkouts started and paid, revenue, 
 
 ## Slice 9: Sell to the network
 
-### 28. Contact directory · needs a decision
+### 28. Contact directory · in-progress
 A global directory of EHS and operations contacts (about 80,000 people at about 40,000 companies from a purchased list) sold to the expert accounts as pay per unlock: an expert searches by company, title and country, sees masked emails and phones, and spends one credit (CHF 1.99) from a prepaid pack to reveal a row, which then stays visible. Decided by the owner on 12 September 2026: the directory is global, not a Swiss slice; buyers are the existing expert accounts of feature 16; payment is credit packs on the order rail of feature 11; the import loads only the countries the lawyer clears. The raw list holds personal data and the repo is public, so it never enters git, a migration, a seed, a fixture or a screenshot and reaches the database only through a hand run import.
 **Done when:** an expert can search the directory, buy a credit pack by card or invoice, unlock a contact for one credit and keep it visible, and export their own unlocks as CSV; no expert can read a raw email or phone through any other path (pgTAP proves it); ops see unlocks and balances under `/admin`; the two events carry ids only; the privacy page, the record of processing and the terms carry the new processing; the lawyer's licence and country answer is folded into the import list before the feature goes live (a launch gate, not a build blocker).
 Supersedes the "Contact directory: decide what the cleaned export is for" row on the Loose Ends artifact (`docs/artifacts/README.md`).
-- [ ] Design it (spec): `/architect contact directory`
+Spec: [0018](../specs/0018-contact-directory/index.md). The expert becomes a second buyer shape on `orders` and `invoices` (`buyer_expert_id`, exactly one shape per row), `settle_order` grants the credits in the same transaction as `paid`, credits are an append only ledger debited by one `directory_reveal` function that checks, debits and returns the row atomically, and the directory tables have no read policy for any app role, so the database is the only thing that ever masks or reveals a value. The import script refuses a hosted database until the policy file carries the lawyer's answer.
+- [x] Design it (spec): `/architect contact directory`
+- [ ] Build it: `/develop contact directory`
+  - [ ] Data: the six directory tables with their restricted read policies, the masking functions, `directory_search`, the pgTAP proofs, the record of processing rows, and `pnpm directory:import` with its policy gate (AC-1, AC-2, AC-3, AC-4)
+  - [ ] Browse: `/expert/directory` with search, masked results, keyset paging, the balance header and the `directory` namespace (AC-5)
+  - [ ] Unlock: the credit pack on the rail (packages kind, the expert buyer shape, the grant in `settle_order`), the expert checkout and invoice actions, the null organization branches, `directory_reveal`, the live unlock button, the unlocks page and the CSV export (AC-6 to AC-13)
+  - [ ] Instruments: the three events, `/admin/directory` with the import card, balances, unlocks and the removal form (AC-14, AC-15)
+  - [ ] Legal: the privacy block, the retention rows, the terms clause as version 2, the runbook and the launch gate commit that clears the import policy (AC-16, AC-17)
+- [ ] Verify it: `/check verify contact directory`
+- [ ] Test it: `/test contact directory`
+- [ ] Review it (fresh model): `/check review contact directory`
+- [ ] Document it: `/document contact directory`
