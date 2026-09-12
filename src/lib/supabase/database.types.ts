@@ -509,6 +509,322 @@ export type Database = {
           },
         ]
       }
+      directory_companies: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          name: string
+          name_normalised: string
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          name_normalised: string
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          name_normalised?: string
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      directory_contacts: {
+        Row: {
+          city: string | null
+          company_id: string
+          country: string | null
+          created_at: string
+          email: string
+          first_name: string | null
+          id: string
+          imported_at: string
+          last_name: string | null
+          mobile: string | null
+          phone: string | null
+          postal_code: string | null
+          source_batch: string
+          state: string | null
+          street: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          company_id: string
+          country?: string | null
+          created_at?: string
+          email: string
+          first_name?: string | null
+          id?: string
+          imported_at: string
+          last_name?: string | null
+          mobile?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          source_batch: string
+          state?: string | null
+          street?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          company_id?: string
+          country?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string | null
+          id?: string
+          imported_at?: string
+          last_name?: string | null
+          mobile?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          source_batch?: string
+          state?: string | null
+          street?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "directory_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directory_credit_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delta: number
+          expert_id: string
+          id: string
+          note: string | null
+          order_id: string | null
+          reason: string
+          unlock_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          expert_id: string
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          reason: string
+          unlock_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          expert_id?: string
+          id?: string
+          note?: string | null
+          order_id?: string | null
+          reason?: string
+          unlock_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_credit_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_credit_entries_unlock_id_fkey"
+            columns: ["unlock_id"]
+            isOneToOne: false
+            referencedRelation: "directory_unlocks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directory_imports: {
+        Row: {
+          countries: Json
+          created_at: string
+          dry_run: boolean
+          excluded_countries: string[]
+          file_name: string
+          finished_at: string | null
+          id: string
+          rows_loaded: number
+          rows_read: number
+          rows_skipped_country: number
+          rows_skipped_invalid: number
+          rows_skipped_no_country: number
+          rows_skipped_suppressed: number
+          rows_updated: number
+          source_batch: string
+          started_at: string
+        }
+        Insert: {
+          countries?: Json
+          created_at?: string
+          dry_run?: boolean
+          excluded_countries?: string[]
+          file_name: string
+          finished_at?: string | null
+          id?: string
+          rows_loaded?: number
+          rows_read?: number
+          rows_skipped_country?: number
+          rows_skipped_invalid?: number
+          rows_skipped_no_country?: number
+          rows_skipped_suppressed?: number
+          rows_updated?: number
+          source_batch: string
+          started_at?: string
+        }
+        Update: {
+          countries?: Json
+          created_at?: string
+          dry_run?: boolean
+          excluded_countries?: string[]
+          file_name?: string
+          finished_at?: string | null
+          id?: string
+          rows_loaded?: number
+          rows_read?: number
+          rows_skipped_country?: number
+          rows_skipped_invalid?: number
+          rows_skipped_no_country?: number
+          rows_skipped_suppressed?: number
+          rows_updated?: number
+          source_batch?: string
+          started_at?: string
+        }
+        Relationships: []
+      }
+      directory_suppressions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email_hash: string
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email_hash: string
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email_hash?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_suppressions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_suppressions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directory_unlocks: {
+        Row: {
+          contact_id: string
+          created_at: string
+          expert_id: string
+          id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          expert_id: string
+          id?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          expert_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_unlocks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "directory_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "directory_unlocks_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_expert_summaries"
+            referencedColumns: ["expert_id"]
+          },
+          {
+            foreignKeyName: "directory_unlocks_expert_id_fkey"
+            columns: ["expert_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_deliveries: {
         Row: {
           attempts: number
@@ -1739,6 +2055,48 @@ export type Database = {
       }
       create_organization: { Args: { name: string }; Returns: string }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      directory_countries: {
+        Args: never
+        Returns: {
+          contacts: number
+          country: string
+        }[]
+      }
+      directory_credit_balance: {
+        Args: { expert_id?: string }
+        Returns: number
+      }
+      directory_search: {
+        Args: {
+          after_id?: string
+          after_name?: string
+          after_page?: number
+          country?: string
+          page_size?: number
+          q?: string
+          title?: string
+        }
+        Returns: {
+          company_city: string
+          company_country: string
+          company_id: string
+          company_name: string
+          company_name_normalised: string
+          contact_city: string
+          contact_country: string
+          contact_id: string
+          contact_title: string
+          email: string
+          email_masked: string
+          first_name: string
+          last_name: string
+          mobile: string
+          mobile_masked: string
+          phone: string
+          phone_masked: string
+          unlocked: boolean
+        }[]
+      }
       issue_invoice: {
         Args: {
           due_days?: number

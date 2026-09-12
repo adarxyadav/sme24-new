@@ -1,7 +1,7 @@
 # 0018. Contact directory sold to the expert network
 
 **Date**: 2026-09-12
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

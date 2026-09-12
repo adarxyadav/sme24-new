@@ -3073,7 +3073,25 @@
         "audit_log": {
           "purpose": "Wer was geändert hat, der Nachweis, der den Rest überprüfbar macht"
         },
-        "accountingNote": "Bestellungen, Rechnungen und Bestellereignisse bewahren wir zehn Jahre auf, weil Art. 958f OR es verlangt. Rechercheläufe und Benchmark-Momentaufnahmen bewahren wir ohne Enddatum auf: eine Momentaufnahme ist bewusst unveränderlich, damit eine Ihnen gezeigte Zahl jederzeit erklärt werden kann, und der Vergleich von Läufen über die Zeit ist es, was den Dienst genau hält. Wenn Ihnen das nicht recht ist, verlangen Sie die Löschung und wir löschen sie."
+        "accountingNote": "Bestellungen, Rechnungen und Bestellereignisse bewahren wir zehn Jahre auf, weil Art. 958f OR es verlangt. Rechercheläufe und Benchmark-Momentaufnahmen bewahren wir ohne Enddatum auf: eine Momentaufnahme ist bewusst unveränderlich, damit eine Ihnen gezeigte Zahl jederzeit erklärt werden kann, und der Vergleich von Läufen über die Zeit ist es, was den Dienst genau hält. Wenn Ihnen das nicht recht ist, verlangen Sie die Löschung und wir löschen sie.",
+        "directory_companies": {
+          "purpose": "Firmen aus der gekauften Kontaktliste"
+        },
+        "directory_contacts": {
+          "purpose": "Name, Funktion, E-Mail, Telefonnummern und Adresse einer Person aus der gekauften Kontaktliste"
+        },
+        "directory_suppressions": {
+          "purpose": "Ein Hash der E-Mail-Adresse einer Person, die aus dem Verzeichnis entfernt werden wollte, damit sie nie zurückkehrt"
+        },
+        "directory_unlocks": {
+          "purpose": "Welche Kontakte eine Expertin oder ein Experte freigeschaltet hat"
+        },
+        "directory_credit_entries": {
+          "purpose": "Credit-Käufe und Freischaltungen einer Expertin oder eines Experten"
+        },
+        "directory_imports": {
+          "purpose": "Die Zählwerte jedes Verzeichnis-Imports, keine Person"
+        }
       },
       "rights": {
         "title": "Ihre Rechte",

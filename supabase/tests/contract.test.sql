@@ -14,7 +14,7 @@
 -- exists so a table that never got a policy at all cannot reach them unnoticed.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(34);
+select plan(35);
 
 -- Every table in public (regular and partitioned).
 create function pg_temp.public_tables()
@@ -39,10 +39,15 @@ select is_empty(
 -- `id`, which private.audit_row() requires for audit_log.row_id (the same reason kpi_definitions
 -- and benchmark_assumptions are exceptions), and order_events is itself the append only history
 -- of public.orders, so auditing it would only duplicate rows the audit log already holds.
+-- Spec 0018 adds the four restricted directory tables (directory_companies, directory_contacts,
+-- directory_suppressions, directory_imports): an import writes tens of thousands of rows in one
+-- run and the directory_imports row is the audit of that run; the two expert owned directory
+-- tables (unlocks, credit entries) are audited like every other access granting row.
 create function pg_temp.audited_tables()
 returns setof name language sql stable as $$
   select t from pg_temp.public_tables() t
-  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events')
+  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events',
+                   'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.audited_tables()), '>=', 7::bigint,
@@ -80,8 +85,9 @@ select is_empty(
      join pg_proc p on p.oid = g.tgfoid
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
-       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events') $$,
-  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events and order_events are not audited');
+       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events',
+                   'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports') $$,
+  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events, order_events and the four restricted directory tables are not audited');
 -- private.audit_row() writes row_id (not null) from the `id` column, falling back to a single
 -- column primary key when the table has no `id` (spec 0012: expert_profiles and expert_ops_notes
 -- are keyed on expert_id). So an audited table needs one or the other, and a composite key with
@@ -159,12 +165,26 @@ select is_empty(
 -- set_expert_photo (same, for the storage path, and it pins the path to the caller's own folder)
 -- and assigned_organization_contacts (the client contacts an assigned expert may see, definer
 -- because the email lives in auth.users, which no app role may read; it raises not_assigned for
--- any other caller).
+-- any other caller), and the directory functions of spec 0018 (directory_search,
+-- directory_countries and the ones later milestones add), definer because the directory tables
+-- carry no select policy for an expert at all: the function is the only read path and it masks
+-- every value the caller has not paid for.
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
-  'the only security definer functions in public are the ten recorded entry points');
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('directory_countries'::name), ('directory_search'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
+  'the only security definer functions in public are the recorded entry points');
+-- The directory functions (spec 0018) are the only read path an expert has into the directory
+-- tables, so they carry the same anon revoke as every other public function; the declarative diff
+-- never emits it, so each migration adding one repeats it by hand (AGENTS.md).
+select is_empty(
+  $$ select p.proname || ' ' || r.rolname from pg_proc p
+     join pg_namespace n on n.oid = p.pronamespace
+     cross join lateral aclexplode(p.proacl) a
+     join pg_roles r on r.oid = a.grantee
+     where n.nspname = 'public' and p.proname like 'directory\_%'
+       and a.privilege_type = 'EXECUTE' and r.rolname = 'anon' $$,
+  'an anonymous visitor cannot execute any directory function');
 -- settle_order writes money rows, so its execute grant is checked explicitly: the service role
 -- only. Supabase's default privileges grant execute to anon and authenticated on every new public
 -- function, and the declarative diff's REVOKE ... FROM PUBLIC does not remove those direct grants,
@@ -232,9 +252,13 @@ select results_eq(
 -- expert_ops_notes carries record check notes that must never reach a channel a client could join.
 -- data_requests (spec 0015) is out too: a request is answered by ops over thirty days, so nothing
 -- on either side is watching for a live change, and the row names a person exercising a right.
+-- The six directory tables (spec 0018) are out: a search is a page render, an unlock answers in
+-- the click handler that awaited it, and the contact rows hold personal data no channel may carry.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
-  values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('data_requests'), ('enquiries'), ('expert_assignments'),
+  values ('audit_log'::name), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('data_requests'),
+         ('directory_companies'), ('directory_contacts'), ('directory_credit_entries'), ('directory_imports'), ('directory_suppressions'), ('directory_unlocks'),
+         ('enquiries'), ('expert_assignments'),
          ('expert_ops_notes'), ('expert_profiles'), ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'),
          ('organization_members'), ('organizations'), ('packages'), ('profiles'), ('stripe_events')
 $$;

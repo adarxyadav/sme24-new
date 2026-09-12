@@ -3073,7 +3073,25 @@
         "audit_log": {
           "purpose": "Who changed what, the record that makes the rest verifiable"
         },
-        "accountingNote": "Orders, invoices and order events are kept for ten years because Art. 958f CO requires it. Research runs and benchmark snapshots are kept without an end date: a snapshot is immutable by design, so that a figure you were shown can always be explained, and comparing runs over time is how the service stays accurate. If you would rather they were not, ask us to delete them and we will."
+        "accountingNote": "Orders, invoices and order events are kept for ten years because Art. 958f CO requires it. Research runs and benchmark snapshots are kept without an end date: a snapshot is immutable by design, so that a figure you were shown can always be explained, and comparing runs over time is how the service stays accurate. If you would rather they were not, ask us to delete them and we will.",
+        "directory_companies": {
+          "purpose": "Companies on the purchased contact list"
+        },
+        "directory_contacts": {
+          "purpose": "Name, title, email, phones and address of a person on the purchased contact list"
+        },
+        "directory_suppressions": {
+          "purpose": "A hash of the email address of a person who asked to be removed from the directory, so they never return"
+        },
+        "directory_unlocks": {
+          "purpose": "Which contacts an expert has revealed"
+        },
+        "directory_credit_entries": {
+          "purpose": "An expert’s credit purchases and unlocks"
+        },
+        "directory_imports": {
+          "purpose": "The counts of each directory import, no person"
+        }
       },
       "rights": {
         "title": "Your rights",

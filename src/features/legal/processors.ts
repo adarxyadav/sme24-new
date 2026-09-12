@@ -80,7 +80,13 @@ export type RetentionTable =
   | "order_events"
   | "research_runs"
   | "benchmark_snapshots"
-  | "audit_log";
+  | "audit_log"
+  | "directory_companies"
+  | "directory_contacts"
+  | "directory_suppressions"
+  | "directory_unlocks"
+  | "directory_credit_entries"
+  | "directory_imports";
 
 export type Retention = {
   /** The table, and the key of the `legalPages.privacy.retention.<table>.purpose` message. */
@@ -111,4 +117,16 @@ export const RETENTION: readonly Retention[] = [
   { table: "research_runs", kind: "indefinite", days: null },
   { table: "benchmark_snapshots", kind: "indefinite", days: null },
   { table: "audit_log", kind: "indefinite", days: null },
+  // The contact directory (spec 0018, AC-16). The two contact tables are `indefinite` until the
+  // owner's retention question comes back with the lawyer's licence answer; the suppression hash
+  // is indefinite by design (the hash is the objection); the import row is the audit of every
+  // bulk write; and the two expert owned tables are the record of what was sold, never `account`,
+  // because anonymisePerson touches profiles and expert_profiles only and a profile is never
+  // deleted, so nothing would implement `account`.
+  { table: "directory_companies", kind: "indefinite", days: null },
+  { table: "directory_contacts", kind: "indefinite", days: null },
+  { table: "directory_suppressions", kind: "indefinite", days: null },
+  { table: "directory_unlocks", kind: "indefinite", days: null },
+  { table: "directory_credit_entries", kind: "indefinite", days: null },
+  { table: "directory_imports", kind: "indefinite", days: null },
 ] as const;

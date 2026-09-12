@@ -29,7 +29,8 @@
     "email:dev": "email dev --dir src/lib/email/previews --port 3200",
     "benchmarks:migration": "node scripts/benchmarks-migration.mts",
     "benchmarks:recompute": "node scripts/benchmarks-recompute.mts",
-    "register:build": "node --experimental-strip-types scripts/build-register.mts"
+    "register:build": "node --experimental-strip-types scripts/build-register.mts",
+    "directory:import": "node scripts/directory-import.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -91,6 +92,7 @@
     "axe-core": "4.13.0",
     "culori": "^4.0.2",
     "dotenv": "^17.4.2",
+    "exceljs": "^4.4.0",
     "jsdom": "^30.0.1",
     "lefthook": "^2.1.12",
     "react-email": "6.9.3",
