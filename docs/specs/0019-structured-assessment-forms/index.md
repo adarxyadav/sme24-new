@@ -1,7 +1,7 @@
 # 0019. Structured assessment forms
 
 **Date**: 2026-09-12
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
