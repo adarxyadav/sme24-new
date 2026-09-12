@@ -1,4 +1,4 @@
-import { CoinsIcon, SearchXIcon, UnlockIcon, UsersIcon } from "lucide-react";
+import { SearchXIcon, UnlockIcon, UsersIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
@@ -19,6 +19,8 @@ import {
   directorySearchSchema,
   searchQuery,
 } from "@/features/directory/schema";
+import { BalanceBadge } from "@/features/directory/ui/balance-badge";
+import { DirectoryProvider } from "@/features/directory/ui/directory-context";
 import { DirectoryResultsTable } from "@/features/directory/ui/results-table";
 import { DirectorySearchForm, type SearchFormErrors } from "@/features/directory/ui/search-form";
 import { clientMessages } from "@/i18n/client-messages";
@@ -102,101 +104,99 @@ export default async function ExpertDirectoryPage({ searchParams }: Props) {
   const hasFilters = Boolean(search.q || search.title || search.country);
   const directoryEmpty = countries.length === 0;
 
+  // The provider and its client children read the `directory` namespace, so the whole page sits
+  // inside one client provider; the server components between them are unaffected.
   return (
-    <PageStack>
-      <PageHeader
-        title={t("title")}
-        description={t("lead")}
-        actions={
-          <>
-            <span
-              className="inline-flex h-8 items-center gap-2 rounded-md border px-3 text-sm tabular-nums"
-              data-testid="directory-balance"
-            >
-              <CoinsIcon aria-hidden="true" className="size-4 text-muted-foreground" />
-              {t("header.balance", { count: balance })}
-            </span>
-            <Button asChild variant="outline">
-              <Link href="/expert/directory/unlocks">
-                <UnlockIcon aria-hidden="true" data-icon="inline-start" />
-                {t("header.unlocks")}
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/expert/directory/credits">{t("header.buy")}</Link>
-            </Button>
-          </>
-        }
-      />
+    <NextIntlClientProvider messages={clientMessages(messages, ["directory"])}>
+      <DirectoryProvider balance={balance}>
+        <PageStack>
+          <PageHeader
+            title={t("title")}
+            description={t("lead")}
+            actions={
+              <>
+                <BalanceBadge />
+                <Button asChild variant="outline">
+                  <Link href="/expert/directory/unlocks">
+                    <UnlockIcon aria-hidden="true" data-icon="inline-start" />
+                    {t("header.unlocks")}
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/expert/directory/credits">{t("header.buy")}</Link>
+                </Button>
+              </>
+            }
+          />
 
-      <NextIntlClientProvider messages={clientMessages(messages, ["directory"])}>
-        <DirectorySearchForm
-          values={{ q: raw.q ?? "", title: raw.title ?? "", country: search.country ?? "" }}
-          errors={errors}
-          countries={countryOptions}
-        />
-      </NextIntlClientProvider>
+          <DirectorySearchForm
+            values={{ q: raw.q ?? "", title: raw.title ?? "", country: search.country ?? "" }}
+            errors={errors}
+            countries={countryOptions}
+          />
 
-      {pastDepth ? (
-        <Alert variant="info">
-          <AlertTitle>{t("results.pageDepth.title")}</AlertTitle>
-          <AlertDescription>
-            <p>{t("results.pageDepth.description", { pages: DIRECTORY_MAX_PAGE })}</p>
-            <Button asChild variant="outline" size="sm" className="mt-2">
-              <Link href={{ pathname: "/expert/directory", query: searchQuery(search) }}>
-                {t("results.pageDepth.reset")}
-              </Link>
-            </Button>
-          </AlertDescription>
-        </Alert>
-      ) : page === null ? null : page.rows.length === 0 && directoryEmpty ? (
-        <EmptyState
-          icon={UsersIcon}
-          title={t("empty.noRows.title")}
-          description={t("empty.noRows.description")}
-        />
-      ) : page.rows.length === 0 ? (
-        <EmptyState
-          icon={SearchXIcon}
-          title={t("empty.noMatch.title")}
-          description={t("empty.noMatch.description")}
-          action={
-            hasFilters || page.page > 1 ? (
-              <Button asChild variant="outline">
-                <Link href="/expert/directory">{t("empty.noMatch.reset")}</Link>
-              </Button>
-            ) : undefined
-          }
-        />
-      ) : (
-        <section className="flex flex-col gap-4" aria-labelledby="directory-results-heading">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="directory-results-heading" className="font-semibold text-lg">
-              {t("results.heading")}
-            </h2>
-            <p className="text-muted-foreground text-sm tabular-nums">
-              {t("results.caption", { page: page.page, count: page.rows.length })}
-            </p>
-          </div>
-          <DirectoryResultsTable rows={page.rows} countryLabel={countryLabel} />
-          {page.nextCursor ? (
-            <div>
-              <Button asChild variant="outline">
-                <Link
-                  href={{
-                    pathname: "/expert/directory",
-                    // The search travels with the cursor: a keyset taken under one search means
-                    // nothing under another.
-                    query: searchQuery(search, page.nextCursor),
-                  }}
-                >
-                  {t("results.more")}
-                </Link>
-              </Button>
-            </div>
-          ) : null}
-        </section>
-      )}
-    </PageStack>
+          {pastDepth ? (
+            <Alert variant="info">
+              <AlertTitle>{t("results.pageDepth.title")}</AlertTitle>
+              <AlertDescription>
+                <p>{t("results.pageDepth.description", { pages: DIRECTORY_MAX_PAGE })}</p>
+                <Button asChild variant="outline" size="sm" className="mt-2">
+                  <Link href={{ pathname: "/expert/directory", query: searchQuery(search) }}>
+                    {t("results.pageDepth.reset")}
+                  </Link>
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : page === null ? null : page.rows.length === 0 && directoryEmpty ? (
+            <EmptyState
+              icon={UsersIcon}
+              title={t("empty.noRows.title")}
+              description={t("empty.noRows.description")}
+            />
+          ) : page.rows.length === 0 ? (
+            <EmptyState
+              icon={SearchXIcon}
+              title={t("empty.noMatch.title")}
+              description={t("empty.noMatch.description")}
+              action={
+                hasFilters || page.page > 1 ? (
+                  <Button asChild variant="outline">
+                    <Link href="/expert/directory">{t("empty.noMatch.reset")}</Link>
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <section className="flex flex-col gap-4" aria-labelledby="directory-results-heading">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h2 id="directory-results-heading" className="font-semibold text-lg">
+                  {t("results.heading")}
+                </h2>
+                <p className="text-muted-foreground text-sm tabular-nums">
+                  {t("results.caption", { page: page.page, count: page.rows.length })}
+                </p>
+              </div>
+              <DirectoryResultsTable rows={page.rows} countryLabel={countryLabel} />
+              {page.nextCursor ? (
+                <div>
+                  <Button asChild variant="outline">
+                    <Link
+                      href={{
+                        pathname: "/expert/directory",
+                        // The search travels with the cursor: a keyset taken under one search means
+                        // nothing under another.
+                        query: searchQuery(search, page.nextCursor),
+                      }}
+                    >
+                      {t("results.more")}
+                    </Link>
+                  </Button>
+                </div>
+              ) : null}
+            </section>
+          )}
+        </PageStack>
+      </DirectoryProvider>
+    </NextIntlClientProvider>
   );
 }

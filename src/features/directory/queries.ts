@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { decodeCursor, encodeCursor } from "@/lib/supabase/cursor";
 import type { Database } from "@/lib/supabase/database.types";
 import { queryError } from "@/lib/supabase/query-error";
 import { DIRECTORY_PAGE_SIZE } from "./catalogue";
@@ -115,4 +116,93 @@ export async function getCreditBalance(supabase: Client): Promise<number> {
   const { data, error } = await supabase.rpc("directory_credit_balance");
   if (error) throw queryError(error);
   return data ?? 0;
+}
+
+/** One unlocked contact as the unlocks page and the export render it: raw values, never masked. */
+export type UnlockedRow = {
+  readonly unlockId: string;
+  readonly contactId: string;
+  readonly companyName: string;
+  readonly companyCountry: string | null;
+  readonly companyCity: string | null;
+  readonly firstName: string | null;
+  readonly lastName: string | null;
+  readonly title: string | null;
+  readonly country: string | null;
+  readonly city: string | null;
+  readonly email: string;
+  readonly phone: string | null;
+  readonly mobile: string | null;
+  readonly unlockedAt: string;
+};
+
+type UnlockedRpcRow =
+  Database["public"]["Functions"]["directory_unlocked_contacts"]["Returns"][number];
+
+function toUnlockedRow(row: UnlockedRpcRow): UnlockedRow {
+  return {
+    unlockId: row.unlock_id,
+    contactId: row.id,
+    companyName: row.company_name,
+    companyCountry: row.company_country ?? null,
+    companyCity: row.company_city ?? null,
+    firstName: row.first_name ?? null,
+    lastName: row.last_name ?? null,
+    title: row.contact_title ?? null,
+    country: row.contact_country ?? null,
+    city: row.contact_city ?? null,
+    email: row.email,
+    phone: row.phone ?? null,
+    mobile: row.mobile ?? null,
+    unlockedAt: row.unlocked_at,
+  };
+}
+
+/** The keyset of the unlocks list: the last row's unlock moment and unlock id. */
+export type UnlocksKeyset = { readonly createdAt: string; readonly id: string };
+
+/**
+ * One page of the caller's unlocked contacts, newest first, after `after` (AC-13). `size` is
+ * clamped by the function (25 for the page, 500 for the export). Throws. Server component or
+ * route handler.
+ */
+export async function unlockedContactsPage(
+  supabase: Client,
+  after: UnlocksKeyset | null,
+  size: number,
+): Promise<{ readonly rows: readonly UnlockedRow[] }> {
+  const { data, error } = await supabase.rpc("directory_unlocked_contacts", {
+    ...(after ? { after_created_at: after.createdAt, after_id: after.id } : {}),
+    page_size: size,
+  });
+  if (error) throw queryError(error);
+  return { rows: data.map(toUnlockedRow) };
+}
+
+export type UnlocksPage = {
+  readonly rows: readonly UnlockedRow[];
+  /** True on the first page (no cursor), so the empty state can offer the directory link. */
+  readonly first: boolean;
+  readonly nextCursor: string | null;
+};
+
+/**
+ * The unlocks page (AC-13): 25 rows on the opaque `created_at|id` cursor the ops lists use; a
+ * malformed cursor is the first page. Throws. Server component.
+ */
+export async function listUnlockedContacts(
+  supabase: Client,
+  cursor: string | null,
+): Promise<UnlocksPage> {
+  const after = decodeCursor(cursor ?? undefined);
+  const { rows } = await unlockedContactsPage(supabase, after, DIRECTORY_PAGE_SIZE);
+  const last = rows.at(-1);
+  return {
+    rows,
+    first: after === null,
+    nextCursor:
+      rows.length === DIRECTORY_PAGE_SIZE && last
+        ? encodeCursor({ createdAt: last.unlockedAt, id: last.unlockId })
+        : null,
+  };
 }

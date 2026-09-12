@@ -69,6 +69,16 @@ test.beforeAll(async () => {
   if (contactError) throw contactError;
 });
 
+/** The ids of the fixture contacts, for the unlock clean up. */
+async function fixtureContactIds(): Promise<string[]> {
+  const supabase = serviceClient();
+  const { data } = await supabase
+    .from("directory_contacts")
+    .select("id")
+    .eq("company_id", companyId);
+  return (data ?? []).map((row) => row.id);
+}
+
 test.afterAll(async () => {
   const supabase = serviceClient();
   // The contacts cascade from the company; the unlocks and ledger debits of later milestones
@@ -127,6 +137,66 @@ test.describe("the directory browse (AC-5)", () => {
     const table = page.getByRole("table");
     await expect(table.getByText("Fritz Fixture")).toBeVisible();
     await expect(table.getByText("Erika Fixture")).toHaveCount(0);
+  });
+
+  test("an expert with one credit unlocks a row, keeps it after a reload, and exports it (AC-11 to AC-13)", async ({
+    page,
+  }) => {
+    const supabase = serviceClient();
+    const { data: users } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    const expert = users.users.find((user) => user.email === SEED_USERS.expert);
+    if (!expert) throw new Error("the seeded expert is needed");
+    // A clean slate for the fixture contacts, then exactly one credit, granted by hand (the
+    // purchase path is proved by pgTAP and the checkout spec).
+    await supabase.from("directory_credit_entries").delete().eq("expert_id", expert.id);
+    await supabase
+      .from("directory_unlocks")
+      .delete()
+      .eq("expert_id", expert.id)
+      .in("contact_id", await fixtureContactIds());
+    await supabase
+      .from("directory_credit_entries")
+      .insert({ expert_id: expert.id, delta: 1, reason: "grant", note: "e2e" });
+
+    await signIn(page, SEED_USERS.expert);
+    await page.goto("/de/expert/kontakte?q=zebrafixture&title=head");
+    await expect(page.getByTestId("directory-balance")).toHaveText(/1 Credit/);
+    await page.getByRole("button", { name: /Freischalten/ }).click();
+
+    // The raw values and the new balance land in the click handler that awaited the action.
+    await expect(page.getByRole("table").getByText(CONTACT_EMAIL)).toBeVisible();
+    await expect(page.getByRole("table").getByText("+41 41 000 00 99")).toBeVisible();
+    await expect(page.getByTestId("directory-balance")).toHaveText(/0 Credits/);
+
+    // A second row at zero is refused inline with the way to buy more.
+    await page.goto("/de/expert/kontakte?q=zebrafixture");
+    await expect(page.getByRole("table").getByText(CONTACT_EMAIL)).toBeVisible();
+    await page.getByRole("button", { name: /Freischalten/ }).click();
+    await expect(page.getByRole("table").getByRole("alert")).toContainText("Keine Credits mehr.");
+    await expect(
+      page.getByRole("table").getByRole("alert").getByRole("link", { name: "Credits kaufen" }),
+    ).toBeVisible();
+
+    // The unlocks page lists it, and the export carries it with the German header row.
+    await page.goto("/de/expert/kontakte/freigeschaltet");
+    await expect(page.getByRole("table").getByText(CONTACT_EMAIL)).toBeVisible();
+    const response = await page.request.get("/api/directory/unlocks/export");
+    expect(response.status()).toBe(200);
+    expect(response.headers()["content-type"]).toContain("text/csv");
+    expect(response.headers()["content-disposition"]).toMatch(
+      /attachment; filename="sme24-directory-unlocks-\d{4}-\d{2}-\d{2}\.csv"/,
+    );
+    const csv = await response.text();
+    expect(
+      csv.startsWith(
+        "\uFEFFFirma,Land,Ort,Vorname,Nachname,Funktion,E-Mail,Telefon,Mobil,Freigeschaltet am (UTC)\r\n",
+      ),
+    ).toBe(true);
+    expect(csv).toContain(
+      `${COMPANY},CH,Baar,Erika,Fixture,Head of EHS,${CONTACT_EMAIL},'+41 41 000 00 99,,`,
+    );
+    // The phone starts with a plus, so the cell is guarded against formula execution.
+    expect(csv).toContain(",'+41 41 000 00 99,");
   });
 
   test("a client cannot open the directory", async ({ page }) => {

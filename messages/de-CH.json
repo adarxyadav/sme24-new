@@ -3357,6 +3357,16 @@
         "title": "Weiter reicht eine Suche nicht",
         "description": "Eine Suche zeigt höchstens {pages} Seiten. Grenzen Sie sie nach Firma, Funktion oder Land ein, um die Zeilen dahinter zu erreichen.",
         "reset": "Zurück zur ersten Seite"
+      },
+      "unlock": "Freischalten · {price}",
+      "unlocking": "Wird freigeschaltet…",
+      "errors": {
+        "insufficient_credits": "Keine Credits mehr.",
+        "buy": "Credits kaufen",
+        "not_found": "Dieser Kontakt ist nicht mehr im Verzeichnis.",
+        "forbidden": "Ihr Expertenkonto ist nicht aktiv.",
+        "validation": "Diese Zeile konnte nicht freigeschaltet werden.",
+        "unexpected": "Etwas ist schiefgelaufen. Versuchen Sie es erneut."
       }
     },
     "empty": {
@@ -3368,6 +3378,44 @@
         "title": "Keine passenden Kontakte",
         "description": "Versuchen Sie einen kürzeren Firmennamen, eine breitere Funktion oder ein anderes Land.",
         "reset": "Suche löschen"
+      }
+    },
+    "unlocks": {
+      "title": "Ihre Freischaltungen",
+      "lead": "Jeder Kontakt, für den Sie einen Credit bezahlt haben, neueste zuerst, mit vollständiger E-Mail-Adresse und Telefonnummer. Sie bleiben Ihnen erhalten: laden Sie sie jederzeit als Datei herunter.",
+      "breadcrumb": "Kontaktverzeichnis",
+      "back": "Zurück zum Verzeichnis",
+      "export": "CSV herunterladen",
+      "heading": "Freigeschaltete Kontakte",
+      "caption": "{count, plural, =1 {1 Kontakt} other {# Kontakte}} angezeigt",
+      "columns": {
+        "company": "Firma",
+        "contact": "Kontakt",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "unlockedAt": "Freigeschaltet"
+      },
+      "unnamed": "Kein Name angegeben",
+      "none": "—",
+      "more": "Mehr laden",
+      "empty": {
+        "title": "Noch nichts freigeschaltet",
+        "description": "Durchsuchen Sie das Verzeichnis und schalten Sie einen Kontakt für einen Credit frei; er erscheint hier und in Ihrer CSV-Datei.",
+        "action": "Verzeichnis öffnen"
+      }
+    },
+    "export": {
+      "columns": {
+        "company": "Firma",
+        "country": "Land",
+        "city": "Ort",
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "title": "Funktion",
+        "email": "E-Mail",
+        "phone": "Telefon",
+        "mobile": "Mobil",
+        "unlockedAt": "Freigeschaltet am (UTC)"
       }
     }
   }

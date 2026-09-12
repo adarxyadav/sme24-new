@@ -3357,6 +3357,16 @@
         "title": "That is as far as one search goes",
         "description": "A search shows at most {pages} pages. Narrow it by company, title or country to reach the rows past this point.",
         "reset": "Back to the first page"
+      },
+      "unlock": "Unlock · {price}",
+      "unlocking": "Unlocking…",
+      "errors": {
+        "insufficient_credits": "No credits left.",
+        "buy": "Buy credits",
+        "not_found": "This contact is no longer in the directory.",
+        "forbidden": "Your expert account is not active.",
+        "validation": "This row could not be unlocked.",
+        "unexpected": "Something went wrong. Try again."
       }
     },
     "empty": {
@@ -3368,6 +3378,44 @@
         "title": "No contacts match",
         "description": "Try a shorter company name, a broader job title or another country.",
         "reset": "Clear the search"
+      }
+    },
+    "unlocks": {
+      "title": "Your unlocks",
+      "lead": "Every contact you paid a credit for, newest first, with the full email and phone. They stay yours: download them as a file whenever you like.",
+      "breadcrumb": "Contact directory",
+      "back": "Back to the directory",
+      "export": "Download CSV",
+      "heading": "Unlocked contacts",
+      "caption": "{count, plural, =1 {1 contact} other {# contacts}} shown",
+      "columns": {
+        "company": "Company",
+        "contact": "Contact",
+        "email": "Email",
+        "phone": "Phone",
+        "unlockedAt": "Unlocked"
+      },
+      "unnamed": "No name given",
+      "none": "—",
+      "more": "Load more",
+      "empty": {
+        "title": "Nothing unlocked yet",
+        "description": "Search the directory and unlock a contact for one credit; it appears here and in your CSV.",
+        "action": "Open the directory"
+      }
+    },
+    "export": {
+      "columns": {
+        "company": "Company",
+        "country": "Country",
+        "city": "City",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "title": "Title",
+        "email": "Email",
+        "phone": "Phone",
+        "mobile": "Mobile",
+        "unlockedAt": "Unlocked at (UTC)"
       }
     }
   }
