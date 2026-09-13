@@ -96,17 +96,23 @@ export type ModelPeerCompany = {
   readonly reportUrl: string;
 };
 
-/** A verified `peer_figures` row as the task loads it; the task filters `verified_at is not null` (AC-5). */
+/**
+ * A verified `peer_figures` row as the task loads it; the task filters `verified_at is not null`
+ * (AC-5). `denominatorAsPublished` is set on a quotient row only (AC-18) and `note` is the
+ * curator's sentence on what changes how the figure reads, or null (AC-19).
+ */
 export type ModelPeerFigure = {
   readonly peerKey: string;
   readonly kpiKey: PeerKpiKey;
   readonly periodYear: number;
   readonly value: number;
   readonly valueAsPublished: number;
+  readonly denominatorAsPublished: number | null;
   readonly unitAsPublished: PublishedUnit;
   readonly basis: PeerBasis;
   readonly sourceUrl: string;
   readonly verifiedAt: string;
+  readonly note: { readonly de: string; readonly en: string } | null;
 };
 
 /** The named peer library of the company's section (spec 0021). */
@@ -459,33 +465,39 @@ export function rankAmong(
   return { rank: ahead + 1, best: best.company.key, gapToBest: clientValue - best.figure.value };
 }
 
+/** One chart point before it is copied into the block: the LTIFR peer and its kept lost days figure. */
+export type ChartPoint = {
+  readonly peer: NamedPeer;
+  readonly lostDays: ModelPeerFigure;
+};
+
 /**
- * The chart's peers (spec 0021, AC-9): the LTIFR block's peers that also have a lost days figure
- * in the library, at most six, nearest headcount to the client's FTE, ties to the latest year and
- * then the key. Empty without an LTIFR block. Pure.
+ * The chart's points (spec 0021, AC-20): the LTIFR rung's peers that also hold a kept lost days
+ * figure (`keptFigures` for that KPI, so the freshness, latest year and basis rules apply, but no
+ * ladder and no three peer minimum), at most `PEER_CHART_LIMIT`, nearest headcount to the
+ * client's FTE, ties to the latest LTIFR year and then the key; with no FTE the year and key
+ * alone. Empty without LTIFR peers. Pure.
  */
-export function chartPeerKeys(
+export function chartPoints(
   ltifrPeers: readonly NamedPeer[],
-  library: ModelPeerLibrary,
+  lostDaysPeers: readonly NamedPeer[],
   fte: number | null,
-): string[] {
-  const withLostDays = new Set(
-    library.figures
-      .filter((figure) => figure.kpiKey === "lost_days_per_incident")
-      .map((figure) => figure.peerKey),
-  );
+): readonly ChartPoint[] {
+  const lostDaysOf = new Map(lostDaysPeers.map((peer) => [peer.company.key, peer.figure]));
   const distance = (peer: NamedPeer) => (fte === null ? 0 : Math.abs(peer.company.headcount - fte));
   return ltifrPeers
-    .filter((peer) => withLostDays.has(peer.company.key))
-    .sort((a, b) => {
-      const byDistance = distance(a) - distance(b);
-      if (byDistance !== 0) return byDistance;
-      if (a.figure.periodYear !== b.figure.periodYear)
-        return b.figure.periodYear - a.figure.periodYear;
-      return a.company.key < b.company.key ? -1 : 1;
+    .flatMap((peer) => {
+      const lostDays = lostDaysOf.get(peer.company.key);
+      return lostDays ? [{ peer, lostDays }] : [];
     })
-    .slice(0, PEER_CHART_LIMIT)
-    .map((peer) => peer.company.key);
+    .sort((a, b) => {
+      const byDistance = distance(a.peer) - distance(b.peer);
+      if (byDistance !== 0) return byDistance;
+      if (a.peer.figure.periodYear !== b.peer.figure.periodYear)
+        return b.peer.figure.periodYear - a.peer.figure.periodYear;
+      return a.peer.company.key < b.peer.company.key ? -1 : 1;
+    })
+    .slice(0, PEER_CHART_LIMIT);
 }
 
 /** Sorts peers best first for the table, ties by key (spec 0021, AC-10). Pure. */
@@ -795,7 +807,7 @@ export function computeBenchmark({
       geoRung: climbed.geoRung,
       ...ranked,
       certifiedShare,
-      chart: { peerKeys: [] },
+      chart: { client: null, points: [] },
       rows: ordered.map(({ company: peerCompany, figure }) => ({
         peerKey: peerCompany.key,
         name: peerCompany.name,
@@ -805,19 +817,59 @@ export function computeBenchmark({
         periodYear: figure.periodYear,
         value: figure.value,
         valueAsPublished: figure.valueAsPublished,
+        denominatorAsPublished: figure.denominatorAsPublished,
         unitAsPublished: figure.unitAsPublished,
         basis: figure.basis,
         sourceUrl: figure.sourceUrl,
         reportUrl: peerCompany.reportUrl,
         verifiedAt: figure.verifiedAt,
+        note: figure.note,
         savingAtPeer: savingAt(figure.value),
       })),
     });
   }
+  // (6d) The chart block of the LTIFR peers (AC-20): the client's own LTIFR and lost days rows
+  // (never the default lost days assumption the cost line may have substituted) with the FTE as
+  // the headcount, and the rung's peers that also hold a kept lost days figure. Every other block
+  // carries an empty chart.
+  const chartClient: SnapshotPeerBlock["chart"]["client"] =
+    ltifr && lostDaysInput
+      ? {
+          ltifr: ltifr.value,
+          lostDays: lostDaysInput.value,
+          headcount: fte !== null && fte > 0 ? fte : null,
+        }
+      : null;
   const ltifrBlock = peerBlocks.find((block) => block.key === "ltifr");
   const peerBlocksWithChart: SnapshotPeerBlock[] = peerBlocks.map((block) =>
     block === ltifrBlock
-      ? { ...block, chart: { peerKeys: chartPeerKeys(ladderOf.get("ltifr") ?? [], library, fte) } }
+      ? {
+          ...block,
+          chart: {
+            client: chartClient,
+            points: chartPoints(
+              ladderOf.get("ltifr") ?? [],
+              keptFigures(library, "lost_days_per_incident", year),
+              fte,
+            ).map(({ peer, lostDays }) => ({
+              peerKey: peer.company.key,
+              name: peer.company.name,
+              country: peer.company.country,
+              headcount: peer.company.headcount,
+              ltifr: peer.figure.value,
+              lostDays: {
+                value: lostDays.value,
+                valueAsPublished: lostDays.valueAsPublished,
+                denominatorAsPublished: lostDays.denominatorAsPublished,
+                unitAsPublished: lostDays.unitAsPublished,
+                periodYear: lostDays.periodYear,
+                basis: lostDays.basis,
+                sourceUrl: lostDays.sourceUrl,
+                note: lostDays.note,
+              },
+            })),
+          },
+        }
       : block,
   );
 

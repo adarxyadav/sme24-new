@@ -754,9 +754,10 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
       "benchmark-model@3",
       "benchmark-model@4",
       "benchmark-model@5",
+      "benchmark-model@6",
     ]);
     // The live write time version is one of them, and it is the newest one.
-    expect(MODEL_VERSION).toBe("benchmark-model@5");
+    expect(MODEL_VERSION).toBe("benchmark-model@6");
 
     // A version 1 row that somehow carries a derived block drops it: the schema has no such key,
     // so the reader sees an absent block rather than an unvalidated one.

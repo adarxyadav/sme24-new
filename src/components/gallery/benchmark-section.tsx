@@ -24,7 +24,7 @@ const PEER_BLOCK: SnapshotPeerBlock = {
   best: "helvetia",
   gapToBest: 1.5,
   certifiedShare: null,
-  chart: { peerKeys: [] },
+  chart: { client: null, points: [] },
   rows: [
     ["helvetia", "Helvetia Präzision AG", "CH", 1_800, 0.9, "employees_and_contractors", 41_000],
     ["nordstahl", "Nordstahl GmbH", "DE", 9_800, 1.6, "employees_and_contractors", 22_000],
@@ -53,6 +53,8 @@ const PEER_BLOCK: SnapshotPeerBlock = {
     sourceUrl: "https://example.org/report",
     reportUrl: "https://example.org",
     verifiedAt: "2026-09-13T00:00:00.000Z",
+    denominatorAsPublished: null,
+    note: null,
     savingAtPeer: savingAtPeer as number | "already_ahead",
   })),
 };

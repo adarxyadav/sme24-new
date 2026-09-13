@@ -58,6 +58,8 @@ function row(
     sourceUrl: `https://example.org/${peerKey}/report`,
     reportUrl: `https://example.org/${peerKey}`,
     verifiedAt: "2026-09-13T00:00:00.000Z",
+    denominatorAsPublished: null,
+    note: null,
     savingAtPeer: null,
     ...overrides,
   };
@@ -72,7 +74,7 @@ function ltifrBlock(overrides: Partial<SnapshotPeerBlock> = {}): SnapshotPeerBlo
     best: "helvetia",
     gapToBest: 1.5,
     certifiedShare: null,
-    chart: { peerKeys: ["helvetia", "nordstahl"] },
+    chart: { client: null, points: [] },
     rows: [
       row("helvetia", 0.9, { country: "CH", savingAtPeer: 41_000 }),
       row("nordstahl", 1.6, { savingAtPeer: 22_000 }),
@@ -223,7 +225,7 @@ describe("the Peer Standing card (spec 0021, AC-10)", () => {
       best: null,
       gapToBest: null,
       certifiedShare: 3 / 5,
-      chart: { peerKeys: [] },
+      chart: { client: null, points: [] },
       rows: ltifrBlock().rows.map((entry, index) => ({
         ...entry,
         value: index < 3 ? 1 : 0,

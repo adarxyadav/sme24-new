@@ -101,7 +101,7 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
       "indirect_multiplier",
       "indirect_multiplier_high",
     ]);
-    expect(MODEL_VERSION).toBe("benchmark-model@5");
+    expect(MODEL_VERSION).toBe("benchmark-model@6");
     expect(BENCHMARK_WAIT_MS).toBe(120_000);
   });
 

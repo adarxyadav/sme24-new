@@ -120,7 +120,7 @@ export type AssumptionKey = (typeof ASSUMPTION_KEYS)[number];
  * compare as a rate per 100 000 employed persons, and a missing assumption gives a null cost.
  * `@5` (spec 0021): the named published peer blocks and `inputs.country`; no formula changes.
  */
-export const MODEL_VERSION = "benchmark-model@5";
+export const MODEL_VERSION = "benchmark-model@6";
 
 /** True for a model version that carries the named peer blocks (`@5` and later, spec 0021). Pure. */
 export function isPeerVersion(modelVersion: string): boolean {

@@ -109,10 +109,15 @@ export function seedLibrary(section?: string): ModelPeerLibrary {
               periodYear: row.period_year,
               value: row.value,
               valueAsPublished: row.value_as_published,
+              denominatorAsPublished: row.denominator_as_published,
               unitAsPublished: row.unit_as_published,
               basis: row.basis,
               sourceUrl: row.source_url,
               verifiedAt: row.verified_at,
+              note:
+                row.note_de !== null && row.note_en !== null
+                  ? { de: row.note_de, en: row.note_en }
+                  : null,
             },
           ]
         : [],

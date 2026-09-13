@@ -248,6 +248,8 @@ export type SnapshotInputsV5 = z.infer<typeof inputsV5Schema>;
  * figure. `savingAtPeer` is a CHF amount, `already_ahead` when the client is at or better than
  * the peer, or null when nothing could be priced (AC-8). No number here describes a peer's cost.
  */
+const localizedNoteSchema = z.object({ de: z.string(), en: z.string() }).nullable();
+
 export const peerRowSchema = z.object({
   peerKey: z.string(),
   name: z.string(),
@@ -257,40 +259,116 @@ export const peerRowSchema = z.object({
   periodYear: z.number().int(),
   value: z.number(),
   valueAsPublished: z.number(),
+  /** The printed count of lost time accidents on a quotient row (AC-18); absent on a stored `@5` row, so it defaults. */
+  denominatorAsPublished: z.number().nullable().default(null),
   unitAsPublished: z.enum(PUBLISHED_UNITS),
   basis: z.enum(PEER_BASES),
   sourceUrl: z.string(),
   reportUrl: z.string(),
   verifiedAt: z.string(),
+  /** The curator's note on the figure (AC-19); absent on a stored `@5` row, so it defaults. */
+  note: localizedNoteSchema.default(null),
   savingAtPeer: z.union([z.number(), z.literal("already_ahead")]).nullable(),
 });
 export type SnapshotPeerRow = z.infer<typeof peerRowSchema>;
 
 /**
- * The peer block of one KPI (spec 0021, AC-9): the rung the ladder stopped on, the client's rank
- * among the rows (null without a client value), the best peer and the gap to it, the certified
- * share for the ISO KPI, the chart's peer keys (drawn by a later slice), and the rows best first.
+ * The client's own point on the chart (spec 0021, AC-20): its LTIFR and its own lost days row
+ * (never the default assumption) and its FTE as the headcount, null alone when the FTE is unknown
+ * (the bubble then takes the floor area).
  */
-export const peerBlockSchema = z.object({
+export const chartClientSchema = z.object({
+  ltifr: z.number(),
+  lostDays: z.number(),
+  headcount: z.number().nullable(),
+});
+export type ChartClient = z.infer<typeof chartClientSchema>;
+
+/** One peer point on the chart (AC-20): the LTIFR of its row in the block and its lost days figure whole, note included. */
+export const chartPointSchema = z.object({
+  peerKey: z.string(),
+  name: z.string(),
+  country: z.string(),
+  headcount: z.number().int().positive(),
+  ltifr: z.number(),
+  lostDays: z.object({
+    value: z.number(),
+    valueAsPublished: z.number(),
+    denominatorAsPublished: z.number().nullable(),
+    unitAsPublished: z.enum(PUBLISHED_UNITS),
+    periodYear: z.number().int(),
+    basis: z.enum(PEER_BASES),
+    sourceUrl: z.string(),
+    note: localizedNoteSchema,
+  }),
+});
+export type ChartPoint = z.infer<typeof chartPointSchema>;
+
+/** The `@6` chart block (AC-20): the client's point and the peer points; `{ client: null, points: [] }` on every block but `ltifr`. */
+export const chartBlockSchema = z.object({
+  client: chartClientSchema.nullable(),
+  points: z.array(chartPointSchema),
+});
+export type ChartBlock = z.infer<typeof chartBlockSchema>;
+
+const peerBlockBaseSchema = z.object({
   key: z.enum(PEER_KPI_KEYS),
   geoRung: z.enum(GEO_RUNGS),
   rank: z.number().int().min(1).nullable(),
   best: z.string().nullable(),
   gapToBest: z.number().nullable(),
   certifiedShare: z.number().min(0).max(1).nullable(),
-  chart: z.object({ peerKeys: z.array(z.string()) }),
   rows: z.array(peerRowSchema),
 });
-export type SnapshotPeerBlock = z.infer<typeof peerBlockSchema>;
+
+/**
+ * The peer block of one KPI (spec 0021, AC-9, AC-20): the rung the ladder stopped on, the
+ * client's rank among the rows (null without a client value), the best peer and the gap to it,
+ * the certified share for the ISO KPI, the chart block, and the rows best first.
+ */
+export const peerBlockV6Schema = peerBlockBaseSchema.extend({
+  chart: chartBlockSchema,
+});
+export type SnapshotPeerBlock = z.infer<typeof peerBlockV6Schema>;
+
+/**
+ * A stored `@5` block exactly as written, `chart: { peerKeys }`, transformed to the `@6` shape
+ * with an empty chart (AC-20), so the chart hides on a `@5` row until the recompute and no reader
+ * ever branches on the version.
+ */
+export const peerBlockV5Schema = peerBlockBaseSchema
+  .extend({
+    chart: z.object({ peerKeys: z.array(z.string()) }),
+  })
+  .transform(
+    ({ chart: _chart, ...block }): SnapshotPeerBlock => ({
+      ...block,
+      chart: { client: null, points: [] },
+    }),
+  );
 
 /**
  * The version 5 blocks (spec 0021): version 4 plus the client's country in the inputs and the
- * named peer blocks, one per KPI with at least three published peers. No formula changes.
+ * named peer blocks, one per KPI with at least three published peers. No formula changes. The
+ * chart block of a stored row is normalised to the `@6` shape.
  */
 export const snapshotBlocksV5Schema = snapshotBlocksV4Schema.extend({
   inputs: inputsV5Schema,
   peers: z
-    .array(peerBlockSchema)
+    .array(peerBlockV5Schema)
+    .nullable()
+    .transform((blocks) => blocks ?? []),
+});
+
+/**
+ * The version 6 blocks (spec 0021, chart amendment, AC-20): version 5 with the chart block
+ * carrying the client's point and the peer points, and the denominator and note on every peer
+ * row. No formula changes.
+ */
+export const snapshotBlocksV6Schema = snapshotBlocksV4Schema.extend({
+  inputs: inputsV5Schema,
+  peers: z
+    .array(peerBlockV6Schema)
     .nullable()
     .transform((blocks) => blocks ?? []),
 });
@@ -316,7 +394,11 @@ export type SnapshotBlocks = Omit<
   readonly assumptions: readonly (AssumptionUsed &
     Partial<Omit<AssumptionUsedV3, keyof AssumptionUsed>>)[];
   readonly derived?: SnapshotDerived | null;
-  /** Normalised to `[]` for a stored `@1` to `@4` row (spec 0021, AC-9), so the card never branches on the version. */
+  /**
+   * Normalised to `[]` for a stored `@1` to `@4` row (spec 0021, AC-9) and to the `@6` chart
+   * shape with an empty chart for a stored `@5` row (AC-20), so the card never branches on the
+   * version.
+   */
   readonly peers: readonly SnapshotPeerBlock[];
 };
 
@@ -356,6 +438,7 @@ export const SNAPSHOT_SCHEMAS: Readonly<Record<string, z.ZodType<SnapshotBlocks>
   "benchmark-model@3": withoutPeers(snapshotBlocksV3Schema),
   "benchmark-model@4": withoutPeers(snapshotBlocksV4Schema),
   "benchmark-model@5": snapshotBlocksV5Schema,
+  "benchmark-model@6": snapshotBlocksV6Schema,
 };
 
 /** A pre `@5` schema reads as having no peer block (spec 0021, AC-9). Pure. */

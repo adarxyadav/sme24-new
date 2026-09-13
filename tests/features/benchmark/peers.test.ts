@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MODEL_VERSION } from "@/features/benchmark/catalogue";
 import {
-  chartPeerKeys,
+  chartPoints,
   climbLadder,
   computeBenchmark,
   keptFigures,
@@ -58,11 +58,26 @@ function figure(
     value,
     valueAsPublished: value,
     unitAsPublished: "per_million_hours",
+    denominatorAsPublished: null,
     basis: "employees",
     sourceUrl: `https://example.org/${peerKey}/report`,
     verifiedAt: "2026-09-13T00:00:00.000Z",
+    note: null,
     ...overrides,
   };
+}
+
+/** A lost days figure, `days` as published, or a quotient row when a denominator is given (AC-18). */
+function lostDays(
+  peerKey: string,
+  value: number,
+  overrides: Partial<ModelPeerFigure> = {},
+): ModelPeerFigure {
+  return figure(peerKey, value, {
+    kpiKey: "lost_days_per_incident",
+    unitAsPublished: "days",
+    ...overrides,
+  });
 }
 
 let rowCounter = 100;
@@ -358,22 +373,21 @@ describe("the peer block in the snapshot (spec 0021, AC-8, AC-9, AC-12)", () => 
     expect(world.peers.find((entry) => entry.key === "ltifr")?.geoRung).toBe("world");
   });
 
-  it("picks the chart's peers nearest in headcount among those with a lost days figure, at most six", () => {
-    const peers = keptFigures(europe, "ltifr", YEAR);
-    const library: ModelPeerLibrary = {
-      companies: europe.companies,
-      figures: [
-        ...europe.figures,
-        ...europe.companies
-          .filter((row) => row.key !== "it-d")
-          .map((row) =>
-            figure(row.key, 10, { kpiKey: "lost_days_per_incident", unitAsPublished: "days" }),
-          ),
-      ],
-    };
+  /** The Europe library plus a lost days figure for every company but it-d, so six of the seven LTIFR peers can be points. */
+  const withLostDays: ModelPeerLibrary = {
+    companies: europe.companies,
+    figures: [
+      ...europe.figures,
+      ...europe.companies.filter((row) => row.key !== "it-d").map((row) => lostDays(row.key, 10)),
+    ],
+  };
+
+  it("picks the chart's points nearest in headcount among the LTIFR peers with a lost days figure, at most six (AC-20)", () => {
+    const peers = keptFigures(withLostDays, "ltifr", YEAR);
+    const lostDaysPeers = keptFigures(withLostDays, "lost_days_per_incident", YEAR);
     // Distance from 420: it-a 30, ch-a 120, it-c 180, fr-a 380, ch-b 4 580, it-b 19 580; it-d has
     // no lost days figure and stays out.
-    expect(chartPeerKeys(peers, library, 420)).toEqual([
+    expect(chartPoints(peers, lostDaysPeers, 420).map((point) => point.peer.company.key)).toEqual([
       "it-a",
       "ch-a",
       "it-c",
@@ -381,20 +395,149 @@ describe("the peer block in the snapshot (spec 0021, AC-8, AC-9, AC-12)", () => 
       "ch-b",
       "it-b",
     ]);
+    expect(chartPoints(peers, [], 420)).toEqual([]);
+    expect(chartPoints([], lostDaysPeers, 420)).toEqual([]);
+    // The sixth nearest is in and the seventh is out: give it-d a lost days figure too, so all
+    // seven qualify and the farthest (it-b at 19 580) is the one dropped.
+    const all = keptFigures(
+      { companies: europe.companies, figures: [...withLostDays.figures, lostDays("it-d", 10)] },
+      "lost_days_per_incident",
+      YEAR,
+    );
+    const seven = chartPoints(peers, all, 420).map((point) => point.peer.company.key);
+    expect(seven).toHaveLength(6);
+    expect(seven).toContain("it-d");
+    expect(seven).not.toContain("it-b");
+    // A peer with a lost days figure but outside the LTIFR rung is not a point.
+    const swissOnly = peers.filter((peer) => peer.company.country === "CH");
     expect(
-      chartPeerKeys(peers, { companies: europe.companies, figures: europe.figures }, 420),
-    ).toEqual([]);
-    expect(chartPeerKeys([], library, 420)).toEqual([]);
+      chartPoints(swissOnly, lostDaysPeers, 420).map((point) => point.peer.company.key),
+    ).toEqual(["ch-a", "ch-b"]);
+    // With no FTE the year and then the key decide.
+    const byYear = keptFigures(
+      {
+        companies: europe.companies,
+        figures: withLostDays.figures.map((row) =>
+          row.kpiKey === "ltifr" && row.peerKey === "it-c" ? { ...row, periodYear: 2025 } : row,
+        ),
+      },
+      "ltifr",
+      YEAR,
+    );
+    expect(chartPoints(byYear, lostDaysPeers, null).map((point) => point.peer.company.key)).toEqual(
+      ["it-c", "ch-a", "ch-b", "fr-a", "it-a", "it-b"],
+    );
   });
 
-  it("reads a stored @4 row as having no peers and a @5 row with its block", () => {
+  it("carries the client's own point and the peer points in the LTIFR block's chart and an empty chart elsewhere (AC-20)", () => {
     const body = computeBenchmark({
       company: client(),
       catalogue,
       kpis: fixtureKpis,
       peers: seedPeers(),
       assumptions,
-      library: europe,
+      library: {
+        companies: withLostDays.companies,
+        figures: [
+          ...withLostDays.figures.filter((row) => row.peerKey !== "it-a" || row.kpiKey === "ltifr"),
+          lostDays("it-a", 20.5, {
+            unitAsPublished: "days_over_lost_time_accidents",
+            valueAsPublished: 2275,
+            denominatorAsPublished: 111,
+            note: { de: "Notiz", en: "Note" },
+          }),
+        ],
+      },
+      now: NOW,
+    });
+    const block = body.peers.find((entry) => entry.key === "ltifr");
+    // The client's own LTIFR, its own lost days row (the fixture's 12.5, never the default) and
+    // its FTE as the headcount.
+    expect(block?.chart.client).toEqual({
+      ltifr: FIXTURE_VALUES.ltifr,
+      lostDays: FIXTURE_VALUES.lost_days_per_incident,
+      headcount: 420,
+    });
+    expect(block?.chart.points.map((point) => point.peerKey)).toEqual([
+      "it-a",
+      "ch-a",
+      "it-c",
+      "fr-a",
+      "ch-b",
+      "it-b",
+    ]);
+    const itA = block?.chart.points[0];
+    // The point's LTIFR is the row's value, and the lost days figure travels whole, note included.
+    expect(itA?.ltifr).toBe(block?.rows.find((row) => row.peerKey === "it-a")?.value);
+    expect(itA?.headcount).toBe(450);
+    expect(itA?.lostDays).toEqual({
+      value: 20.5,
+      valueAsPublished: 2275,
+      denominatorAsPublished: 111,
+      unitAsPublished: "days_over_lost_time_accidents",
+      periodYear: 2024,
+      basis: "employees",
+      sourceUrl: "https://example.org/it-a/report",
+      note: { de: "Notiz", en: "Note" },
+    });
+    // The rows carry the denominator and the note too (a quotient row on a lost days block, AC-21).
+    expect(
+      block?.rows.every((row) => row.denominatorAsPublished === null && row.note === null),
+    ).toBe(true);
+    for (const other of body.peers.filter((entry) => entry.key !== "ltifr")) {
+      expect(other.chart).toEqual({ client: null, points: [] });
+    }
+  });
+
+  it("gives a null client point without the client's lost days row, and a null headcount without an FTE, with the points anyway (AC-20)", () => {
+    const withoutLostDays = computeBenchmark({
+      company: client(),
+      catalogue,
+      kpis: fixtureKpis.filter((row) => row.kpiKey !== "lost_days_per_incident"),
+      peers: seedPeers(),
+      assumptions,
+      library: withLostDays,
+      now: NOW,
+    });
+    const block = withoutLostDays.peers.find((entry) => entry.key === "ltifr");
+    expect(block?.chart.client).toBeNull();
+    expect(block?.chart.points).toHaveLength(6);
+    // The cost line substituted the default lost days assumption, and the chart did not.
+    expect(withoutLostDays.cost?.lostDaysSource).toBe("default");
+    const withoutFte = computeBenchmark({
+      company: { ...client(), employeesCount: null },
+      catalogue,
+      kpis: fixtureKpis,
+      peers: seedPeers(),
+      assumptions,
+      library: withLostDays,
+      now: NOW,
+    });
+    const noFte = withoutFte.peers.find((entry) => entry.key === "ltifr");
+    expect(noFte?.chart.client).toEqual({
+      ltifr: FIXTURE_VALUES.ltifr,
+      lostDays: FIXTURE_VALUES.lost_days_per_incident,
+      headcount: null,
+    });
+    // Sorted by year (all 2024) and then key.
+    expect(noFte?.chart.points.map((point) => point.peerKey)).toEqual([
+      "ch-a",
+      "ch-b",
+      "fr-a",
+      "it-a",
+      "it-b",
+      "it-c",
+    ]);
+  });
+
+  it("reads a stored @4 row as having no peers, a @5 row with an empty chart and a @6 row whole", () => {
+    const body = computeBenchmark({
+      company: client(),
+      catalogue,
+      kpis: fixtureKpis,
+      peers: seedPeers(),
+      assumptions,
+      library: withLostDays,
       now: NOW,
     });
     const row = {
@@ -406,8 +549,25 @@ describe("the peer block in the snapshot (spec 0021, AC-8, AC-9, AC-12)", () => 
       derived: body.derived,
       peers: body.peers,
     };
-    const v5 = parseSnapshotBlocks({ model_version: "benchmark-model@5", ...row });
-    expect(v5.blocks?.peers).toHaveLength(1);
+    const v6 = parseSnapshotBlocks({ model_version: "benchmark-model@6", ...row });
+    expect(v6.error).toBeNull();
+    expect(v6.blocks?.peers[0]?.chart.points).toHaveLength(6);
+    expect(v6.blocks?.peers[0]?.chart.client?.headcount).toBe(420);
+    // A stored @5 row has `chart.peerKeys` and rows without the denominator and the note; it
+    // reads as the @6 shape with an empty chart, so the chart hides until the recompute (AC-20).
+    const storedV5 = body.peers.map(({ chart, rows, ...block }) => ({
+      ...block,
+      chart: { peerKeys: chart.points.map((point) => point.peerKey) },
+      rows: rows.map(({ denominatorAsPublished: _d, note: _n, ...rest }) => rest),
+    }));
+    const v5 = parseSnapshotBlocks({ model_version: "benchmark-model@5", ...row, peers: storedV5 });
+    expect(v5.error).toBeNull();
+    // Six companies hold a lost days figure too, so the library gives two blocks.
+    expect(v5.blocks?.peers.map((block) => block.key)).toEqual(["ltifr", "lost_days_per_incident"]);
+    for (const block of v5.blocks?.peers ?? []) {
+      expect(block.chart).toEqual({ client: null, points: [] });
+      expect(block.rows[0]).toMatchObject({ denominatorAsPublished: null, note: null });
+    }
     expect(v5.blocks?.inputs.country).toBe("CH");
     const { country: _country, ...oldInputs } = body.inputs;
     const v4 = parseSnapshotBlocks({

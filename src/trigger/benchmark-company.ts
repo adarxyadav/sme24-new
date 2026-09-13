@@ -509,7 +509,7 @@ async function loadPeerLibrary(
   const { data: figureRows, error: figureError } = await supabase
     .from("peer_figures")
     .select(
-      "peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url, verified_at",
+      "peer_key, kpi_key, period_year, value, value_as_published, denominator_as_published, unit_as_published, basis, source_url, verified_at, note",
     )
     .in(
       "peer_key",
@@ -532,10 +532,13 @@ async function loadPeerLibrary(
         periodYear: row.period_year,
         value: Number(row.value),
         valueAsPublished: Number(row.value_as_published),
+        denominatorAsPublished:
+          row.denominator_as_published === null ? null : Number(row.denominator_as_published),
         unitAsPublished: unit,
         basis,
         sourceUrl: row.source_url,
         verifiedAt: row.verified_at,
+        note: localizedText(row.note),
       },
     ];
   });
