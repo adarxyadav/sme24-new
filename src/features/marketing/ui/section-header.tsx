@@ -5,6 +5,13 @@ import { cn } from "@/lib/utils";
 /** The rhythm tier of a marketing section (docs/design.md, marketing section vocabulary). */
 export type SectionTier = "anchor" | "major" | "minor";
 
+/**
+ * The accent pill an eyebrow takes when it is not a bare caps line: the gallery's Accents badge at
+ * the caps scale. Shared by the emphasis shape and the centred anchor so the site has one pill
+ * rather than two that drift.
+ */
+const EYEBROW_PILL = "eyebrow h-auto px-2.5 py-1";
+
 export type SectionHeaderProps = {
   readonly tier: SectionTier;
   /** Caps label above the heading. Anchors and majors only; a minor never carries one. */
@@ -105,7 +112,7 @@ export function SectionHeader({
     return (
       <div className={cn("flex flex-col items-start gap-5", className)}>
         {eyebrow ? (
-          <Badge variant="brand-accent" className="eyebrow h-auto px-2.5 py-1">
+          <Badge variant="brand-accent" className={EYEBROW_PILL}>
             {eyebrow}
           </Badge>
         ) : null}
@@ -147,7 +154,22 @@ export function SectionHeader({
   */
   return (
     <div className={cn("flex flex-col gap-6", centred && "items-center text-center", className)}>
-      {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
+      {/*
+        The centred anchor takes the accent pill (owner decision of 2026-09-14) rather than the
+        bare caps line every left aligned opener uses. Centred, a bare caps line has no left edge
+        to sit on and reads as a stray word floating above the heading; the pill gives it an
+        object's shape, which is what the reference and the gallery's Accents row both show. It is
+        the same pill the emphasis shape uses, so the site has one and not two.
+      */}
+      {eyebrow ? (
+        centred ? (
+          <Badge variant="brand-accent" className={EYEBROW_PILL}>
+            {eyebrow}
+          </Badge>
+        ) : (
+          <p className="eyebrow text-brand-accent">{eyebrow}</p>
+        )
+      ) : null}
       {heading}
       {lead ? (
         <p
