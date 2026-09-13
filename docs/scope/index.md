@@ -46,7 +46,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 29 | Client country as a benchmark input | Slice 10 | in-progress |
 | 30 | Named published peers | Slice 10 | in-progress |
 | 31 | EU VAT & multi currency at checkout | Slice 10 | planned |
-| 32 | Peer bubble chart | Slice 10 | planned |
+| 32 | Peer bubble chart | Slice 10 | in-progress |
 
 ## Epics
 
