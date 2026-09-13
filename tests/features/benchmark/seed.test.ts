@@ -417,7 +417,7 @@ describe("the peer seed schemas (spec 0021, AC-3, AC-13)", () => {
     expect(renderPeerRetirement([], [])).toBeNull();
   });
 
-  it("parses the committed peer CSVs, every figure verified and inside the freshness window on the day the seed was written (AC-4)", () => {
+  it("parses the committed peer CSVs, every verified pair whole and every figure inside the freshness window on the day the seed was written (AC-4)", () => {
     const companyRows = parseSeedRows(
       parseCsv(readFileSync(join(SEED_DIR, "peer-companies.csv"), "utf8")),
       peerCompanyRowSchema,
@@ -432,18 +432,27 @@ describe("the peer seed schemas (spec 0021, AC-3, AC-13)", () => {
     // The frozen clock: the year the seed was written.
     const SEED_YEAR = 2026;
     expect(checkPeerFiles(companyRows.rows, figureRows.rows, SEED_YEAR)).toBeNull();
-    expect(figureRows.rows.every((row) => row.verified_at !== null)).toBe(true);
+    // The verified pair is whole or empty on every row. It is not asserted as set: AC-3 lets a row
+    // whose page no person has read yet sit in the CSV as work in progress, the task skips it and
+    // the third launch gate query (AC-14) is what must read zero before a production promotion.
+    expect(
+      figureRows.rows.every((row) => (row.verified_at === null) === (row.verified_by === null)),
+    ).toBe(true);
     expect(figureRows.rows.every((row) => row.period_year >= SEED_YEAR - PEER_YEARS_BACK)).toBe(
       true,
     );
     const inSection = (section: string) =>
       companyRows.rows.filter((row) => row.industry_section === section).map((row) => row.key);
-    const ltifrIn = (section: string) =>
+    const rateIn = (section: string, kpi: "ltifr" | "trifr") =>
       figureRows.rows.filter(
-        (row) => row.kpi_key === "ltifr" && inSection(section).includes(row.peer_key),
+        (row) => row.kpi_key === kpi && inSection(section).includes(row.peer_key),
       );
-    // The thin thread (milestone 1): three verified manufacturers with an LTIFR each.
-    expect(ltifrIn("C").length).toBeGreaterThanOrEqual(3);
-    expect(inSection("C").length).toBeGreaterThanOrEqual(3);
+    // The curation (AC-4): eight manufacturers and six construction groups, with three of each rate
+    // in manufacturing and three LTIFR in construction, so a client ranks on the rung it reaches.
+    expect(inSection("C").length).toBeGreaterThanOrEqual(8);
+    expect(inSection("F").length).toBeGreaterThanOrEqual(6);
+    expect(rateIn("C", "ltifr").length).toBeGreaterThanOrEqual(3);
+    expect(rateIn("C", "trifr").length).toBeGreaterThanOrEqual(3);
+    expect(rateIn("F", "ltifr").length).toBeGreaterThanOrEqual(3);
   });
 });

@@ -3,7 +3,7 @@
 -- and the committed seed migration holds the first curation (AC-2, AC-4).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(24);
 
 create function pg_temp.impersonate(user_id uuid, app_role text, org_id uuid default null)
 returns void language plpgsql as $$
@@ -55,12 +55,16 @@ insert into public.organization_members (organization_id, user_id, role) values
   ('0a000000-0000-4000-8000-000000000000', 'a0000000-0000-4000-8000-000000000001', 'owner');
 
 -- The seed (AC-4, as at least counts so adding a peer never breaks it): manufacturing and
--- construction, each company with a headcount, a report and a verified figure.
-select cmp_ok((select count(*) from public.peer_companies where industry_section = 'C'), '>=', 3::bigint,
-  'the seed holds at least three manufacturers');
+-- construction, each company with a headcount, a report and a figure. The figure need not be
+-- verified yet (AC-3 allows a work in progress row); the third launch gate query is what holds the
+-- verified pair to zero before a production promotion.
+select cmp_ok((select count(*) from public.peer_companies where industry_section = 'C'), '>=', 8::bigint,
+  'the seed holds at least eight manufacturers');
+select cmp_ok((select count(*) from public.peer_companies where industry_section = 'F'), '>=', 6::bigint,
+  'the seed holds at least six construction groups');
 select is((select count(*) from public.peer_companies c where not exists (
-    select 1 from public.peer_figures f where f.peer_key = c.key and f.verified_at is not null)), 0::bigint,
-  'every seeded company has at least one verified figure');
+    select 1 from public.peer_figures f where f.peer_key = c.key)), 0::bigint,
+  'every seeded company has at least one figure');
 select is((select count(*) from public.peer_companies where headcount <= 0 or report_url = ''), 0::bigint,
   'every seeded company has a headcount and a report');
 
