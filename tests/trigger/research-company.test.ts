@@ -28,6 +28,8 @@ const state = vi.hoisted(() => ({
   triggers: [] as Array<{ id: string; payload: unknown; options: unknown }>,
   /** When set, the next `tasks.trigger` rejects with this message. */
   triggerFailure: null as null | string,
+  /** Fires after every `tasks.trigger` attempt, so a test can fail only the first (spec 0022, AC-5). */
+  onTrigger: null as null | (() => void),
   onKpiInsert: null as null | (() => void),
   /** Fires after a `company_kpis` select, so a test can land a concurrent row mid save. */
   onKpiSelect: null as null | (() => void),
@@ -49,7 +51,9 @@ vi.mock("@trigger.dev/sdk", () => ({
   tasks: {
     onFailure: vi.fn(),
     trigger: async (id: string, payload: unknown, options: unknown) => {
-      if (state.triggerFailure) throw new Error(state.triggerFailure);
+      const failure = state.triggerFailure;
+      state.onTrigger?.();
+      if (failure) throw new Error(failure);
       state.triggers.push({ id, payload, options });
       return { id: `run_${state.triggers.length}` };
     },
@@ -284,6 +288,7 @@ beforeEach(() => {
   state.validation = null;
   state.triggers = [];
   state.triggerFailure = null;
+  state.onTrigger = null;
 });
 
 describe("research-company (AC-4, AC-6, AC-14)", () => {
@@ -612,7 +617,7 @@ describe("the step logs (AC-15)", () => {
       "provider result received",
       "values resolved",
       "research run finished",
-      "benchmark queued after the research run",
+      "peer search queued after the research run",
     ]);
     for (const line of ours) {
       expect(line).toMatchObject({ level: "info", organizationId: ORG, companyId: COMPANY });
@@ -620,7 +625,7 @@ describe("the step logs (AC-15)", () => {
     // The five research steps carry the elapsed time; the benchmark line (spec 0008, AC-6) names the queued run instead.
     const steps = ours.slice(0, 5);
     for (const line of steps) expect(typeof line.elapsedMs).toBe("number");
-    expect(ours.at(-1)).toMatchObject({ benchmarkRunId: "run_1" });
+    expect(ours.at(-1)).toMatchObject({ peerRunId: "run_1" });
     const finished = steps.at(-1) as Row;
     expect(finished.providerRunId).toMatch(/^fixture_/);
     expect(finished).toMatchObject({ status: "succeeded", stored: 21 });
@@ -655,27 +660,35 @@ describe("the helpers (AC-10)", () => {
   });
 });
 
-describe("the benchmark trigger after the run (spec 0008, AC-6)", () => {
-  it("queues benchmark-company once the run ended succeeded, keyed by the run, with a 24 hour TTL", async () => {
+describe("the hand off after the run (spec 0008, AC-6; spec 0022, AC-5)", () => {
+  it("queues research-peers once the run ended succeeded, keyed by the run, with a 24 hour TTL", async () => {
     seed();
     const task = await loadTask();
     await task.run({ runId: RUN }, { ctx });
+    // The peer task triggers the benchmark itself when it is done, whatever its outcome (AC-7), so
+    // this task queues the peer search alone.
     expect(state.triggers).toEqual([
       {
-        id: "benchmark-company",
-        payload: { companyId: COMPANY, triggerKind: "research", researchRunId: RUN },
-        options: { idempotencyKey: `benchmark/run/${RUN}`, idempotencyKeyTTL: "24h" },
+        id: "research-peers",
+        payload: { runId: RUN },
+        options: { idempotencyKey: `peers/${RUN}`, idempotencyKeyTTL: "24h" },
       },
     ]);
   });
 
-  it("queues nothing when the run ends empty", async () => {
+  it("queues the peer search for an empty run too, since the loss prices the client's own figures", async () => {
     seed();
     (state.tables.companies?.[0] as Row).name = "Empty AG";
     const task = await loadTask();
     const result = await task.run({ runId: RUN }, { ctx });
     expect(result).toEqual({ status: "empty" });
-    expect(state.triggers).toEqual([]);
+    expect(state.triggers).toEqual([
+      {
+        id: "research-peers",
+        payload: { runId: RUN },
+        options: { idempotencyKey: `peers/${RUN}`, idempotencyKeyTTL: "24h" },
+      },
+    ]);
   });
 
   it("queues nothing when the sweep closed the run before the terminal write", async () => {
@@ -688,7 +701,7 @@ describe("the benchmark trigger after the run (spec 0008, AC-6)", () => {
     expect(state.triggers).toEqual([]);
   });
 
-  it("keeps the run succeeded and reports to Sentry when the trigger fails", async () => {
+  it("keeps the run succeeded and reports to Sentry when both triggers fail", async () => {
     seed();
     state.triggerFailure = "trigger down";
     const Sentry = await import("@sentry/node");
@@ -702,5 +715,23 @@ describe("the benchmark trigger after the run (spec 0008, AC-6)", () => {
       expect.objectContaining({ message: "trigger down" }),
       expect.objectContaining({ extra: expect.objectContaining({ runId: RUN }) }),
     );
+  });
+
+  it("triggers the benchmark itself when the peer search cannot be queued (AC-5)", async () => {
+    seed();
+    // Only the first trigger fails, so the fallback path is the one under test.
+    state.triggerFailure = "peer queue down";
+    state.onTrigger = () => {
+      state.triggerFailure = null;
+    };
+    const task = await loadTask();
+    await task.run({ runId: RUN }, { ctx });
+    expect(state.triggers).toEqual([
+      {
+        id: "benchmark-company",
+        payload: { companyId: COMPANY, triggerKind: "research", researchRunId: RUN },
+        options: { idempotencyKey: `benchmark/run/${RUN}`, idempotencyKeyTTL: "24h" },
+      },
+    ]);
   });
 });

@@ -62,6 +62,42 @@ export function sectionOfDivision(code: string | null | undefined): string | nul
 }
 
 /**
+ * The English name of every section, for the one caller that cannot read a message catalogue: the
+ * peer search objective the `research-peers` task sends the provider (spec 0022, AC-5) runs in a
+ * task, where next-intl is not available and the provider reads English either way. The client
+ * facing labels stay in `benchmark.noga.sections.*` in both catalogs; these must match the English
+ * ones, which `tests/features/benchmark/catalogue.test.ts` checks. Pure data.
+ */
+export const SECTION_NAMES_EN: Readonly<Record<string, string>> = {
+  A: "Agriculture, forestry and fishing",
+  B: "Mining and quarrying",
+  C: "Manufacturing",
+  D: "Electricity, gas, steam and air conditioning supply",
+  E: "Water supply, sewerage, waste management",
+  F: "Construction",
+  G: "Wholesale and retail trade, repair of motor vehicles",
+  H: "Transportation and storage",
+  I: "Accommodation and food service activities",
+  J: "Information and communication",
+  K: "Financial and insurance activities",
+  L: "Real estate activities",
+  M: "Professional, scientific and technical activities",
+  N: "Administrative and support service activities",
+  O: "Public administration and defence, compulsory social security",
+  P: "Education",
+  Q: "Human health and social work activities",
+  R: "Arts, entertainment and recreation",
+  S: "Other service activities",
+  T: "Activities of households as employers",
+  U: "Activities of extraterritorial organisations and bodies",
+};
+
+/** The English name of a section letter, the letter itself when it is not one of the 21. Pure. */
+export function sectionNameEn(letter: string): string {
+  return SECTION_NAMES_EN[letter] ?? letter;
+}
+
+/**
  * The Swiss SME size bands as the Federal Statistical Office uses them, plus `all`.
  *
  * Spec 0022 (AC-19) removes the size band: `benchmark-model@7` compares against the peers one
