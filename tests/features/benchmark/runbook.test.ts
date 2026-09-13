@@ -152,17 +152,27 @@ describe("the runbook matches the code (spec 0016 amendment, AC-18)", () => {
     // peer library and its saving at the best peer, both quoted in the same sentence.
     const ltifr = body.peers.find((block) => block.key === "ltifr");
     expect(ltifr).toBeDefined();
-    const rankQuoted = /ranks (\d+)(?:st|nd|rd|th) of (\d+) European manufacturers/.exec(
+    const rankQuoted = /ranks (\d+)(?:st|nd|rd|th) of (\d+) (Swiss|European) manufacturers/.exec(
       line as string,
     );
     expect(rankQuoted?.[1]).toBe(String(ltifr?.rank));
     expect(rankQuoted?.[2]).toBe(String(ltifr?.rows.length));
-    expect(ltifr?.geoRung).toBe("europe");
+    // The rung word in the sentence and the rung the model reached are the same fact, so the
+    // sentence is read for it rather than pinned to one rung: the curation of 13 Sep 2026 moved the
+    // fixture from Europe to its own country, and a later one could move it back.
+    expect(rankQuoted?.[3]).toBe(ltifr?.geoRung === "country" ? "Swiss" : "European");
+    // The saving at the best peer is quoted only when there is one. A fixture that is ahead of every
+    // peer on the rung has `already_ahead` on each row, and the sentence says so instead of a figure.
     const bestSaving = ltifr?.rows[0]?.savingAtPeer;
-    expect(typeof bestSaving).toBe("number");
     const savingQuoted =
       /a saving at the best peer of about CHF (\d[\d ]*\d)/.exec(line as string)?.[1] ?? "";
-    expect(savingQuoted.replace(/\D/g, "")).toBe(String(roundChf(bestSaving as number)));
+    if (typeof bestSaving === "number") {
+      expect(savingQuoted.replace(/\D/g, "")).toBe(String(roundChf(bestSaving as number)));
+    } else {
+      expect(bestSaving).toBe("already_ahead");
+      expect(savingQuoted).toBe("");
+      expect(line).toContain("already_ahead");
+    }
   });
 
   // The shape paragraph quotes how many seeded rows are point rows. Counted here from the committed

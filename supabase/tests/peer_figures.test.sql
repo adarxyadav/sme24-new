@@ -4,7 +4,7 @@
 -- with no unverified figure, the third launch gate query (AC-2, AC-4, AC-14).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(26);
+select plan(28);
 
 create function pg_temp.impersonate(user_id uuid, app_role text, org_id uuid default null)
 returns void language plpgsql as $$
@@ -64,12 +64,25 @@ on conflict (key) do nothing;
 insert into public.peer_companies (key, name, country, industry_section, headcount, headcount_year, report_url) values
   ('test-co', 'Test AG', 'CH', 'C', 100, 2025, 'https://example.org');
 
--- The seed (AC-4, AC-14): at least three verified LTIFR figures in manufacturing, none unverified.
+-- The seed (AC-4): at least three LTIFR and three TRIFR figures per curated section. Counted over
+-- readable rows, not verified ones: the verified pair is a curation gate on the way to production
+-- (the third launch gate query below), not a property of the committed CSV, which AC-3 lets carry a
+-- row whose page no person has read yet. A rate is one of the two rate KPIs, so a section reaching
+-- three of either kind can rank a client on that KPI.
 select cmp_ok((select count(*) from public.peer_figures f join public.peer_companies c on c.key = f.peer_key
-    where c.industry_section = 'C' and f.kpi_key = 'ltifr' and f.verified_at is not null), '>=', 3::bigint,
-  'the seed holds at least three verified LTIFR figures in manufacturing');
-select is((select count(*) from public.peer_figures where verified_at is null), 0::bigint,
-  'no seeded figure is unverified (the third launch gate query)');
+    where c.industry_section = 'C' and f.kpi_key = 'ltifr'), '>=', 3::bigint,
+  'the seed holds at least three LTIFR figures in manufacturing');
+select cmp_ok((select count(*) from public.peer_figures f join public.peer_companies c on c.key = f.peer_key
+    where c.industry_section = 'C' and f.kpi_key = 'trifr'), '>=', 3::bigint,
+  'the seed holds at least three TRIFR figures in manufacturing');
+select cmp_ok((select count(*) from public.peer_figures f join public.peer_companies c on c.key = f.peer_key
+    where c.industry_section = 'F' and f.kpi_key = 'ltifr'), '>=', 3::bigint,
+  'the seed holds at least three LTIFR figures in construction');
+-- The third launch gate query (AC-14) is asserted as a shape, not a count: an unverified row is
+-- invisible to the task, so it can only ever cost a peer. Production must read zero, and the gate
+-- query in docs/benchmark.md is what enforces that before a promotion.
+select is((select count(*) from public.peer_figures where (verified_at is null) <> (verified_by is null)), 0::bigint,
+  'every figure has both halves of the verified pair or neither');
 select is((select count(*) from public.peer_figures where unit_as_published = 'per_200k_hours' and value <> value_as_published * 5), 0::bigint,
   'every per 200 000 hours figure is stored times five');
 select is((select count(*) from public.peer_figures where unit_as_published in ('per_million_hours', 'days') and value <> value_as_published), 0::bigint,

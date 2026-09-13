@@ -96,7 +96,64 @@ For sections C and F, the sustainability or annual reports of listed European ma
 
 ## The chart slice
 
-Recorded here so the next scope row builds from it without a second design pass. One hand drawn SVG client component `src/features/benchmark/ui/peer-bubble-chart.tsx` under the positions, drawn once for the KPI pair `ltifr` across and `lost_days_per_incident` up, bubble area by `headcount`, using `chart.peerKeys` from the snapshot (the `ltifr` block's peers that also have a lost days figure, at most six, nearest headcount to the client, ties to the latest year); the client's bubble always drawn; a dashed line at the client's lost days sector median when the snapshot has that sector row, labelled "sector median" (the forbidden word test exempts `benchmark.peers.chart.*` for this one word); the `chart-1` to `chart-3` tokens; a tooltip on hover and on keyboard focus, a visible focus ring per bubble, a `role="img"` label `benchmark.peers.chart.label`, an `sr-only` table with caption `benchmark.peers.chart.tableCaption` and the same rows, and no motion under `prefers-reduced-motion`. Hidden with one sentence when there is no `ltifr` block, when the client lacks either figure, or when fewer than one peer has both. Gate: the committed curation yields at least three peers with both figures in section C; until then the row waits. Gallery section and axe as for every primitive. No model bump: the block already carries `chart.peerKeys`.
+Recorded here so the next scope row builds from it without a second design pass. One hand drawn SVG client component `src/features/benchmark/ui/peer-bubble-chart.tsx` under the positions, drawn once for the KPI pair `ltifr` across and `lost_days_per_incident` up, bubble area by `headcount`, using the `ltifr` block's `chart` from the snapshot (the block's peers that also have a lost days figure, at most six, nearest headcount to the client, ties to the latest year); the client's bubble always drawn; a dashed line at the client's lost days sector median when the snapshot has that sector row, labelled "sector median" (the forbidden word test exempts `benchmark.peers.chart.*` for this one word); the `chart-1` to `chart-3` tokens; a tooltip on hover and on keyboard focus, a visible focus ring per bubble, a `role="img"` label `benchmark.peers.chart.label`, an `sr-only` table with caption `benchmark.peers.chart.tableCaption` and the same rows, and no motion under `prefers-reduced-motion`. Hidden with one sentence when there is no `ltifr` block, when the client lacks either figure, or when fewer than one peer has both. Gate: the committed curation yields at least three peers with both figures in section C; until then the row waits. Gallery section and axe as for every primitive.
+
+*Amended 13 Sep 2026.* Two things in the paragraph above did not survive contact with the data, and the index carries the corrected contract as AC-18 to AC-25. First, "no model bump" was wrong: `chart.peerKeys` names the peers but a peer's lost days value reaches the snapshot only inside a `lost_days_per_incident` block, and that block exists only with three peers, while the chart is meant to draw with one or two. Keys without values are not a contract a component can draw from, so the block widens to the points (`client` and `points`, AC-20) and the widened block is `benchmark-model@6`. Second, the gate assumed companies print an average of days lost per accident, and none does; the section below records why and what was decided instead.
+
+## The lost days question
+
+The reading of 13 Sep 2026 (two agents over about thirty European C and F reports; the verdicts per company are in `docs/benchmark.md` under "What is readable, and where") found exactly one company that prints days per accident, Goldbeck, whose rate is per 1 000 employees and so cannot sit on the LTIFR axis. The reason is structural: ESRS S1-14 88(e) asks for the number of days lost, a total, and never the average, so a report that follows the standard prints the total, and several groups cite the transitional provision and print nothing yet. Four reports print both ingredients of the average in one table for one population: the days lost and the count of lost time accidents (Geberit, Symrise, Covestro, Vinci). Others print days over recordable cases (BASF, STRABAG, Hochtief, ABB), a numerator that mixes illness (Georg Fischer), a three year rolling count (Eiffage), or a severity rate per million hours (Sulzer, Heidelberg Materials), which is a different KPI.
+
+### Option 1: A quotient of two printed numbers, as its own unit (chosen)
+
+Allow a peer figure that is the generator's division of two numbers printed in one table of one report for one population and one period, stored as a fifth unit with both printed numbers on the row, divided in `seed-schema.ts` and never by hand, with both numbers in every tooltip and a note field for what changes the reading (Vinci's fatality charge).
+
+**Pros**:
+- The chart's axis stays the KPI the client already has (`lost_days_per_incident` is in the catalogue, the fixture, the cost model and the sector rows), so the client's own bubble, the sector line and the peer points share one unit.
+- The honesty rule bends by exactly one operation and the row shows its working: a reader who opens Geberit's report finds 2 275 and 111, and the tooltip says so.
+- It follows the one precedent already in the generator, the per 200 000 hours times five conversion: a published pair becomes a value in code, with the published form kept beside it.
+- ESRS reports print the total days lost by mandate, so the pool of quotient rows grows with every FY2025 report that also prints its accident count.
+
+**Cons**:
+- It is the first figure in the library the company did not print as such; a strict reading of "value as published" is gone and the tooltip has to carry the explanation.
+- Reports differ in what a day is (calendar or working, capped or charged for a fatality) and the note is prose, not a normalised field; the ranking does not adjust for it.
+- Four rows today, one of them (Vinci) inflated by a 365 day charge per fatality; the F chart draws one peer.
+
+### Option 2: Move the Y axis to a severity rate per million hours
+
+Change the chart's vertical axis to days lost per million hours worked (the severity rate some groups print), with a new KPI or a new peer unit for it.
+
+**Pros**:
+- Sulzer, Heidelberg Materials, Vinci and Eiffage print a severity rate as such, no division needed for them.
+- A rate per hours worked is the natural partner of an LTIFR on the same axis system.
+
+**Cons**:
+- The client has no such figure: the research prompt, the self assessment form and the fixture produce days per incident, so the client's own bubble would need a derived value (days per incident times incidents over hours), which is more arithmetic than Option 1 and on the client's side.
+- The printed severity rates disagree on the denominator (per 1 000 hours at Vinci and Eiffage, per million at Sulzer), so a conversion step arrives anyway.
+- A new KPI touches the catalogue, `kpi_definitions`, the peer KPI check, the sector rows and the cost model for one chart.
+
+### Option 3: Park the row
+
+Leave scope row 32 gated until companies print the average, and ship the table's headcount column as the only picture of size.
+
+**Pros**:
+- No bend in the honesty rule, no model version, no recompute.
+
+**Cons**:
+- The gate never opens: the standard mandates the total, so the average will not appear in reports.
+- The Peer Standing page promised the picture and the owner put the chart on the client page from the start.
+
+### Why Option 1
+
+The forces are the ones the whole spec rests on: one pure calculation over stored rows, every number with a named source, and the client's own figures as the anchor of every comparison. Option 1 keeps the client's KPI as the axis and adds one operation whose inputs are printed and stored; Option 2 moves the arithmetic to the client's side, where it is least checkable, and still needs a conversion; Option 3 waits for something the reporting standard says will not come. The safeguards that make the bend acceptable are structural, not editorial: the unit exists only on `lost_days_per_incident`, the database ties the denominator to the unit, the division is code with a pinned test, the denominator is defined as lost time accidents (the count the company's own LTIFR divides by) so days over recordable cases can never enter, and both numbers are in every tooltip. The note field exists because a fatality charge of 365 days is a fact about the number that no field can normalise and that a reader must see beside it.
+
+The version call: the chart takes `@6` and spec 0020 moves to `@7`, because the chart's data is in hand and its block is designed here, while spec 0020 is `Proposed` with no code on any branch; a bump is a literal key in one map, so the renumbering is a search in one spec. A widened block is a new version because a stored `@5` row has `chart.peerKeys` and a `@6` row has `chart.points`, and the one map rule of spec 0012 says a reader never guesses which. The recompute that follows is the known cost of the literal map and is booked in the runbook like the `@5` one.
+
+The curation call: the six new rows carry the agent read marker rather than an empty pair, against the runbook's advice for future additions, because an agent did read the cited tables (page numbers are on the rows) and because the chart cannot be proven end to end on rows the task skips. The owner's re-read before promotion covers them with the first ten; if the owner prefers the empty pair, the e2e proves the hide sentence and the Vitest fixture proves the drawing, and nothing else changes.
+
+## Cross check of the chart amendment, 13 Sep 2026
+
+A second read only pass on a different model reviewed the amendment; the owner applied every recommended fix. Folded into AC-18 to AC-25: the upsert renderer's column list, the no grant note for additive columns, the optional third parameter of `publishedValueOf`, the widened `days` refine, the rounding expression and the numeric pgTAP band, the duplicate `days` and quotient row check, the axis scale rule from `PeerStrip`, `keptFigures` as the source of a point's lost days and `chartPoints` replacing `chartPeerKeys`, the two block schemas with a transform for `@5`, server side number formatting against the ICU grouping hydration hazard, and the sector line's absence when the client has no lost days row. The three calls the owner made: a client without FTE is drawn at the floor area rather than hidden; the client's lost days is never the cost model's default assumption; the chart's points stay the LTIFR rung's population even when that leaves a Swiss client one bubble, and the e2e asserts one peer bubble while the Vitest fixture proves three. Two suggestions were declined: a mandatory note on every quotient row (the tooltip already shows both printed numbers, and a note that repeats them is noise beside Vinci's, which says something) and the simpler shape of a nullable `lostDays` on the table rows instead of a chart block (it moves the six nearest selection to render time and drops the client's point from the snapshot, against the rule that the snapshot holds what was shown).
 
 ## Cross check of 13 Sep 2026
 
@@ -108,14 +165,15 @@ A read only pass on a different model reviewed the draft; the owner chose to app
 - Spec 0008 (the task, the pure model, the snapshot blocks, `QuartileBand` as hand drawn SVG).
 - Spec 0012 (the literal version map in `SNAPSHOT_SCHEMAS`).
 - Spec 0016 and its amendment (point rows never say median; `provisional` and `is_assumption`; the two gate queries; the recompute discipline).
-- Spec 0020 (the country and currency contract; `src/lib/countries.ts` as the one catalogue; this spec takes `@5`, 0020 takes `@6`).
-- `src/features/benchmark/AGENTS.md` and `docs/benchmark.md` (the seed generator, the gate, the confirmed dead ends for LTIFR and TRIFR).
+- Spec 0020 (the country and currency contract; `src/lib/countries.ts` as the one catalogue; this spec takes `@5` and, with the chart amendment, `@6`; 0020 takes `@7`).
+- `src/features/benchmark/AGENTS.md` and `docs/benchmark.md` (the seed generator, the gate, the confirmed dead ends for LTIFR and TRIFR, and the lost days reading of 13 Sep 2026 under "What is readable, and where").
+- The memory of the `/develop peer bubble chart` run of 13 Sep 2026 (the per company verdicts, the page references), folded into `docs/benchmark.md` so the reading is never repeated.
 - The Peer Standing design page (artifact `3ef5da7c-9080-44f9-8405-b49b75a2cbc5`, indexed in the local `docs/artifacts/README.md`).
 - `docs/design.md` (charts monochrome first, `chart-1` to `chart-5`, the quartile band primitive, the gallery rule).
 - Installed skills: `supabase-postgres-best-practices`, `supabase`, `trigger-tasks`, `next-intl-app-router`, `vitest`, `playwright-skill`, `frontend-design`.
 
 **Practices & standards**:
-- GRI 403 (occupational health and safety) and ESRS S1 (own workforce), the two reporting standards that make published injury rates comparable across companies.
+- GRI 403 (occupational health and safety) and ESRS S1 (own workforce), the two reporting standards that make published injury rates comparable across companies; ESRS S1-14 88(e) in particular, which asks for the total days lost and is why no report prints the average.
 - NACE Rev. 2 sections as the industry axis every European report and statistic already uses.
 - Immutable, versioned snapshots: what a client saw is what the store holds.
 - A geography ladder that widens the place before the industry, because a peer in the same industry elsewhere is closer than a peer in another industry next door.
