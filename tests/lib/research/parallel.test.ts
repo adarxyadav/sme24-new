@@ -4,11 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildOutputSchema } from "@/lib/research/output-schema";
 import {
   buildParallelInput,
+  buildParallelPeerInput,
   classifyParallelError,
   createParallelProvider,
   mapBasis,
   PARALLEL_PROCESSOR,
+  parsePeerContent,
 } from "@/lib/research/parallel";
+import { buildPeerOutputSchema } from "@/lib/research/peer-schema";
 import { ProviderRejectedError, ProviderUnavailableError } from "@/lib/research/provider";
 
 /**
@@ -219,5 +222,97 @@ describe("createParallelProvider (AC-4)", () => {
     );
     await expect(provider.getRun("trun_1")).rejects.toBeInstanceOf(ProviderRejectedError);
     await expect(provider.getResult("trun_1")).rejects.toBeInstanceOf(ProviderUnavailableError);
+  });
+});
+
+/**
+ * The peer run (spec 0022, AC-6): the same processor and the same create call with the peer
+ * schema, the answer read through Zod so one malformed peer costs that peer and not the run.
+ */
+const peerInput = {
+  companyName: "Muster AG",
+  section: "C",
+  sectionName: "Manufacturing",
+  country: "CH",
+  regionCountries: ["CH", "DE", "AT", "LI"],
+  targetPeers: 8,
+  minimumPeers: 3,
+};
+
+const peer = (over: Record<string, unknown> = {}) => ({
+  name: "Peer AG",
+  website: "https://www.example.com/peer",
+  country: "CH",
+  headcount: 500,
+  headcountYear: 2025,
+  ltifr: {
+    value: 3.1,
+    unit: "per_million_hours",
+    periodYear: 2025,
+    sourceUrl: "https://www.example.com/peer/report",
+    sourceTitle: "Sustainability report",
+    basis: "employees",
+  },
+  trifr: null,
+  ...over,
+});
+
+describe("the peer run (spec 0022, AC-6)", () => {
+  it("sends the objective, the ladder and the peer schema on the core processor", async () => {
+    sdk.create.mockResolvedValue({ run_id: "trun_peers" });
+    const provider = createParallelProvider("pk_test");
+    await expect(provider.createPeerRun(peerInput, buildPeerOutputSchema())).resolves.toEqual({
+      providerRunId: "trun_peers",
+    });
+    const call = sdk.create.mock.calls[0]?.[0];
+    expect(call.processor).toBe(PARALLEL_PROCESSOR);
+    expect(call.task_spec.output_schema.json_schema).toEqual(buildPeerOutputSchema());
+    expect(call.input.region_countries).toBe("CH, DE, AT, LI");
+    expect(call.input.industry_section).toBe("C (Manufacturing)");
+    expect(call.input.objective).toContain("NACE section C");
+  });
+
+  it("builds the peer task input from the search input", () => {
+    expect(buildParallelPeerInput(peerInput)).toMatchObject({
+      company_name: "Muster AG",
+      country: "CH",
+      target_peers: "8",
+      minimum_peers: "3",
+    });
+  });
+
+  it("reads the peers out of the json output", async () => {
+    sdk.result.mockResolvedValue({
+      output: { type: "json", content: { peers: [peer()] }, basis: [] },
+    });
+    const provider = createParallelProvider("pk_test");
+    const result = await provider.getPeerResult("trun_peers");
+    expect(result.peers).toHaveLength(1);
+    expect(result.peers[0]?.ltifr?.unit).toBe("per_million_hours");
+  });
+
+  it("drops one malformed peer rather than failing the run", () => {
+    const parsed = parsePeerContent({
+      peers: [peer(), peer({ country: "Switzerland" }), peer({ name: "Second AG" })],
+    });
+    expect(parsed.peers.map((entry) => entry.name)).toEqual(["Peer AG", "Second AG"]);
+  });
+
+  it("keeps at most eight peers even when the provider returns more", () => {
+    const parsed = parsePeerContent({ peers: Array.from({ length: 12 }, () => peer()) });
+    expect(parsed.peers).toHaveLength(8);
+  });
+
+  it("rejects a content without a peers array", () => {
+    expect(() => parsePeerContent({ companies: [] })).toThrow(ProviderRejectedError);
+    expect(() => parsePeerContent(null)).toThrow(ProviderRejectedError);
+  });
+
+  it("rejects a text output for the peer schema", async () => {
+    sdk.result.mockResolvedValue({ output: { type: "text", content: "prose", basis: [] } });
+    const provider = createParallelProvider("pk_test");
+    await expect(provider.getPeerResult("trun_peers")).rejects.toBeInstanceOf(
+      ProviderRejectedError,
+    );
   });
 });
