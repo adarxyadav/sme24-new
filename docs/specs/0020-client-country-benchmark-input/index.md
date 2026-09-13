@@ -1,7 +1,7 @@
 # 0020. Client country as a benchmark input
 
 **Date**: 2026-09-13
-**Status**: Proposed
+**Status**: Superseded by [0022](../0022-ai-peer-benchmark/index.md)
 
 > Build order note (13 Sep 2026): the owner put row 30 (named published peers) before this one. Row 30 reads only `companies.country` as it exists today (default `CH`) and stores its own country per peer row; nothing in it waits for this spec. Spec 0021 took `benchmark-model@5` and, with its chart amendment of the same day, `@6`, so this spec takes `@7` (its text below says so; the `peers` block of 0021, including its `@6` chart block, is carried forward unchanged); when this spec is built after rows 30 and 32, the peer block prices in the snapshot's currency as the contract below says.
 
