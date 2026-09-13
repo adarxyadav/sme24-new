@@ -265,6 +265,8 @@ export function readyBlocks(overrides: Partial<SnapshotBlocks> = {}): SnapshotBl
       assumptionUsed("cost_per_absence_day_chf", 1100, { unit: "CHF per day", provisional: false }),
       assumptionUsed("indirect_multiplier", 3.7, { unit: "factor" }),
     ],
+    // A stored version 1 row has no peer block; the reader normalises it to `[]` (spec 0021, AC-9).
+    peers: [],
     ...overrides,
   };
 }

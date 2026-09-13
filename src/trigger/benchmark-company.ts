@@ -4,16 +4,25 @@ import * as Sentry from "@sentry/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, queue, schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod";
-import { MODEL_VERSION, TRIGGER_KINDS, type TriggerKind } from "@/features/benchmark/catalogue";
+import {
+  MODEL_VERSION,
+  PEER_KPI_KEYS,
+  type PeerKpiKey,
+  sectionOfDivision,
+  TRIGGER_KINDS,
+  type TriggerKind,
+} from "@/features/benchmark/catalogue";
 import {
   computeBenchmark,
   type ModelAssumption,
   type ModelCatalogueEntry,
   type ModelKpiRow,
+  type ModelPeerLibrary,
   type ModelPeerRow,
   roundChf,
   roundChfRange,
 } from "@/features/benchmark/model";
+import { PEER_BASES, PUBLISHED_UNITS } from "@/features/benchmark/seed-schema";
 import { SNAPSHOT_SCHEMAS, type SnapshotBody } from "@/features/benchmark/snapshot";
 import { localeForUser } from "@/features/localization/queries";
 import { isKpiKey } from "@/features/research/catalogue";
@@ -98,17 +107,22 @@ export const benchmarkCompanyTask = schemaTask({
     const peers = await loadPeers(supabase, [...new Set(kpis.map((row) => row.kpiKey))]);
     // The re read right before computing: its updated_at becomes inputs.companyUpdatedAt (AC-5).
     const fresh = (await loadCompany(supabase, ids.companyId, ids.organizationId)) ?? company;
+    // The named peer library of the company's section (spec 0021, AC-5): verified figures only,
+    // one section, loaded after the re read so the section is the one the snapshot records.
+    const library = await loadPeerLibrary(supabase, sectionOfDivision(fresh.industry_code));
     const body = computeBenchmark({
       company: {
         id: fresh.id,
         employeesCount: fresh.employees_count,
         industryCode: fresh.industry_code,
+        country: fresh.country,
         updatedAt: fresh.updated_at,
       },
       catalogue,
       kpis,
       peers,
       assumptions,
+      library,
     });
     // Parse against the schema for the version this task writes, looked up rather than named, so a
     // later MODEL_VERSION bump cannot silently strip a block zod does not know about (AC-15).
@@ -121,6 +135,7 @@ export const benchmarkCompanyTask = schemaTask({
       cost: body.cost,
       assumptions: body.assumptions,
       derived: body.derived,
+      peers: body.peers,
     });
     for (const result of blocks.results) {
       step("benchmark peer selected", {
@@ -133,9 +148,20 @@ export const benchmarkCompanyTask = schemaTask({
         position: result.position,
       });
     }
+    for (const block of blocks.peers) {
+      step("benchmark named peers selected", {
+        kpi: block.key,
+        geoRung: block.geoRung,
+        peers: block.rows.length,
+        rank: block.rank,
+        best: block.best,
+      });
+    }
     step("benchmark computed", {
       kpiRows: kpis.length,
       peerRows: peers.length,
+      libraryCompanies: library.companies.length,
+      libraryFigures: library.figures.length,
       kpisCompared: body.kpisCompared,
       gaps: blocks.gaps.length,
       costChf: body.costChf,
@@ -171,6 +197,7 @@ export const benchmarkCompanyTask = schemaTask({
         cost: blocks.cost as unknown as Json,
         assumptions: blocks.assumptions as unknown as Json,
         derived: (blocks.derived ?? null) as unknown as Json,
+        peers: blocks.peers as unknown as Json,
       })
       .select("id, created_at")
       .single();
@@ -451,6 +478,68 @@ async function loadPeers(
         ]
       : [],
   );
+}
+
+/**
+ * The named peer library of one NACE section (spec 0021, AC-5): the `peer_companies` rows of the
+ * section and their `peer_figures` rows for the four KPIs where `verified_at is not null`, so the
+ * model never sees an unverified figure. Empty when the section is null. Throws on a database
+ * error so the attempt retries.
+ */
+async function loadPeerLibrary(
+  supabase: Service,
+  section: string | null,
+): Promise<ModelPeerLibrary> {
+  if (section === null) return { companies: [], figures: [] };
+  const { data: companyRows, error: companyError } = await supabase
+    .from("peer_companies")
+    .select("key, name, country, industry_section, headcount, headcount_year, report_url")
+    .eq("industry_section", section);
+  if (companyError) throw queryError(companyError);
+  const companies = companyRows.map((row) => ({
+    key: row.key,
+    name: row.name,
+    country: row.country,
+    industrySection: row.industry_section,
+    headcount: row.headcount,
+    headcountYear: row.headcount_year,
+    reportUrl: row.report_url,
+  }));
+  if (companies.length === 0) return { companies, figures: [] };
+  const { data: figureRows, error: figureError } = await supabase
+    .from("peer_figures")
+    .select(
+      "peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url, verified_at",
+    )
+    .in(
+      "peer_key",
+      companies.map((company) => company.key),
+    )
+    .in("kpi_key", [...PEER_KPI_KEYS])
+    .not("verified_at", "is", null);
+  if (figureError) throw queryError(figureError);
+  const isPeerKpi = (value: string): value is PeerKpiKey =>
+    (PEER_KPI_KEYS as readonly string[]).includes(value);
+  const figures = figureRows.flatMap((row) => {
+    const unit = PUBLISHED_UNITS.find((candidate) => candidate === row.unit_as_published);
+    const basis = PEER_BASES.find((candidate) => candidate === row.basis);
+    // The task's own filter already excludes an unverified row; the guard keeps the type honest.
+    if (!isPeerKpi(row.kpi_key) || !unit || !basis || row.verified_at === null) return [];
+    return [
+      {
+        peerKey: row.peer_key,
+        kpiKey: row.kpi_key,
+        periodYear: row.period_year,
+        value: Number(row.value),
+        valueAsPublished: Number(row.value_as_published),
+        unitAsPublished: unit,
+        basis,
+        sourceUrl: row.source_url,
+        verifiedAt: row.verified_at,
+      },
+    ];
+  });
+  return { companies, figures };
 }
 
 /**

@@ -165,9 +165,54 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(
       fatalities.getByText(/Eurostat hsw_n2_02 · NACE C · all sizes · 2023/),
     ).toBeVisible();
-    await expect(
-      page.locator('[data-position-kpi="ltifr"]').getByText("No peer data yet"),
-    ).toBeVisible();
+    // The named published peers (spec 0021, AC-17): the fixture's LTIFR 2.4 against the committed
+    // library of section C. Switzerland holds two published manufacturers (Geberit, Rieter) and
+    // the DACH region no more, so the ladder widens to Europe, where Sandvik's 1.2 makes the
+    // fixture 2nd of 3. The card replaces the row: the rank line with the word publish, the
+    // rung sentence, one linked source per row, the client row with no money, and the strip's
+    // screen reader sentence.
+    const ltifr = page.locator('[data-position-kpi="ltifr"]');
+    await expect(ltifr.getByText("No peer data yet")).toHaveCount(0);
+    const standing = ltifr.locator('[data-peer-standing="ltifr"]');
+    await expect(standing).toHaveAttribute("data-geo-rung", "europe");
+    await expect(standing).toHaveAttribute("data-rank", "2");
+    await expect(standing.locator("[data-rank-line]")).toContainText(
+      "2nd of 3 companies in Manufacturing in Europe that publish an LTIFR",
+    );
+    await expect(standing.locator("[data-gap-line]")).toContainText(
+      "1.20 behind Sandvik AB, the best published peer",
+    );
+    await expect(standing.locator("[data-rung-sentence]")).toContainText(
+      "Fewer than three companies in Switzerland publish an LTIFR, so the comparison widened to Europe.",
+    );
+    const peerRows = standing.locator("[data-peer-row]");
+    await expect(peerRows).toHaveCount(3);
+    for (const key of ["sandvik", "rieter", "geberit"]) {
+      const link = standing.locator(`[data-peer-row="${key}"] a`);
+      await expect(link).toHaveAttribute("href", /^https:\/\//);
+      await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    }
+    const clientRow = standing.locator("[data-client-row]");
+    await expect(clientRow).toHaveCount(1);
+    await expect(clientRow).toContainText("2.40");
+    await expect(clientRow).not.toContainText("CHF");
+    // The saving column is the client's own: a figure at Sandvik, already ahead of the other two.
+    await expect(standing.locator('[data-peer-row="sandvik"] [data-saving]')).toContainText("CHF");
+    await expect(standing.locator('[data-peer-row="rieter"] [data-saving]')).toContainText(
+      "already ahead",
+    );
+    await expect(standing.locator('[data-slot="peer-strip"] .sr-only')).toContainText(
+      "Your value 2.40 against 3 published peers in Europe, from 1.20 to 6.00.",
+    );
+    // The forbidden words never appear on the card.
+    expect(((await standing.textContent()) ?? "").toLowerCase()).not.toMatch(
+      /quarter|quartile|median/,
+    );
+    // TRIFR has only two published manufacturers (Sandvik, BASF), so it keeps today's row and
+    // says so (AC-12).
+    const trifr = page.locator('[data-position-kpi="trifr"]');
+    await expect(trifr.locator("[data-peer-standing]")).toHaveCount(0);
+    await expect(trifr.getByText("No published peer yet")).toBeVisible();
     await expectNoAxeViolations(page);
 
     // The benchmark ready email (AC-7): one delivery per member on the first snapshot, in the
@@ -268,7 +313,7 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     const { data: snapshots } = await db
       .from("benchmark_snapshots")
       .select(
-        "trigger_kind, research_run_id, kpis_compared, peer_provisional, saving_median_chf, created_at",
+        "trigger_kind, research_run_id, kpis_compared, peer_provisional, saving_median_chf, created_at, model_version, peers",
       )
       .eq("company_id", company?.id ?? "");
     expect(company?.employees_count).toBe(500);
@@ -279,6 +324,11 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     expect(first?.trigger_kind).toBe("research");
     expect(first?.research_run_id).not.toBeNull();
     expect(first?.kpis_compared).toBe(4);
+    // The peers block is stored under the version that carries it (spec 0021, AC-9).
+    expect(first?.model_version).toBe("benchmark-model@5");
+    const storedPeers = first?.peers as ReadonlyArray<{ key: string; rows: unknown[] }> | null;
+    expect(storedPeers?.map((block) => block.key)).toEqual(["ltifr"]);
+    expect(storedPeers?.[0]?.rows).toHaveLength(3);
     expect(first?.peer_provisional).toBe(true);
     expect(Number(first?.saving_median_chf)).toBeCloseTo(ANNUAL - AT_MEDIAN, 0);
     expect(second?.trigger_kind).toBe("client_edit");

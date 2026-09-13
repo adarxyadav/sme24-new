@@ -1,0 +1,11 @@
+peer_key,kpi_key,period_year,value_as_published,unit_as_published,basis,source_url,verified_at,verified_by
+geberit,ltifr,2024,6.0,per_million_hours,employees,https://reports.geberit.com/annual-report/2024/sustainability/performance-2024/people/occupational-health-and-safety.html,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+geberit,iso_45001_certified,2024,1,boolean,employees,https://reports.geberit.com/annual-report/2024/sustainability/performance-2024/people/occupational-health-and-safety.html,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+rieter,ltifr,2024,3.3,per_million_hours,employees,https://reports.rieter.com/2024/ar/en/people-related,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+sandvik,ltifr,2024,1.2,per_million_hours,employees_and_contractors,https://www.annualreport.sandvik/en/2024/sustainable-business/non-financial-notes/health-and-safety.html,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+sandvik,trifr,2024,3.0,per_million_hours,employees_and_contractors,https://www.annualreport.sandvik/en/2024/sustainable-business/non-financial-notes/health-and-safety.html,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+sandvik,iso_45001_certified,2024,1,boolean,employees,https://www.annualreport.sandvik/en/2024/sustainable-business/non-financial-notes/health-and-safety.html,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+basf,trifr,2024,3.78,per_million_hours,employees_and_contractors,https://report.basf.com/2024/en/combined-managements-report/consolidated-sustainability-statement/social/s1-own-workforce/metrics.html,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+strabag,trifr,2024,13.2,per_million_hours,employees,https://report.strabag.com/2024/ar/en/eigene-belegschaft,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+strabag,iso_45001_certified,2024,1,boolean,employees,https://report.strabag.com/2024/ar/en/eigene-belegschaft,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)
+ncc,ltifr,2024,3.3,per_million_hours,employees,https://www.ncc.se/annualreport2024/,2026-09-13,Claude Fable 5.1 (agent read; owner re-read owed)

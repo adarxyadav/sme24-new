@@ -26,6 +26,7 @@ create table public.benchmark_snapshots (
   cost jsonb null,
   assumptions jsonb not null,
   derived jsonb null,
+  peers jsonb null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -33,6 +34,7 @@ create table public.benchmark_snapshots (
 comment on table public.benchmark_snapshots is 'An immutable benchmark result per company (spec 0008): scalars for the card, blocks with the inputs, peer rows and assumptions used.';
 comment on column public.benchmark_snapshots.model_version is 'The rule set and block schema that produced the row (benchmark-model@N); the reader picks the schema by it.';
 comment on column public.benchmark_snapshots.derived is 'Display only counts computed from the stored rates and headcount (spec 0012); null on a benchmark-model@1 row and whenever no count could be derived.';
+comment on column public.benchmark_snapshots.peers is 'The named published peer blocks per KPI (spec 0021): rank, best, gap and the copied peer rows with the client''s own saving at each; null on a row older than benchmark-model@5.';
 comment on column public.benchmark_snapshots.updated_at is 'Present for the tenant table contract; no app path updates a snapshot.';
 
 create index benchmark_snapshots_organization_id_created_at_idx on public.benchmark_snapshots (organization_id, created_at desc);

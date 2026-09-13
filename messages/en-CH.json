@@ -1349,7 +1349,8 @@
       "bandOutside": "Band, value beyond p75",
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "card": "Opportunity card",
-      "pointComparison": "Point comparison"
+      "pointComparison": "Point comparison",
+      "peerStanding": "Peer Standing card (spec 0021), invented example"
     },
     "marketing": {
       "packages": "Package card: fixed price and price on request",
@@ -1878,6 +1879,66 @@
         "iso_45001_certified": "No Swiss body publishes certification shares by sector; a share is not read into the peer set yet.",
         "accident_rate_per_1000_fte": "Read from the Suva UVG accident tables."
       }
+    },
+    "peers": {
+      "kpi": {
+        "ltifr": "an LTIFR",
+        "trifr": "a TRIFR",
+        "lost_days_per_incident": "lost days per incident",
+        "iso_45001_certified": "an ISO 45001 status"
+      },
+      "rank": {
+        "ranked": "of {count} companies in {industry} {scope} that publish {kpi}",
+        "unranked": "{count} companies in {industry} {scope} publish {kpi}",
+        "gap": "{gap} behind {name}, the best published peer",
+        "leading": "Ahead of every published peer; {name} is the closest",
+        "ordinal": "{rank, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}"
+      },
+      "rung": {
+        "country": "in {country}",
+        "region": "in {region}",
+        "europe": "in Europe",
+        "world": "worldwide",
+        "sentence": {
+          "country": "All published peers are from {country}.",
+          "region": "Fewer than three companies in {country} publish {kpi}, so the comparison widened to {region}.",
+          "europe": "Fewer than three companies in {country} publish {kpi}, so the comparison widened to Europe.",
+          "world": "Fewer than three companies in Europe publish {kpi}, so the comparison widened to the whole world."
+        },
+        "larger": "Published peers are larger companies that report their figures; each row links to the page it was read from."
+      },
+      "region": {
+        "dach": "the DACH region",
+        "nordics": "the Nordics",
+        "benelux": "the Benelux",
+        "british_isles": "the British Isles",
+        "southern": "southern Europe",
+        "central_eastern": "central and eastern Europe"
+      },
+      "srStrip": "Your value {value} against {count} published peers {scope}, from {best} to {worst}.",
+      "srStripNoValue": "{count} published peers {scope}, from {best} to {worst}; you have no value yet.",
+      "table": {
+        "caption": "Published peers for {kpi}",
+        "company": "Company",
+        "country": "Country",
+        "basis": "Counts",
+        "year": "Year",
+        "saving": "If you matched them, a year",
+        "you": "you",
+        "alreadyAhead": "already ahead",
+        "noSaving": "not priced",
+        "employees": "employees only",
+        "employees_and_contractors": "incl. contractors",
+        "headcount": "{n} employees, {year}",
+        "asPublished": "{value} per 200 000 hours as published",
+        "sourceLink": "{name}, source page"
+      },
+      "iso": {
+        "share": "{certified} of {count} published peers in your industry are certified.",
+        "youYes": "You are certified.",
+        "youNo": "You are not."
+      },
+      "none": "No published peer yet"
     },
     "noga": {
       "sections": {

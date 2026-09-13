@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { KPI_KEYS } from "@/features/research/catalogue";
-import { ASSUMPTION_KEYS, type AssumptionKey, SIZE_BANDS } from "./catalogue";
+import {
+  ASSUMPTION_KEYS,
+  type AssumptionKey,
+  GEO_RUNGS,
+  PEER_KPI_KEYS,
+  SIZE_BANDS,
+} from "./catalogue";
+import { PEER_BASES, PUBLISHED_UNITS } from "./seed-schema";
 
 /**
  * The snapshot block schemas (spec 0008, AC-4, AC-9): what `benchmark_snapshots.inputs`,
@@ -229,6 +236,65 @@ export const snapshotBlocksV4Schema = snapshotBlocksV3Schema.extend({
   results: z.array(resultV4Schema),
 });
 
+/** The version 5 inputs (spec 0021, AC-9): the client's country copied in at compute time, for the rung word. */
+export const inputsV5Schema = inputsSchema.extend({
+  country: z.string(),
+});
+export type SnapshotInputsV5 = z.infer<typeof inputsV5Schema>;
+
+/**
+ * One named peer row copied into the snapshot (spec 0021, AC-9): the company, the figure as
+ * stored and as published, the page it was read from, and the client's own saving at that
+ * figure. `savingAtPeer` is a CHF amount, `already_ahead` when the client is at or better than
+ * the peer, or null when nothing could be priced (AC-8). No number here describes a peer's cost.
+ */
+export const peerRowSchema = z.object({
+  peerKey: z.string(),
+  name: z.string(),
+  country: z.string(),
+  headcount: z.number().int().positive(),
+  headcountYear: z.number().int(),
+  periodYear: z.number().int(),
+  value: z.number(),
+  valueAsPublished: z.number(),
+  unitAsPublished: z.enum(PUBLISHED_UNITS),
+  basis: z.enum(PEER_BASES),
+  sourceUrl: z.string(),
+  reportUrl: z.string(),
+  verifiedAt: z.string(),
+  savingAtPeer: z.union([z.number(), z.literal("already_ahead")]).nullable(),
+});
+export type SnapshotPeerRow = z.infer<typeof peerRowSchema>;
+
+/**
+ * The peer block of one KPI (spec 0021, AC-9): the rung the ladder stopped on, the client's rank
+ * among the rows (null without a client value), the best peer and the gap to it, the certified
+ * share for the ISO KPI, the chart's peer keys (drawn by a later slice), and the rows best first.
+ */
+export const peerBlockSchema = z.object({
+  key: z.enum(PEER_KPI_KEYS),
+  geoRung: z.enum(GEO_RUNGS),
+  rank: z.number().int().min(1).nullable(),
+  best: z.string().nullable(),
+  gapToBest: z.number().nullable(),
+  certifiedShare: z.number().min(0).max(1).nullable(),
+  chart: z.object({ peerKeys: z.array(z.string()) }),
+  rows: z.array(peerRowSchema),
+});
+export type SnapshotPeerBlock = z.infer<typeof peerBlockSchema>;
+
+/**
+ * The version 5 blocks (spec 0021): version 4 plus the client's country in the inputs and the
+ * named peer blocks, one per KPI with at least three published peers. No formula changes.
+ */
+export const snapshotBlocksV5Schema = snapshotBlocksV4Schema.extend({
+  inputs: inputsV5Schema,
+  peers: z
+    .array(peerBlockSchema)
+    .nullable()
+    .transform((blocks) => blocks ?? []),
+});
+
 /**
  * What a reader gets from any version. `derived` is optional because a stored version 1 row has
  * no such key and is never widened to carry one (AC-12); a version 2 row always sets it. The
@@ -238,8 +304,10 @@ export const snapshotBlocksV4Schema = snapshotBlocksV3Schema.extend({
  */
 export type SnapshotBlocks = Omit<
   z.infer<typeof snapshotBlocksV1Schema>,
-  "results" | "assumptions"
+  "results" | "assumptions" | "inputs"
 > & {
+  /** `country` is absent on a stored `@1` to `@4` row (spec 0021, AC-9); the card then names no country rung. */
+  readonly inputs: SnapshotInputs & { readonly country?: string };
   readonly results: readonly (SnapshotResult & {
     readonly peer: (SnapshotPeer & Partial<Omit<SnapshotPeerV3, keyof SnapshotPeer>>) | null;
     /** Absent on a stored `@1` to `@3` row; a reader treats absence as null (amendment AC-22). */
@@ -248,6 +316,8 @@ export type SnapshotBlocks = Omit<
   readonly assumptions: readonly (AssumptionUsed &
     Partial<Omit<AssumptionUsedV3, keyof AssumptionUsed>>)[];
   readonly derived?: SnapshotDerived | null;
+  /** Normalised to `[]` for a stored `@1` to `@4` row (spec 0021, AC-9), so the card never branches on the version. */
+  readonly peers: readonly SnapshotPeerBlock[];
 };
 
 /** The scalar columns the task writes beside the blocks. */
@@ -281,11 +351,19 @@ export type SnapshotBody = SnapshotBlocks &
  * entry instead of renaming the only one. A version missing here is unreadable by design.
  */
 export const SNAPSHOT_SCHEMAS: Readonly<Record<string, z.ZodType<SnapshotBlocks>>> = {
-  "benchmark-model@1": snapshotBlocksV1Schema,
-  "benchmark-model@2": snapshotBlocksV2Schema,
-  "benchmark-model@3": snapshotBlocksV3Schema,
-  "benchmark-model@4": snapshotBlocksV4Schema,
+  "benchmark-model@1": withoutPeers(snapshotBlocksV1Schema),
+  "benchmark-model@2": withoutPeers(snapshotBlocksV2Schema),
+  "benchmark-model@3": withoutPeers(snapshotBlocksV3Schema),
+  "benchmark-model@4": withoutPeers(snapshotBlocksV4Schema),
+  "benchmark-model@5": snapshotBlocksV5Schema,
 };
+
+/** A pre `@5` schema reads as having no peer block (spec 0021, AC-9). Pure. */
+function withoutPeers<T extends Omit<SnapshotBlocks, "peers">>(
+  schema: z.ZodType<T>,
+): z.ZodType<SnapshotBlocks> {
+  return schema.transform((blocks) => ({ ...blocks, peers: [] }));
+}
 
 export type SnapshotRowLike = {
   readonly model_version: string;
@@ -295,6 +373,7 @@ export type SnapshotRowLike = {
   readonly cost: unknown;
   readonly assumptions: unknown;
   readonly derived?: unknown;
+  readonly peers?: unknown;
 };
 
 /**
@@ -315,6 +394,7 @@ export function parseSnapshotBlocks(
     cost: row.cost,
     assumptions: row.assumptions,
     derived: row.derived ?? null,
+    peers: row.peers ?? null,
   });
   if (!parsed.success) {
     const issue = parsed.error.issues[0];

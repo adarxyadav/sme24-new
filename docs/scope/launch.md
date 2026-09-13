@@ -1,6 +1,6 @@
 # Launch · SME24
 
-Part of the [SME24 scope](index.md). What Release 1 needs before pilot clients and the public arrive: the funnel entry, the legal duties of a Swiss B2B product that handles company and contact data, and the instruments that show whether the loop works.
+Part of the [SME24 scope](index.md). What Release 1 needs before pilot clients and the public arrive: the funnel entry, the legal duties of a Swiss based B2B product serving Europe that handles company and contact data, and the instruments that show whether the loop works.
 
 ## Slice 4: Launch readiness
 

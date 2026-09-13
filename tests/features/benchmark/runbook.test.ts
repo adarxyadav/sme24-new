@@ -7,7 +7,7 @@ import { assumptionRowSchema, parseCsv, parseSeedRows } from "@/features/benchma
 import { SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
 import { KPI_KEYS } from "@/features/research/catalogue";
 import { FIXTURE_VALUES } from "@/lib/research/fixture";
-import { seedAssumptions, seedCatalogue, seedPeers } from "./seed-helpers";
+import { seedAssumptions, seedCatalogue, seedLibrary, seedPeers } from "./seed-helpers";
 
 /**
  * The launch gate runbook (spec 0016, AC-17): `docs/benchmark.md` is what the owner reads at the
@@ -38,6 +38,17 @@ describe("the launch gate runbook (spec 0016, AC-17)", () => {
     expect(RUNBOOK).toContain("where is_assumption");
     expect(RUNBOOK).toContain("public.benchmarks");
     expect(RUNBOOK).toContain("public.benchmark_assumptions");
+  });
+
+  // The third gate (spec 0021, AC-14): an unverified named peer figure, and the recompute the
+  // named peers deploy owes (AC-15), both named where the owner reads at the promotion.
+  it("names the third gate query and the recompute obligation of the named peers (spec 0021, AC-14, AC-15)", () => {
+    expect(RUNBOOK).toContain(
+      "select count(*) from public.peer_figures where verified_at is null;",
+    );
+    expect(RUNBOOK).toContain("## Peer library");
+    expect(RUNBOOK).toContain("- [ ] Recompute run on staging after the named peers deploy");
+    expect(RUNBOOK).toContain("- [ ] Recompute run on production after the named peers deploy");
   });
 
   // The heart of the check: the runbook's expected list and the seed's flags are one fact written
@@ -116,12 +127,15 @@ describe("the runbook matches the code (spec 0016 amendment, AC-18)", () => {
         id: "00000000-0000-4000-8000-000000000799",
         employeesCount: 420,
         industryCode: "23.61",
+        country: "CH",
         updatedAt: "2026-09-12T00:00:00.000Z",
       },
       catalogue: seedCatalogue,
       kpis,
       peers: seedPeers(),
       assumptions: seedAssumptions(),
+      library: seedLibrary("C"),
+      now: new Date("2026-09-13T10:00:00.000Z"),
     });
     expect(body.costChf).not.toBeNull();
     const rounded = roundChf(body.costChf as number);
@@ -134,6 +148,21 @@ describe("the runbook matches the code (spec 0016 amendment, AC-18)", () => {
       quoted.replace(/\D/g, ""),
       `the runbook says CHF ${quoted}, the model gives ${rounded}`,
     ).toBe(String(rounded));
+    // The second pinned figure (spec 0021, AC-17): the fixture's LTIFR rank among the committed
+    // peer library and its saving at the best peer, both quoted in the same sentence.
+    const ltifr = body.peers.find((block) => block.key === "ltifr");
+    expect(ltifr).toBeDefined();
+    const rankQuoted = /ranks (\d+)(?:st|nd|rd|th) of (\d+) European manufacturers/.exec(
+      line as string,
+    );
+    expect(rankQuoted?.[1]).toBe(String(ltifr?.rank));
+    expect(rankQuoted?.[2]).toBe(String(ltifr?.rows.length));
+    expect(ltifr?.geoRung).toBe("europe");
+    const bestSaving = ltifr?.rows[0]?.savingAtPeer;
+    expect(typeof bestSaving).toBe("number");
+    const savingQuoted =
+      /a saving at the best peer of about CHF (\d[\d ]*\d)/.exec(line as string)?.[1] ?? "";
+    expect(savingQuoted.replace(/\D/g, "")).toBe(String(roundChf(bestSaving as number)));
   });
 
   // The shape paragraph quotes how many seeded rows are point rows. Counted here from the committed

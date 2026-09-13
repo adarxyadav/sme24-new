@@ -45,6 +45,7 @@ describe("the public worked example (spec 0016, AC-14)", () => {
       id: "00000000-0000-4000-8000-000000000900",
       employeesCount: 120,
       industryCode: "23",
+      country: "CH",
       updatedAt: "2026-09-11T00:00:00.000Z",
     },
     catalogue: seedCatalogue,

@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # SME24
 
-AI powered EHS consulting marketplace for regulated companies in Switzerland. One Next.js app serves the marketing site and three signed in areas (client `/app`, expert `/expert`, ops `/admin`). Product plan: `docs/scope/index.md`. Every stack decision and its reason: `docs/specs/0001-stack-architecture/index.md`.
+AI powered EHS consulting marketplace for regulated companies in Europe, Switzerland first and a wider region to follow (owner decision of 13 Sep 2026; the Swiss specifics such as CHF, Swiss VAT, Suva tables and the FADP are the first country, not the product). One Next.js app serves the marketing site and three signed in areas (client `/app`, expert `/expert`, ops `/admin`). Product plan: `docs/scope/index.md`. Every stack decision and its reason: `docs/specs/0001-stack-architecture/index.md`.
 
 ## Stack
 
