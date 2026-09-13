@@ -585,6 +585,30 @@
       "closing": {
         "title": "Nicht sicher, welches? Starten Sie mit der kostenlosen Zahl.",
         "cta": "Sehen, was Ihr Risiko kostet"
+      },
+      "compare": {
+        "heading": "Die Pakete im Vergleich",
+        "lead": "Jede Stufe nebeneinander — Umfang, Ergebnis und Preis.",
+        "packageLabel": "Paket",
+        "formatLabel": "Format",
+        "coreValueLabel": "Kernnutzen",
+        "scopeLabel": "Umfang",
+        "priceLabel": "Preis",
+        "output": {
+          "culture": "Top-5-Risiken",
+          "sms": "Top-20-Risiken",
+          "compliance": "Massnahmenplan & Zeitplan",
+          "retainer": "Gemessene Risikoreduktion"
+        },
+        "retainerPrice": "Auf Anfrage — kontaktieren Sie uns",
+        "outputLabel": "Ergebnis",
+        "outcomeLabel": "Wirkung",
+        "bestFor": {
+          "culture": "Schnelle Sichtbarkeit",
+          "sms": "Echte Risiken validieren",
+          "compliance": "Systematisch beheben",
+          "retainer": "Resultate liefern"
+        }
       }
     },
     "about": {

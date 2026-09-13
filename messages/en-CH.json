@@ -585,6 +585,30 @@
       "closing": {
         "title": "Not sure which one? Start with the free figure.",
         "cta": "See what your risk costs"
+      },
+      "compare": {
+        "heading": "Compare the packages",
+        "lead": "Every tier, side by side — scope, output, and price.",
+        "packageLabel": "Package",
+        "formatLabel": "Format",
+        "coreValueLabel": "Core value",
+        "scopeLabel": "Scope",
+        "priceLabel": "Price",
+        "output": {
+          "culture": "Top 5 risks",
+          "sms": "Top 20 risks",
+          "compliance": "Gap plan & timeline",
+          "retainer": "Measured risk reduction"
+        },
+        "retainerPrice": "On demand — contact us for more information",
+        "outputLabel": "Output",
+        "outcomeLabel": "Outcome",
+        "bestFor": {
+          "culture": "Quick visibility",
+          "sms": "Validate real risks",
+          "compliance": "Fix systematically",
+          "retainer": "Deliver results"
+        }
       }
     },
     "about": {

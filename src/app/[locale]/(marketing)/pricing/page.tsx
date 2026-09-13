@@ -7,6 +7,7 @@ import { sortedPackages } from "@/features/marketing/packages";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { Faq } from "@/features/marketing/ui/faq";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
+import { PackagesCompare } from "@/features/marketing/ui/packages-compare";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { absoluteUrl } from "@/i18n/metadata";
@@ -81,6 +82,23 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
             lead={t("packagesHeading.lead")}
           />
           <PackagesGrid variant="full" />
+        </div>
+      </section>
+
+      {/*
+        The comparison table is a minor band under the packages major, not a second major: it
+        re-presents the facts the cards above it already carry, in a shape that reads across the
+        four rather than down one. A major heading over it would claim the cards' weight twice.
+      */}
+      <section aria-labelledby="compare-heading">
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
+          <SectionHeader
+            tier="minor"
+            id="compare-heading"
+            title={t("compare.heading")}
+            lead={t("compare.lead")}
+          />
+          <PackagesCompare />
         </div>
       </section>
 
