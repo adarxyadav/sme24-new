@@ -6,6 +6,7 @@ import { KPI_CATALOGUE, type KpiFormat } from "@/features/research/catalogue";
 import type { LocaleCode } from "@/i18n/routing";
 import { countryName, type Region, regionOf } from "@/lib/countries";
 import { formatKpiValue } from "./format";
+import { publishedPairOf } from "./peer-chart";
 
 type Formatter = Awaited<ReturnType<typeof getFormatter>>;
 type Translator = Awaited<ReturnType<typeof getTranslations<"benchmark">>>;
@@ -179,6 +180,19 @@ export function PeerStanding({
         return t("peers.rung.sentence.world", { kpi });
     }
   })();
+  // The published value as a tooltip (AC-13, AC-21): a per 200 000 hours rate as printed, a
+  // quotient row's both printed numbers with the note on its own line, nothing otherwise.
+  const asPublishedTitle = (row: SnapshotPeerRow): string | undefined => {
+    if (row.unitAsPublished === "per_200k_hours") {
+      return t("peers.table.asPublished", {
+        value: format.number(row.valueAsPublished, { maximumFractionDigits: 2 }),
+      });
+    }
+    const pair = publishedPairOf(t, format, row);
+    if (pair === null) return undefined;
+    const note = row.note?.[locale];
+    return note ? `${pair}\n${note}` : pair;
+  };
   const saving = (row: SnapshotPeerRow) =>
     row.savingAtPeer === null
       ? t("peers.table.noSaving")
@@ -328,15 +342,7 @@ export function PeerStanding({
                     className="py-2 pr-3 text-right tabular-nums"
                     data-numeric
                     data-value={row.value}
-                    title={
-                      row.unitAsPublished === "per_200k_hours"
-                        ? t("peers.table.asPublished", {
-                            value: format.number(row.valueAsPublished, {
-                              maximumFractionDigits: 2,
-                            }),
-                          })
-                        : undefined
-                    }
+                    title={asPublishedTitle(row)}
                   >
                     {value(row.value)}
                   </td>

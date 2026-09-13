@@ -1350,7 +1350,8 @@
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "card": "Opportunity card",
       "pointComparison": "Point comparison",
-      "peerStanding": "Peer Standing card (spec 0021), invented example"
+      "peerStanding": "Peer Standing card (spec 0021), invented example",
+      "peerChart": "Peer bubble chart (spec 0021), invented example"
     },
     "marketing": {
       "packages": "Package card: fixed price and price on request",
@@ -1937,6 +1938,40 @@
         "share": "{certified} of {count} published peers in your industry are certified.",
         "youYes": "You are certified.",
         "youNo": "You are not."
+      },
+      "asPublished": {
+        "days_over_lost_time_accidents": "{days} days lost over {accidents} lost time accidents, as published"
+      },
+      "chart": {
+        "title": "Where you sit among the published peers",
+        "description": "LTIFR across, days lost per incident up, bubble size by headcount. Hover or focus a bubble for the figures and the page they were read from.",
+        "label": "Bubble chart of LTIFR against days lost per incident: your company and {count} published peers, bubble size by headcount.",
+        "tableCaption": "The chart's figures: LTIFR, days lost per incident and headcount per company",
+        "xAxis": "LTIFR, per million hours worked",
+        "yAxis": "Days lost per incident",
+        "sectorLine": "Sector median {value} days",
+        "hidden": "The bubble chart needs your LTIFR and your days lost per incident, and at least one published peer that reports both. It appears once those figures are in.",
+        "client": "Your company",
+        "legend": {
+          "client": "Your company",
+          "peer": "Published peer",
+          "sector": "Sector median"
+        },
+        "tooltip": {
+          "headcount": "{country}, {n} employees",
+          "headcountUnknown": "{country}, headcount not given",
+          "ltifr": "LTIFR {value}",
+          "lostDays": "{value} days lost per incident",
+          "lostDaysYear": "{value} days lost per incident, {year}"
+        },
+        "table": {
+          "company": "Company",
+          "country": "Country",
+          "headcount": "Employees",
+          "ltifr": "LTIFR",
+          "lostDays": "Days lost per incident",
+          "note": "Note"
+        }
       },
       "none": "No published peer yet"
     },

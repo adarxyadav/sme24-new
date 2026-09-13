@@ -1350,7 +1350,8 @@
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
       "card": "Potenzialkarte",
       "pointComparison": "Punktvergleich",
-      "peerStanding": "Karte der publizierten Vergleichsunternehmen (Spec 0021), erfundenes Beispiel"
+      "peerStanding": "Karte der publizierten Vergleichsunternehmen (Spec 0021), erfundenes Beispiel",
+      "peerChart": "Blasendiagramm der Vergleichsunternehmen (Spec 0021), erfundenes Beispiel"
     },
     "marketing": {
       "packages": "Paketkarte: Fixpreis und Preis auf Anfrage",
@@ -1937,6 +1938,40 @@
         "share": "{certified} von {count} publizierten Vergleichsunternehmen Ihrer Branche sind zertifiziert.",
         "youYes": "Sie sind zertifiziert.",
         "youNo": "Sie sind es nicht."
+      },
+      "asPublished": {
+        "days_over_lost_time_accidents": "{days} Ausfalltage bei {accidents} Unfällen mit Ausfallzeit, wie publiziert"
+      },
+      "chart": {
+        "title": "Wo Sie unter den publizierten Vergleichsunternehmen stehen",
+        "description": "LTIFR waagrecht, Ausfalltage je Unfall senkrecht, Blasengrösse nach Personalbestand. Zeigen Sie auf eine Blase oder fokussieren Sie sie, um die Zahlen und die Quellseite zu sehen.",
+        "label": "Blasendiagramm der LTIFR gegen die Ausfalltage je Unfall: Ihr Unternehmen und {count} publizierte Vergleichsunternehmen, Blasengrösse nach Personalbestand.",
+        "tableCaption": "Die Zahlen des Diagramms: LTIFR, Ausfalltage je Unfall und Personalbestand je Unternehmen",
+        "xAxis": "LTIFR, je Million Arbeitsstunden",
+        "yAxis": "Ausfalltage je Unfall",
+        "sectorLine": "Branchenmedian {value} Tage",
+        "hidden": "Das Blasendiagramm braucht Ihre LTIFR und Ihre Ausfalltage je Unfall sowie mindestens ein publiziertes Vergleichsunternehmen, das beides ausweist. Es erscheint, sobald diese Zahlen vorliegen.",
+        "client": "Ihr Unternehmen",
+        "legend": {
+          "client": "Ihr Unternehmen",
+          "peer": "Publiziertes Vergleichsunternehmen",
+          "sector": "Branchenmedian"
+        },
+        "tooltip": {
+          "headcount": "{country}, {n} Mitarbeitende",
+          "headcountUnknown": "{country}, Personalbestand nicht angegeben",
+          "ltifr": "LTIFR {value}",
+          "lostDays": "{value} Ausfalltage je Unfall",
+          "lostDaysYear": "{value} Ausfalltage je Unfall, {year}"
+        },
+        "table": {
+          "company": "Unternehmen",
+          "country": "Land",
+          "headcount": "Mitarbeitende",
+          "ltifr": "LTIFR",
+          "lostDays": "Ausfalltage je Unfall",
+          "note": "Hinweis"
+        }
       },
       "none": "Noch kein publiziertes Vergleichsunternehmen"
     },

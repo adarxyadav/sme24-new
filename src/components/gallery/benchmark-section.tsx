@@ -7,6 +7,8 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Separator } from "@/components/ui/separator";
 import type { SnapshotPeerBlock } from "@/features/benchmark/snapshot";
+import { chartDomain } from "@/features/benchmark/ui/chart-scale";
+import { type BubblePoint, PeerBubbleChart } from "@/features/benchmark/ui/peer-bubble-chart";
 import { PeerStanding } from "@/features/benchmark/ui/peer-standing";
 
 /** The three shapes of the band: inside the top quarter, below the median, beyond p75. */
@@ -60,12 +62,97 @@ const PEER_BLOCK: SnapshotPeerBlock = {
 };
 
 /**
+ * The chart's invented points (spec 0021, AC-22): the client and four peers, one of them a
+ * quotient row with a note. Every string is literal, grouped with a plain space, because this
+ * section renders in the browser and a formatter here would trip the ICU grouping hazard.
+ */
+const CHART_POINTS: readonly BubblePoint[] = [
+  {
+    key: "client",
+    isClient: true,
+    x: 2.4,
+    y: 12.5,
+    headcount: 420,
+    name: "Your company",
+    lines: ["Switzerland, 420 employees", "LTIFR 2.40", "12.50 days lost per incident"],
+    cells: { country: "Switzerland", headcount: "420", ltifr: "2.40", lostDays: "12.50", note: "" },
+  },
+  {
+    key: "helvetia",
+    isClient: false,
+    x: 0.9,
+    y: 9.8,
+    headcount: 1_800,
+    name: "Helvetia Präzision AG",
+    lines: ["Switzerland, 1 800 employees", "LTIFR 0.90", "9.80 days lost per incident, 2024"],
+    cells: { country: "CH", headcount: "1 800", ltifr: "0.90", lostDays: "9.80", note: "" },
+  },
+  {
+    key: "nordstahl",
+    isClient: false,
+    x: 1.6,
+    y: 20.5,
+    headcount: 9_800,
+    name: "Nordstahl GmbH",
+    lines: [
+      "Germany, 9 800 employees",
+      "LTIFR 1.60",
+      "20.50 days lost per incident, 2024",
+      "2 275 days lost over 111 lost time accidents, as published",
+    ],
+    cells: {
+      country: "DE",
+      headcount: "9 800",
+      ltifr: "1.60",
+      lostDays: "20.50 (2 275 days lost over 111 lost time accidents, as published)",
+      note: "",
+    },
+  },
+  {
+    key: "lyon",
+    isClient: false,
+    x: 2.1,
+    y: 15.3,
+    headcount: 2_300,
+    name: "Lyon Précision SA",
+    lines: ["France, 2 300 employees", "LTIFR 2.10", "15.30 days lost per incident, 2023"],
+    cells: { country: "FR", headcount: "2 300", ltifr: "2.10", lostDays: "15.30", note: "" },
+  },
+  {
+    key: "ruhr",
+    isClient: false,
+    x: 4.0,
+    y: 71.2,
+    headcount: 12_500,
+    name: "Ruhr Chemie AG",
+    lines: [
+      "Germany, 12 500 employees",
+      "LTIFR 4.00",
+      "71.20 days lost per incident, 2024",
+      "204 991 days lost over 2 879 lost time accidents, as published",
+      "365 days charged per fatal accident",
+    ],
+    cells: {
+      country: "DE",
+      headcount: "12 500",
+      ltifr: "4.00",
+      lostDays: "71.20 (204 991 days lost over 2 879 lost time accidents, as published)",
+      note: "365 days charged per fatal accident",
+    },
+  },
+];
+const CHART_SECTOR = 14.5;
+const CHART_X = chartDomain(CHART_POINTS.map((point) => point.x));
+const CHART_Y = chartDomain([...CHART_POINTS.map((point) => point.y), CHART_SECTOR]);
+
+/**
  * The benchmark primitives (spec 0008, AC-14): the `QuartileBand` in three shapes and a static
  * opportunity card in its cut down shape (the confidence spelled out in the title row, the range,
  * the working estimate with its lost time clause, a saving and an "already at or below" mark), so
  * axe scans them on the gallery. The "How this is calculated" disclosure that once sat beside the
- * card was cut on 2026-09-13 (owner decision), and the Peer Standing card of spec 0021 on the
- * spec's invented example. Runs in the browser.
+ * card was cut on 2026-09-13 (owner decision), the Peer Standing card of spec 0021 on the
+ * spec's invented example, and the peer bubble chart of its chart amendment on invented points.
+ * Runs in the browser.
  */
 export function BenchmarkSection() {
   const t = useTranslations("gallery.benchmark");
@@ -164,6 +251,44 @@ export function BenchmarkSection() {
               kpiName="LTIFR"
               locale="en"
               yesNo={{ yes: "yes", no: "no" }}
+            />
+          </div>
+        </Example>
+      </div>
+      {/* The peer bubble chart (spec 0021, AC-22) on invented points, one a quotient row with a
+          note, so axe scans the focusable bubbles, the tooltip and the screen reader table. */}
+      <div className="grid gap-8">
+        <Example label={t("peerChart")}>
+          <div className="w-full rounded-lg border p-4">
+            <PeerBubbleChart
+              points={CHART_POINTS}
+              xDomain={CHART_X}
+              yDomain={CHART_Y}
+              sectorLine={{
+                value: CHART_SECTOR,
+                label: b("peers.chart.sectorLine", { value: "14.50" }),
+              }}
+              labels={{
+                chart: b("peers.chart.label", { count: 4 }),
+                tableCaption: b("peers.chart.tableCaption"),
+                xAxis: b("peers.chart.xAxis"),
+                yAxis: b("peers.chart.yAxis"),
+                xLow: "0.65",
+                xHigh: "4.25",
+                yLow: "4.89",
+                yHigh: "76.11",
+                legendClient: b("peers.chart.legend.client"),
+                legendPeer: b("peers.chart.legend.peer"),
+                legendSector: b("peers.chart.legend.sector"),
+                columns: {
+                  company: b("peers.chart.table.company"),
+                  country: b("peers.chart.table.country"),
+                  headcount: b("peers.chart.table.headcount"),
+                  ltifr: b("peers.chart.table.ltifr"),
+                  lostDays: b("peers.chart.table.lostDays"),
+                  note: b("peers.chart.table.note"),
+                },
+              }}
             />
           </div>
         </Example>

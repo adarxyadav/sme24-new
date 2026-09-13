@@ -1,4 +1,5 @@
-import { screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
+import axe from "axe-core";
 import { describe, expect, it } from "vitest";
 import { BenchmarkSection } from "@/components/gallery/benchmark-section";
 import { en, renderWithIntl } from "../../features/emails/ui/helpers";
@@ -44,6 +45,27 @@ describe("BenchmarkSection (AC-14)", () => {
     );
     expect(screen.getByText(b.card.savingTop)).toBeInTheDocument();
     expect(screen.getByText(b.card.atOrBelow)).toBeInTheDocument();
+  });
+
+  it("draws the peer bubble chart on invented points with a tooltip, the note and the screen reader table, and passes axe focused (spec 0021, AC-22)", async () => {
+    const { container } = renderWithIntl(<BenchmarkSection />, "en-CH");
+    expect(screen.getByText(labels.peerChart)).toBeInTheDocument();
+    const chart = container.querySelector('[data-peer-chart="drawn"]') as HTMLElement;
+    expect(chart).toHaveAttribute("data-points", "5");
+    expect(chart.querySelectorAll("[data-bubble]")).toHaveLength(5);
+    expect(chart.querySelector("[data-sector-line] text")).toHaveTextContent(
+      "Sector median 14.50 days",
+    );
+    const ruhr = chart.querySelector('[data-bubble="ruhr"]') as SVGGElement;
+    fireEvent.focus(ruhr);
+    const tooltip = chart.querySelector('[data-chart-tooltip="ruhr"]') as HTMLElement;
+    expect(tooltip).toHaveTextContent(
+      "204 991 days lost over 2 879 lost time accidents, as published",
+    );
+    expect(tooltip).toHaveTextContent("365 days charged per fatal accident");
+    expect(chart.querySelectorAll("[data-chart-table] tbody tr")).toHaveLength(5);
+    const results = await axe.run(container);
+    expect(results.violations).toEqual([]);
   });
 
   it("labels each example so the gallery reads as a list of named blocks", () => {

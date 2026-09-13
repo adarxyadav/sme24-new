@@ -30,6 +30,7 @@ import { localizedText } from "@/features/research/ui/kpi-table";
 import type { LocaleCode } from "@/i18n/routing";
 import { FactsForm, type FactsFormProps } from "./facts-form";
 import { formatKpiValue } from "./format";
+import { PeerChart } from "./peer-chart";
 import { PeerStanding } from "./peer-standing";
 
 export type BenchmarkSegmentProps = {
@@ -705,7 +706,7 @@ function PositionRow({
 }
 
 function PositionList(props: ValueProps) {
-  const { snapshot, catalogue, t } = props;
+  const { snapshot, catalogue, t, format, locale } = props;
   return (
     <section aria-labelledby="positions-heading" className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
@@ -724,6 +725,8 @@ function PositionList(props: ValueProps) {
           />
         ))}
       </ul>
+      {/* The peer bubble chart under the positions (spec 0021, AC-22), or its one sentence. */}
+      <PeerChart blocks={snapshot.blocks} t={t} format={format} locale={locale} />
     </section>
   );
 }
