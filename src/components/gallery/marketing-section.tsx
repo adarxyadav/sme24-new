@@ -35,6 +35,15 @@ export function MarketingSection() {
           lead={t("sectionLead")}
         />
       </Example>
+      <Example label={t("sectionAnchorCentred")}>
+        <SectionHeader
+          tier="anchor"
+          align="center"
+          eyebrow={t("sectionEyebrow")}
+          title={t("sectionTitle")}
+          lead={t("sectionLead")}
+        />
+      </Example>
       <Example label={t("sectionMajor")}>
         <SectionHeader
           tier="major"

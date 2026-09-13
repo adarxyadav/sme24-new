@@ -20,6 +20,12 @@ export type SectionHeaderProps = {
   readonly emphasis?: { readonly leadSentences: number };
   /** `h1` on the page opener, `h2` everywhere else. */
   readonly as?: "h1" | "h2";
+  /**
+   * Centres the opener instead of stacking it left. Anchors only, and opt in: the whole site reads
+   * left, so a centred section is a deliberate exception that has to earn itself (docs/design.md,
+   * `### Centred openers`). Left is the default and every existing call site keeps it.
+   */
+  readonly align?: "left" | "center";
   /** The id an owning `section` points at with `aria-labelledby`. */
   readonly id?: string;
   readonly className?: string;
@@ -29,8 +35,8 @@ export type SectionHeaderProps = {
  * The opener of a marketing section (docs/design.md, marketing section vocabulary): the tier
  * picks the shape, so a page decides weight once and the heading size, the layout and the eyebrow
  * all follow. Anchor stacks left, major splits the heading from the lead, minor runs inline under
- * a hairline. `emphasis` overrides the tier's layout with the pill and two tone heading shape.
- * Server component.
+ * a hairline. `emphasis` overrides the tier's layout with the pill and two tone heading shape, and
+ * `align="center"` centres an anchor's stack. Server component.
  */
 export function SectionHeader({
   tier,
@@ -39,9 +45,11 @@ export function SectionHeader({
   lead,
   emphasis,
   as = "h2",
+  align = "left",
   id,
   className,
 }: SectionHeaderProps) {
+  const centred = align === "center" && tier === "anchor" && !emphasis;
   const heading = (
     <Statement
       as={as}
@@ -57,6 +65,9 @@ export function SectionHeader({
         // tokens' own 450. Owner decision of 2026-09-10.
         as === "h1" && "font-semibold",
         tier === "anchor" && "max-w-4xl text-display-sm md:text-display-lg",
+        // The measure cap is a left edge plus a width, so centring it leaves the block itself
+        // hugging the left of the band. Centred anchors re-centre the cap.
+        centred && "mx-auto",
         tier === "major" && "text-display-sm md:text-display",
         tier === "minor" && "font-semibold text-2xl tracking-headline md:text-display-sm",
         // A measure the two tone heading needs and the split major does not: the heading is the
@@ -117,11 +128,21 @@ export function SectionHeader({
     );
   }
 
+  /*
+    The anchor. `align="center"` centres the whole stack: the eyebrow, the heading and the lead
+    share one axis rather than one left edge. Each part needs its own centring -- `items-center`
+    puts the boxes on the axis, `text-center` centres the lines inside them, and the lead's
+    `max-w-prose` needs `mx-auto` for the same reason the heading's cap does.
+  */
   return (
-    <div className={cn("flex flex-col gap-6", className)}>
+    <div className={cn("flex flex-col gap-6", centred && "items-center text-center", className)}>
       {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
       {heading}
-      {lead ? <p className="max-w-prose text-lg text-muted-foreground">{lead}</p> : null}
+      {lead ? (
+        <p className={cn("max-w-prose text-lg text-muted-foreground", centred && "mx-auto")}>
+          {lead}
+        </p>
+      ) : null}
     </div>
   );
 }

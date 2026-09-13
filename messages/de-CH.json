@@ -1386,6 +1386,7 @@
       "formEmpty": "Anfrageformular, leer",
       "formInvalid": "Anfrageformular, alle Fehler angezeigt",
       "sectionAnchor": "Abschnittskopf, Anker-Stufe",
+      "sectionAnchorCentred": "Abschnittskopf, Anker-Stufe, zentriert",
       "sectionMajor": "Abschnittskopf, Haupt-Stufe",
       "sectionMinor": "Abschnittskopf, Neben-Stufe",
       "sectionTitle": "Erfahrene Experten. Keine Folien.",

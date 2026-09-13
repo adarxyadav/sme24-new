@@ -62,9 +62,20 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
       */}
       <section>
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
+          {/*
+            The one centred opener on the site besides the landing trust band (owner decision of
+            2026-09-14, from the reference they brought). It earns the exception by being the
+            shortest h1 on any marketing page -- two words and two words -- over a lead that names
+            the page's whole promise in one line: centred, the four words sit as a plate over the
+            prices rather than as the top left corner of a band that is otherwise empty to the
+            right. The pill shape from the same reference is deliberately not taken, because
+            "Fixed price. No surprises." is already the landing page's emphasis heading and the
+            two pages would meet the reader with the same block twice.
+          */}
           <SectionHeader
             tier="anchor"
             as="h1"
+            align="center"
             eyebrow={t("eyebrow")}
             title={t("title")}
             lead={t("lead")}

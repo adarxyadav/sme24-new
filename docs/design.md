@@ -180,6 +180,16 @@ On `/how-it-works` the panel takes its own eyebrow and title (`marketing.howItWo
 
 One trap worth remembering if this section ever goes back onto a ruled ground: `RuledField` carries `overflow-hidden`, which gives the element a scrolling mechanism, and a `position: sticky` descendant anchors to that nearest scrolling ancestor instead of the viewport, so the rail silently never moves. `overflow-clip` is deliberately excluded from that list and clips identically (MDN, `position`).
 
+### Centred openers
+
+_Owner decision of 2026-09-14, from a reference brought that day._
+
+`SectionHeader` takes `align="center"`, which centres an anchor's whole stack -- eyebrow, heading and lead on one axis rather than one left edge. It is opt in, anchors only, and left stays the default: the site reads left everywhere, which is exactly what lets a centred section mean something. There are two on the site and there should not be a third without a reason: the landing page's trust band and the pricing page's opener.
+
+The pricing opener earns it by being the shortest `h1` on any marketing page -- "Fixed price. No surprises." -- over a one line lead. Left aligned, four words of display type left most of a `py-24 md:py-40` band empty to the right; centred, they sit as a plate over the prices below.
+
+The reference also set its label as a pill, the `emphasis` shape. The pricing opener deliberately does not take it: "Fixed price. No surprises." is already the landing page's emphasis heading (`marketing.landing.packages.title`), and a reader crossing to `/pricing` would meet what looks like the same block twice. `emphasis` also absorbs the lead into the heading's muted sentences, and this page's lead carries the 8.1% VAT note, which has to stay a sentence of its own. `emphasis` remains majors only.
+
 ### Hero object
 
 The hero is the statement, one lead, one control and one utility line, on the page ground (white in light, jet in dark) behind the ruled field, so the header never inverts on it; the headline is a `Statement` in `layout="flow"`. The hero's own controls take the `xl` button size and an `h-11` input (`CompanyLookupField size="hero"`); nothing else on the site uses that size.

@@ -1386,6 +1386,7 @@
       "formEmpty": "Enquiry form, empty",
       "formInvalid": "Enquiry form, every error shown",
       "sectionAnchor": "Section opener, anchor tier",
+      "sectionAnchorCentred": "Section opener, anchor tier, centred",
       "sectionMajor": "Section opener, major tier",
       "sectionMinor": "Section opener, minor tier",
       "sectionTitle": "Senior experts. No slides.",
