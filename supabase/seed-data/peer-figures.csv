@@ -24,3 +24,8 @@ skanska,ltifr,2024,2.2,,per_million_hours,employees_and_contractors,https://www.
 skanska,ltifr,2024,2.1,,per_million_hours,employees,https://www.skanska.com/group/en/sustainability/sustainability-performance/performance-metrics/five-year-overview,2026-09-13,admin,,
 skanska,iso_45001_certified,2024,1,,boolean,employees,https://www.skanska.com/group/en/sustainability/sustainability-performance/performance-metrics/five-year-overview,2026-09-13,admin,,
 geberit,lost_days_per_incident,2024,2275,111,days_over_lost_time_accidents,employees,https://reports.geberit.com/annual-report/2024/sustainability/performance-2024/people/occupational-health-and-safety.html,,,,
+symrise,ltifr,2024,1.97,,per_million_hours,employees,https://www.symrise.com/investors/financial-reports/,,,,
+symrise,lost_days_per_incident,2024,1105,54,days_over_lost_time_accidents,employees,https://www.symrise.com/investors/financial-reports/,,,,
+covestro,ltifr,2024,1.10,,per_200k_hours,employees,https://report.covestro.com/annual-report-2024/,,,,
+covestro,lost_days_per_incident,2024,521,34,days_over_lost_time_accidents,employees,https://report.covestro.com/annual-report-2024/,,,,
+vinci,lost_days_per_incident,2024,204991,2879,days_over_lost_time_accidents,employees,https://www.vinci.com/publi/vinci/extract/2024_workforce_related_environmental_and_social_information.pdf,,,365 Tage je tödlichen Unfall angerechnet,365 days charged per fatal accident

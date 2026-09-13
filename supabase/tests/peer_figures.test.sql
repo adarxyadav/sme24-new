@@ -5,7 +5,7 @@
 -- holds the first curation, the third launch gate query (AC-2, AC-4, AC-14).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(36);
+select plan(38);
 
 create function pg_temp.impersonate(user_id uuid, app_role text, org_id uuid default null)
 returns void language plpgsql as $$
@@ -79,6 +79,14 @@ select cmp_ok((select count(*) from public.peer_figures f join public.peer_compa
 select cmp_ok((select count(*) from public.peer_figures f join public.peer_companies c on c.key = f.peer_key
     where c.industry_section = 'F' and f.kpi_key = 'ltifr'), '>=', 3::bigint,
   'the seed holds at least three LTIFR figures in construction');
+-- The chart's rows (AC-23): at least three lost days figures in manufacturing and one in
+-- construction, verified or not, so the bubble chart has an axis to draw on once they are read.
+select cmp_ok((select count(*) from public.peer_figures f join public.peer_companies c on c.key = f.peer_key
+    where c.industry_section = 'C' and f.kpi_key = 'lost_days_per_incident'), '>=', 3::bigint,
+  'the seed holds at least three lost days figures in manufacturing');
+select cmp_ok((select count(*) from public.peer_figures f join public.peer_companies c on c.key = f.peer_key
+    where c.industry_section = 'F' and f.kpi_key = 'lost_days_per_incident'), '>=', 1::bigint,
+  'the seed holds at least one lost days figure in construction');
 -- The third launch gate query (AC-14) is asserted as a shape, not a count: an unverified row is
 -- invisible to the task, so it can only ever cost a peer. Production must read zero, and the gate
 -- query in docs/benchmark.md is what enforces that before a promotion.

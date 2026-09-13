@@ -16,7 +16,7 @@ import {
 import { parseSnapshotBlocks, SNAPSHOT_SCHEMAS } from "@/features/benchmark/snapshot";
 import { KPI_CATALOGUE, KPI_KEYS, type KpiKey } from "@/features/research/catalogue";
 import { FIXTURE_VALUES } from "@/lib/research/fixture";
-import { seedAssumptions, seedCatalogue, seedPeers } from "./seed-helpers";
+import { seedAssumptions, seedPeers } from "./seed-helpers";
 
 /**
  * The named published peers (spec 0021, AC-6 to AC-9, AC-12): the freshness, latest year and

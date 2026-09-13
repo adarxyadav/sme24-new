@@ -166,28 +166,28 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
       fatalities.getByText(/Eurostat hsw_n2_02 · NACE C · all sizes · 2023/),
     ).toBeVisible();
     // The named published peers (spec 0021, AC-17): the fixture's LTIFR 2.4 against the committed
-    // library of section C. Switzerland holds two published manufacturers (Geberit, Rieter) and
-    // the DACH region no more, so the ladder widens to Europe, where Sandvik's 1.2 makes the
-    // fixture 2nd of 3. The card replaces the row: the rank line with the word publish, the
-    // rung sentence, one linked source per row, the client row with no money, and the strip's
-    // screen reader sentence.
+    // library of section C. Four Swiss manufacturers publish an LTIFR (Rieter 3.3, SFS 4.1,
+    // Geberit 6.0, Georg Fischer 6.5), so the ladder stops on the country rung and the fixture
+    // leads them all. The card replaces the row: the rank line with the word publish, the rung
+    // sentence, one linked source per row, the client row with no money, and the strip's screen
+    // reader sentence.
     const ltifr = page.locator('[data-position-kpi="ltifr"]');
     await expect(ltifr.getByText("No peer data yet")).toHaveCount(0);
     const standing = ltifr.locator('[data-peer-standing="ltifr"]');
-    await expect(standing).toHaveAttribute("data-geo-rung", "europe");
-    await expect(standing).toHaveAttribute("data-rank", "2");
+    await expect(standing).toHaveAttribute("data-geo-rung", "country");
+    await expect(standing).toHaveAttribute("data-rank", "1");
     await expect(standing.locator("[data-rank-line]")).toContainText(
-      "2nd of 3 companies in Manufacturing in Europe that publish an LTIFR",
+      "1st of 4 companies in Manufacturing in Switzerland that publish an LTIFR",
     );
     await expect(standing.locator("[data-gap-line]")).toContainText(
-      "1.20 behind Sandvik AB, the best published peer",
+      "Ahead of every published peer; Rieter Holding AG is the closest",
     );
     await expect(standing.locator("[data-rung-sentence]")).toContainText(
-      "Fewer than three companies in Switzerland publish an LTIFR, so the comparison widened to Europe.",
+      "All published peers are from Switzerland.",
     );
     const peerRows = standing.locator("[data-peer-row]");
-    await expect(peerRows).toHaveCount(3);
-    for (const key of ["sandvik", "rieter", "geberit"]) {
+    await expect(peerRows).toHaveCount(4);
+    for (const key of ["rieter", "sfs", "geberit", "georg-fischer"]) {
       const link = standing.locator(`[data-peer-row="${key}"] a`);
       await expect(link).toHaveAttribute("href", /^https:\/\//);
       await expect(link).toHaveAttribute("rel", "noopener noreferrer");
@@ -196,23 +196,66 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(clientRow).toHaveCount(1);
     await expect(clientRow).toContainText("2.40");
     await expect(clientRow).not.toContainText("CHF");
-    // The saving column is the client's own: a figure at Sandvik, already ahead of the other two.
-    await expect(standing.locator('[data-peer-row="sandvik"] [data-saving]')).toContainText("CHF");
+    // The saving column is the client's own: already ahead of every Swiss peer.
     await expect(standing.locator('[data-peer-row="rieter"] [data-saving]')).toContainText(
       "already ahead",
     );
     await expect(standing.locator('[data-slot="peer-strip"] .sr-only')).toContainText(
-      "Your value 2.40 against 3 published peers in Europe, from 1.20 to 6.00.",
+      "Your value 2.40 against 4 published peers in Switzerland, from 3.30 to 6.50.",
     );
     // The forbidden words never appear on the card.
     expect(((await standing.textContent()) ?? "").toLowerCase()).not.toMatch(
       /quarter|quartile|median/,
     );
-    // TRIFR has only two published manufacturers (Sandvik, BASF), so it keeps today's row and
-    // says so (AC-12).
-    const trifr = page.locator('[data-position-kpi="trifr"]');
-    await expect(trifr.locator("[data-peer-standing]")).toHaveCount(0);
-    await expect(trifr.getByText("No published peer yet")).toBeVisible();
+    // TRIFR: no Swiss manufacturer publishes one, the DACH region holds three (BASF, Lenzing,
+    // Wienerberger), so the card widens to the region and the fixture's 6.1 ranks third (AC-6).
+    const trifr = page.locator('[data-position-kpi="trifr"] [data-peer-standing="trifr"]');
+    await expect(trifr).toHaveAttribute("data-geo-rung", "region");
+    await expect(trifr).toHaveAttribute("data-rank", "3");
+    await expect(trifr.locator("[data-rung-sentence]")).toContainText(
+      "Fewer than three companies in Switzerland publish a TRIFR, so the comparison widened to the DACH region.",
+    );
+    // The peer bubble chart (spec 0021, AC-22, AC-25): the points are the LTIFR rung's peers that
+    // also hold a lost days figure, and in Switzerland that is Geberit alone, once its quotient
+    // row (2 275 days lost over 111 lost time accidents) is signed off. Until the owner has read
+    // that page the task never loads the row and the chart hides behind its one sentence, so the
+    // assertion follows the seed's state rather than pretending.
+    const { data: geberitLostDays } = await serviceClient()
+      .from("peer_figures")
+      .select("verified_at")
+      .eq("peer_key", "geberit")
+      .eq("kpi_key", "lost_days_per_incident")
+      .maybeSingle();
+    if (geberitLostDays?.verified_at) {
+      const chart = page.locator('[data-peer-chart="drawn"]');
+      await expect(chart).toHaveAttribute("data-points", "2");
+      const bubbles = chart.locator("[data-bubble]");
+      await expect(bubbles).toHaveCount(2);
+      await expect(chart.locator("[data-bubble][data-client]")).toHaveCount(1);
+      await expect(chart.locator("[data-sector-line]")).toHaveAttribute("data-sector-line", "14.5");
+      // Every bubble takes keyboard focus and shows its tooltip; Geberit's names both printed numbers.
+      for (const key of ["client", "geberit"]) {
+        const bubble = chart.locator(`[data-bubble="${key}"]`);
+        await bubble.focus();
+        await expect(bubble).toBeFocused();
+        await expect(chart.locator(`[data-chart-tooltip="${key}"]`)).toBeVisible();
+      }
+      await expect(chart.locator('[data-chart-tooltip="geberit"]')).toContainText("Geberit AG");
+      await expect(chart.locator('[data-chart-tooltip="geberit"]')).toContainText(
+        /2.275 days lost over 111 lost time accidents, as published/,
+      );
+      await expect(chart.locator('[data-chart-tooltip="geberit"]')).toContainText("LTIFR 6.00");
+      // The screen reader table names every point, the client first.
+      const rows = chart.locator("[data-chart-table] tbody tr");
+      await expect(rows).toHaveCount(2);
+      await expect(rows.nth(0)).toContainText("Your company");
+      await expect(rows.nth(1)).toContainText("Geberit AG");
+    } else {
+      await expect(page.locator('[data-peer-chart="hidden"]')).toContainText(
+        "The bubble chart needs your LTIFR and your days lost per incident",
+      );
+      await expect(page.locator('[data-peer-chart="drawn"]')).toHaveCount(0);
+    }
     await expectNoAxeViolations(page);
 
     // The benchmark ready email (AC-7): one delivery per member on the first snapshot, in the
@@ -324,11 +367,22 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     expect(first?.trigger_kind).toBe("research");
     expect(first?.research_run_id).not.toBeNull();
     expect(first?.kpis_compared).toBe(4);
-    // The peers block is stored under the version that carries it (spec 0021, AC-9).
-    expect(first?.model_version).toBe("benchmark-model@5");
-    const storedPeers = first?.peers as ReadonlyArray<{ key: string; rows: unknown[] }> | null;
-    expect(storedPeers?.map((block) => block.key)).toEqual(["ltifr"]);
-    expect(storedPeers?.[0]?.rows).toHaveLength(3);
+    // The peers block is stored under the version that carries it (spec 0021, AC-9, AC-20):
+    // the LTIFR block on the Swiss rung, TRIFR and ISO 45001 on the DACH rung, and the chart
+    // block with the client's own point whatever the peer points hold.
+    expect(first?.model_version).toBe("benchmark-model@6");
+    const storedPeers = first?.peers as ReadonlyArray<{
+      key: string;
+      rows: unknown[];
+      chart: { client: { ltifr: number; lostDays: number } | null; points: unknown[] };
+    }> | null;
+    expect(storedPeers?.map((block) => block.key)).toEqual([
+      "ltifr",
+      "trifr",
+      "iso_45001_certified",
+    ]);
+    expect(storedPeers?.[0]?.rows).toHaveLength(4);
+    expect(storedPeers?.[0]?.chart.client).toEqual({ ltifr: 2.4, lostDays: 12.5, headcount: 420 });
     expect(first?.peer_provisional).toBe(true);
     expect(Number(first?.saving_median_chf)).toBeCloseTo(ANNUAL - AT_MEDIAN, 0);
     expect(second?.trigger_kind).toBe("client_edit");
