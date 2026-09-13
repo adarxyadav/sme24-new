@@ -4,10 +4,11 @@ import {
   ASSUMPTION_KEYS,
   type AssumptionKey,
   GEO_RUNGS,
+  PEER_BASES,
   PEER_KPI_KEYS,
+  PUBLISHED_UNITS,
   SIZE_BANDS,
 } from "./catalogue";
-import { PEER_BASES, PUBLISHED_UNITS } from "./seed-schema";
 
 /**
  * The snapshot block schemas (spec 0008, AC-4, AC-9): what `benchmark_snapshots.inputs`,

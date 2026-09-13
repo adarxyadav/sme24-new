@@ -199,12 +199,6 @@ describe("benchmark-company failures", () => {
 /** The stored rows a computation reads (AC-5): the active catalogue, the company's KPIs, the peers and the assumptions. */
 function seedComputation() {
   state.tables.kpi_definitions = [
-    {
-      key: "accident_rate_per_1000_fte",
-      direction: "lower_is_better",
-      sort_order: 10,
-      is_active: true,
-    },
     { key: "ltifr", direction: "lower_is_better", sort_order: 20, is_active: true },
     {
       key: "lost_days_per_incident",
@@ -216,17 +210,6 @@ function seedComputation() {
   ];
   state.tables.company_kpi_current = [
     {
-      id: "0f000000-0000-4000-8000-000000000001",
-      company_id: COMPANY,
-      organization_id: ORG,
-      kpi_key: "accident_rate_per_1000_fte",
-      value: "68",
-      period_year: 2025,
-      source: "research",
-      confidence: "0.9",
-      research_run_id: RUN,
-    },
-    {
       id: "0f000000-0000-4000-8000-000000000002",
       company_id: COMPANY,
       organization_id: ORG,
@@ -234,7 +217,7 @@ function seedComputation() {
       value: "2.4",
       period_year: 2025,
       source: "research",
-      confidence: "0.8",
+      confidence: "0.9",
       research_run_id: RUN,
     },
     // Another company's row must never leak into this computation.
@@ -336,7 +319,11 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     expect((await emailTrigger()).mock.calls).toHaveLength(0);
   });
 
-  it("stores one row keyed by the loaded company and organization with the version 1 blocks and the scalars", async () => {
+  // Spec 0022 (AC-19) dropped the four curated tables, so the task feeds `computeBenchmark` empty
+  // peers and assumptions until `model.ts` is rewritten to `@7`. A snapshot still lands, keyed by
+  // the loaded ids and carrying the inputs; what it cannot carry yet is a peer comparison or a
+  // cost, which is exactly what an `outdated` row means to the reader (AC-18).
+  it("stores one row keyed by the loaded company and organization, with no peer or cost yet", async () => {
     seedComputation();
     (state.tables.companies?.[0] as Row).employees_count = 420;
     (state.tables.companies?.[0] as Row).industry_code = "23.61";
@@ -354,13 +341,13 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       research_run_id: RUN,
       trigger_kind: "research",
       model_version: "benchmark-model@5",
-      peer_provisional: true,
-      kpis_compared: 2,
-      confidence: 0.9,
+      kpis_compared: 0,
+      confidence: null,
     });
-    expect(stored.cost_chf).toBeGreaterThan(0);
-    expect(stored.cost_low_chf).toBeLessThan(stored.cost_chf as number);
-    expect(stored.cost_high_chf).toBeGreaterThan(stored.cost_chf as number);
+    // No assumption rows reach the model, so no cost is priced and nothing is NaN.
+    expect(stored.cost_chf).toBeNull();
+    expect(stored.cost).toBeNull();
+    expect(stored.assumptions).toEqual([]);
     const inputs = stored.inputs as Row;
     expect(inputs).toMatchObject({
       fte: 420,
@@ -370,43 +357,18 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       companyUpdatedAt: "2026-09-06T10:00:00.000Z",
     });
     // Only this company's rows, and only catalogue keys, reach the model.
-    expect((inputs.kpis as Row[]).map((kpi) => kpi.key)).toEqual([
-      "accident_rate_per_1000_fte",
-      "ltifr",
-    ]);
-    expect((stored.results as Row[]).map((result) => result.key)).toEqual([
-      "accident_rate_per_1000_fte",
-      "ltifr",
-    ]);
-    expect((stored.cost as Row).incidentKpi).toBe("accident_rate_per_1000_fte");
-    expect((stored.cost as Row).lostDaysSource).toBe("default");
-    // The cost line took the Suva path, but the derived block derived its lost time count from
-    // LTIFR, so the hours assumption is used after all and the disclosure names it (spec 0012, AC-11).
-    expect((stored.assumptions as Row[]).map((assumption) => assumption.key)).toContain(
-      "hours_per_fte",
-    );
-    // The block survives the task's parse and reaches the row rather than being stripped (AC-15).
-    // The derived block names LTIFR while the cost line took the Suva rate, so the two counts are
-    // deliberately different numbers here; the equality invariant holds only when the keys match.
-    const derived = stored.derived as Row;
-    expect(derived).not.toBeNull();
-    expect((derived.lostTime as Row).fromKey).toBe("ltifr");
-    expect((derived.lostTime as Row).count).toBeGreaterThan(0);
-    expect(derived.fte).toBe(420);
+    expect((inputs.kpis as Row[]).map((kpi) => kpi.key)).toEqual(["ltifr"]);
+    expect((stored.results as Row[]).map((result) => result.key)).toEqual(["ltifr"]);
+    // Every result carries a null peer: there is no library left to select one from.
+    expect((stored.results as Row[]).every((result) => result.peer === null)).toBe(true);
   });
 
-  // A missing assumption row gives a null cost with a named cause on the computed step, never NaN
-  // in the row (spec 0016 amendment, AC-20). The LTIFR arm needs `hours_per_fte`, so drop the Suva
-  // rate and the hours row: the model names the key, the task logs it and never stores it.
+  // A cost that cannot be priced is logged with a named cause on the computed step, never NaN in
+  // the row (spec 0016 amendment, AC-20). Since spec 0022 no assumption row is loaded at all, so
+  // the reason is always the first key the LTIFR arm needs.
   it("logs the missing assumption on the computed step and stores a null cost instead of NaN (amendment AC-20)", async () => {
     seedComputation();
     (state.tables.companies?.[0] as Row).employees_count = 420;
-    state.tables.company_kpi_current = (state.tables.company_kpi_current as Row[]).filter(
-      (row) => row.kpi_key !== "accident_rate_per_1000_fte",
-    );
-    state.tables.benchmark_assumptions = (state.tables.benchmark_assumptions as Row[]).filter(
-      (row) => row.key !== "hours_per_fte",
-    );
     // The structured logger writes one JSON line per step to stdout; read the computed step back.
     const stdout = vi.spyOn(console, "log").mockImplementation(() => {});
     try {
@@ -429,7 +391,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
         .find((entry) => entry?.msg === "benchmark computed");
       expect(computed).toMatchObject({
         costChf: null,
-        costSkipped: { reason: "missing_assumption", key: "hours_per_fte" },
+        costSkipped: { reason: "missing_assumption" },
       });
     } finally {
       stdout.mockRestore();
@@ -486,7 +448,9 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     // The row is written under the live version, and that version really is in the map.
     expect(stored.model_version).toBe(MODEL_VERSION);
     expect(SNAPSHOT_SCHEMAS[MODEL_VERSION]).toBeDefined();
-    expect(stored.derived).not.toBeNull();
+    // The derived counts need the hours assumption, which spec 0022 no longer loads, so the block
+    // is null here; what this test pins is the write and read schemas agreeing, either way.
+    expect(stored.derived).toBeNull();
     // What the task wrote round trips through the reader, so the write and read schemas agree.
     const parsed = parseSnapshotBlocks({
       model_version: stored.model_version as string,
@@ -522,44 +486,28 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
 });
 
 describe("the benchmark ready email (AC-7)", () => {
-  it("queues one email per member of the organization on the first snapshot, with rounded money and a stable key", async () => {
+  // The money the email leads with is rounded outward by the same function the card uses (spec
+  // 0016, AC-9, AC-13). Spec 0022 (AC-19) removed the assumption rows the cost needed, so no cost
+  // is computed here and the money keys drop out of the payload altogether; the rounding itself
+  // is pinned by the model's own tests until `@7` restores a priced figure.
+  it("queues one email per member of the organization on the first snapshot, with a stable key", async () => {
     seedComputation();
     (state.tables.companies?.[0] as Row).employees_count = 420;
     const task = await loadTask();
     const outcome = await task.run(payload, { ctx });
     const trigger = await emailTrigger();
     expect(trigger).toHaveBeenCalledTimes(2);
-    const stored = state.tables.benchmark_snapshots?.[0] as Row;
     for (const [index, userId] of [MEMBER_A, MEMBER_B].entries()) {
       const [sendPayload, options] = trigger.mock.calls[index] as unknown as [Row, Row];
       expect(sendPayload).toEqual({
         kind: "new",
         template: "benchmark_ready",
-        data: {
-          companyName: "Muster AG",
-          kpisCompared: 2,
-          costChf: expect.any(Number),
-          savingMedianChf: expect.any(Number),
-          // The range the email leads with, rounded outward by the same function the card uses
-          // (spec 0016, AC-13).
-          costLowChf: expect.any(Number),
-          costHighChf: expect.any(Number),
-        },
+        data: { companyName: "Muster AG", kpisCompared: 0 },
         recipient: { userId },
         sourceEvent: "benchmark.snapshot_created",
         organizationId: ORG,
         idempotencyKey: `benchmark-ready/${COMPANY}/${userId}`,
       });
-      expect((sendPayload.data as Row).costChf).not.toBe(stored.cost_chf);
-      expect(((sendPayload.data as Row).costChf as number) % 100).toBe(0);
-      // The band contains the computed ends, so the email can never show a narrower range than
-      // the arithmetic (spec 0016, AC-9, AC-13).
-      const low = (sendPayload.data as Row).costLowChf as number;
-      const high = (sendPayload.data as Row).costHighChf as number;
-      expect(low).toBeLessThanOrEqual(Number(stored.cost_low_chf));
-      expect(high).toBeGreaterThanOrEqual(Number(stored.cost_high_chf));
-      expect(low).toBeLessThanOrEqual((sendPayload.data as Row).costChf as number);
-      expect(high).toBeGreaterThanOrEqual((sendPayload.data as Row).costChf as number);
       expect(options).toEqual({
         idempotencyKey: `benchmark-ready/${COMPANY}/${userId}`,
         idempotencyKeyTTL: "30d",
@@ -574,7 +522,7 @@ describe("the benchmark ready email (AC-7)", () => {
     await task.run(payload, { ctx });
     const trigger = await emailTrigger();
     const [sendPayload] = trigger.mock.calls[0] as unknown as [Row];
-    expect(sendPayload.data).toEqual({ companyName: "Muster AG", kpisCompared: 2 });
+    expect(sendPayload.data).toEqual({ companyName: "Muster AG", kpisCompared: 0 });
   });
 
   it("sends nothing for a second snapshot of the same company", async () => {
@@ -639,7 +587,7 @@ describe("the benchmark ready email (AC-7)", () => {
           organizationId: ORG,
           companyId: COMPANY,
           triggerKind: "recompute",
-          kpisCompared: 2,
+          kpisCompared: 0,
         }),
       }),
     );

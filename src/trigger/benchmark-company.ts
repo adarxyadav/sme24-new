@@ -4,14 +4,7 @@ import * as Sentry from "@sentry/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, queue, schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod";
-import {
-  MODEL_VERSION,
-  PEER_KPI_KEYS,
-  type PeerKpiKey,
-  sectionOfDivision,
-  TRIGGER_KINDS,
-  type TriggerKind,
-} from "@/features/benchmark/catalogue";
+import { MODEL_VERSION, TRIGGER_KINDS, type TriggerKind } from "@/features/benchmark/catalogue";
 import {
   computeBenchmark,
   type ModelAssumption,
@@ -22,7 +15,6 @@ import {
   roundChf,
   roundChfRange,
 } from "@/features/benchmark/model";
-import { PEER_BASES, PUBLISHED_UNITS } from "@/features/benchmark/seed-schema";
 import { SNAPSHOT_SCHEMAS, type SnapshotBody } from "@/features/benchmark/snapshot";
 import { localeForUser } from "@/features/localization/queries";
 import { isKpiKey } from "@/features/research/catalogue";
@@ -99,17 +91,17 @@ export const benchmarkCompanyTask = schemaTask({
       attempt: ctx.attempt.number,
     });
 
-    const [catalogue, kpis, assumptions] = await Promise.all([
-      loadCatalogue(supabase),
-      loadKpis(supabase, ids),
-      loadAssumptions(supabase),
-    ]);
-    const peers = await loadPeers(supabase, [...new Set(kpis.map((row) => row.kpiKey))]);
+    const [catalogue, kpis] = await Promise.all([loadCatalogue(supabase), loadKpis(supabase, ids)]);
+    // Spec 0022 (AC-19) dropped the four curated tables these three inputs were loaded from. The
+    // peers of a research run take their place and `benchmark-model@7` takes no sector row or
+    // assumption at all, so they are empty until `computeBenchmark` is rewritten; a snapshot
+    // written in between carries no peer comparison, which is what an `outdated` row means to the
+    // reader anyway (AC-18).
+    const peers: readonly ModelPeerRow[] = [];
+    const assumptions: readonly ModelAssumption[] = [];
+    const library: ModelPeerLibrary = { companies: [], figures: [] };
     // The re read right before computing: its updated_at becomes inputs.companyUpdatedAt (AC-5).
     const fresh = (await loadCompany(supabase, ids.companyId, ids.organizationId)) ?? company;
-    // The named peer library of the company's section (spec 0021, AC-5): verified figures only,
-    // one section, loaded after the re read so the section is the one the snapshot records.
-    const library = await loadPeerLibrary(supabase, sectionOfDivision(fresh.industry_code));
     const body = computeBenchmark({
       company: {
         id: fresh.id,
@@ -446,127 +438,6 @@ async function loadKpis(supabase: Service, ids: CompanyIds): Promise<readonly Mo
       },
     ];
   });
-}
-
-async function loadPeers(
-  supabase: Service,
-  keys: readonly string[],
-): Promise<readonly ModelPeerRow[]> {
-  if (keys.length === 0) return [];
-  const { data, error } = await supabase
-    .from("benchmarks")
-    .select("*")
-    .in("kpi_key", [...keys]);
-  if (error) throw queryError(error);
-  return data.flatMap((row) =>
-    isKpiKey(row.kpi_key)
-      ? [
-          {
-            id: row.id,
-            kpiKey: row.kpi_key,
-            industrySection: row.industry_section,
-            sizeBand: row.size_band as ModelPeerRow["sizeBand"],
-            periodYear: row.period_year,
-            p25: Number(row.p25),
-            median: Number(row.median),
-            p75: Number(row.p75),
-            sampleSize: row.sample_size,
-            provisional: row.provisional,
-            sourceKey: row.source_key,
-            basis: localizedText(row.basis),
-          },
-        ]
-      : [],
-  );
-}
-
-/**
- * The named peer library of one NACE section (spec 0021, AC-5): the `peer_companies` rows of the
- * section and their `peer_figures` rows for the four KPIs where `verified_at is not null`, so the
- * model never sees an unverified figure. Empty when the section is null. Throws on a database
- * error so the attempt retries.
- */
-async function loadPeerLibrary(
-  supabase: Service,
-  section: string | null,
-): Promise<ModelPeerLibrary> {
-  if (section === null) return { companies: [], figures: [] };
-  const { data: companyRows, error: companyError } = await supabase
-    .from("peer_companies")
-    .select("key, name, country, industry_section, headcount, headcount_year, report_url")
-    .eq("industry_section", section);
-  if (companyError) throw queryError(companyError);
-  const companies = companyRows.map((row) => ({
-    key: row.key,
-    name: row.name,
-    country: row.country,
-    industrySection: row.industry_section,
-    headcount: row.headcount,
-    headcountYear: row.headcount_year,
-    reportUrl: row.report_url,
-  }));
-  if (companies.length === 0) return { companies, figures: [] };
-  const { data: figureRows, error: figureError } = await supabase
-    .from("peer_figures")
-    .select(
-      "peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url, verified_at",
-    )
-    .in(
-      "peer_key",
-      companies.map((company) => company.key),
-    )
-    .in("kpi_key", [...PEER_KPI_KEYS])
-    .not("verified_at", "is", null);
-  if (figureError) throw queryError(figureError);
-  const isPeerKpi = (value: string): value is PeerKpiKey =>
-    (PEER_KPI_KEYS as readonly string[]).includes(value);
-  const figures = figureRows.flatMap((row) => {
-    const unit = PUBLISHED_UNITS.find((candidate) => candidate === row.unit_as_published);
-    const basis = PEER_BASES.find((candidate) => candidate === row.basis);
-    // The task's own filter already excludes an unverified row; the guard keeps the type honest.
-    if (!isPeerKpi(row.kpi_key) || !unit || !basis || row.verified_at === null) return [];
-    return [
-      {
-        peerKey: row.peer_key,
-        kpiKey: row.kpi_key,
-        periodYear: row.period_year,
-        value: Number(row.value),
-        valueAsPublished: Number(row.value_as_published),
-        unitAsPublished: unit,
-        basis,
-        sourceUrl: row.source_url,
-        verifiedAt: row.verified_at,
-      },
-    ];
-  });
-  return { companies, figures };
-}
-
-/**
- * A `{de, en}` jsonb column as a typed pair, or `null` when the column is null or malformed. The
- * database check constraint requires both keys, so this only guards against a hand written row.
- * Pure.
- */
-function localizedText(value: unknown): { readonly de: string; readonly en: string } | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { de, en } = value as Record<string, unknown>;
-  return typeof de === "string" && typeof en === "string" ? { de, en } : null;
-}
-
-async function loadAssumptions(supabase: Service): Promise<readonly ModelAssumption[]> {
-  const { data, error } = await supabase.from("benchmark_assumptions").select("*");
-  if (error) throw queryError(error);
-  return data.map((row) => ({
-    key: row.key as ModelAssumption["key"],
-    value: Number(row.value),
-    unit: row.unit,
-    sourceName: row.source_name,
-    sourceUrl: row.source_url,
-    provisional: row.provisional,
-    effectiveFrom: row.effective_from,
-    isAssumption: row.is_assumption,
-    note: localizedText(row.note),
-  }));
 }
 
 /**

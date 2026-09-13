@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { createFormatter, NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
-import type { AssumptionRow, ParsedSnapshot } from "@/features/benchmark/queries";
+import type { ParsedSnapshot } from "@/features/benchmark/queries";
 import {
   type AssumptionUsed,
   type AssumptionUsedV3,
@@ -51,7 +51,6 @@ export function inputKpi(key: KpiKey, value: number, overrides: Partial<InputKpi
 }
 
 const KPI_INDEX: readonly KpiKey[] = [
-  "accident_rate_per_1000_fte",
   "ltifr",
   "trifr",
   "lost_days_per_incident",
@@ -125,28 +124,8 @@ export function assumptionUsed(
   };
 }
 
-/** A `benchmark_assumptions` row for the disclosure labels. */
-export function assumptionRow(key: string, overrides: Partial<AssumptionRow> = {}): AssumptionRow {
-  return {
-    key,
-    value: 1,
-    unit: "factor",
-    label: { de: `${key} (de)`, en: `${key} (en)` },
-    source_name: "Suva statistics",
-    source_url: null,
-    note: null,
-    provisional: true,
-    is_assumption: false,
-    effective_from: "2022-12-31",
-    created_at: "2026-09-06T00:00:00.000Z",
-    updated_at: "2026-09-06T00:00:00.000Z",
-    ...overrides,
-  };
-}
-
-/** The dashboard catalogue: eight active KPIs in sort order, so "n of 8 KPIs compared" holds. */
+/** The dashboard catalogue: the seven active KPIs in sort order (spec 0022, AC-4 retired the eighth). */
 export const catalogue = [
-  definition("accident_rate_per_1000_fte", { sort_order: 1, unit: "per 1 000 FTE" }),
   definition("ltifr", { sort_order: 2 }),
   definition("trifr", { sort_order: 3 }),
   definition("lost_days_per_incident", { sort_order: 4, unit: "days" }),
@@ -170,7 +149,6 @@ export function readyBlocks(overrides: Partial<SnapshotBlocks> = {}): SnapshotBl
       industryCode: "23.61",
       companyUpdatedAt: "2026-09-06T07:00:00.000Z",
       kpis: [
-        inputKpi("accident_rate_per_1000_fte", 68, { confidence: 0.8 }),
         inputKpi("ltifr", 2.4),
         inputKpi("trifr", 6.1),
         inputKpi("lost_days_per_incident", 12.5, { source: "client", confidence: 1 }),
@@ -180,13 +158,6 @@ export function readyBlocks(overrides: Partial<SnapshotBlocks> = {}): SnapshotBl
       ],
     },
     results: [
-      result("accident_rate_per_1000_fte", {
-        peer: peer([34.9, 49.9, 66.4], { sampleSize: 120 }),
-        position: "bottom_quarter",
-        gapToMedian: 18.1,
-        gapRelative: 0.363,
-        confidence: 0.8,
-      }),
       result("ltifr", {
         peer: peer([1, 2, 4], {
           rowId: UUID(501),
@@ -232,20 +203,15 @@ export function readyBlocks(overrides: Partial<SnapshotBlocks> = {}): SnapshotBl
     ],
     gaps: [
       gap(1, "fatalities", { reason: "fatality" }),
-      gap(2, "accident_rate_per_1000_fte", {
-        reason: "cost",
-        savingMedianChf: 522_340,
-        gapRelative: 0.363,
-      }),
-      gap(3, "lost_days_per_incident", {
+      gap(2, "lost_days_per_incident", {
         reason: "cost",
         savingMedianChf: 88_120,
         gapRelative: 0.25,
       }),
-      gap(4, "absenteeism_rate", { gapRelative: 0.086 }),
+      gap(3, "absenteeism_rate", { gapRelative: 0.086 }),
     ],
     cost: {
-      incidentKpi: "accident_rate_per_1000_fte",
+      incidentKpi: "ltifr",
       incidents: 28.56,
       lostDays: 12.5,
       lostDaysSource: "kpi",

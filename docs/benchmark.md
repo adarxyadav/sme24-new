@@ -186,34 +186,17 @@ Manufacturing (C): Geberit (CH, LTIFR 6.0 per million hours, employees only, ISO
 
 ## Launch gate
 
-The gate is three queries, because an unread value, an unsourceable one and an unverified named peer are different problems (spec 0016, AC-3; spec 0021, AC-14). Before the promotion, replace the readable rows from the published tables, generate the seed migration, run `pnpm benchmarks:recompute` on staging, then run all three.
+**Retired on 14 Sep 2026 (spec 0022, AC-19).** The gate was three queries over `benchmarks`,
+`benchmark_assumptions` and `peer_figures`: no value still waiting to be read, no undeclared
+assumption, no named peer figure waiting for a person to read its page. All four curated tables
+are dropped, so there is nothing left to count.
 
-**One: nothing is still waiting to be read.** This must return zero on both tables.
-
-```sql
-select 'benchmarks' as t, count(*) from public.benchmarks where provisional
-union all
-select 'benchmark_assumptions', count(*) from public.benchmark_assumptions where provisional;
-```
-
-**Two: every declared assumption is one you meant to declare.** This may return rows, but it must return exactly these three and nothing else.
-
-```sql
-select 'benchmarks' as t, kpi_key as key from public.benchmarks where is_assumption
-union all
-select 'benchmark_assumptions', key from public.benchmark_assumptions where is_assumption
-order by 1, 2;
-```
-
-Expected, and only these: `indirect_multiplier_low`, `indirect_multiplier`, `indirect_multiplier_high`, all on `benchmark_assumptions`. No peer row may be a declared assumption. A new name in that list is a new claim the product is making without a source, so it needs a decision, not a tick.
-
-**Three: no named peer figure is waiting for a person to read its page.** This must return zero in production (spec 0021, AC-14); a row with `verified_at` null is skipped by the task, so it can only ever cost a peer, never show one.
-
-```sql
-select count(*) from public.peer_figures where verified_at is null;
-```
-
-The pgTAP suites (`supabase/tests/benchmarks.test.sql`, `benchmark_assumptions.test.sql`, `peer_figures.test.sql`) assert both flags across both tables, including that no row is both provisional and a declared assumption, and that the seed holds no unverified peer figure; update them in the same change that clears a flag.
+What replaced it is a property of the run rather than a state of a table: the peers come from the
+research run that found them, each row carries its own `source_url` and the confidence the
+validator gave it, and a rate the validator could not support is dropped before it is ever
+stored (AC-8). There is no provisional row to clear and no curator's reading to owe, so no
+promotion is blocked on this file. The rest of this document is rewritten with the model in
+module 7 of the spec 0022 build plan.
 
 ## What is readable, and where
 

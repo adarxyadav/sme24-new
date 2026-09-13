@@ -303,13 +303,13 @@ describe("research-company (AC-4, AC-6, AC-14)", () => {
       step: "done",
       processor: "fixture",
       sourcesFound: 5,
-      kpisExtracted: 24,
+      kpisExtracted: 21,
       validation: "skipped",
       promptVersion: "",
     });
     expect(summary.years).toHaveLength(3);
     expect((summary.coverage as Row).ltifr).toBe("found");
-    expect(state.tables.company_kpis).toHaveLength(24);
+    expect(state.tables.company_kpis).toHaveLength(21);
     for (const kpi of state.tables.company_kpis ?? []) {
       expect(kpi).toMatchObject({
         organization_id: ORG,
@@ -345,7 +345,7 @@ describe("research-company (AC-4, AC-6, AC-14)", () => {
     const task = await loadTask();
     await task.run({ runId: RUN }, { ctx });
     expect(state.createRuns).toBe(0);
-    expect(state.tables.company_kpis).toHaveLength(24);
+    expect(state.tables.company_kpis).toHaveLength(21);
     const statusWrites = writes("research_runs").filter(
       (call) => (call.patch as Row)?.status !== undefined,
     );
@@ -358,7 +358,7 @@ describe("research-company (AC-4, AC-6, AC-14)", () => {
       started_at: new Date().toISOString(),
     });
     (state.tables.company_kpis as Row[]).push(
-      ...Array.from({ length: 24 }, (_, index) => ({
+      ...Array.from({ length: 21 }, (_, index) => ({
         id: `existing-${index}`,
         research_run_id: RUN,
         company_id: COMPANY,
@@ -368,17 +368,16 @@ describe("research-company (AC-4, AC-6, AC-14)", () => {
           "trifr",
           "fatalities",
           "lost_days_per_incident",
-          "accident_rate_per_1000_fte",
           "absenteeism_rate",
           "near_miss_rate",
           "iso_45001_certified",
-        ][index % 8],
-        period_year: new Date().getUTCFullYear() - 1 - Math.floor(index / 8),
+        ][index % 7],
+        period_year: new Date().getUTCFullYear() - 1 - Math.floor(index / 7),
       })),
     );
     const again = await task.run({ runId: RUN }, { ctx });
     expect(again).toEqual({ status: "succeeded" });
-    expect(state.tables.company_kpis).toHaveLength(24);
+    expect(state.tables.company_kpis).toHaveLength(21);
   });
 
   it("retries only the rows another attempt did not store while the bulk insert was in flight", async () => {
@@ -388,7 +387,7 @@ describe("research-company (AC-4, AC-6, AC-14)", () => {
       started_at: new Date().toISOString(),
     });
     // The up front read sees nothing, then a concurrent attempt stores one slot, so the bulk
-    // insert conflicts; the fallback must re-read and skip that slot rather than retry all 24.
+    // insert conflicts; the fallback must re-read and skip that slot rather than retry all 21.
     const year = new Date().getUTCFullYear() - 1;
     state.onKpiSelect = () => {
       state.onKpiSelect = null;
@@ -403,15 +402,15 @@ describe("research-company (AC-4, AC-6, AC-14)", () => {
     };
     const task = await loadTask();
     await expect(task.run({ runId: RUN }, { ctx })).resolves.toEqual({ status: "succeeded" });
-    expect(state.tables.company_kpis).toHaveLength(24);
+    expect(state.tables.company_kpis).toHaveLength(21);
 
     const inserts = state.calls.filter(
       (call) => call.table === "company_kpis" && call.op === "insert",
     );
-    // The bulk insert, the re-read, then 23 single rows: the raced slot is never retried.
-    expect(inserts).toHaveLength(1 + 23);
+    // The bulk insert, the re-read, then 20 single rows: the raced slot is never retried.
+    expect(inserts).toHaveLength(1 + 20);
     const retried = inserts.slice(1).map((call) => (call.patch as Row[])[0]);
-    expect(retried).toHaveLength(23);
+    expect(retried).toHaveLength(20);
     expect(retried.some((row) => row?.kpi_key === "ltifr" && row?.period_year === year)).toBe(
       false,
     );
@@ -569,7 +568,7 @@ describe("a passed validation (AC-5, AC-6)", () => {
     expect((summary.coverage as Row).ltifr).toBe("found");
     expect((summary.coverage as Row).trifr).toBe("not_found");
     const dropped = summary.dropped as Array<{ key: string; reason: string }>;
-    expect(dropped).toHaveLength(22);
+    expect(dropped).toHaveLength(19);
     expect(dropped.every((entry) => entry.reason === "unsupported")).toBe(true);
 
     // The facts fill only null columns: the canton the client already set stays.
@@ -624,7 +623,7 @@ describe("the step logs (AC-15)", () => {
     expect(ours.at(-1)).toMatchObject({ benchmarkRunId: "run_1" });
     const finished = steps.at(-1) as Row;
     expect(finished.providerRunId).toMatch(/^fixture_/);
-    expect(finished).toMatchObject({ status: "succeeded", stored: 24 });
+    expect(finished).toMatchObject({ status: "succeeded", stored: 21 });
     expect(typeof finished.totalMs).toBe("number");
   });
 });

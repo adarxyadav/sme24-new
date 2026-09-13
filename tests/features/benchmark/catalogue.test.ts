@@ -86,11 +86,7 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
   });
 
   it("names the cost linked KPIs, the seven assumption keys, the model version and the wait", () => {
-    expect(COST_LINKED_KPIS).toEqual([
-      "accident_rate_per_1000_fte",
-      "ltifr",
-      "lost_days_per_incident",
-    ]);
+    expect(COST_LINKED_KPIS).toEqual(["ltifr", "lost_days_per_incident"]);
     for (const key of COST_LINKED_KPIS) expect(KPI_KEYS).toContain(key);
     expect(ASSUMPTION_KEYS).toEqual([
       "hours_per_fte",

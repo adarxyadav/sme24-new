@@ -10,6 +10,7 @@ create table public.research_runs (
   status text not null default 'queued' check (status in ('queued', 'running', 'succeeded', 'empty', 'failed')),
   trigger_run_id text null,
   provider_run_id text null,
+  peer_provider_run_id text null,
   requested_by uuid null references public.profiles (id) on delete set null,
   started_at timestamptz null,
   finished_at timestamptz null,
@@ -24,6 +25,7 @@ comment on table public.research_runs is 'One research job per company: queued â
 comment on column public.research_runs.error_message is 'A message safe to show to the client; details go to Sentry.';
 comment on column public.research_runs.summary is 'What feature 8 shows about sources and coverage.';
 comment on column public.research_runs.provider_run_id is 'The research provider''s run id (spec 0007): written before the first poll so a retry resumes instead of paying twice.';
+comment on column public.research_runs.peer_provider_run_id is 'The provider''s run id for the peer search (spec 0022, AC-6): written before the first poll so a retry of research-peers resumes that run instead of paying twice.';
 
 create index research_runs_organization_id_created_at_idx on public.research_runs (organization_id, created_at desc);
 create index research_runs_company_id_created_at_idx on public.research_runs (company_id, created_at desc);

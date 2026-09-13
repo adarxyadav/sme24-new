@@ -325,25 +325,11 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     created_at: "2026-09-06T09:30:00.000Z",
     updated_at: "2026-09-06T09:30:00.000Z",
   };
-  const assumptionRow = {
-    key: "indirect_multiplier",
-    value: "3.7",
-    unit: "factor",
-    label: { de: "Faktor", en: "Factor" },
-    source_name: "test",
-    source_url: null,
-    note: null,
-    provisional: true,
-    effective_from: "2022-12-31",
-    created_at: "2026-09-06T00:00:00.000Z",
-    updated_at: "2026-09-06T00:00:00.000Z",
-  };
 
   it("loads the company's newest snapshot with its numbers parsed and the ready state", async () => {
     const { client, calls } = fakeClient(
       baseAnswers({
         benchmark_snapshots: () => ({ data: [snapshotRow] }),
-        benchmark_assumptions: () => ({ data: [assumptionRow] }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
@@ -371,7 +357,6 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     const { client } = fakeClient(
       baseAnswers({
         benchmark_snapshots: () => ({ data: [{ ...snapshotRow, kpis_compared: 0 }] }),
-        benchmark_assumptions: () => ({ data: [assumptionRow] }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);

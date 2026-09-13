@@ -61,7 +61,14 @@ export function sectionOfDivision(code: string | null | undefined): string | nul
   return section?.letter ?? null;
 }
 
-/** The Swiss SME size bands as the Federal Statistical Office uses them, plus `all`. */
+/**
+ * The Swiss SME size bands as the Federal Statistical Office uses them, plus `all`.
+ *
+ * Spec 0022 (AC-19) removes the size band: `benchmark-model@7` compares against the peers one
+ * research run found, which carry their own headcount, so no band picks a row. They stay here
+ * only to keep the `@1` to `@6` schemas parsing stored snapshots, and go when `model.ts` and
+ * `snapshot.ts` are rewritten to `@7`.
+ */
 export const SIZE_BANDS = ["1-49", "50-249", "250+", "all"] as const;
 export type SizeBand = (typeof SIZE_BANDS)[number];
 
@@ -74,11 +81,7 @@ export function sizeBandOf(employees: number | null | undefined): SizeBand {
 }
 
 /** The KPIs whose gap carries a CHF saving in the ranking (spec 0008, AC-18 rule 6). */
-export const COST_LINKED_KPIS: readonly KpiKey[] = [
-  "accident_rate_per_1000_fte",
-  "ltifr",
-  "lost_days_per_incident",
-];
+export const COST_LINKED_KPIS: readonly KpiKey[] = ["ltifr", "lost_days_per_incident"];
 
 /** The four KPIs a named peer may publish (spec 0021, AC-2); the library holds no other. */
 export const PEER_KPI_KEYS = [
@@ -88,6 +91,18 @@ export const PEER_KPI_KEYS = [
   "iso_45001_certified",
 ] as const;
 export type PeerKpiKey = (typeof PEER_KPI_KEYS)[number];
+
+/**
+ * The units and bases a curated peer figure could be published in (spec 0021), lifted here when
+ * spec 0022 deleted the seed schema they lived in. Like SIZE_BANDS above they survive only to keep
+ * the `@1` to `@6` snapshot schemas parsing stored rows, and go with the `@7` rewrite; the peers
+ * of a research run carry their own three unit enum (spec 0022, AC-8) on `research_peers`.
+ */
+export const PUBLISHED_UNITS = ["per_million_hours", "per_200k_hours", "days", "boolean"] as const;
+export type PublishedUnit = (typeof PUBLISHED_UNITS)[number];
+
+export const PEER_BASES = ["employees", "employees_and_contractors"] as const;
+export type PeerBasis = (typeof PEER_BASES)[number];
 
 /** How many report years back a published figure still counts (spec 0021, AC-6): the current year minus three. */
 export const PEER_YEARS_BACK = 3;

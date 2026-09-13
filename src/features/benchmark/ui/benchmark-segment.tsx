@@ -666,17 +666,12 @@ function PositionRow({
             </>
           )
         ) : value !== null ? (
-          // A KPI with no peer row says why (spec 0016, AC-8): a `no_source` KPI is one no Swiss
-          // body publishes, so it gets its own sentence rather than the shared "not yet", which
-          // would have the client waiting for data that is never coming.
+          // A KPI with no peer row says so. The per KPI "no Swiss body publishes this" and "not
+          // read yet" sentences went with `peerStatus` and `peerNote` (spec 0022, AC-4): the peers
+          // now come from the research run rather than a curated Swiss table, so whether a figure
+          // exists is a property of that run, not of the KPI.
           <span className="flex flex-col gap-0.5 text-muted-foreground text-sm" data-no-peer>
-            <span>
-              {key && KPI_CATALOGUE[key].peerStatus === "no_source"
-                ? t("positions.peerStatus.noSourceTitle")
-                : key && KPI_CATALOGUE[key].peerStatus === "pending"
-                  ? t("positions.peerStatus.pendingTitle")
-                  : t("positions.noPeer")}
-            </span>
+            <span>{t("positions.noPeer")}</span>
             {key &&
             (PEER_KPI_KEYS as readonly string[]).includes(key) &&
             isPeerVersion(snapshot.modelVersion) ? (
@@ -691,10 +686,6 @@ function PositionRow({
               // (spec 0016 amendment, D3, AC-23): say what is missing rather than "no peer data".
               <span className="text-xs" data-fatality-needs-headcount>
                 {t("positions.fatalityNeedsHeadcount")}
-              </span>
-            ) : key ? (
-              <span className="text-xs" data-peer-status={KPI_CATALOGUE[key].peerStatus}>
-                {t(KPI_CATALOGUE[key].peerNote as "positions.noPeer")}
               </span>
             ) : null}
           </span>

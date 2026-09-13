@@ -95,6 +95,31 @@ begin
 end;
 $$;
 
+-- True when the expert is `active` (spec 0022, AC-26). Definer because the caller is usually a
+-- client, and a client reads no `expert_profiles` row at all: under the caller's own RLS the
+-- lookup answers zero rows and the storage policy that calls this would never match. It answers
+-- one boolean about an account's status and nothing about the profile, which is why widening it
+-- to every signed in caller is safe; a signed out one gets false.
+create or replace function private.is_active_expert(expert uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if auth.uid() is null or expert is null then
+    return false;
+  end if;
+  return exists (
+    select 1
+    from public.expert_profiles e
+    where e.expert_id = expert
+      and e.status = 'active'
+  );
+end;
+$$;
+
 -- True while the organization has fewer than 5 research runs created in the last 24 hours
 -- (spec 0007, AC-2). Rows the action failed at once (`error_code = 'trigger_failed'`) do not
 -- count; stale rows do. Definer so the insert policy on research_runs does not recurse through
@@ -127,10 +152,12 @@ revoke execute on function private.jwt_org_id() from public;
 revoke execute on function private.is_ops() from public;
 revoke execute on function private.is_org_owner(uuid) from public;
 revoke execute on function private.is_assigned_expert(uuid) from public;
+revoke execute on function private.is_active_expert(uuid) from public, anon;
 revoke execute on function private.research_run_allowed(uuid) from public, anon;
 grant execute on function private.jwt_app_role() to authenticated, service_role;
 grant execute on function private.jwt_org_id() to authenticated, service_role;
 grant execute on function private.is_ops() to authenticated, service_role;
 grant execute on function private.is_org_owner(uuid) to authenticated, service_role;
 grant execute on function private.is_assigned_expert(uuid) to authenticated, service_role;
+grant execute on function private.is_active_expert(uuid) to authenticated, service_role;
 grant execute on function private.research_run_allowed(uuid) to authenticated, service_role;

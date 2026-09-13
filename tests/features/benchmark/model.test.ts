@@ -95,23 +95,23 @@ const assumptions: readonly ModelAssumption[] = [
   note: null,
 }));
 
+// Two LTIFR rows, the 2025 one newer: spec 0022 (AC-4) retired the Suva accident rate, so LTIFR
+// is both the cost model's incident rate and the KPI that exercises the "newest row wins" rule.
 const kpis: readonly ModelKpiRow[] = [
   kpi("ltifr", 2.4),
+  kpi("ltifr", 3.0, { periodYear: 2024 }),
   kpi("trifr", 6.1),
   kpi("fatalities", 0),
   kpi("lost_days_per_incident", 12.5, { confidence: 0.8 }),
-  kpi("accident_rate_per_1000_fte", 68),
-  kpi("accident_rate_per_1000_fte", 72, { periodYear: 2024 }),
   kpi("absenteeism_rate", 3.8),
   kpi("near_miss_rate", 14),
   kpi("iso_45001_certified", 1),
 ];
 
 const peers: readonly ModelPeerRow[] = [
-  peer("accident_rate_per_1000_fte", "C", "all", [34.9, 49.9, 66.4]),
-  peer("accident_rate_per_1000_fte", "ALL", "all", [25, 61.8, 81.2]),
-  peer("lost_days_per_incident", "ALL", "all", [8, 10, 14]),
+  peer("ltifr", "C", "all", [1.2, 2.0, 3.4]),
   peer("ltifr", "ALL", "all", [1, 2, 4]),
+  peer("lost_days_per_incident", "ALL", "all", [8, 10, 14]),
   peer("iso_45001_certified", "ALL", "all", [0.3, 0.3, 0.3]),
   peer("absenteeism_rate", "C", "all", [2.5, 3.5, 4.5]),
 ];
@@ -126,26 +126,27 @@ describe("computeBenchmark inputs, peers, positions and gaps (spec 0008, AC-4)",
     expect(body.inputs.sizeBand).toBe("250+");
     expect(body.inputs.fte).toBe(420);
     expect(body.inputs.companyUpdatedAt).toBe(company.updatedAt);
-    const accident = body.inputs.kpis.find((input) => input.key === "accident_rate_per_1000_fte");
-    expect(accident?.value).toBe(68);
-    expect(accident?.periodYear).toBe(2025);
-    expect(body.inputs.kpis).toHaveLength(8);
+    const ltifr = body.inputs.kpis.find((input) => input.key === "ltifr");
+    expect(ltifr?.value).toBe(2.4);
+    expect(ltifr?.periodYear).toBe(2025);
+    expect(body.inputs.kpis).toHaveLength(7);
   });
 
   it("walks the rung ladder and picks the nearest year", () => {
-    const result = compute().results.find((entry) => entry.key === "accident_rate_per_1000_fte");
+    // The section row wins over the ALL one, so LTIFR 2.4 is judged against [1.2, 2.0, 3.4].
+    const result = compute().results.find((entry) => entry.key === "ltifr");
     expect(result?.peer?.rung).toBe(2);
     expect(result?.peer?.industrySection).toBe("C");
     expect(result?.peer?.sizeBand).toBe("all");
     expect(result?.peer?.yearMatch).toBe("nearest");
-    expect(result?.position).toBe("bottom_quarter");
-    expect(result?.gapToMedian).toBeCloseTo(18.1);
-    expect(result?.gapRelative).toBeCloseTo(18.1 / 49.9);
+    expect(result?.position).toBe("below_median");
+    expect(result?.gapToMedian).toBeCloseTo(0.4);
+    expect(result?.gapRelative).toBeCloseTo(0.4 / 2.0);
   });
 
   it("falls to rung 4 for a division with no section rows", () => {
     const body = compute({ company: { ...company, industryCode: "62.01" } });
-    const result = body.results.find((entry) => entry.key === "accident_rate_per_1000_fte");
+    const result = body.results.find((entry) => entry.key === "ltifr");
     expect(body.inputs.section).toBe("J");
     expect(result?.peer?.rung).toBe(4);
     expect(result?.peer?.industrySection).toBe("ALL");
@@ -175,7 +176,7 @@ describe("computeBenchmark inputs, peers, positions and gaps (spec 0008, AC-4)",
       confidence: 0.9,
       comparedValue: null,
     });
-    expect(body.kpisCompared).toBe(5);
+    expect(body.kpisCompared).toBe(4);
   });
 
   it("positions lower is better and higher is better values against the quartiles", () => {
@@ -221,24 +222,28 @@ describe("computeBenchmark inputs, peers, positions and gaps (spec 0008, AC-4)",
 });
 
 describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-18)", () => {
-  it("prices the accident rate with the company's lost days and both savings", () => {
+  // LTIFR is a rate per million hours, so the incident count goes through the hours assumption:
+  // 2.4 x 420 x 1804 / 1 000 000. Spec 0022 (AC-4) retired the Suva accident rate, which was the
+  // other arm of this branch, so there is one arm left and no precedence to test.
+  it("prices LTIFR with the company's lost days and both savings", () => {
     const body = compute();
     const cost = body.cost;
-    expect(cost?.incidentKpi).toBe("accident_rate_per_1000_fte");
-    expect(cost?.incidents).toBeCloseTo(28.56);
+    const incidents = (2.4 * 420 * 1804) / 1_000_000;
+    expect(cost?.incidentKpi).toBe("ltifr");
+    expect(cost?.incidents).toBeCloseTo(incidents);
     expect(cost?.lostDays).toBe(12.5);
     expect(cost?.lostDaysSource).toBe("kpi");
     expect(cost?.costPerCase).toBeCloseTo(18_561);
-    expect(cost?.annual).toBeCloseTo(28.56 * 18_561 * 3.7, 3);
-    expect(cost?.low).toBeCloseTo(28.56 * 18_561 * 2, 3);
-    expect(cost?.high).toBeCloseTo(28.56 * 18_561 * 5, 3);
-    // At the peer median: rate 49.9 and the lost days peer median 10.
-    const atMedian = ((49.9 * 420) / 1000) * (4811 + 10 * 1100) * 3.7;
+    expect(cost?.annual).toBeCloseTo(incidents * 18_561 * 3.7, 3);
+    expect(cost?.low).toBeCloseTo(incidents * 18_561 * 2, 3);
+    expect(cost?.high).toBeCloseTo(incidents * 18_561 * 5, 3);
+    // At the peer median: the section row's LTIFR median 2.0 and the lost days peer median 10.
+    const atMedian = ((2.0 * 420 * 1804) / 1_000_000) * (4811 + 10 * 1100) * 3.7;
     expect(cost?.atMedian).toBeCloseTo(atMedian, 3);
-    expect(cost?.savingMedian).toBeCloseTo(28.56 * 18_561 * 3.7 - atMedian, 3);
-    const atTop = ((34.9 * 420) / 1000) * (4811 + 8 * 1100) * 3.7;
+    expect(cost?.savingMedian).toBeCloseTo(incidents * 18_561 * 3.7 - atMedian, 3);
+    const atTop = ((1.2 * 420 * 1804) / 1_000_000) * (4811 + 8 * 1100) * 3.7;
     expect(cost?.atTop).toBeCloseTo(atTop, 3);
-    expect(cost?.savingTop).toBeCloseTo(28.56 * 18_561 * 3.7 - atTop, 3);
+    expect(cost?.savingTop).toBeCloseTo(incidents * 18_561 * 3.7 - atTop, 3);
     expect(body.costChf).toBe(cost?.annual);
     expect(body.savingMedianChf).toBe(cost?.savingMedian);
     expect(body.savingTopChf).toBe(cost?.savingTop);
@@ -246,11 +251,9 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
     expect(body.costHighChf).toBe(cost?.high);
   });
 
-  it("falls back to LTIFR with the hours assumption and the default lost days", () => {
+  it("uses the default lost days when the client has no lost days row", () => {
     const body = compute({
-      kpis: kpis.filter(
-        (row) => !["accident_rate_per_1000_fte", "lost_days_per_incident"].includes(row.kpiKey),
-      ),
+      kpis: kpis.filter((row) => row.kpiKey !== "lost_days_per_incident"),
     });
     expect(body.cost?.incidentKpi).toBe("ltifr");
     expect(body.cost?.incidents).toBeCloseTo((2.4 * 420 * 1804) / 1_000_000);
@@ -265,14 +268,14 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   it("yields a saving of 0 for a company at the median", () => {
     const body = compute({
       kpis: kpis.map((row) => {
-        if (row.kpiKey === "accident_rate_per_1000_fte") return { ...row, value: 49.9 };
+        if (row.kpiKey === "ltifr") return { ...row, value: 2.0 };
         if (row.kpiKey === "lost_days_per_incident") return { ...row, value: 10 };
         return row;
       }),
     });
     expect(body.cost?.savingMedian).toBe(0);
     expect(body.cost?.savingTop).toBeGreaterThan(0);
-    expect(body.gaps.some((gap) => gap.key === "accident_rate_per_1000_fte")).toBe(false);
+    expect(body.gaps.some((gap) => gap.key === "ltifr")).toBe(false);
   });
 
   it("gives no cost without a headcount or with a headcount of 0, positions intact", () => {
@@ -282,18 +285,14 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
       expect(body.costChf).toBeNull();
       expect(body.confidence).toBeNull();
       expect(body.inputs.sizeBand).toBe("all");
-      expect(
-        body.results.find((entry) => entry.key === "accident_rate_per_1000_fte")?.position,
-      ).toBe("bottom_quarter");
-      expect(body.kpisCompared).toBe(5);
+      expect(body.results.find((entry) => entry.key === "ltifr")?.position).toBe("below_median");
+      expect(body.kpisCompared).toBe(4);
       expect(body.assumptions).toEqual([]);
     }
   });
 
-  it("gives no cost when neither incident KPI has a row", () => {
-    const body = compute({
-      kpis: kpis.filter((row) => !["accident_rate_per_1000_fte", "ltifr"].includes(row.kpiKey)),
-    });
+  it("gives no cost when the incident KPI has no row", () => {
+    const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "ltifr") });
     expect(body.cost).toBeNull();
   });
 
@@ -303,7 +302,7 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   it("prices a peer median of 0 as zero incidents, so the saving is the whole annual cost", () => {
     const body = compute({
       peers: peers.map((row) =>
-        row.kpiKey === "accident_rate_per_1000_fte" && row.industrySection === "C"
+        row.kpiKey === "ltifr" && row.industrySection === "C"
           ? { ...row, p25: 0, median: 0, p75: 0 }
           : row,
       ),
@@ -314,30 +313,30 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
     expect(body.cost?.savingTop).toBeCloseTo(body.cost?.annual ?? -1, 6);
     expect(body.savingMedianChf).toBe(body.cost?.savingMedian);
     // The relative gap keeps its own rule: a division by a median of 0 stays null.
-    const accident = body.results.find((entry) => entry.key === "accident_rate_per_1000_fte");
-    expect(accident?.gapRelative).toBeNull();
-    expect(accident?.gapToMedian).toBe(68);
+    const ltifr = body.results.find((entry) => entry.key === "ltifr");
+    expect(ltifr?.gapRelative).toBeNull();
+    expect(ltifr?.gapToMedian).toBe(2.4);
   });
 
   it("prices a peer p25 of 0 with a positive median as the whole annual cost at the top", () => {
     const body = compute({
       peers: peers.map((row) =>
-        row.kpiKey === "accident_rate_per_1000_fte" && row.industrySection === "C"
-          ? { ...row, p25: 0, median: 49.9, p75: 66.4 }
+        row.kpiKey === "ltifr" && row.industrySection === "C"
+          ? { ...row, p25: 0, median: 2.0, p75: 3.4 }
           : row,
       ),
     });
     expect(body.cost?.atTop).toBe(0);
     expect(body.cost?.savingTop).toBeCloseTo(body.cost?.annual ?? -1, 6);
     // The median reference is untouched by the top quarter being 0.
-    const atMedian = ((49.9 * 420) / 1000) * (4811 + 10 * 1100) * 3.7;
+    const atMedian = ((2.0 * 420 * 1804) / 1_000_000) * (4811 + 10 * 1100) * 3.7;
     expect(body.cost?.atMedian).toBeCloseTo(atMedian, 3);
   });
 
   // The saving is null only without a peer row at all.
   it("leaves both savings null only when the incident KPI has no peer row", () => {
     const body = compute({
-      peers: peers.filter((row) => row.kpiKey !== "accident_rate_per_1000_fte"),
+      peers: peers.filter((row) => row.kpiKey !== "ltifr"),
     });
     expect(body.cost).not.toBeNull();
     expect(body.cost?.atMedian).toBeNull();
@@ -348,24 +347,16 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
 
   // `assumptions` holds whatever rows the database returned, so a missing row used to reach the
   // arithmetic as `undefined` and yield `NaN` in the CHF figure (spec 0016 amendment, AC-20).
-  it("gives no cost and names the missing assumption instead of NaN, on both arms", () => {
+  it("gives no cost and names the missing assumption instead of NaN", () => {
     const without = (key: ModelAssumption["key"]) =>
       assumptions.filter((assumption) => assumption.key !== key);
-    // The Suva arm does not need the hours, so that row may go missing without effect.
-    const suvaArm = compute({ assumptions: without("hours_per_fte") });
-    expect(suvaArm.cost).not.toBeNull();
-    expect(suvaArm.costSkipped).toBeNull();
-    expect(Number.isFinite(suvaArm.costChf)).toBe(true);
-    // The LTIFR arm needs it: null cost, a named reason, and nothing NaN anywhere.
-    const ltifrArm = compute({
-      kpis: kpis.filter((row) => row.kpiKey !== "accident_rate_per_1000_fte"),
-      assumptions: without("hours_per_fte"),
-    });
+    // LTIFR is a rate per hours worked, so the hours row is what turns it into a count: without it
+    // the cost is null with a named reason, and nothing is NaN anywhere.
+    const ltifrArm = compute({ assumptions: without("hours_per_fte") });
     expect(ltifrArm.cost).toBeNull();
     expect(ltifrArm.costChf).toBeNull();
     expect(ltifrArm.costSkipped).toEqual({ reason: "missing_assumption", key: "hours_per_fte" });
-    // Positions and gaps are untouched by a missing cost assumption (four compared without the
-    // accident rate row).
+    // Positions and gaps are untouched by a missing cost assumption.
     expect(ltifrArm.kpisCompared).toBe(4);
     // Every arm needs the multiplier; a non finite value counts as missing too.
     const broken = compute({
@@ -398,18 +389,17 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   it("ranks cost linked gaps by their solo move saving, then the rest by relative gap", () => {
     const body = compute();
     expect(body.gaps.map((gap) => [gap.rank, gap.key, gap.reason])).toEqual([
-      [1, "accident_rate_per_1000_fte", "cost"],
+      [1, "ltifr", "cost"],
       [2, "lost_days_per_incident", "cost"],
-      [3, "ltifr", "cost"],
-      [4, "absenteeism_rate", "distance"],
+      [3, "absenteeism_rate", "distance"],
     ]);
-    const annual = 28.56 * 18_561 * 3.7;
-    const accidentSolo = annual - ((49.9 * 420) / 1000) * 18_561 * 3.7;
-    const lostDaysSolo = annual - 28.56 * (4811 + 10 * 1100) * 3.7;
-    expect(body.gaps[0]?.savingMedianChf).toBeCloseTo(accidentSolo, 3);
+    const incidents = (2.4 * 420 * 1804) / 1_000_000;
+    const annual = incidents * 18_561 * 3.7;
+    const ltifrSolo = annual - ((2.0 * 420 * 1804) / 1_000_000) * 18_561 * 3.7;
+    const lostDaysSolo = annual - incidents * (4811 + 10 * 1100) * 3.7;
+    expect(body.gaps[0]?.savingMedianChf).toBeCloseTo(ltifrSolo, 3);
     expect(body.gaps[1]?.savingMedianChf).toBeCloseTo(lostDaysSolo, 3);
-    expect(body.gaps[2]?.savingMedianChf).toBeNull();
-    expect(body.gaps[3]?.gapRelative).toBeCloseTo(0.3 / 3.5);
+    expect(body.gaps[2]?.gapRelative).toBeCloseTo(0.3 / 3.5);
   });
 
   // A fatality count is judged as a rate per 100 000 employed persons against the Eurostat row
@@ -458,14 +448,14 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
   it("does not compare fatalities without a headcount, and does not count them", () => {
     const rows = [...peers, peer("fatalities", "C", "all", [1.13, 1.13, 1.13])];
     const withFte = compute({ peers: rows });
-    expect(withFte.kpisCompared).toBe(6);
+    expect(withFte.kpisCompared).toBe(5);
     for (const employeesCount of [null, 0]) {
       const body = compute({ peers: rows, company: { ...company, employeesCount } });
       const result = body.results.find((entry) => entry.key === "fatalities");
       expect(result?.peer).toBeNull();
       expect(result?.position).toBeNull();
       expect(result?.comparedValue).toBeNull();
-      expect(body.kpisCompared).toBe(5);
+      expect(body.kpisCompared).toBe(4);
     }
   });
 
@@ -480,7 +470,7 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
       savingMedianChf: null,
       gapRelative: null,
     });
-    expect(body.gaps[1]?.key).toBe("accident_rate_per_1000_fte");
+    expect(body.gaps[1]?.key).toBe("ltifr");
   });
 
   it("breaks a tie by the catalogue sort order", () => {
@@ -566,7 +556,7 @@ describe("computeBenchmark cost, ranking, confidence and scalars (spec 0008, AC-
     const body = compute();
     const parsed = parseSnapshotBlocks({ model_version: MODEL_VERSION, ...body });
     expect(parsed.error).toBeNull();
-    expect(parsed.blocks?.gaps).toHaveLength(4);
+    expect(parsed.blocks?.gaps).toHaveLength(3);
   });
 });
 
@@ -597,39 +587,18 @@ describe("the derived injury counts (spec 0012)", () => {
   });
 
   it("equals the cost line's incidents when both name the same rate (AC-9)", () => {
-    // Drop the Suva rate so the cost line and the derived block both pick LTIFR.
-    const body = compute({
-      kpis: kpis.filter((row) => row.kpiKey !== "accident_rate_per_1000_fte"),
-    });
+    // Spec 0022 (AC-4) left LTIFR the only incident rate, so the cost line and the derived block
+    // always name it and the two counts always agree.
+    const body = compute();
     expect(body.cost?.incidentKpi).toBe("ltifr");
     expect(body.derived?.lostTime?.fromKey).toBe("ltifr");
     expect(body.derived?.lostTime?.count).toBe(body.cost?.incidents);
   });
 
-  it("falls back to the Suva accident rate when there is no LTIFR (AC-11)", () => {
-    const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "ltifr") });
-    expect(body.derived?.lostTime?.fromKey).toBe("accident_rate_per_1000_fte");
-    // The per 1000 FTE arm, not the per million hours one.
-    expect(body.derived?.lostTime?.count).toBeCloseTo((68 * 420) / 1000, 10);
-    // The hours assumption still reaches the disclosure, because the recordable count used it.
-    expect(body.assumptions.map((assumption) => assumption.key)).toContain("hours_per_fte");
-  });
-
-  // The spec makes the derived block's lost time precedence deliberately independent of the cost
-  // line's: LTIFR first here, whatever the cost line picked. With both rates present the two
-  // diverge, which is the case that would break if someone "simplified" the block to reuse
-  // `cost.incidentKpi`. The AC-9 equality above holds only when the keys agree, so pin the
-  // disagreement too.
-  it("prefers LTIFR even when the cost line took the Suva rate (AC-9)", () => {
-    const body = compute();
-    // The default fixture carries both rates, and the two lines choose differently.
-    expect(body.cost?.incidentKpi).toBe("accident_rate_per_1000_fte");
-    expect(body.derived?.lostTime?.fromKey).toBe("ltifr");
-    expect(body.derived?.lostTime?.count).not.toBeCloseTo(body.cost?.incidents ?? 0, 6);
-    // Each still used its own rate through the one shared helper.
-    expect(body.derived?.lostTime?.count).toBeCloseTo(2.4 * exposureHours, 10);
-    expect(body.cost?.incidents).toBeCloseTo((68 * 420) / 1000, 10);
-  });
+  // The derived block's lost time precedence and the cost line's used to be able to diverge: the
+  // block took LTIFR first and the cost line the Suva accident rate. Spec 0022 (AC-4) retired that
+  // rate, so both now always name LTIFR and the divergence cases are gone with it; the equality
+  // above is what remains to pin.
 
   it("drops only the count whose rate is missing (AC-6)", () => {
     const body = compute({ kpis: kpis.filter((row) => row.kpiKey !== "trifr") });
@@ -941,13 +910,11 @@ describe("the peer source columns reach the snapshot (spec 0016, AC-11)", () => 
 
   it("keeps both columns through a whole computation and its schema parse", () => {
     const body = compute({
-      peers: [peer("accident_rate_per_1000_fte", "C", "all", [34.9, 49.9, 66.4], { basis })],
+      peers: [peer("ltifr", "C", "all", [1.2, 2.0, 3.4], { basis })],
     });
     const parsed = parseSnapshotBlocks({ model_version: MODEL_VERSION, ...body });
     expect(parsed.error).toBeNull();
-    const result = parsed.blocks?.results.find(
-      (entry) => entry.key === "accident_rate_per_1000_fte",
-    );
+    const result = parsed.blocks?.results.find((entry) => entry.key === "ltifr");
     // Through the v3 schema rather than off the raw body, so a schema that stripped the field
     // would fail here rather than passing on the in memory object.
     expect(result?.peer?.basis).toEqual(basis);
@@ -985,10 +952,10 @@ describe("a broadened peer group can change the shape (spec 0016, AC-6b)", () =>
   });
 
   it("puts the rung on the snapshot so the label can say the group was broadened", () => {
-    // Section J has no row in the suite's peer set, so the accident rate falls to the ALL rung and
-    // the block carries a rung above 2, which is what the label reads.
+    // Section J has no row in the suite's peer set, so LTIFR falls to the ALL rung and the block
+    // carries a rung above 2, which is what the label reads.
     const body = compute({ company: { ...company, industryCode: "62.01" } });
-    const result = body.results.find((entry) => entry.key === "accident_rate_per_1000_fte");
+    const result = body.results.find((entry) => entry.key === "ltifr");
     expect(result?.peer?.rung).toBeGreaterThan(2);
     expect(result?.peer?.industrySection).toBe("ALL");
   });

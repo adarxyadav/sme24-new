@@ -54,9 +54,32 @@ create policy "expert photos: ops read"
   to authenticated
   using (bucket_id = 'expert-photos' and (select private.is_ops()));
 
+-- Any signed in user reads the photo of an `active` expert (spec 0022, AC-26). The benchmark page
+-- suggests three experts to a client who has no assignment yet, and it signs each photo with the
+-- caller's own client, so the photo has to be readable before an assignment exists. The status is
+-- the whole gate: an invited or inactive expert's photo stays unreadable, which is what keeps a
+-- deactivated contractor's picture off every page.
+--
+-- The status lookup goes through the definer helper rather than an inline EXISTS on
+-- expert_profiles: the caller here is a client, who reads no row of that table at all, so an
+-- inline subquery would answer zero rows and this policy could never match.
+create policy "expert photos: signed in read an active expert's"
+  on storage.objects
+  for select
+  to authenticated
+-- The uuid cast is guarded by the shape test rather than applied straight to the folder name: a
+-- cast that raises would fail the whole listing instead of hiding one object, and the expert
+-- upload policies pin the folder to auth.uid() but the service role could still write any path.
+  using (
+    bucket_id = 'expert-photos'
+    and (storage.foldername(name))[1] ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    and (select private.is_active_expert(((storage.foldername(name))[1])::uuid))
+  );
+
 -- A client member reads the photo of an expert currently assigned to their organization, and only
 -- while that assignment is active. This mirrors the view's filter: the photo and the summary
--- appear and disappear together.
+-- appear and disappear together. Kept beside the policy above: an assigned expert who has been
+-- deactivated still shows their photo to the organization they are assigned to.
 create policy "expert photos: assigned clients read"
   on storage.objects
   for select

@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { QUESTIONNAIRE_KEYS } from "../src/features/assessments/catalogue.ts";
 import { type ContentFile, contentFileSchema } from "../src/features/assessments/content-schema.ts";
 import { renderQuestionnaireMigration } from "../src/features/assessments/seed-migration.ts";
-import { nextMigrationTimestamp } from "../src/features/benchmark/seed-migration.ts";
+import { nextMigrationTimestamp } from "../src/lib/migration-timestamp.ts";
 
 const CONTENT_DIR = join(process.cwd(), "src/features/assessments/content");
 const MIGRATIONS_DIR = join(process.cwd(), "supabase/migrations");

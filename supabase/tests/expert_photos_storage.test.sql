@@ -88,9 +88,14 @@ insert into public.organizations (id, name, created_by) values
 insert into public.organization_members (organization_id, user_id, role) values
   ('0a000000-0000-4000-8000-000000000000', 'a0000000-0000-4000-8000-000000000001', 'owner'),
   ('0b000000-0000-4000-8000-000000000000', 'b0000000-0000-4000-8000-000000000001', 'owner');
+-- Expert X is `active` and expert Y `inactive`. Spec 0022 (AC-26) lets any signed in caller read
+-- an *active* expert's photo, because the benchmark page suggests three experts to a client who
+-- has no assignment yet; the isolation this file proves is therefore about a photo that is not on
+-- offer, which is what an inactive expert's is. The assignment rules below still hold on top: they
+-- are what keep an assigned expert's photo visible after they are deactivated.
 insert into public.expert_profiles (expert_id, email, status, onboarded_at) values
   ('e0000000-0000-4000-8000-000000000001', 'expert-x@test.local', 'active', now()),
-  ('e0000000-0000-4000-8000-000000000002', 'expert-y@test.local', 'active', now());
+  ('e0000000-0000-4000-8000-000000000002', 'expert-y@test.local', 'inactive', now());
 
 select pg_temp.put_photo('e0000000-0000-4000-8000-000000000001');
 select pg_temp.put_photo('e0000000-0000-4000-8000-000000000002');
@@ -131,8 +136,13 @@ select is(pg_temp.affected(
 
 -- The client, before and after an assignment -------------------------------------------------
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
-select is((select count(*) from storage.objects where bucket_id = 'expert-photos'), 0::bigint,
-  'a client with no assigned expert sees no photo');
+-- Spec 0022, AC-26: the active expert's photo is readable without any assignment (the suggestion
+-- cards), the inactive one's is not.
+select results_eq(
+  $$ select name from storage.objects where bucket_id = 'expert-photos' order by 1 $$,
+  $$ values ('e0000000-0000-4000-8000-000000000001/photo.jpg'),
+            ('e0000000-0000-4000-8000-000000000001/photo.png') $$,
+  'a client with no assignment reads an active expert''s photo and never an inactive one''s');
 
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
 insert into public.expert_assignments (id, organization_id, expert_id, assigned_by) values
@@ -144,18 +154,25 @@ select results_eq(
   $$ select name from storage.objects where bucket_id = 'expert-photos' order by 1 $$,
   $$ values ('e0000000-0000-4000-8000-000000000001/photo.jpg'),
             ('e0000000-0000-4000-8000-000000000001/photo.png') $$,
-  'once assigned, the client reads that expert''s photos and only theirs');
+  'once assigned, the client reads that expert''s photos and still no inactive expert''s');
 
 select pg_temp.impersonate('b0000000-0000-4000-8000-000000000001', 'client', '0b000000-0000-4000-8000-000000000000');
-select is((select count(*) from storage.objects where bucket_id = 'expert-photos'), 0::bigint,
-  'a client of another organization still sees nothing');
+select is((select count(*) from storage.objects where bucket_id = 'expert-photos'
+           and name like 'e0000000-0000-4000-8000-000000000002/%'), 0::bigint,
+  'a client of another organization still sees no inactive expert''s photo');
 
--- Ending the assignment closes the window, exactly as it does for the summary view.
+-- Ending the assignment closes the window the assignment opened. Since spec 0022 an active
+-- expert's photo stays readable through the suggestion policy, so what deactivation closes is
+-- proved by expert Y above; here the assignment's own window is what is checked, by deactivating
+-- expert X so no policy is left to let their photo through.
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
 update public.expert_assignments set status = 'ended' where id = '0e000000-0000-4000-8000-000000000001';
+select pg_temp.as_postgres();
+update public.expert_profiles set status = 'inactive'
+  where expert_id = 'e0000000-0000-4000-8000-000000000001';
 select pg_temp.impersonate('a0000000-0000-4000-8000-000000000001', 'client', '0a000000-0000-4000-8000-000000000000');
 select is((select count(*) from storage.objects where bucket_id = 'expert-photos'), 0::bigint,
-  'and the photo goes out of reach the moment the assignment is ended');
+  'and the photo goes out of reach once the assignment ends and the expert is no longer active');
 
 select pg_temp.as_anon();
 select is((select count(*) from storage.objects where bucket_id = 'expert-photos'), 0::bigint,

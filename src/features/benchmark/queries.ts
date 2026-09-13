@@ -96,8 +96,6 @@ export async function loadLatestSnapshot(
   return null;
 }
 
-export type AssumptionRow = Tables<"benchmark_assumptions">;
-
 export type BenchmarkStateInput = {
   readonly snapshot: ParsedSnapshot | null;
   readonly latestRun: { readonly status: string; readonly finished_at: string | null } | null;

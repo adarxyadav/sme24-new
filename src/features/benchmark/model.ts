@@ -9,12 +9,13 @@ import {
   PEER_KPI_KEYS,
   PEER_MINIMUM,
   PEER_YEARS_BACK,
+  type PeerBasis,
   type PeerKpiKey,
+  type PublishedUnit,
   type SizeBand,
   sectionOfDivision,
   sizeBandOf,
 } from "./catalogue";
-import type { PeerBasis, PublishedUnit } from "./seed-schema";
 import {
   type AssumptionUsedV3,
   type CostSkipped,
@@ -580,14 +581,12 @@ export function computeBenchmark({
   const values = Object.fromEntries(
     assumptions.map((assumption) => [assumption.key, assumption.value]),
   ) as Record<AssumptionKey, number>;
-  const accidentRate = inputOf("accident_rate_per_1000_fte");
+  // Spec 0022 (AC-4) removed `accident_rate_per_1000_fte` from the catalogue, so LTIFR is the
+  // only incident rate left to price the cost arm with; the Suva branch that preferred the
+  // accident rate is gone with it.
   const ltifr = inputOf("ltifr");
-  const incidentInput = accidentRate ?? ltifr ?? null;
-  const incidentKpi: SnapshotCost["incidentKpi"] | null = accidentRate
-    ? "accident_rate_per_1000_fte"
-    : ltifr
-      ? "ltifr"
-      : null;
+  const incidentInput = ltifr ?? null;
+  const incidentKpi: SnapshotCost["incidentKpi"] | null = ltifr ? "ltifr" : null;
   const lostDaysInput = inputOf("lost_days_per_incident");
   const usedAssumptionKeys = new Set<AssumptionKey>();
   let cost: SnapshotCost | null = null;
@@ -718,9 +717,9 @@ export function computeBenchmark({
   // cost line uses, so the two can never disagree. Never a KPI row, never peer compared.
   const hoursPerFte = values.hours_per_fte;
   const trifr = inputOf("trifr");
-  // LTIFR first, then the Suva accident rate as fallback: this is the reader's lost time figure,
-  // chosen independently of the cost line's own precedence.
-  const lostTimeInput = ltifr ?? accidentRate ?? null;
+  // The reader's lost time figure. LTIFR was the first choice and the Suva accident rate the
+  // fallback; spec 0022 (AC-4) removed that rate from the catalogue, so only LTIFR is left.
+  const lostTimeInput = ltifr ?? null;
   const derivedFrom = (
     input: InputKpi,
     key: DerivedFromKey,

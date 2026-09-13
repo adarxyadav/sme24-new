@@ -37,13 +37,11 @@ select is_empty(
 -- Every table except the recorded exceptions carries <table>_audit calling private.audit_row().
 -- Spec 0011 adds three: packages and stripe_events are keyed on `key` and `event_id` rather than
 -- `id`, which private.audit_row() requires for audit_log.row_id (the same reason kpi_definitions
--- and benchmark_assumptions are exceptions), and order_events is itself the append only history
+-- is an exception), and order_events is itself the append only history
 -- of public.orders, so auditing it would only duplicate rows the audit log already holds.
 -- Spec 0019 adds the two questionnaire content tables (questionnaire_versions and
 -- questionnaire_items): kind G reference data keyed on `key` and `id` text, seeded by a migration
 -- like kpi_definitions.
--- Spec 0021 adds the two peer library tables (peer_companies, peer_figures): kind G reference
--- data seeded by migration like benchmarks, and a page reads them.
 -- Spec 0018 adds the four restricted directory tables (directory_companies, directory_contacts,
 -- directory_suppressions, directory_imports): an import writes tens of thousands of rows in one
 -- run and the directory_imports row is the audit of that run; the two expert owned directory
@@ -51,9 +49,9 @@ select is_empty(
 create function pg_temp.audited_tables()
 returns setof name language sql stable as $$
   select t from pg_temp.public_tables() t
-  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events',
+  where t not in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'packages', 'stripe_events', 'order_events',
                    'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports',
-                   'questionnaire_versions', 'questionnaire_items', 'peer_companies', 'peer_figures')
+                   'questionnaire_versions', 'questionnaire_items')
 $$;
 
 select cmp_ok((select count(*) from pg_temp.audited_tables()), '>=', 7::bigint,
@@ -91,10 +89,10 @@ select is_empty(
      join pg_proc p on p.oid = g.tgfoid
      join pg_namespace pn on pn.oid = p.pronamespace
      where pn.nspname = 'private' and p.proname = 'audit_row' and not g.tgisinternal
-       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'benchmarks', 'benchmark_assumptions', 'packages', 'stripe_events', 'order_events',
+       and c.relname in ('audit_log', 'kpi_definitions', 'scaffold_checks', 'email_deliveries', 'notifications', 'packages', 'stripe_events', 'order_events',
                    'directory_companies', 'directory_contacts', 'directory_suppressions', 'directory_imports',
-                   'questionnaire_versions', 'questionnaire_items', 'peer_companies', 'peer_figures') $$,
-  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, benchmarks, benchmark_assumptions, packages, stripe_events, order_events, the four restricted directory tables, the two questionnaire content tables and the two peer library tables are not audited');
+                   'questionnaire_versions', 'questionnaire_items') $$,
+  'audit_log, kpi_definitions, scaffold_checks, email_deliveries, notifications, packages, stripe_events, order_events, the four restricted directory tables and the two questionnaire content tables are not audited');
 -- private.audit_row() writes row_id (not null) from the `id` column, falling back to a single
 -- column primary key when the table has no `id` (spec 0012: expert_profiles and expert_ops_notes
 -- are keyed on expert_id). So an audited table needs one or the other, and a composite key with
@@ -178,11 +176,13 @@ select is_empty(
 -- any other caller), and the directory functions of spec 0018 (directory_search,
 -- directory_countries and the ones later milestones add), definer because the directory tables
 -- carry no select policy for an expert at all: the function is the only read path and it masks
--- every value the caller has not paid for.
+-- every value the caller has not paid for, and expert_suggestions (spec 0022: a client may not
+-- select expert_profiles at all, so the function is the only way they ever see an expert who is
+-- not assigned to them, and its row type is the public half of the profile).
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('directory_countries'::name), ('directory_credit_balance'::name), ('directory_ops_summary'::name), ('directory_remove_contact'::name), ('directory_reveal'::name), ('directory_search'::name), ('directory_unlocked_contacts'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('directory_countries'::name), ('directory_credit_balance'::name), ('directory_ops_summary'::name), ('directory_remove_contact'::name), ('directory_reveal'::name), ('directory_search'::name), ('directory_unlocked_contacts'::name), ('expert_suggestions'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
   'the only security definer functions in public are the recorded entry points');
 -- The directory functions (spec 0018) are the only read path an expert has into the directory
 -- tables, so they carry the same anon revoke as every other public function; the declarative diff
@@ -268,18 +268,19 @@ select results_eq(
 -- The six directory tables (spec 0018) are out: a search is a page render, an unlock answers in
 -- the click handler that awaited it, and the contact rows hold personal data no channel may carry.
 -- The two questionnaire content tables (spec 0019) are out: seeded reference data a page reads.
--- The two peer library tables (spec 0021) are out for the same reason: the snapshot copies the
--- rows it used and the dashboard already refreshes on the snapshot channel.
+-- research_peers (spec 0022) is out for the same reason the peer library tables were: the peers
+-- land in one insert before the benchmark is triggered, the snapshot copies the rows it used, and
+-- the dashboard already refreshes on the snapshot channel, so a second channel would only race it.
 -- assessments and assessment_answers (spec 0019) are out too: the expert's autosave is a server
 -- action that answers the click that awaited it, the client card reloads with the page, and a
 -- note may name a person, so nothing there belongs on a channel.
 create function pg_temp.realtime_optional()
 returns setof name language sql stable as $$
-  values ('assessment_answers'::name), ('assessments'), ('audit_log'), ('benchmark_assumptions'), ('benchmarks'), ('companies'), ('company_kpis'), ('data_requests'),
+  values ('assessment_answers'::name), ('assessments'), ('audit_log'), ('companies'), ('company_kpis'), ('data_requests'),
          ('directory_companies'), ('directory_contacts'), ('directory_credit_entries'), ('directory_imports'), ('directory_suppressions'), ('directory_unlocks'),
          ('enquiries'), ('expert_assignments'),
          ('expert_ops_notes'), ('expert_profiles'), ('invoices'), ('kpi_definitions'), ('notifications'), ('order_events'), ('orders'),
-         ('organization_members'), ('organizations'), ('packages'), ('peer_companies'), ('peer_figures'), ('profiles'), ('questionnaire_items'), ('questionnaire_versions'), ('stripe_events')
+         ('organization_members'), ('organizations'), ('packages'), ('profiles'), ('questionnaire_items'), ('questionnaire_versions'), ('research_peers'), ('stripe_events')
 $$;
 select is_empty(
   $$ select t from pg_temp.public_tables() t

@@ -13,7 +13,6 @@ import {
   en,
   enFormat,
   gap,
-  inputKpi,
   parsedSnapshot,
   peer,
   renderEnglish,
@@ -328,25 +327,25 @@ describe("the priority gaps (AC-9)", () => {
   it("lists the top three gaps in rank order with the rest behind a show all disclosure", async () => {
     const { container } = await renderSegment();
     const gaps = screen.getByRole("region", { name: b.gaps.title });
-    expect(gaps).toHaveAttribute("data-gaps", "4");
+    expect(gaps).toHaveAttribute("data-gaps", "3");
     const [top, rest] = Array.from(gaps.querySelectorAll("ol"));
     const topKeys = Array.from((top as HTMLElement).querySelectorAll("[data-gap]")).map((item) =>
       item.getAttribute("data-gap"),
     );
-    expect(topKeys).toEqual(["fatalities", "accident_rate_per_1000_fte", "lost_days_per_incident"]);
-    expect(within(gaps).getByText("Show all gaps (4)")).toBeInTheDocument();
-    expect(rest?.querySelector('[data-gap="absenteeism_rate"]')).toHaveAttribute("data-rank", "4");
-    expect(container.querySelector("details")).not.toHaveAttribute("open");
+    expect(topKeys).toEqual(["fatalities", "lost_days_per_incident", "absenteeism_rate"]);
+    // Three gaps fit in the top list, so there is no "show all" disclosure to open (AC-12).
+    expect(rest).toBeUndefined();
+    expect(container.querySelector("details")).not.toBeInTheDocument();
   });
 
   it("shows the value against the median, the relative gap and the CHF saving of a cost linked gap", async () => {
     const { container } = await renderSegment();
-    const rate = container.querySelector('[data-gap="accident_rate_per_1000_fte"]') as HTMLElement;
+    const rate = container.querySelector('[data-gap="lost_days_per_incident"]') as HTMLElement;
     expect(within(rate).getByText("Rank 2")).toBeInTheDocument();
-    expect(within(rate).getByText("68.00 vs. median 49.90")).toBeInTheDocument();
-    expect(within(rate).getByText(/^36\.3\s?% above the median$/)).toBeInTheDocument();
+    expect(within(rate).getByText("12.50 vs. median 10.00")).toBeInTheDocument();
+    expect(within(rate).getByText(/^25\s?% above the median$/)).toBeInTheDocument();
     expect(rate.querySelector("[data-gap-saving]")).toHaveTextContent(
-      `${chf(522_340)} a year if this KPI reached the sector median`,
+      `${chf(88_000)} a year if this KPI reached the sector median`,
     );
   });
 
@@ -354,17 +353,17 @@ describe("the priority gaps (AC-9)", () => {
     // The two phrases are spans in a flex row: the gap paints a space but adds no character, so a
     // screen reader and copy and paste would run "49.90" into "36.3%" without the text node.
     const { container } = await renderSegment();
-    const rate = container.querySelector('[data-gap="accident_rate_per_1000_fte"]') as HTMLElement;
-    expect(rate.textContent).toMatch(/68\.00 vs\. median 49\.90 36\.3\s?% above the median/);
+    const rate = container.querySelector('[data-gap="lost_days_per_incident"]') as HTMLElement;
+    expect(rate.textContent).toMatch(/12\.50 vs\. median 10\.00 25\s?% above the median/);
   });
 
   it("ends the sentence at the median, with no trailing space, when the relative gap is null", async () => {
     const { container } = await renderSegment({
-      snapshot: parsedSnapshot({}, { gaps: [gap(1, "accident_rate_per_1000_fte")] }),
+      snapshot: parsedSnapshot({}, { gaps: [gap(1, "lost_days_per_incident")] }),
     });
-    const rate = container.querySelector('[data-gap="accident_rate_per_1000_fte"]') as HTMLElement;
+    const rate = container.querySelector('[data-gap="lost_days_per_incident"]') as HTMLElement;
     expect(within(rate).queryByText(/above the median/)).not.toBeInTheDocument();
-    expect(rate.textContent).toMatch(/68\.00 vs\. median 49\.90$/);
+    expect(rate.textContent).toMatch(/12\.50 vs\. median 10\.00$/);
   });
 
   it("puts a fatality first with its own sentence and no numbers", async () => {
@@ -387,7 +386,7 @@ describe("the priority gaps (AC-9)", () => {
     const { container } = await renderSegment({
       snapshot: parsedSnapshot(
         {},
-        { gaps: [gap(1, "accident_rate_per_1000_fte", { gapRelative: 0.363 })] },
+        { gaps: [gap(1, "lost_days_per_incident", { gapRelative: 0.25 })] },
       ),
     });
     expect(container.querySelector("details")).not.toBeInTheDocument();
@@ -413,22 +412,19 @@ describe("the positions (AC-9, AC-14)", () => {
   it("shows the value, the band, the quartiles, the sample and the band drawing for a compared KPI", async () => {
     const { container } = await renderSegment();
     const row = container.querySelector(
-      '[data-position-kpi="accident_rate_per_1000_fte"]',
+      '[data-position-kpi="lost_days_per_incident"]',
     ) as HTMLElement;
-    expect(row).toHaveAttribute("data-position", "bottom_quarter");
-    expect(within(row).getByText("68.00")).toBeInTheDocument();
-    expect(within(row).getByText(b.positions.band.bottom_quarter)).toBeInTheDocument();
-    expect(within(row).getByText("p25 34.90 · median 49.90 · p75 66.40")).toBeInTheDocument();
-    expect(
-      within(row).getByText("Manufacturing · 250 and more employees · 2022, n = 120"),
-    ).toBeInTheDocument();
+    expect(row).toHaveAttribute("data-position", "below_median");
+    expect(within(row).getByText("12.50")).toBeInTheDocument();
+    expect(within(row).getByText(b.positions.band.below_median)).toBeInTheDocument();
+    expect(within(row).getByText("p25 8.00 · median 10.00 · p75 14.00")).toBeInTheDocument();
     expect(row.querySelector('[data-slot="quartile-band"] svg')).toHaveAttribute(
       "data-value",
-      "68",
+      "12.5",
     );
     expect(
       within(row).getByText(
-        "accident_rate_per_1000_fte (en): your value 68.00 is in the band Bottom quarter. Peer quartiles: p25 34.90, median 49.90, p75 66.40.",
+        "lost_days_per_incident (en): your value 12.50 is in the band Worse than the median. Peer quartiles: p25 8.00, median 10.00, p75 14.00.",
       ),
     ).toHaveClass("sr-only");
   });
@@ -468,46 +464,10 @@ describe("the positions (AC-9, AC-14)", () => {
     ).toBeInTheDocument();
   });
 
-  // A KPI nobody publishes must say so rather than showing the shared "not yet", which would have
-  // the client waiting for data that is never coming (spec 0016, AC-7, AC-8). Near misses are the
-  // one KPI no body anywhere collects; fatalities moved to `sourced` under the 2026-09-12
-  // amendment once Eurostat's sector rate was found.
-  it("gives a sourceless KPI its own title and sentence rather than the shared not yet", async () => {
-    // The fixture has no near miss value, so give it one with no peer row for this case.
-    const base = parsedSnapshot().blocks;
-    const { container } = await renderSegment({
-      snapshot: parsedSnapshot(
-        {},
-        {
-          inputs: { ...base.inputs, kpis: [...base.inputs.kpis, inputKpi("near_miss_rate", 14)] },
-          results: [...base.results, result("near_miss_rate")],
-        },
-      ),
-    });
-    const nearMiss = container.querySelector(
-      '[data-position-kpi="near_miss_rate"] [data-no-peer]',
-    ) as HTMLElement;
-    expect(within(nearMiss).getByText(b.positions.peerStatus.noSourceTitle)).toBeInTheDocument();
-    expect(nearMiss).toHaveTextContent(b.positions.peerNote.near_miss_rate);
-    expect(nearMiss).not.toHaveTextContent(b.positions.peerStatus.pendingTitle);
-    expect(nearMiss.querySelector('[data-peer-status="no_source"]')).toBeInTheDocument();
-  });
-
-  // A `pending` KPI is readable but not read yet, so it keeps a "not yet" wording that names what
-  // is awaited (AC-8). The two states must not collapse into one another.
-  it("keeps a not yet wording for a pending KPI and names what is awaited", async () => {
-    const { container } = await renderSegment();
-    const trifr = container.querySelector(
-      '[data-position-kpi="trifr"] [data-no-peer]',
-    ) as HTMLElement;
-    // Asserted against `pendingTitle`, not the generic `noPeer`: the two strings are byte
-    // identical in both catalogs today, so matching on `noPeer` would pass even if the pending
-    // branch were deleted. This pins the branch, so the wording can be sharpened during curation.
-    expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
-    expect(trifr).toHaveTextContent(b.positions.peerNote.trifr);
-    expect(trifr).not.toHaveTextContent(b.positions.peerStatus.noSourceTitle);
-    expect(trifr.querySelector('[data-peer-status="pending"]')).toBeInTheDocument();
-  });
+  // The per KPI "no body publishes this" and "not read yet" sentences, and the branch that chose
+  // between them, went with `peerStatus` and `peerNote` (spec 0022, AC-4): the peers now come from
+  // the research run, so whether a figure exists is a property of that run rather than of the KPI.
+  // Every KPI without a peer row therefore shares one sentence, asserted below.
 
   it("says no value for a KPI without a row and no peer data yet for one without a peer", async () => {
     const { container } = await renderSegment();
@@ -516,9 +476,7 @@ describe("the positions (AC-9, AC-14)", () => {
     expect(within(nearMiss).queryByText(b.positions.noPeer)).not.toBeInTheDocument();
     const trifr = container.querySelector('[data-position-kpi="trifr"]') as HTMLElement;
     expect(within(trifr).getByText("6.10")).toBeInTheDocument();
-    // `trifr` is a pending KPI, so the title it renders is `pendingTitle`; `noPeer` would match
-    // only because the two strings are identical today (spec 0016, AC-8).
-    expect(within(trifr).getByText(b.positions.peerStatus.pendingTitle)).toBeInTheDocument();
+    expect(within(trifr).getByText(b.positions.noPeer)).toBeInTheDocument();
     expect(trifr).toHaveAttribute("data-position", "");
   });
 });
@@ -612,20 +570,17 @@ describe("the fatality row (spec 0016 amendment, AC-22, AC-23)", () => {
     expect(noPeer.querySelector("[data-fatality-needs-headcount]")).toHaveTextContent(
       b.positions.fatalityNeedsHeadcount,
     );
-    // The headcount sentence replaces the catalogue note, so the row does not also say the
-    // figure was read from Eurostat as if the comparison had merely not happened yet.
+    // The headcount sentence is the only one on the row: spec 0022 (AC-4) removed the per KPI
+    // catalogue note that used to sit under it.
     expect(noPeer.querySelector("[data-peer-status]")).not.toBeInTheDocument();
-    expect(noPeer).not.toHaveTextContent(b.positions.peerNote.fatalities);
   });
 
-  it("keeps the sourced note, not the headcount sentence, when the headcount is known and no peer row matched", async () => {
+  it("shows no headcount sentence when the headcount is known and no peer row matched", async () => {
     const { container } = await renderSegment();
     const row = container.querySelector('[data-position-kpi="fatalities"]') as HTMLElement;
     const noPeer = row.querySelector("[data-no-peer]") as HTMLElement;
     expect(noPeer.querySelector("[data-fatality-needs-headcount]")).not.toBeInTheDocument();
-    expect(noPeer.querySelector('[data-peer-status="sourced"]')).toHaveTextContent(
-      b.positions.peerNote.fatalities,
-    );
+    expect(noPeer).toHaveTextContent(b.positions.noPeer);
   });
 
   it("keeps the fatality row accessible with the compared line present", async () => {
