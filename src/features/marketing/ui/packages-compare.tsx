@@ -138,23 +138,36 @@ export function PackagesCompare() {
           <tr>
             <th
               scope="col"
-              className="sticky left-0 z-10 border-b bg-background px-4 py-4 text-left align-bottom"
+              className="sticky left-0 z-10 border-b bg-background px-4 py-4 text-left align-top"
             >
+              {/*
+                The label is top aligned with the column heads beside it rather than sitting on
+                the cell's floor, so it reads against the trade names rather than against the
+                subtitles under them.
+              */}
               <span className="eyebrow text-muted-foreground">{compare("packageLabel")}</span>
             </th>
             {packages.map((entry) => (
               <th
                 scope="col"
                 key={entry.key}
-                className="border-b border-l px-4 py-4 text-left align-bottom"
+                className="border-b border-l px-4 py-4 text-left align-top"
               >
                 {/*
                   The short trade name over the full catalogue name, the pairing the card sets:
                   the column has to be identifiable at a glance while still tying to the name on
                   the invoice.
+
+                  The cell is top aligned and the subtitle carries a two line minimum, rather than
+                  the whole block sitting on the cell's floor: "Compliance Check, EHS System &
+                  Culture Snapshot" wraps to two lines where the other three subtitles take one, so
+                  a bottom aligned block floated its trade name a line above the other three. This
+                  is the same fix `PackagesGrid` makes with its `minmax(4.75rem,auto)` name track --
+                  reserve the second line for every column, so a subtitle that needs only one leaves
+                  it empty and all four trade names start on one baseline.
                 */}
                 <span className="block text-heading-16">{t(`${entry.key}.shortName`)}</span>
-                <span className="mt-1 block hyphens-auto wrap-break-word text-copy-13 font-normal text-muted-foreground">
+                <span className="mt-1 block min-h-10 hyphens-auto wrap-break-word text-copy-13 font-normal text-muted-foreground">
                   {t(`${entry.key}.name`)}
                 </span>
               </th>
