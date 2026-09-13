@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { KPI_KEYS } from "../research/catalogue.ts";
-import { ASSUMPTION_KEYS, SIZE_BANDS } from "./catalogue.ts";
+import { ASSUMPTION_KEYS, PEER_KPI_KEYS, SIZE_BANDS } from "./catalogue.ts";
 
 /**
  * The seed CSV contracts (spec 0008, AC-2): the shape of one row of
@@ -140,6 +140,192 @@ export const assumptionFileSchema = z
     },
     { message: "indirect_multiplier_low <= indirect_multiplier <= indirect_multiplier_high" },
   );
+
+/** The units a published figure may carry (spec 0021, AC-13); `value` is derived from the pair. */
+export const PUBLISHED_UNITS = ["per_million_hours", "per_200k_hours", "days", "boolean"] as const;
+export type PublishedUnit = (typeof PUBLISHED_UNITS)[number];
+
+/** What a published figure counts (spec 0021, AC-2). */
+export const PEER_BASES = ["employees", "employees_and_contractors"] as const;
+export type PeerBasis = (typeof PEER_BASES)[number];
+
+/**
+ * A published figure in the KPI's own unit (spec 0021, AC-13): a per 200 000 hours rate times
+ * five, days and per million hours as published, a boolean 0 or 1 (and only 0 or 1). Returns
+ * `null` for an unknown unit or a boolean outside 0 and 1, so the caller refuses the row. Pure.
+ */
+export function publishedValueOf(valueAsPublished: number, unit: string): number | null {
+  switch (unit) {
+    case "per_200k_hours":
+      return valueAsPublished * 5;
+    case "per_million_hours":
+    case "days":
+      return valueAsPublished;
+    case "boolean":
+      return valueAsPublished === 0 || valueAsPublished === 1 ? valueAsPublished : null;
+    default:
+      return null;
+  }
+}
+
+const csvInteger = csvNumber.pipe(z.number().int());
+const csvOptionalTimestamp = csvOptionalText.pipe(
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}(?:T[0-9:.]+Z)?$/)
+    .nullable(),
+);
+
+/** One row of supabase/seed-data/peer-companies.csv (spec 0021, AC-3). */
+export const peerCompanyRowSchema = z
+  .object({
+    key: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9-]+$/),
+    name: z.string().trim().min(1),
+    country: z
+      .string()
+      .trim()
+      .regex(/^[A-Z]{2}$/),
+    industry_section: z
+      .string()
+      .trim()
+      .regex(/^[A-U]$/),
+    headcount: csvInteger.pipe(z.number().positive()),
+    headcount_year: csvInteger.pipe(z.number().min(2000).max(2100)),
+    report_url: z.string().trim().pipe(z.url()),
+    note_de: csvOptionalText,
+    note_en: csvOptionalText,
+  })
+  .refine((row) => (row.note_de === null) === (row.note_en === null), {
+    message: "note_de and note_en are both set or both empty",
+    path: ["note_en"],
+  });
+export type PeerCompanySeedRow = z.infer<typeof peerCompanyRowSchema>;
+
+/**
+ * One row of supabase/seed-data/peer-figures.csv (spec 0021, AC-3): the published pair becomes
+ * `value` by the AC-13 rule, and `verified_at` and `verified_by` are both set or both empty. The
+ * cross file rules (a known company, a company with a figure, the year cap) live in
+ * `peerFilesSchema`.
+ */
+export const peerFigureRowSchema = z
+  .object({
+    peer_key: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9-]+$/),
+    kpi_key: z.enum(PEER_KPI_KEYS),
+    period_year: csvInteger.pipe(z.number().min(2000).max(2100)),
+    value_as_published: csvNumber,
+    unit_as_published: z.enum(PUBLISHED_UNITS),
+    basis: z.enum(PEER_BASES),
+    source_url: z.string().trim().pipe(z.url()),
+    verified_at: csvOptionalTimestamp,
+    verified_by: csvOptionalText,
+  })
+  .refine((row) => (row.verified_at === null) === (row.verified_by === null), {
+    message: "verified_at and verified_by are both set or both empty",
+    path: ["verified_by"],
+  })
+  .refine((row) => row.kpi_key !== "iso_45001_certified" || row.unit_as_published === "boolean", {
+    message: "an iso_45001_certified figure is a boolean",
+    path: ["unit_as_published"],
+  })
+  .refine((row) => row.kpi_key === "iso_45001_certified" || row.unit_as_published !== "boolean", {
+    message: "only an iso_45001_certified figure may be a boolean",
+    path: ["unit_as_published"],
+  })
+  .refine((row) => row.kpi_key !== "lost_days_per_incident" || row.unit_as_published === "days", {
+    message: "a lost_days_per_incident figure is in days",
+    path: ["unit_as_published"],
+  })
+  .refine(
+    (row) =>
+      !(row.kpi_key === "ltifr" || row.kpi_key === "trifr") ||
+      row.unit_as_published === "per_million_hours" ||
+      row.unit_as_published === "per_200k_hours",
+    { message: "a rate is per million or per 200 000 hours", path: ["unit_as_published"] },
+  )
+  .transform((row, ctx) => {
+    const value = publishedValueOf(row.value_as_published, row.unit_as_published);
+    if (value === null) {
+      ctx.addIssue({
+        code: "custom",
+        message: `value_as_published ${row.value_as_published} is not valid for ${row.unit_as_published}`,
+        path: ["value_as_published"],
+      });
+      return z.NEVER;
+    }
+    return { ...row, value };
+  });
+export type PeerFigureSeedRow = z.infer<typeof peerFigureRowSchema>;
+
+/** The unique key of a peer figure, the conflict target of the generated migration (spec 0021, AC-3). */
+export const PEER_FIGURE_CONFLICT_COLUMNS = [
+  "peer_key",
+  "kpi_key",
+  "period_year",
+  "basis",
+] as const;
+
+/**
+ * The cross file rules of the two peer CSVs (spec 0021, AC-3): every figure names a company in
+ * the companies file, every company has at least one figure, and no figure is dated after
+ * `currentYear` (the Europe/Zurich year, passed in so a test can freeze it). Returns the first
+ * violation with the file and line, or `null`. Pure.
+ */
+export function checkPeerFiles(
+  companies: readonly PeerCompanySeedRow[],
+  figures: readonly PeerFigureSeedRow[],
+  currentYear: number,
+): {
+  readonly file: "peer-companies.csv" | "peer-figures.csv";
+  readonly line: number;
+  readonly message: string;
+} | null {
+  const keys = new Set(companies.map((row) => row.key));
+  for (const [index, figure] of figures.entries()) {
+    const line = index + 2;
+    if (!keys.has(figure.peer_key)) {
+      return {
+        file: "peer-figures.csv",
+        line,
+        message: `peer_key ${figure.peer_key} names no company`,
+      };
+    }
+    if (figure.period_year > currentYear) {
+      return {
+        file: "peer-figures.csv",
+        line,
+        message: `period_year ${figure.period_year} is after ${currentYear}`,
+      };
+    }
+  }
+  const withFigure = new Set(figures.map((row) => row.peer_key));
+  for (const [index, company] of companies.entries()) {
+    if (!withFigure.has(company.key)) {
+      return {
+        file: "peer-companies.csv",
+        line: index + 2,
+        message: `company ${company.key} has no figure`,
+      };
+    }
+  }
+  const seenKeys = new Set<string>();
+  for (const [index, company] of companies.entries()) {
+    if (seenKeys.has(company.key)) {
+      return {
+        file: "peer-companies.csv",
+        line: index + 2,
+        message: `company ${company.key} appears twice`,
+      };
+    }
+    seenKeys.add(company.key);
+  }
+  return null;
+}
 
 /** The unique key of a peer row, the conflict target of the generated migration. */
 export const BENCHMARK_CONFLICT_COLUMNS = [

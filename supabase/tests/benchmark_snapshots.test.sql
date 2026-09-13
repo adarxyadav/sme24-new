@@ -6,7 +6,7 @@
 -- role writes it, a member reads it and cannot write it, and omitting it stays legal.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(25);
 
 -- Shared shape (spec 0002, Policy tests): everything below runs in one transaction and is rolled
 -- back at the end, so nothing survives. Impersonation switches the role and the JWT claims the
@@ -151,6 +151,10 @@ select is((select count(*) from public.benchmark_snapshots), 0::bigint, 'anon re
 select pg_temp.as_service_role();
 select has_column('public', 'benchmark_snapshots', 'derived', 'the snapshot carries a derived block column');
 select col_is_null('public', 'benchmark_snapshots', 'derived', 'the derived block is nullable, so a version 1 row needs no value');
+-- The nullable peers block (spec 0021, AC-9) rides on the same grants: the column exists and is
+-- nullable, so a row older than benchmark-model@5 needs no value.
+select has_column('public', 'benchmark_snapshots', 'peers', 'the snapshot carries a peers block column');
+select col_is_null('public', 'benchmark_snapshots', 'peers', 'the peers block is nullable, so an older row needs no value');
 select lives_ok(
   $$ insert into public.benchmark_snapshots (id, organization_id, company_id, trigger_kind, model_version, peer_provisional, kpis_compared, inputs, results, gaps, assumptions, derived)
      values ('0e000000-0000-4000-8000-000000000006', '0a000000-0000-4000-8000-000000000000', '0c000000-0000-4000-8000-00000000000a', 'research', 'benchmark-model@2', true, 1, '{}', '[]', '[]', '[]',

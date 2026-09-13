@@ -13,7 +13,7 @@ import {
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { BenchmarkState } from "@/features/benchmark/catalogue";
+import { type BenchmarkState, isPeerVersion, PEER_KPI_KEYS } from "@/features/benchmark/catalogue";
 import { roundChf, roundChfRange } from "@/features/benchmark/model";
 import type { ParsedSnapshot } from "@/features/benchmark/queries";
 import { peerShapeOf, type SnapshotBlocks, type SnapshotGap } from "@/features/benchmark/snapshot";
@@ -30,6 +30,7 @@ import { localizedText } from "@/features/research/ui/kpi-table";
 import type { LocaleCode } from "@/i18n/routing";
 import { FactsForm, type FactsFormProps } from "./facts-form";
 import { formatKpiValue } from "./format";
+import { PeerStanding } from "./peer-standing";
 
 export type BenchmarkSegmentProps = {
   readonly snapshot: ParsedSnapshot | null;
@@ -532,6 +533,42 @@ function PositionRow({
   // (spec 0016 amendment, AC-22). Absent on a stored @1 to @3 row.
   const comparedValue = result?.comparedValue ?? null;
   const fte = snapshot.blocks.inputs.fte;
+  // A KPI with a named peer block becomes the Peer Standing card in place of its row (spec 0021,
+  // AC-10); every other KPI keeps the row below, including its pending text.
+  const peerBlock = snapshot.blocks.peers.find((block) => block.key === definition.key);
+  if (peerBlock) {
+    return (
+      <li
+        className="flex flex-col gap-3 rounded-lg border p-4"
+        data-position-kpi={definition.key}
+        data-position=""
+        data-peer-shape=""
+      >
+        <div className="flex flex-col gap-0.5">
+          <span className="font-medium">{name}</span>
+          <span className="text-muted-foreground text-xs">{definition.unit}</span>
+          {value !== null ? (
+            <span className="font-medium tabular-nums" data-numeric data-value={input?.value}>
+              {value}
+            </span>
+          ) : (
+            <span className="text-muted-foreground text-sm">{t("positions.noValue")}</span>
+          )}
+        </div>
+        <PeerStanding
+          t={t}
+          format={format}
+          block={peerBlock}
+          clientValue={input?.value ?? null}
+          clientCountry={snapshot.blocks.inputs.country}
+          section={snapshot.blocks.inputs.section}
+          kpiName={name}
+          locale={locale}
+          yesNo={yesNo}
+        />
+      </li>
+    );
+  }
 
   return (
     <li
@@ -638,6 +675,15 @@ function PositionRow({
                   ? t("positions.peerStatus.pendingTitle")
                   : t("positions.noPeer")}
             </span>
+            {key &&
+            (PEER_KPI_KEYS as readonly string[]).includes(key) &&
+            isPeerVersion(snapshot.modelVersion) ? (
+              // A `@5` row with no block for this KPI: fewer than three published peers even
+              // worldwide (spec 0021, AC-12).
+              <span className="text-xs" data-no-published-peer>
+                {t("peers.none")}
+              </span>
+            ) : null}
             {key === "fatalities" && !(fte && fte > 0) ? (
               // A count cannot become a rate without a headcount, so the model compared nothing
               // (spec 0016 amendment, D3, AC-23): say what is missing rather than "no peer data".

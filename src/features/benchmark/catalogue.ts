@@ -80,6 +80,28 @@ export const COST_LINKED_KPIS: readonly KpiKey[] = [
   "lost_days_per_incident",
 ];
 
+/** The four KPIs a named peer may publish (spec 0021, AC-2); the library holds no other. */
+export const PEER_KPI_KEYS = [
+  "ltifr",
+  "trifr",
+  "lost_days_per_incident",
+  "iso_45001_certified",
+] as const;
+export type PeerKpiKey = (typeof PEER_KPI_KEYS)[number];
+
+/** How many report years back a published figure still counts (spec 0021, AC-6): the current year minus three. */
+export const PEER_YEARS_BACK = 3;
+
+/** The fewest named peers a KPI needs before a rung counts (spec 0021, AC-6). */
+export const PEER_MINIMUM = 3;
+
+/** The most peers the chart slice draws, chosen nearest in headcount (spec 0021, AC-9). */
+export const PEER_CHART_LIMIT = 6;
+
+/** The four rungs of the geography ladder, in the order climbed (spec 0021, AC-6). */
+export const GEO_RUNGS = ["country", "region", "europe", "world"] as const;
+export type GeoRung = (typeof GEO_RUNGS)[number];
+
 /** The seven stored constants of the cost model, in the order the disclosure lists them. */
 export const ASSUMPTION_KEYS = [
   "hours_per_fte",
@@ -96,8 +118,15 @@ export type AssumptionKey = (typeof ASSUMPTION_KEYS)[number];
  * Names the rule set and snapshot schema; bumped by hand when a formula or rule changes. `@4`
  * (spec 0016 amendment of 2026-09-12): a peer reference of 0 prices to zero incidents, fatalities
  * compare as a rate per 100 000 employed persons, and a missing assumption gives a null cost.
+ * `@5` (spec 0021): the named published peer blocks and `inputs.country`; no formula changes.
  */
-export const MODEL_VERSION = "benchmark-model@4";
+export const MODEL_VERSION = "benchmark-model@5";
+
+/** True for a model version that carries the named peer blocks (`@5` and later, spec 0021). Pure. */
+export function isPeerVersion(modelVersion: string): boolean {
+  const match = /^benchmark-model@(\d+)$/.exec(modelVersion);
+  return match !== null && Number(match[1]) >= 5;
+}
 
 /** How long the dashboard shows "calculating" after a trigger moment before it says "not available yet" (AC-9). */
 export const BENCHMARK_WAIT_MS = 120_000;

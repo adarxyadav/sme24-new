@@ -32,6 +32,7 @@ const company: ModelCompany = {
   id: UUID(1),
   employeesCount: 420,
   industryCode: "23.61",
+  country: "CH",
   updatedAt: "2026-09-06T10:00:00.000Z",
 };
 
@@ -752,9 +753,10 @@ describe("the snapshot version map (spec 0008, AC-9)", () => {
       "benchmark-model@2",
       "benchmark-model@3",
       "benchmark-model@4",
+      "benchmark-model@5",
     ]);
     // The live write time version is one of them, and it is the newest one.
-    expect(MODEL_VERSION).toBe("benchmark-model@4");
+    expect(MODEL_VERSION).toBe("benchmark-model@5");
 
     // A version 1 row that somehow carries a derived block drops it: the schema has no such key,
     // so the reader sees an absent block rather than an unvalidated one.

@@ -1349,7 +1349,8 @@
       "bandOutside": "Band, Wert jenseits p75",
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
       "card": "Potenzialkarte",
-      "pointComparison": "Punktvergleich"
+      "pointComparison": "Punktvergleich",
+      "peerStanding": "Karte der publizierten Vergleichsunternehmen (Spec 0021), erfundenes Beispiel"
     },
     "marketing": {
       "packages": "Paketkarte: Fixpreis und Preis auf Anfrage",
@@ -1878,6 +1879,66 @@
         "iso_45001_certified": "Keine Schweizer Stelle publiziert Zertifizierungsanteile nach Branche; ein Anteil ist noch nicht eingelesen.",
         "accident_rate_per_1000_fte": "Aus den Suva-UVG-Unfalltabellen eingelesen."
       }
+    },
+    "peers": {
+      "kpi": {
+        "ltifr": "eine LTIFR",
+        "trifr": "eine TRIFR",
+        "lost_days_per_incident": "Ausfalltage pro Unfall",
+        "iso_45001_certified": "einen ISO-45001-Status"
+      },
+      "rank": {
+        "ranked": "von {count} Unternehmen in {industry} {scope}, die {kpi} publizieren",
+        "unranked": "{count} Unternehmen in {industry} {scope} publizieren {kpi}",
+        "gap": "{gap} hinter {name}, dem besten publizierten Vergleichsunternehmen",
+        "leading": "Vor jedem publizierten Vergleichsunternehmen; {name} liegt am nächsten",
+        "ordinal": "{rank, selectordinal, other {#.}}"
+      },
+      "rung": {
+        "country": "in {country}",
+        "region": "in {region}",
+        "europe": "in Europa",
+        "world": "weltweit",
+        "sentence": {
+          "country": "Alle publizierten Vergleichsunternehmen stammen aus {country}.",
+          "region": "Weniger als drei Unternehmen in {country} publizieren {kpi}, deshalb wurde der Vergleich auf {region} ausgeweitet.",
+          "europe": "Weniger als drei Unternehmen in {country} publizieren {kpi}, deshalb wurde der Vergleich auf Europa ausgeweitet.",
+          "world": "Weniger als drei Unternehmen in Europa publizieren {kpi}, deshalb wurde der Vergleich auf die ganze Welt ausgeweitet."
+        },
+        "larger": "Publizierte Vergleichsunternehmen sind grössere Unternehmen, die ihre Zahlen veröffentlichen; jede Zeile verlinkt auf die Seite, von der sie gelesen wurde."
+      },
+      "region": {
+        "dach": "der DACH-Region",
+        "nordics": "den nordischen Ländern",
+        "benelux": "den Benelux-Ländern",
+        "british_isles": "den Britischen Inseln",
+        "southern": "Südeuropa",
+        "central_eastern": "Mittel- und Osteuropa"
+      },
+      "srStrip": "Ihr Wert {value} im Vergleich zu {count} publizierten Vergleichsunternehmen {scope}, von {best} bis {worst}.",
+      "srStripNoValue": "{count} publizierte Vergleichsunternehmen {scope}, von {best} bis {worst}; Sie haben noch keinen Wert.",
+      "table": {
+        "caption": "Publizierte Vergleichsunternehmen für {kpi}",
+        "company": "Unternehmen",
+        "country": "Land",
+        "basis": "Zählt",
+        "year": "Jahr",
+        "saving": "Wenn Sie gleichziehen, pro Jahr",
+        "you": "Sie",
+        "alreadyAhead": "bereits voraus",
+        "noSaving": "nicht beziffert",
+        "employees": "nur Mitarbeitende",
+        "employees_and_contractors": "inkl. Auftragnehmer",
+        "headcount": "{n} Mitarbeitende, {year}",
+        "asPublished": "{value} pro 200 000 Stunden wie publiziert",
+        "sourceLink": "{name}, Quellseite"
+      },
+      "iso": {
+        "share": "{certified} von {count} publizierten Vergleichsunternehmen Ihrer Branche sind zertifiziert.",
+        "youYes": "Sie sind zertifiziert.",
+        "youNo": "Sie sind es nicht."
+      },
+      "none": "Noch kein publiziertes Vergleichsunternehmen"
     },
     "noga": {
       "sections": {

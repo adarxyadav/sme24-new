@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Separator } from "@/components/ui/separator";
+import type { SnapshotPeerBlock } from "@/features/benchmark/snapshot";
+import { PeerStanding } from "@/features/benchmark/ui/peer-standing";
 
 /** The three shapes of the band: inside the top quarter, below the median, beyond p75. */
 const BANDS = [
@@ -14,12 +16,54 @@ const BANDS = [
   { key: "bandOutside", p25: 34.9, median: 49.9, p75: 66.4, value: 68 },
 ] as const;
 
+/** The spec's invented example of a peer block (spec 0021): 4th of 6, the best at 0.9, every number made up. */
+const PEER_BLOCK: SnapshotPeerBlock = {
+  key: "ltifr",
+  geoRung: "europe",
+  rank: 4,
+  best: "helvetia",
+  gapToBest: 1.5,
+  certifiedShare: null,
+  chart: { peerKeys: [] },
+  rows: [
+    ["helvetia", "Helvetia Präzision AG", "CH", 1_800, 0.9, "employees_and_contractors", 41_000],
+    ["nordstahl", "Nordstahl GmbH", "DE", 9_800, 1.6, "employees_and_contractors", 22_000],
+    ["lyon", "Lyon Précision SA", "FR", 2_300, 2.1, "employees", 8_000],
+    [
+      "veneto",
+      "Veneto Meccanica SpA",
+      "IT",
+      4_100,
+      3.1,
+      "employees_and_contractors",
+      "already_ahead",
+    ],
+    ["ruhr", "Ruhr Chemie AG", "DE", 12_500, 4.0, "employees_and_contractors", "already_ahead"],
+  ].map(([peerKey, name, country, headcount, value, basis, savingAtPeer]) => ({
+    peerKey: peerKey as string,
+    name: name as string,
+    country: country as string,
+    headcount: headcount as number,
+    headcountYear: 2024,
+    periodYear: 2024,
+    value: value as number,
+    valueAsPublished: value as number,
+    unitAsPublished: "per_million_hours" as const,
+    basis: basis as "employees" | "employees_and_contractors",
+    sourceUrl: "https://example.org/report",
+    reportUrl: "https://example.org",
+    verifiedAt: "2026-09-13T00:00:00.000Z",
+    savingAtPeer: savingAtPeer as number | "already_ahead",
+  })),
+};
+
 /**
  * The benchmark primitives (spec 0008, AC-14): the `QuartileBand` in three shapes and a static
  * opportunity card in its cut down shape (the confidence spelled out in the title row, the range,
  * the working estimate with its lost time clause, a saving and an "already at or below" mark), so
  * axe scans them on the gallery. The "How this is calculated" disclosure that once sat beside the
- * card was cut on 2026-09-13 (owner decision). Runs in the browser.
+ * card was cut on 2026-09-13 (owner decision), and the Peer Standing card of spec 0021 on the
+ * spec's invented example. Runs in the browser.
  */
 export function BenchmarkSection() {
   const t = useTranslations("gallery.benchmark");
@@ -101,6 +145,25 @@ export function BenchmarkSection() {
               </dl>
             </CardContent>
           </Card>
+        </Example>
+      </div>
+      {/* The Peer Standing card (spec 0021, AC-10) on invented figures, so axe scans the rank line,
+          the strip, the linked table and the rung sentence. */}
+      <div className="grid gap-8">
+        <Example label={t("peerStanding")}>
+          <div className="w-full rounded-lg border p-4">
+            <PeerStanding
+              t={b}
+              format={format}
+              block={PEER_BLOCK}
+              clientValue={2.4}
+              clientCountry="CH"
+              section="C"
+              kpiName="LTIFR"
+              locale="en"
+              yesNo={{ yes: "yes", no: "no" }}
+            />
+          </div>
         </Example>
       </div>
     </div>

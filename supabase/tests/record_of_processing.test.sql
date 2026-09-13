@@ -43,6 +43,8 @@ returns table (name text) language sql as $$
     ('organization_members'),
     ('organizations'),
     ('packages'),
+    ('peer_companies'),
+    ('peer_figures'),
     ('profiles'),
     ('questionnaire_items'),
     ('questionnaire_versions'),

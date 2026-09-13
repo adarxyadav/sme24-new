@@ -1,11 +1,20 @@
 import { KPI_CATALOGUE, type KpiKey } from "@/features/research/catalogue";
+import { currentYear } from "@/features/self-assessment/years";
+import { isEuropean, regionOf } from "@/lib/countries";
 import {
   type AssumptionKey,
   COST_LINKED_KPIS,
+  type GeoRung,
+  PEER_CHART_LIMIT,
+  PEER_KPI_KEYS,
+  PEER_MINIMUM,
+  PEER_YEARS_BACK,
+  type PeerKpiKey,
   type SizeBand,
   sectionOfDivision,
   sizeBandOf,
 } from "./catalogue";
+import type { PeerBasis, PublishedUnit } from "./seed-schema";
 import {
   type AssumptionUsedV3,
   type CostSkipped,
@@ -19,6 +28,8 @@ import {
   type SnapshotDerived,
   type SnapshotGap,
   type SnapshotPeer,
+  type SnapshotPeerBlock,
+  type SnapshotPeerRow,
   type SnapshotPeerV3,
   type SnapshotResultV4,
 } from "./snapshot";
@@ -33,6 +44,8 @@ export type ModelCompany = {
   readonly id: string;
   readonly employeesCount: number | null;
   readonly industryCode: string | null;
+  /** `companies.country` (spec 0021, AC-6): the ladder's first rung; a code outside the catalogue lands on `world`. */
+  readonly country: string;
   /** `companies.updated_at` from the re read right before computing (AC-5). */
   readonly updatedAt: string;
 };
@@ -72,12 +85,45 @@ export type ModelPeerRow = {
 
 export type ModelAssumption = AssumptionUsedV3;
 
+/** A `peer_companies` row as the task loads it (spec 0021, AC-5): one NACE section, never widened. */
+export type ModelPeerCompany = {
+  readonly key: string;
+  readonly name: string;
+  readonly country: string;
+  readonly industrySection: string;
+  readonly headcount: number;
+  readonly headcountYear: number;
+  readonly reportUrl: string;
+};
+
+/** A verified `peer_figures` row as the task loads it; the task filters `verified_at is not null` (AC-5). */
+export type ModelPeerFigure = {
+  readonly peerKey: string;
+  readonly kpiKey: PeerKpiKey;
+  readonly periodYear: number;
+  readonly value: number;
+  readonly valueAsPublished: number;
+  readonly unitAsPublished: PublishedUnit;
+  readonly basis: PeerBasis;
+  readonly sourceUrl: string;
+  readonly verifiedAt: string;
+};
+
+/** The named peer library of the company's section (spec 0021). */
+export type ModelPeerLibrary = {
+  readonly companies: readonly ModelPeerCompany[];
+  readonly figures: readonly ModelPeerFigure[];
+};
+
 export type ModelInput = {
   readonly company: ModelCompany;
   readonly catalogue: readonly ModelCatalogueEntry[];
   readonly kpis: readonly ModelKpiRow[];
   readonly peers: readonly ModelPeerRow[];
   readonly assumptions: readonly ModelAssumption[];
+  /** The named published peers of the section (spec 0021); absent means an empty library. */
+  readonly library?: ModelPeerLibrary;
+  /** The clock for the freshness rule (spec 0021, AC-6); the task leaves it to `new Date()`. */
   readonly now?: Date;
 };
 
@@ -320,6 +366,143 @@ function rankBy<T extends { readonly key: KpiKey }>(
   });
 }
 
+/** One named peer on a rung: the company and the one figure kept for it. */
+export type NamedPeer = {
+  readonly company: ModelPeerCompany;
+  readonly figure: ModelPeerFigure;
+};
+
+/**
+ * One kept figure per company for a KPI (spec 0021, AC-6): figures from the current year minus
+ * three or later, the latest year per company, and within that year the `employees` basis when
+ * both bases exist. A company with only a contractor inclusive figure keeps that one. Pure.
+ */
+export function keptFigures(
+  library: ModelPeerLibrary,
+  key: PeerKpiKey,
+  year: number,
+): readonly NamedPeer[] {
+  const floor = year - PEER_YEARS_BACK;
+  const companyOf = new Map(library.companies.map((company) => [company.key, company]));
+  const fresh = library.figures.filter(
+    (figure) =>
+      figure.kpiKey === key && figure.periodYear >= floor && companyOf.has(figure.peerKey),
+  );
+  const byCompany = new Map<string, ModelPeerFigure>();
+  for (const figure of fresh) {
+    const current = byCompany.get(figure.peerKey);
+    const wins =
+      current === undefined ||
+      figure.periodYear > current.periodYear ||
+      (figure.periodYear === current.periodYear &&
+        figure.basis === "employees" &&
+        current.basis !== "employees");
+    if (wins) byCompany.set(figure.peerKey, figure);
+  }
+  return [...byCompany.values()]
+    .map((figure) => ({ company: companyOf.get(figure.peerKey) as ModelPeerCompany, figure }))
+    .sort((a, b) => (a.company.key < b.company.key ? -1 : 1));
+}
+
+/**
+ * The geography ladder (spec 0021, AC-6): the client's country, then its region, then Europe,
+ * then the world; the first rung holding at least three companies wins and every company on it
+ * is a peer. A client country outside the catalogue empties the first three rungs and lands on
+ * `world`. Null when even the world holds fewer than three. The industry never widens: the
+ * library handed in is already one section. Pure.
+ */
+export function climbLadder(
+  peers: readonly NamedPeer[],
+  clientCountry: string,
+): { readonly geoRung: GeoRung; readonly peers: readonly NamedPeer[] } | null {
+  const region = regionOf(clientCountry);
+  // The first three rungs are the client's home ground: a client outside the catalogue has no
+  // country, region or Europe rung and lands on the world with every peer (AC-6).
+  const european = isEuropean(clientCountry);
+  const rungs: ReadonlyArray<readonly [GeoRung, (peer: NamedPeer) => boolean]> = [
+    ["country", (peer) => peer.company.country === clientCountry],
+    ["region", (peer) => region !== null && regionOf(peer.company.country) === region],
+    ["europe", (peer) => european && isEuropean(peer.company.country)],
+    ["world", () => true],
+  ];
+  for (const [geoRung, holds] of rungs) {
+    const onRung = peers.filter(holds);
+    if (onRung.length >= PEER_MINIMUM) return { geoRung, peers: onRung };
+  }
+  return null;
+}
+
+/**
+ * The client's rank among the peers (spec 0021, AC-7): one plus the number of peers strictly
+ * better, so equal values share a rank; the best peer's key, the lowest key on a tie; and the
+ * client's value minus the best peer's value in the KPI's unit. Pure.
+ */
+export function rankAmong(
+  direction: ModelCatalogueEntry["direction"],
+  clientValue: number | null,
+  peers: readonly NamedPeer[],
+): {
+  readonly rank: number | null;
+  readonly best: string | null;
+  readonly gapToBest: number | null;
+} {
+  const better = (a: number, b: number) => (direction === "higher_is_better" ? a > b : a < b);
+  const best = peers.reduce<NamedPeer | null>((winner, peer) => {
+    if (winner === null || better(peer.figure.value, winner.figure.value)) return peer;
+    if (peer.figure.value === winner.figure.value && peer.company.key < winner.company.key)
+      return peer;
+    return winner;
+  }, null);
+  if (best === null) return { rank: null, best: null, gapToBest: null };
+  if (clientValue === null) return { rank: null, best: best.company.key, gapToBest: null };
+  const ahead = peers.filter((peer) => better(peer.figure.value, clientValue)).length;
+  return { rank: ahead + 1, best: best.company.key, gapToBest: clientValue - best.figure.value };
+}
+
+/**
+ * The chart's peers (spec 0021, AC-9): the LTIFR block's peers that also have a lost days figure
+ * in the library, at most six, nearest headcount to the client's FTE, ties to the latest year and
+ * then the key. Empty without an LTIFR block. Pure.
+ */
+export function chartPeerKeys(
+  ltifrPeers: readonly NamedPeer[],
+  library: ModelPeerLibrary,
+  fte: number | null,
+): string[] {
+  const withLostDays = new Set(
+    library.figures
+      .filter((figure) => figure.kpiKey === "lost_days_per_incident")
+      .map((figure) => figure.peerKey),
+  );
+  const distance = (peer: NamedPeer) => (fte === null ? 0 : Math.abs(peer.company.headcount - fte));
+  return ltifrPeers
+    .filter((peer) => withLostDays.has(peer.company.key))
+    .sort((a, b) => {
+      const byDistance = distance(a) - distance(b);
+      if (byDistance !== 0) return byDistance;
+      if (a.figure.periodYear !== b.figure.periodYear)
+        return b.figure.periodYear - a.figure.periodYear;
+      return a.company.key < b.company.key ? -1 : 1;
+    })
+    .slice(0, PEER_CHART_LIMIT)
+    .map((peer) => peer.company.key);
+}
+
+/** Sorts peers best first for the table, ties by key (spec 0021, AC-10). Pure. */
+function bestFirst(
+  direction: ModelCatalogueEntry["direction"],
+  peers: readonly NamedPeer[],
+): readonly NamedPeer[] {
+  return [...peers].sort((a, b) => {
+    if (a.figure.value !== b.figure.value) {
+      return direction === "higher_is_better"
+        ? b.figure.value - a.figure.value
+        : a.figure.value - b.figure.value;
+    }
+    return a.company.key < b.company.key ? -1 : 1;
+  });
+}
+
 /**
  * Computes the snapshot body for one company (spec 0008, AC-4 and AC-18): inputs, peer
  * selection, positions and gaps, the incident cost with its range and savings, the ranked gaps,
@@ -331,6 +514,8 @@ export function computeBenchmark({
   kpis,
   peers,
   assumptions,
+  library = { companies: [], figures: [] },
+  now = new Date(),
 }: ModelInput): SnapshotBody {
   const active = catalogue.filter((entry) => entry.key in KPI_CATALOGUE);
   const sortOrder = (key: KpiKey) => active.find((entry) => entry.key === key)?.sortOrder ?? 0;
@@ -563,6 +748,79 @@ export function computeBenchmark({
     }
   }
 
+  // (6c) The named published peers (spec 0021): per KPI of the four, the kept figures, the
+  // ladder, the rank and the client's own saving at each peer, priced inside this function with
+  // the same `costAt` the cost line used and never re derived from the stored block (AC-8).
+  const year = currentYear(now);
+  const peerBlocks: SnapshotPeerBlock[] = [];
+  const ladderOf = new Map<PeerKpiKey, readonly NamedPeer[]>();
+  for (const key of PEER_KPI_KEYS) {
+    const climbed = climbLadder(keptFigures(library, key, year), company.country);
+    if (climbed) ladderOf.set(key, climbed.peers);
+    if (!climbed) continue;
+    const clientValue = inputOf(key)?.value ?? null;
+    const ordered = bestFirst(direction(key), climbed.peers);
+    const ranked =
+      key === "iso_45001_certified"
+        ? { rank: null, best: null, gapToBest: null }
+        : rankAmong(direction(key), clientValue, ordered);
+    const certifiedShare =
+      key === "iso_45001_certified"
+        ? ordered.filter((peer) => peer.figure.value >= 1).length / ordered.length
+        : null;
+    // The saving at a peer (AC-8): LTIFR on the per million hours arm on both sides, lost days
+    // with the client's incidents on both sides; nothing for TRIFR and ISO, and nothing at all
+    // when the snapshot's cost is null or skipped. The LTIFR arm needs the hours assumption even
+    // when the headline priced the Suva arm without it.
+    const hoursKnown =
+      typeof values.hours_per_fte === "number" && Number.isFinite(values.hours_per_fte);
+    const savingAt = (peerValue: number): SnapshotPeerRow["savingAtPeer"] => {
+      if (!cost || !incidentKpi || !incidentInput || !fte || fte <= 0) return null;
+      let saving: number | null = null;
+      if (key === "ltifr" && ltifr && hoursKnown) {
+        const at = (rate: number) =>
+          costAt("ltifr", rate, fte, cost.lostDays, values, values.indirect_multiplier).annual;
+        saving = at(ltifr.value) - at(peerValue);
+      } else if (key === "lost_days_per_incident" && lostDaysInput) {
+        const at = (days: number) =>
+          costAt(incidentKpi, incidentInput.value, fte, days, values, values.indirect_multiplier)
+            .annual;
+        saving = at(lostDaysInput.value) - at(peerValue);
+      }
+      if (saving === null) return null;
+      return saving <= 0 ? "already_ahead" : saving;
+    };
+    peerBlocks.push({
+      key,
+      geoRung: climbed.geoRung,
+      ...ranked,
+      certifiedShare,
+      chart: { peerKeys: [] },
+      rows: ordered.map(({ company: peerCompany, figure }) => ({
+        peerKey: peerCompany.key,
+        name: peerCompany.name,
+        country: peerCompany.country,
+        headcount: peerCompany.headcount,
+        headcountYear: peerCompany.headcountYear,
+        periodYear: figure.periodYear,
+        value: figure.value,
+        valueAsPublished: figure.valueAsPublished,
+        unitAsPublished: figure.unitAsPublished,
+        basis: figure.basis,
+        sourceUrl: figure.sourceUrl,
+        reportUrl: peerCompany.reportUrl,
+        verifiedAt: figure.verifiedAt,
+        savingAtPeer: savingAt(figure.value),
+      })),
+    });
+  }
+  const ltifrBlock = peerBlocks.find((block) => block.key === "ltifr");
+  const peerBlocksWithChart: SnapshotPeerBlock[] = peerBlocks.map((block) =>
+    block === ltifrBlock
+      ? { ...block, chart: { peerKeys: chartPeerKeys(ladderOf.get("ltifr") ?? [], library, fte) } }
+      : block,
+  );
+
   // (7) Confidence over the rows the cost used.
   const costRows = cost
     ? [incidentInput, cost.lostDaysSource === "kpi" ? lostDaysInput : undefined].filter(
@@ -588,6 +846,7 @@ export function computeBenchmark({
       section,
       sizeBand,
       industryCode: company.industryCode,
+      country: company.country,
       companyUpdatedAt: company.updatedAt,
       kpis: inputKpis,
     },
@@ -596,6 +855,7 @@ export function computeBenchmark({
     cost,
     assumptions: usedAssumptions,
     derived,
+    peers: peerBlocksWithChart,
     kpisCompared: results.filter((result) => result.peer !== null).length,
     peerProvisional,
     confidence,

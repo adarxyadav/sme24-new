@@ -101,7 +101,7 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
       "indirect_multiplier",
       "indirect_multiplier_high",
     ]);
-    expect(MODEL_VERSION).toBe("benchmark-model@4");
+    expect(MODEL_VERSION).toBe("benchmark-model@5");
     expect(BENCHMARK_WAIT_MS).toBe(120_000);
   });
 
@@ -233,6 +233,65 @@ describe("the copy around the distribution rows (spec 0016 amendment, AC-30)", (
       expect(messages.benchmark.provisionalNote, `${locale}: provisionalNote`).not.toMatch(
         /peer values|Vergleichswerte/i,
       );
+    }
+  });
+});
+
+// The named peer card (spec 0021, AC-7): the rank, rung and table strings never say quarter,
+// quartile or median in either language; `benchmark.peers.chart.*` (the next slice) is exempt
+// because its sector line is the sector median by name.
+describe("the named peer strings (spec 0021, AC-7)", () => {
+  const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
+  const flatten = (value: unknown, prefix = ""): ReadonlyArray<readonly [string, string]> =>
+    typeof value === "string"
+      ? [[prefix, value]]
+      : Object.entries(value as Record<string, unknown>).flatMap(([key, child]) =>
+          flatten(child, prefix ? `${prefix}.${key}` : key),
+        );
+
+  it("keeps quartile wording out of the rank, rung and table keys in both catalogs", () => {
+    for (const [locale, messages] of [
+      ["de", de],
+      ["en", en],
+    ] as const) {
+      const peers = messages.benchmark.peers as Record<string, unknown>;
+      for (const namespace of ["rank", "rung", "table"]) {
+        const strings = flatten(peers[namespace], namespace);
+        expect(strings.length, `${locale}: ${namespace} has strings`).toBeGreaterThan(0);
+        for (const [key, text] of strings) {
+          expect(text, `${locale}: peers.${key} carries quartile wording`).not.toMatch(
+            QUARTILE_WORDING,
+          );
+        }
+      }
+      // The word "publish" is always in the heading (AC-10), in both shapes.
+      const rank = peers.rank as Record<string, string>;
+      expect(rank.ranked).toMatch(/publish|publizieren/);
+      expect(rank.unranked).toMatch(/publish|publizieren/);
+      // Every rung and region has its word, and the no peer text exists.
+      const rung = peers.rung as Record<string, unknown>;
+      for (const key of ["country", "region", "europe", "world"]) {
+        expect(rung[key], `${locale}: rung.${key}`).toBeTruthy();
+        expect(
+          (rung.sentence as Record<string, string>)[key],
+          `${locale}: rung.sentence.${key}`,
+        ).toBeTruthy();
+      }
+      for (const region of [
+        "dach",
+        "nordics",
+        "benelux",
+        "british_isles",
+        "southern",
+        "central_eastern",
+      ]) {
+        expect(
+          (peers.region as Record<string, string>)[region],
+          `${locale}: region.${region}`,
+        ).toBeTruthy();
+      }
+      expect(peers.none, `${locale}: none`).toBeTruthy();
+      expect(peers.srStrip, `${locale}: srStrip`).toBeTruthy();
     }
   });
 });

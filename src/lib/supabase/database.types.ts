@@ -270,6 +270,7 @@ export type Database = {
           model_version: string
           organization_id: string
           peer_provisional: boolean
+          peers: Json | null
           research_run_id: string | null
           results: Json
           saving_median_chf: number | null
@@ -294,6 +295,7 @@ export type Database = {
           model_version: string
           organization_id: string
           peer_provisional: boolean
+          peers?: Json | null
           research_run_id?: string | null
           results: Json
           saving_median_chf?: number | null
@@ -318,6 +320,7 @@ export type Database = {
           model_version?: string
           organization_id?: string
           peer_provisional?: boolean
+          peers?: Json | null
           research_run_id?: string | null
           results?: Json
           saving_median_chf?: number | null
@@ -1989,6 +1992,108 @@ export type Database = {
           vat_rate?: number
         }
         Relationships: []
+      }
+      peer_companies: {
+        Row: {
+          country: string
+          created_at: string
+          headcount: number
+          headcount_year: number
+          industry_section: string
+          key: string
+          name: string
+          note: Json | null
+          report_url: string
+          updated_at: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          headcount: number
+          headcount_year: number
+          industry_section: string
+          key: string
+          name: string
+          note?: Json | null
+          report_url: string
+          updated_at?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          headcount?: number
+          headcount_year?: number
+          industry_section?: string
+          key?: string
+          name?: string
+          note?: Json | null
+          report_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      peer_figures: {
+        Row: {
+          basis: string
+          created_at: string
+          id: string
+          kpi_key: string
+          peer_key: string
+          period_year: number
+          source_url: string
+          unit_as_published: string
+          updated_at: string
+          value: number
+          value_as_published: number
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          basis: string
+          created_at?: string
+          id?: string
+          kpi_key: string
+          peer_key: string
+          period_year: number
+          source_url: string
+          unit_as_published: string
+          updated_at?: string
+          value: number
+          value_as_published: number
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          basis?: string
+          created_at?: string
+          id?: string
+          kpi_key?: string
+          peer_key?: string
+          period_year?: number
+          source_url?: string
+          unit_as_published?: string
+          updated_at?: string
+          value?: number
+          value_as_published?: number
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "peer_figures_kpi_key_fkey"
+            columns: ["kpi_key"]
+            isOneToOne: false
+            referencedRelation: "kpi_definitions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "peer_figures_peer_key_fkey"
+            columns: ["peer_key"]
+            isOneToOne: false
+            referencedRelation: "peer_companies"
+            referencedColumns: ["key"]
+          },
+        ]
       }
       profiles: {
         Row: {

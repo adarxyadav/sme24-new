@@ -97,6 +97,7 @@ function builder(table: string) {
       return chain;
     },
     in: () => chain,
+    not: () => chain,
     order: () => chain,
     limit: () => chain,
     maybeSingle: async () => {
@@ -141,6 +142,7 @@ beforeEach(() => {
         archived_at: null,
         employees_count: null,
         industry_code: null,
+        country: "CH",
         // The creator is the person `benchmark.computed` is captured for (spec 0017, AC-8); a row
         // without one is skipped rather than sent under a placeholder id.
         created_by: CREATOR,
@@ -351,7 +353,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       company_id: COMPANY,
       research_run_id: RUN,
       trigger_kind: "research",
-      model_version: "benchmark-model@4",
+      model_version: "benchmark-model@5",
       peer_provisional: true,
       kpis_compared: 2,
       confidence: 0.9,
