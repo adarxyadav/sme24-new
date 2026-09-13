@@ -70,21 +70,31 @@ export async function StepVisual({ step, stacked = false, className }: StepVisua
         // Filling the pinned panel's right column, where `min-h-80` keeps the frame a picture's
         // shape on a short viewport and the panel crops whatever runs past its bottom edge.
         !stacked && "h-full min-h-80",
-        // Stacked under its own step, where nothing crops it and the height is the whole cost.
-        // A 16:9 band is a picture's proportion and a quarter of a phone screen rather than most
-        // of it, so the four steps stay a readable sequence instead of four screens of grey. The
-        // cap is what keeps that true once the column is wide: 16:9 of a 1100px panel is 619px,
-        // taller than the phone placeholder it replaced, so the aspect gives way to a fixed band
-        // as soon as holding the ratio would cost more height than the copy it illustrates.
-        stacked && "aspect-video max-h-64",
+        // Stacked under its own step, where no panel crops it, so the ground has to size and crop
+        // for itself. It sizes to the card inside it, from a `min-h-64` floor that keeps a short
+        // still a picture's shape, up to a `max-h-[32rem]` cap past which `overflow-hidden` crops
+        // the rest at the bottom, the way the pinned panel crops from `lg`. It was a fixed 16:9
+        // band capped at 16rem until 2026-09-13, with nothing clipping it: the lookup card runs to
+        // 299px and the three stacked package cards to 1225px at a phone width, so every still
+        // spilled out of its band, over the step's own heading above and the next step below.
+        stacked && "min-h-64 max-h-[32rem] overflow-hidden",
         // A step whose card exists centres it inside the ground rather than filling it, so the
         // reserved frame still reads as the picture and the card as the thing pictured.
+        //
+        // The one row is `minmax(0,1fr)` rather than the implicit `auto`, so it is the ground's
+        // own height and the child's `max-h-full` resolves against it. An `auto` row grows to
+        // its content, a percentage against it resolves to nothing, and on a short viewport the
+        // picture ran past the panel at both ends because it was centred at its full height:
+        // the expert photograph lost the person below the frame at 1024x600. With the row bounded
+        // a card that fits is centred, and one that does not is held to the ground's height and
+        // overflows downward alone, so the crop is the bottom edge and the top of the card is
+        // always the top of the picture.
         (step === "lookup" || step === "benchmark" || step === "package") &&
-          "grid place-items-center p-6 sm:p-10",
+          "grid grid-rows-[minmax(0,1fr)] place-items-center p-6 sm:p-10",
         // The photograph is centred inside the ground like the cards, not bled to the frame's
         // edges: the four steps are one row of stills, and a picture that filled its frame while
         // the other three sat inside theirs read as a different kind of object.
-        step === "expert" && "grid place-items-center p-6 sm:p-10",
+        step === "expert" && "grid grid-rows-[minmax(0,1fr)] place-items-center p-6 sm:p-10",
         className,
       )}
     >
@@ -98,12 +108,14 @@ export async function StepVisual({ step, stacked = false, className }: StepVisua
         instead of sitting inside it, and at the pinned panel's width the cards' own controls would
         run to a length the real screens never show them at.
       */}
-      {step === "lookup" ? <LookupCard className="w-full max-w-md shadow-sm" /> : null}
-      {step === "benchmark" ? <BenchmarkCard className="w-full max-w-md shadow-sm" /> : null}
+      {step === "lookup" ? <LookupCard className="w-full max-w-md max-h-full shadow-sm" /> : null}
+      {step === "benchmark" ? (
+        <BenchmarkCard className="w-full max-w-md max-h-full shadow-sm" />
+      ) : null}
       {/* Wider than the single card steps: this one pictures a row of three cards being compared,
           which is the whole point of the step, so it takes the frame's width rather than a card's
           measure. */}
-      {step === "package" ? <PackagesCard className="max-w-3xl" /> : null}
+      {step === "package" ? <PackagesCard className="max-w-3xl max-h-full" /> : null}
       {/*
         The one step pictured by a photograph rather than by the product: the expert is a person,
         and no screen in this repo shows one. It is Philipp, the same picture the About page runs,
