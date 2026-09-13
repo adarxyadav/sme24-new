@@ -1393,7 +1393,8 @@
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
       "heroResearch": "Landing hero object: the client area still",
       "registerDirectory": "Expert directory",
-      "costIceberg": "Cost iceberg: the landing page's number section"
+      "costIceberg": "Cost iceberg: the landing page's number section",
+      "packagesCompare": "Packages compared: the pricing page table"
     },
     "expertAvatar": "Expert avatar",
     "avatarInitials": "With initials",

@@ -1,4 +1,13 @@
 import { useFormatter, useTranslations } from "next-intl";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { type Package, sortedPackages } from "@/features/marketing/packages";
 
 type PackageMessageKey = Parameters<ReturnType<typeof useTranslations<"marketing.packages">>>[0];
@@ -25,7 +34,11 @@ type CompareMessageKey = Parameters<
  *
  * Prices come from `PACKAGES`, never from a string, and the partner's cell takes its own copy
  * because "On demand -- contact us for more information" is a sentence rather than the card's bare
- * "On demand". Server component.
+ * "On demand".
+ *
+ * Built from the design system's `Table` primitives, which carry `"use client"`, so this renders
+ * on the client even though it holds no state: consistency with every other table in the product
+ * is worth the bytes, and `pnpm budget` is the gate that says whether it stays worth them.
  */
 export function PackagesCompare() {
   const t = useTranslations("marketing.packages");
@@ -89,141 +102,134 @@ export function PackagesCompare() {
 
   return (
     /*
+      Built from the design system's `Table` primitives rather than raw markup, so the row rules,
+      the hover, the scroll container and its keyboard affordance are the ones every other table in
+      the product uses. `scrollLabel` is the primitive's own answer to a scrollable region holding
+      nothing focusable (WCAG 2.1.1): it spreads `tabIndex`, `role` and `aria-label` together, so
+      the label never lands on an element that cannot carry one.
+
       The table scrolls sideways under its own width rather than collapsing into four stacked
       blocks. Stacked, it would be the package cards a second time -- the same seven facts per
       package, one package at a time -- and comparing across packages is the only thing this
       section adds over the cards. The row labels stay in view while it scrolls, so a cell three
       columns in is still attributable to its row.
 
-      The `tabIndex` makes the scroll container keyboard reachable, which the Web Interface
-      Guidelines require of any scrollable region: a pointer can drag it, and without this a
-      keyboard alone could not reach the columns off the right edge. Biome reads a `div` with a
-      `tabIndex` as a non-interactive element in the tab order and would have it removed, which is
-      the rule's usual case and wrong for a scroller, so the suppression is scoped to it.
-
-      It takes no role: the page's own `section` is already the labelled landmark, and pointing a
-      second element at the same heading id made two nested regions with one name -- ambiguous to
-      a screen reader, and to any `querySelector` looking for the scroller. The `table` inside
-      carries the structure a screen reader navigates by, and its `caption` names it, so the
-      scroller only has to be focusable, not announced.
+      `min-w-4xl` is the width below which the five columns stop being readable, not a fixed table
+      width: above it the table fills its container and the scroller never engages. `table-fixed`
+      with an explicit label column keeps the four package columns equal, so a long cell in one
+      does not widen its column against the others -- the comparison only reads if the columns are
+      comparable. The closed frame is the one the packages and trust sections draw; `border-separate`
+      with no spacing lets the cells' own rules meet it without doubling.
     */
-    <div
-      className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be keyboard reachable
-      tabIndex={0}
+    <Table
+      scrollLabel={compare("heading")}
+      className="min-w-4xl table-fixed border border-separate border-spacing-0"
     >
-      {/*
-        `min-w-4xl` is the width below which the five columns stop being readable, not a fixed
-        table width: above it the table fills its container and the scroller never engages, which
-        is why the desktop view has no cut edge. `table-fixed` with an explicit label column keeps
-        the four package columns equal, so a long cell in one does not widen its column against
-        the others -- the comparison only reads if the columns are comparable.
-      */}
-      {/*
-        The closed hairline frame the packages and trust sections use, so the table reads as one
-        block rather than a set of loose rules. `border-separate` with no spacing means the outer
-        border and the cells' own edges meet without doubling: the cells draw their bottom and
-        left rules, the frame draws the outside, and the last row leaves its bottom to the frame.
-      */}
-      <table className="w-full min-w-4xl table-fixed border border-separate border-spacing-0">
-        <colgroup>
-          <col className="w-40" />
-          <col className="w-1/4" />
-          <col className="w-1/4" />
-          <col className="w-1/4" />
-          <col className="w-1/4" />
-        </colgroup>
-        <caption className="sr-only">{compare("heading")}</caption>
-        <thead>
-          <tr>
-            <th
-              scope="col"
-              className="sticky left-0 z-10 border-b bg-background px-4 py-4 text-left align-top"
+      <colgroup>
+        <col className="w-40" />
+        <col className="w-1/4" />
+        <col className="w-1/4" />
+        <col className="w-1/4" />
+        <col className="w-1/4" />
+      </colgroup>
+      <TableCaption className="sr-only">{compare("heading")}</TableCaption>
+      <TableHeader>
+        {/*
+          The head row keeps the page ground rather than taking the primitive's row hover: these
+          are column heads, not data the reader points at, and the sticky label cell beside them
+          has to stay opaque as the columns scroll under it.
+        */}
+        <TableRow className="hover:bg-transparent">
+          <TableHead className="sticky left-0 z-10 h-auto border-b bg-background px-4 py-4 align-top">
+            {/*
+              The label is top aligned with the column heads beside it rather than sitting on the
+              cell's floor, so it reads against the trade names rather than against the subtitles
+              under them.
+            */}
+            <span className="eyebrow text-muted-foreground">{compare("packageLabel")}</span>
+          </TableHead>
+          {packages.map((entry) => (
+            <TableHead
+              key={entry.key}
+              className="h-auto border-b border-l px-4 py-4 align-top whitespace-normal"
             >
               {/*
-                The label is top aligned with the column heads beside it rather than sitting on
-                the cell's floor, so it reads against the trade names rather than against the
-                subtitles under them.
-              */}
-              <span className="eyebrow text-muted-foreground">{compare("packageLabel")}</span>
-            </th>
-            {packages.map((entry) => (
-              <th
-                scope="col"
-                key={entry.key}
-                className="border-b border-l px-4 py-4 text-left align-top"
-              >
-                {/*
-                  The short trade name over the full catalogue name, the pairing the card sets:
-                  the column has to be identifiable at a glance while still tying to the name on
-                  the invoice.
+                The short trade name over the full catalogue name, the pairing the card sets: the
+                column has to be identifiable at a glance while still tying to the name on the
+                invoice.
 
-                  The cell is top aligned and the subtitle carries a two line minimum, rather than
-                  the whole block sitting on the cell's floor: "Compliance Check, EHS System &
-                  Culture Snapshot" wraps to two lines where the other three subtitles take one, so
-                  a bottom aligned block floated its trade name a line above the other three. This
-                  is the same fix `PackagesGrid` makes with its `minmax(4.75rem,auto)` name track --
-                  reserve the second line for every column, so a subtitle that needs only one leaves
-                  it empty and all four trade names start on one baseline.
-                */}
-                <span className="block text-heading-16">{t(`${entry.key}.shortName`)}</span>
-                <span className="mt-1 block min-h-10 hyphens-auto wrap-break-word text-copy-13 font-normal text-muted-foreground">
-                  {t(`${entry.key}.name`)}
-                </span>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.key}>
-              <th
-                scope="row"
-                className="sticky left-0 z-10 border-b bg-background px-4 py-4 text-left align-top"
-              >
-                <span className="eyebrow text-muted-foreground">{row.label}</span>
-              </th>
-              {packages.map((entry) => (
-                <td key={entry.key} className="border-b border-l px-4 py-4 align-top text-copy-14">
-                  {row.cell(entry)}
-                </td>
-              ))}
-            </tr>
+                The cell is top aligned and the subtitle carries a two line minimum, rather than
+                the whole block sitting on the cell's floor: "Compliance Check, EHS System &
+                Culture Snapshot" wraps to two lines where the other three subtitles take one, so
+                a bottom aligned block floated its trade name a line above the other three. This is
+                the same fix `PackagesGrid` makes with its `minmax(4.75rem,auto)` name track --
+                reserve the second line for every column, so a subtitle that needs only one leaves
+                it empty and all four trade names start on one baseline.
+              */}
+              <span className="block text-heading-16">{t(`${entry.key}.shortName`)}</span>
+              <span className="mt-1 block min-h-10 hyphens-auto wrap-break-word text-copy-13 font-normal text-muted-foreground">
+                {t(`${entry.key}.name`)}
+              </span>
+            </TableHead>
           ))}
-          <tr>
-            <th
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row) => (
+          /*
+            `border-b-0` on the last row is the primitive's own rule, and it is right here: the
+            frame draws that edge, so leaving the row's own would double it.
+          */
+          <TableRow key={row.key} className="hover:bg-transparent">
+            <TableHead
               scope="row"
-              className="sticky left-0 z-10 bg-background px-4 py-5 text-left align-top"
+              className="sticky left-0 z-10 h-auto border-b bg-background px-4 py-4 align-top"
             >
-              <span className="eyebrow text-muted-foreground">{compare("priceLabel")}</span>
-            </th>
+              <span className="eyebrow text-muted-foreground">{row.label}</span>
+            </TableHead>
             {packages.map((entry) => (
-              <td key={entry.key} className="border-l px-4 py-5 align-top">
-                {entry.priceChf === null ? (
-                  /*
-                    A sentence rather than a figure, so it takes copy size in the muted colour: at
-                    the price size it would line up against three franc amounts and promise a
-                    number it does not have, which is the reason the card steps its own "On demand"
-                    down a size too.
-                  */
-                  <span className="text-copy-14 text-muted-foreground">
-                    {compare("retainerPrice")}
-                  </span>
-                ) : (
-                  <>
-                    <span className="block text-heading-24 tabular-nums" data-numeric>
-                      {format.number(entry.priceChf, "chfWhole")}
-                    </span>
-                    <span className="mt-1 block text-label-12 text-muted-foreground">
-                      {pricing("vatNote")}
-                    </span>
-                  </>
-                )}
-              </td>
+              <TableCell
+                key={entry.key}
+                className="border-b border-l px-4 py-4 align-top text-copy-14 whitespace-normal"
+              >
+                {row.cell(entry)}
+              </TableCell>
             ))}
-          </tr>
-        </tbody>
-      </table>
-    </div>
+          </TableRow>
+        ))}
+        <TableRow className="hover:bg-transparent">
+          <TableHead
+            scope="row"
+            className="sticky left-0 z-10 h-auto bg-background px-4 py-5 align-top"
+          >
+            <span className="eyebrow text-muted-foreground">{compare("priceLabel")}</span>
+          </TableHead>
+          {packages.map((entry) => (
+            <TableCell key={entry.key} className="border-l px-4 py-5 align-top whitespace-normal">
+              {entry.priceChf === null ? (
+                /*
+                  A sentence rather than a figure, so it takes copy size in the muted colour: at
+                  the price size it would line up against three franc amounts and promise a number
+                  it does not have, which is the reason the card steps its own "On demand" down a
+                  size too.
+                */
+                <span className="text-copy-14 text-muted-foreground">
+                  {compare("retainerPrice")}
+                </span>
+              ) : (
+                <>
+                  <span className="block text-heading-24 tabular-nums" data-numeric>
+                    {format.number(entry.priceChf, "chfWhole")}
+                  </span>
+                  <span className="mt-1 block text-label-12 text-muted-foreground">
+                    {pricing("vatNote")}
+                  </span>
+                </>
+              )}
+            </TableCell>
+          ))}
+        </TableRow>
+      </TableBody>
+    </Table>
   );
 }

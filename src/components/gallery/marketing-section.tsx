@@ -8,6 +8,7 @@ import { EnquiryForm } from "@/features/marketing/ui/enquiry-form";
 import { Faq } from "@/features/marketing/ui/faq";
 import { HeroResearch } from "@/features/marketing/ui/hero-research";
 import { PackageCard } from "@/features/marketing/ui/package-card";
+import { PackagesCompare } from "@/features/marketing/ui/packages-compare";
 import { RegisterDirectory } from "@/features/marketing/ui/register-directory";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 
@@ -66,6 +67,14 @@ export function MarketingSection() {
             ) : null,
           )}
         </ul>
+      </Example>
+      {/*
+        The comparison table stands at the gallery's own width rather than the pricing page's
+        `max-w-6xl`, so the section shows it in the state that needs the scan: narrow enough that
+        the scroll container engages and the sticky label column is doing its job.
+      */}
+      <Example label={t("packagesCompare")}>
+        <PackagesCompare />
       </Example>
       <Example label={t("registerDirectory")}>
         <RegisterDirectory />

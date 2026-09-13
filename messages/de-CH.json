@@ -1393,7 +1393,8 @@
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
       "heroResearch": "Hero-Objekt der Startseite: Standbild des Kundenbereichs",
       "registerDirectory": "Expertenverzeichnis",
-      "costIceberg": "Kosten-Eisberg: der Zahlen-Abschnitt der Startseite"
+      "costIceberg": "Kosten-Eisberg: der Zahlen-Abschnitt der Startseite",
+      "packagesCompare": "Pakete im Vergleich: die Tabelle der Preisseite"
     },
     "expertAvatar": "Expertenbild",
     "avatarInitials": "Mit Initialen",
