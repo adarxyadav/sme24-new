@@ -143,7 +143,7 @@ spec [0021](../specs/0021-named-published-peers/index.md)
 - [ ] Verify it: `/check verify named published peers`
 - [ ] Test it: `/test named published peers`
 - [ ] Review it (fresh model): `/check review named published peers`
-- [ ] Document it: `/document named published peers`
+- [x] Document it: `/document named published peers`
 
 ### 32. Peer bubble chart · planned
 The picture the Peer Standing page promised, split out of feature 30 after its cross check (spec 0021 AC-11, owner decision of 13 Sep 2026): one hand drawn SVG under the positions with LTIFR across, lost days per incident up and headcount as bubble area, the client always drawn, a dashed line at the sector median where one exists, a focusable element per bubble with a tooltip on hover and focus, and a table for screen readers. The snapshot already carries the peers it draws (`chart.peerKeys`), so no model version moves. The contract is written in the spec's rationale under "The chart slice".
