@@ -188,6 +188,10 @@ _Owner decision of 2026-09-14, from a reference brought that day._
 
 The pricing opener earns it by being the shortest `h1` on any marketing page -- "Fixed price. No surprises." -- over a one line lead. Left aligned, four words of display type left most of a `py-24 md:py-40` band empty to the right; centred, they sit as a plate over the prices below.
 
+A centred anchor also flows its heading rather than breaking at every sentence, and caps its lead at `max-w-136` instead of `max-w-prose`. Both follow from the shape: the plate wants a wide short heading over a narrower lead, and `max-w-prose` (~65ch) held this lead on one line at desktop widths, so the block read as one column of three stacked lines rather than a heading with something under it.
+
+The heading's cap widens to `max-w-5xl` with it, and the width is measured rather than chosen. Flowed at `display-lg` the English opener is 833px on one line: `max-w-4xl` (896px) holds that, but only just, and a cap that close to the text wraps on the first longer translation. The German opener is 1060px on one line -- wider than the 1104px band's usable width once the gutters are off it -- so it can never be one line here and the only question is whether it wraps cleanly or overflows. `max-w-5xl` (1024px) clears English and wraps German to two balanced lines. The heading is one component serving both catalogs, so the cap has to be a width neither language fights; check both when this copy changes.
+
 The reference also set its label as a pill, the `emphasis` shape. The pricing opener deliberately does not take it: "Fixed price. No surprises." is already the landing page's emphasis heading (`marketing.landing.packages.title`), and a reader crossing to `/pricing` would meet what looks like the same block twice. `emphasis` also absorbs the lead into the heading's muted sentences, and this page's lead carries the 8.1% VAT note, which has to stay a sentence of its own. `emphasis` remains majors only.
 
 ### Hero object

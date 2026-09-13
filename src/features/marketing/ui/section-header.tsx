@@ -23,7 +23,9 @@ export type SectionHeaderProps = {
   /**
    * Centres the opener instead of stacking it left. Anchors only, and opt in: the whole site reads
    * left, so a centred section is a deliberate exception that has to earn itself (docs/design.md,
-   * `### Centred openers`). Left is the default and every existing call site keeps it.
+   * `### Centred openers`). Left is the default and every existing call site keeps it. A centred
+   * anchor also flows its heading rather than breaking at every sentence, and pulls its lead in
+   * off `max-w-prose`, so the block reads as a plate rather than a column.
    */
   readonly align?: "left" | "center";
   /** The id an owning `section` points at with `aria-labelledby`. */
@@ -56,8 +58,9 @@ export function SectionHeader({
       id={id}
       text={title}
       // The emphasis heading runs on as prose rather than breaking at every sentence: its whole
-      // point is that the claim and its answer read as one paragraph of display type.
-      layout={emphasis ? "flow" : "line"}
+      // point is that the claim and its answer read as one paragraph of display type. A centred
+      // anchor flows for a different reason -- see the measure note below.
+      layout={emphasis || centred ? "flow" : "line"}
       leadSentences={emphasis?.leadSentences}
       className={cn(
         // The page opener carries the ceiling weight (600), so the one h1 on a marketing page
@@ -65,9 +68,17 @@ export function SectionHeader({
         // tokens' own 450. Owner decision of 2026-09-10.
         as === "h1" && "font-semibold",
         tier === "anchor" && "max-w-4xl text-display-sm md:text-display-lg",
-        // The measure cap is a left edge plus a width, so centring it leaves the block itself
-        // hugging the left of the band. Centred anchors re-centre the cap.
-        centred && "mx-auto",
+        /*
+          The measure cap is a left edge plus a width, so centring it leaves the block itself
+          hugging the left of the band. Centred anchors re-centre the cap and widen it: flowed at
+          `display-lg` the English opener is 833px on one line, which `max-w-4xl` (896px) holds but
+          only just, and a cap that close to the text wraps it on the first longer translation.
+          `max-w-5xl` (1024px) clears the English line and still sits inside the band, so the
+          German opener -- 1060px on one line, wider than the container itself -- wraps to two
+          balanced lines here rather than overflowing. The heading is one component serving both
+          catalogs, so the cap has to be a width neither language fights.
+        */
+        centred && "mx-auto max-w-5xl",
         tier === "major" && "text-display-sm md:text-display",
         tier === "minor" && "font-semibold text-2xl tracking-headline md:text-display-sm",
         // A measure the two tone heading needs and the split major does not: the heading is the
@@ -139,7 +150,16 @@ export function SectionHeader({
       {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
       {heading}
       {lead ? (
-        <p className={cn("max-w-prose text-lg text-muted-foreground", centred && "mx-auto")}>
+        <p
+          className={cn(
+            "max-w-prose text-lg text-muted-foreground",
+            // Pulled in off `max-w-prose` (~65ch, which held this lead on one line at desktop
+            // widths) so it breaks to two under the heading and the block reads as a plate. The
+            // cap is a width rather than a break point: the two catalogs are different lengths,
+            // so where the line actually turns is left to `text-pretty` per language.
+            centred && "mx-auto max-w-136 text-pretty",
+          )}
+        >
           {lead}
         </p>
       ) : null}
