@@ -174,15 +174,13 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(range).toHaveAttribute("data-cost-high", "12000");
   });
 
-  // The badge sits in the title row with the word spelled out, so the colour is never the only
-  // carrier of the level and no hidden label has to restate the visible text.
-  it("spells the confidence level out in the title row", async () => {
+  // The confidence badge left the title row on 2026-09-13 (owner decision): the card carries
+  // its title alone and no level, spelled out or coloured, anywhere on it.
+  it("carries no confidence badge in the title row", async () => {
     const { container } = await renderSegment();
-    const badge = container.querySelector("[data-opportunity-card] [data-confidence]");
-    expect(badge).toHaveAttribute("data-confidence", "high");
-    expect(badge).toHaveTextContent(b.card.confidence.high);
-    expect(badge).not.toHaveAttribute("aria-label");
-    expect(badge?.closest('[data-slot="card-header"]')).not.toBeNull();
+    const card = container.querySelector("[data-opportunity-card]") as HTMLElement;
+    expect(card.querySelector("[data-confidence]")).not.toBeInTheDocument();
+    expect(within(card).queryByText(b.card.confidence.high)).not.toBeInTheDocument();
   });
 
   it("says no peer reference for a saving the model could not compute", async () => {
@@ -257,7 +255,7 @@ describe("the opportunity card (AC-9, AC-14)", () => {
     expect(container.querySelectorAll("[data-facts-form]")).toHaveLength(1);
     const card = container.querySelector("[data-facts-card]") as HTMLElement;
     expect(within(card).getByText(b.facts.title)).toBeInTheDocument();
-    expect(within(card).getByText(b.facts.description)).toBeInTheDocument();
+    expect(within(card).queryByText(b.facts.description)).not.toBeInTheDocument();
     expect(card.querySelector("[data-facts-form]")).toBeInTheDocument();
     const position = container.querySelector("[data-position-kpi]") as HTMLElement;
     expect(position.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -454,7 +452,7 @@ describe("the positions (AC-9, AC-14)", () => {
     expect(within(row).getByText("Yes")).toBeInTheDocument();
     expect(row).toHaveAttribute("data-peer-shape", "point");
     expect(row.querySelector("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "0.3");
-    expect(within(row).getByText(b.positions.pointBasis)).toBeInTheDocument();
+    expect(within(row).queryByText(b.positions.pointBasis)).not.toBeInTheDocument();
     expect(row.querySelector('[data-slot="quartile-band"]')).not.toBeInTheDocument();
     expect(row.textContent).not.toMatch(/quarter|quartile|median|p25|p75/i);
   });
@@ -573,9 +571,10 @@ describe("the fatality row (spec 0016 amendment, AC-22, AC-23)", () => {
     const compared = row.querySelector("[data-compared-value]") as HTMLElement;
     expect(compared).toHaveAttribute("data-compared-value", "238.0952");
     expect(compared).toHaveTextContent("Your count as a rate: 238.10 per 100 000 employed persons");
-    // A point row: no band drawing and no quartile wording, the sector rate included.
+    // A point row: no band drawing, no "one figure" line and no quartile wording, the sector
+    // rate included.
     expect(row.querySelector('[data-slot="quartile-band"]')).not.toBeInTheDocument();
-    expect(within(row).getByText(b.positions.pointBasis)).toBeInTheDocument();
+    expect(within(row).queryByText(b.positions.pointBasis)).not.toBeInTheDocument();
     expect(row.textContent).not.toMatch(/quarter|quartile|median|p25|p75/i);
     // The narration compares the rate to the sector rate, never the count to a rate, so a screen
     // reader hears two figures in one unit; the count is read from the value column.

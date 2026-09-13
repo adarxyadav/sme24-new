@@ -133,10 +133,12 @@ function PeerStrip({
 
 /**
  * The Peer Standing card (spec 0021, AC-10): for a KPI with a peer block, the rank line with the
- * word "publish" always in it, the sentence naming the gap to the best peer, the strip, the table
- * with the client's own row at its rank and its saving at every peer it is behind, and the rung
- * sentence. Money appears only on the client's rows, never as a peer's cost. Renders wherever its
- * caller does: the positions list on the server, the gallery in the browser.
+ * word "publish" always in it, the sentence naming the gap to the best peer, the strip and the
+ * table with the client's own row at its rank and its saving at every peer it is behind. The
+ * scope of the comparison (country, region, Europe, world) is carried by the rank line alone; the
+ * rung sentence under the table was cut on 2026-09-13 (owner decision). Money appears only on
+ * the client's rows, never as a peer's cost. Renders wherever its caller does: the positions list
+ * on the server, the gallery in the browser.
  */
 export function PeerStanding({
   t,
@@ -162,24 +164,6 @@ export function PeerStanding({
   const certified = isIso ? Math.round((block.certifiedShare ?? 0) * count) : 0;
   // The client's own row sits at its rank position: after every peer that ranks strictly better.
   const clientIndex = block.rank === null ? null : Math.min(block.rank - 1, count);
-  const country = clientCountry ? countryName(clientCountry, locale) : "";
-  const rungSentence = (() => {
-    const region = regionOf(clientCountry);
-    switch (block.geoRung) {
-      case "country":
-        return t("peers.rung.sentence.country", { country });
-      case "region":
-        return t("peers.rung.sentence.region", {
-          country,
-          kpi,
-          region: region ? t(`peers.region.${region}`) : "",
-        });
-      case "europe":
-        return t("peers.rung.sentence.europe", { country, kpi });
-      default:
-        return t("peers.rung.sentence.world", { kpi });
-    }
-  })();
   // The published value as a tooltip (AC-13, AC-21): a per 200 000 hours rate as printed, a
   // quotient row's both printed numbers with the note on its own line, nothing otherwise.
   const asPublishedTitle = (row: SnapshotPeerRow): string | undefined => {
@@ -374,9 +358,6 @@ export function PeerStanding({
           </tbody>
         </table>
       </div>
-      <p className="max-w-prose text-muted-foreground text-xs" data-rung-sentence>
-        {rungSentence} {t("peers.rung.larger")}
-      </p>
     </div>
   );
 }

@@ -2,14 +2,7 @@ import { InfoIcon, TriangleAlertIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuartileBand } from "@/components/ui/quartile-band";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,14 +11,12 @@ import { roundChf, roundChfRange } from "@/features/benchmark/model";
 import type { ParsedSnapshot } from "@/features/benchmark/queries";
 import { peerShapeOf, type SnapshotBlocks, type SnapshotGap } from "@/features/benchmark/snapshot";
 import {
-  confidenceLevel,
   isKpiKey,
   KPI_CATALOGUE,
   type KpiFormat,
   type KpiKey,
 } from "@/features/research/catalogue";
 import type { KpiDefinitionRow } from "@/features/research/queries";
-import { ConfidenceBadge } from "@/features/research/ui/badges";
 import { localizedText } from "@/features/research/ui/kpi-table";
 import type { LocaleCode } from "@/i18n/routing";
 import { FactsForm, type FactsFormProps } from "./facts-form";
@@ -169,7 +160,8 @@ export async function BenchmarkSegment({
  * own title. It stands beside the alert in `noData` and after the positions in `ready` whenever
  * the opportunity card does not already carry the form. Since 2026-09-13 (owner decision) it is
  * the only piece left of the "How this is calculated" disclosure: the formula, the assumptions,
- * the inputs used and the derived rows no longer render for the client. Server component.
+ * the inputs used and the derived rows no longer render for the client, and the card carries
+ * its title alone. Server component.
  */
 function FactsCard({
   company,
@@ -182,7 +174,6 @@ function FactsCard({
     <Card data-facts-card>
       <CardHeader>
         <CardTitle>{t("facts.title")}</CardTitle>
-        <CardDescription>{t("facts.description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <FactsForm company={company} />
@@ -220,12 +211,12 @@ function kpiName(catalogue: readonly KpiDefinitionRow[], locale: LocaleCode, key
 }
 
 /**
- * The annual incident cost (spec 0008, AC-9): the title with the confidence spelled out beside
- * it, the outward rounded range (spec 0016, AC-9), one line with the working estimate and the
- * lost time count it is built from (spec 0012, AC-1), then the two savings. Nothing on the page
- * explains the arithmetic since the "How this is calculated" disclosure was cut (owner decision
- * of 2026-09-13). Without a cost the card names the missing input and offers the facts form.
- * Server component.
+ * The annual incident cost (spec 0008, AC-9): the title, the outward rounded range (spec 0016,
+ * AC-9), one line with the working estimate and the lost time count it is built from (spec 0012,
+ * AC-1), then the two savings. Nothing on the page explains the arithmetic since the "How this is
+ * calculated" disclosure was cut (owner decision of 2026-09-13), and the confidence badge went
+ * with it on the same day. Without a cost the card names the missing input and offers the facts
+ * form. Server component.
  */
 function OpportunityCard({
   snapshot,
@@ -268,14 +259,6 @@ function OpportunityCard({
     <Card data-opportunity-card data-cost={snapshot.costChf ?? ""}>
       <CardHeader>
         <CardTitle>{t("card.title")}</CardTitle>
-        {snapshot.confidence !== null ? (
-          <CardAction>
-            <ConfidenceBadge
-              confidence={snapshot.confidence}
-              label={t(`card.confidence.${confidenceLevel(snapshot.confidence)}`)}
-            />
-          </CardAction>
-        ) : null}
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         {cost && snapshot.costChf !== null ? (
@@ -428,12 +411,9 @@ function GapList(props: ValueProps) {
   const rest = gaps.slice(TOP_GAPS);
   return (
     <section aria-labelledby="gaps-heading" className="flex flex-col gap-3" data-gaps={gaps.length}>
-      <div className="flex flex-col gap-1">
-        <h3 id="gaps-heading" className="font-semibold">
-          {t("gaps.title")}
-        </h3>
-        <p className="max-w-prose text-muted-foreground text-sm">{t("gaps.description")}</p>
-      </div>
+      <h3 id="gaps-heading" className="font-semibold">
+        {t("gaps.title")}
+      </h3>
       {gaps.length === 0 ? (
         <Alert variant="success">
           <InfoIcon aria-hidden="true" />
@@ -596,7 +576,8 @@ function PositionRow({
           shape === "point" ? (
             // A point row holds one figure repeated as all three quartiles, so it gets no band and
             // no replacement graphic: one labelled sector figure, and never the words quarter,
-            // quartile or median (spec 0016, AC-6).
+            // quartile or median (spec 0016, AC-6). The "one figure, not a range" line was cut on
+            // 2026-09-13 (owner decision) with the rest of the explanatory copy.
             <>
               <span className="sr-only">
                 {t("positions.srSector", {
@@ -638,7 +619,6 @@ function PositionRow({
                   })}
                 </span>
               ) : null}
-              <span className="text-muted-foreground text-xs">{t("positions.pointBasis")}</span>
               <span className="text-muted-foreground text-xs">{peerLabel(peer, t)}</span>
             </>
           ) : (
@@ -709,12 +689,9 @@ function PositionList(props: ValueProps) {
   const { snapshot, catalogue, t, format, locale } = props;
   return (
     <section aria-labelledby="positions-heading" className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h3 id="positions-heading" className="font-semibold">
-          {t("positions.title")}
-        </h3>
-        <p className="max-w-prose text-muted-foreground text-sm">{t("positions.description")}</p>
-      </div>
+      <h3 id="positions-heading" className="font-semibold">
+        {t("positions.title")}
+      </h3>
       <ul className="flex flex-col gap-3">
         {catalogue.map((definition) => (
           <PositionRow

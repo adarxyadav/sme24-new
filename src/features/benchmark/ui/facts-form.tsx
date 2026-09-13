@@ -60,7 +60,6 @@ export function FactsForm({ company, idPrefix }: FactsFormProps) {
   const generatedId = useId();
   const prefix = idPrefix ?? generatedId;
   const industryId = `${prefix}-industry`;
-  const industryHintId = `${prefix}-industry-hint`;
   const industryErrorId = `${prefix}-industry-error`;
   const employeesId = `${prefix}-employees`;
   const employeesHintId = `${prefix}-employees-hint`;
@@ -131,7 +130,7 @@ export function FactsForm({ company, idPrefix }: FactsFormProps) {
                 <SelectTrigger
                   id={industryId}
                   aria-invalid={fieldState.invalid ? true : undefined}
-                  aria-describedby={fieldState.invalid ? industryErrorId : industryHintId}
+                  aria-describedby={fieldState.invalid ? industryErrorId : undefined}
                   className="w-full"
                 >
                   <SelectValue placeholder={t("industryPlaceholder")} />
@@ -153,7 +152,6 @@ export function FactsForm({ company, idPrefix }: FactsFormProps) {
                   ))}
                 </SelectContent>
               </Select>
-              <FieldDescription id={industryHintId}>{t("industryHint")}</FieldDescription>
               <FieldError id={industryErrorId}>
                 {issueMessage(fieldState.error?.message, v)}
               </FieldError>

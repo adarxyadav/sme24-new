@@ -102,9 +102,9 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
 
     // The opportunity card (AC-9 a): the range, the working estimate with the lost time count it
     // is built from (spec 0012, AC-1, AC-8: 1.818 injuries a year to one decimal), both savings,
-    // the spelled out confidence in the title row, the provisional note. Nothing else: the date,
-    // the KPI count and the derived rows left the card on 2026-09-13 and the disclosure that took
-    // them was cut the same day (owner decisions).
+    // the provisional note. Nothing else: the date, the KPI count and the derived rows left the
+    // card on 2026-09-13, the disclosure that took them was cut the same day, and the confidence
+    // badge went with it (owner decisions).
     const card = page.locator("[data-opportunity-card]");
     expect(Number(await card.getAttribute("data-cost"))).toBeCloseTo(ANNUAL, 0);
     await expect(card.locator("[data-cost-headline]")).toContainText(/1.961.000/);
@@ -113,7 +113,7 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     );
     await expect(card.locator("[data-saving-median]")).toContainText(/1.081.000/);
     await expect(card.locator("[data-saving-median]")).toContainText("a year");
-    await expect(card.locator("[data-confidence]")).toContainText(/confidence$/);
+    await expect(card.locator("[data-confidence]")).toHaveCount(0);
     await expect(card.getByText(/Computed on/)).toHaveCount(0);
     await expect(card.locator("[data-compared]")).toHaveCount(0);
     await expect(card.locator("[data-derived-count]")).toHaveCount(0);
@@ -182,9 +182,9 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     await expect(standing.locator("[data-gap-line]")).toContainText(
       "Ahead of every published peer; Rieter Holding AG is the closest",
     );
-    await expect(standing.locator("[data-rung-sentence]")).toContainText(
-      "All published peers are from Switzerland.",
-    );
+    // The rank line carries the scope alone; the rung sentence under the table was cut on
+    // 2026-09-13 (owner decision).
+    await expect(standing.locator("[data-rung-sentence]")).toHaveCount(0);
     const peerRows = standing.locator("[data-peer-row]");
     await expect(peerRows).toHaveCount(4);
     for (const key of ["rieter", "sfs", "geberit", "georg-fischer"]) {
@@ -212,9 +212,8 @@ test("the fixture run ends in a snapshot and the dashboard shows the card, the g
     const trifr = page.locator('[data-position-kpi="trifr"] [data-peer-standing="trifr"]');
     await expect(trifr).toHaveAttribute("data-geo-rung", "region");
     await expect(trifr).toHaveAttribute("data-rank", "3");
-    await expect(trifr.locator("[data-rung-sentence]")).toContainText(
-      "Fewer than three companies in Switzerland publish a TRIFR, so the comparison widened to the DACH region.",
-    );
+    await expect(trifr.locator("[data-rank-line]")).toContainText("in the DACH region");
+    await expect(trifr.locator("[data-rung-sentence]")).toHaveCount(0);
     // The peer bubble chart (spec 0021, AC-22, AC-25): the points are the LTIFR rung's peers that
     // also hold a lost days figure, and in Switzerland that is Geberit alone, once its quotient
     // row (2 275 days lost over 111 lost time accidents) is signed off. Until the owner has read
@@ -487,9 +486,9 @@ test("a point row renders a sector comparison with no band and no quartile wordi
     await expect(row.locator('[data-slot="quartile-band"]')).toHaveCount(0);
     await expect(row.locator("svg")).toHaveCount(0);
 
-    // One labelled sector figure, and the point row basis sentence.
+    // One labelled sector figure; the "one figure, not a range" line was cut on 2026-09-13.
     await expect(row.locator("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "48.9");
-    await expect(row.getByText("One figure for the whole sector, not a range.")).toBeVisible();
+    await expect(row.getByText("One figure for the whole sector, not a range.")).toHaveCount(0);
 
     // The words the spec forbids on a point row, in the rendered text of the row itself.
     const text = ((await row.textContent()) ?? "").toLowerCase();

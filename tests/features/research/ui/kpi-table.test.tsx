@@ -139,17 +139,19 @@ describe("KpiTable (AC-7)", () => {
     expect(cell("fatalities", 2024)).toHaveTextContent(en.research.table.notFound);
   });
 
-  it("badges the confidence per cell and leaves it out when the row has none", async () => {
+  // The confidence badge was cut from the client table on 2026-09-13 (owner decision): a cell
+  // carries its value and sources, never a level.
+  it("carries no confidence badge in any cell", async () => {
     await renderTable();
-    expect(within(cell("ltifr", 2025)).getByText("High")).toHaveAttribute(
-      "data-confidence",
-      "high",
-    );
-    expect(within(cell("ltifr", 2024)).getByText("Medium")).toBeInTheDocument();
-    expect(within(cell("absenteeism_rate", 2025)).getByText("Low")).toBeInTheDocument();
-    expect(
-      within(cell("iso_45001_certified", 2025)).queryByText(/High|Medium|Low/),
-    ).not.toBeInTheDocument();
+    for (const [key, year] of [
+      ["ltifr", 2025],
+      ["ltifr", 2024],
+      ["absenteeism_rate", 2025],
+      ["iso_45001_certified", 2025],
+    ] as const) {
+      expect(cell(key, year).querySelector("[data-confidence]")).toBeNull();
+      expect(within(cell(key, year)).queryByText(/^(High|Medium|Low)$/)).not.toBeInTheDocument();
+    }
   });
 
   it("marks a value whose run skipped validation as not verified, reachable by keyboard", async () => {

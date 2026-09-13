@@ -87,7 +87,8 @@ test("a client starts the research from the prefilled form and the run is queued
       "data-value",
       String(FIXTURE_VALUES.ltifr),
     );
-    await expect(ltifr.locator("[data-confidence]")).toHaveAttribute("data-confidence", "high");
+    // The confidence badge was cut from the client table on 2026-09-13 (owner decision).
+    await expect(ltifr.locator("[data-confidence]")).toHaveCount(0);
     await expect(
       page.locator('tr[data-kpi="iso_45001_certified"] [data-value]').first(),
     ).toHaveText("Yes");

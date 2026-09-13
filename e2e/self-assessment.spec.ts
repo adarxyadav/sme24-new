@@ -121,7 +121,8 @@ test("a client prefills from research, saves and corrects figures, sees them in 
       section.getByRole("button", { name: strings.clear.replace("{kpi}", LTIFR) }),
     ).toHaveCount(0);
     await expect(section.locator("[data-older-year-hint]")).toHaveCount(0);
-    await expect(cell(page, "ltifr", 2024).locator("[data-confidence]")).toBeVisible();
+    // No confidence badge on the client table since 2026-09-13 (owner decision).
+    await expect(cell(page, "ltifr", 2024).locator("[data-confidence]")).toHaveCount(0);
     await screenshot(page, "prefilled");
     await expectNoAxeViolations(page);
 
@@ -143,7 +144,7 @@ test("a client prefills from research, saves and corrects figures, sees them in 
       section.getByRole("button", { name: strings.clear.replace("{kpi}", TRIFR) }),
     ).toBeVisible();
 
-    // A correction of a research value (AC-5, AC-8): the client badge replaces the confidence.
+    // A correction of a research value (AC-5, AC-8): the client badge marks the cell.
     await ltifr.fill("2,9");
     await section.getByRole("button", { name: strings.submit }).click();
     await expect(cell(page, "ltifr", 2024)).toContainText("2.90");
@@ -191,11 +192,11 @@ test("a client prefills from research, saves and corrects figures, sees them in 
         .toBe("ready");
     }
 
-    // Clearing (AC-6, AC-7): the research value and its confidence are back.
+    // Clearing (AC-6, AC-7): the research value is back and the client badge is gone.
     await section.getByRole("button", { name: strings.clear.replace("{kpi}", LTIFR) }).click();
     await expect(form.locator("[data-kpi-cleared]")).toHaveText(strings.cleared);
     await expect(cell(page, "ltifr", 2024)).toContainText("2.40");
-    await expect(cell(page, "ltifr", 2024).locator("[data-confidence]")).toBeVisible();
+    await expect(cell(page, "ltifr", 2024).locator('[data-source="client"]')).toHaveCount(0);
     await expect(
       section.getByRole("button", { name: strings.clear.replace("{kpi}", LTIFR) }),
     ).toHaveCount(0);

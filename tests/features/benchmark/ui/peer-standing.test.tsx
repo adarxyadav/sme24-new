@@ -20,7 +20,7 @@ import {
  * The Peer Standing card (spec 0021, AC-10, AC-12): for a KPI with a peer block the positions
  * row becomes the card with the rank line (the word publish always in it), the gap sentence, the
  * strip with its screen reader sentence, the table with one linked source per row, the client's
- * own row at its rank with no money, the no saving text, and the rung sentence; with rank null
+ * own row at its rank with no money, the no saving text, and no rung sentence; with rank null
  * the heading has no ordinal and no client row; a `@5` snapshot with an empty block says "No
  * published peer yet"; a `@4` snapshot renders as before; axe passes.
  */
@@ -111,7 +111,7 @@ async function renderWith(peers: readonly SnapshotPeerBlock[], modelVersion = "b
 const ltifrRow = () => document.querySelector('[data-position-kpi="ltifr"]') as HTMLElement;
 
 describe("the Peer Standing card (spec 0021, AC-10)", () => {
-  it("replaces the LTIFR row with the rank line, the gap, the strip and the rung sentence", async () => {
+  it("replaces the LTIFR row with the rank line, the gap, the strip and the table", async () => {
     await renderWith([ltifrBlock()]);
     const card = ltifrRow().querySelector('[data-peer-standing="ltifr"]') as HTMLElement;
     expect(card).toHaveAttribute("data-geo-rung", "europe");
@@ -132,9 +132,9 @@ describe("the Peer Standing card (spec 0021, AC-10)", () => {
     expect(strip.querySelector(".sr-only")).toHaveTextContent(
       "Your value 2.40 against 5 published peers in Europe, from 0.90 to 4.00.",
     );
-    expect(card.querySelector("[data-rung-sentence]")).toHaveTextContent(
-      "Fewer than three companies in Switzerland publish an LTIFR, so the comparison widened to Europe. Published peers are larger companies",
-    );
+    // The rank line carries the scope alone: the rung sentence under the table was cut on
+    // 2026-09-13 (owner decision).
+    expect(card.querySelector("[data-rung-sentence]")).toBeNull();
     // Never the forbidden words on the card.
     expect((card.textContent ?? "").toLowerCase()).not.toMatch(/quarter|quartile|median/);
   });
@@ -238,9 +238,7 @@ describe("the Peer Standing card (spec 0021, AC-10)", () => {
     expect(ltifrRow().querySelector("[data-rank-line]")).toHaveTextContent(
       "in Manufacturing in Switzerland that publish",
     );
-    expect(ltifrRow().querySelector("[data-rung-sentence]")).toHaveTextContent(
-      "All published peers are from Switzerland.",
-    );
+    expect(ltifrRow().querySelector("[data-rung-sentence]")).toBeNull();
     const isoCard = document.querySelector(
       '[data-peer-standing="iso_45001_certified"]',
     ) as HTMLElement;
