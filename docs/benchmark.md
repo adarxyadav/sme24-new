@@ -40,8 +40,9 @@ The `benchmark-company` task (`src/trigger/benchmark-company.ts`) runs after a r
 - `cost`: the block of rule 5, or null.
 - `assumptions`: every assumption the cost used, value, unit, source and provisional flag copied.
 - `derived`: the two display only injury counts, or null. Added by spec 0012, so it exists only on a `benchmark-model@2` or later row.
+- `peers`: the named published peer blocks, one per KPI with at least three published peers (spec 0021, see "Peer library" below), or null. Exists only on a `benchmark-model@5` or later row; the reader normalises an older row to an empty list.
 
-`model_version` names the rule set and the block schema (`MODEL_VERSION` in `src/features/benchmark/catalogue.ts`, `benchmark-model@4`). The reader (`src/features/benchmark/queries.ts`) picks the schema through `SNAPSHOT_SCHEMAS` in `snapshot.ts`, which is keyed by **literal** version strings, not by the live constant, so a bump adds an entry instead of renaming the only one: `benchmark-model@1` (the five blocks), `benchmark-model@2` (plus `derived`, spec 0012), `benchmark-model@3` (plus the peer `shape`, `sourceKey` and `basis` and the assumption `note` and `isAssumption`, spec 0016) and `benchmark-model@4` (plus `comparedValue` on each result, and the rules of the 2026-09-12 amendment: a peer reference of 0 prices to zero incidents, fatalities compare as a rate per 100 000 employed persons, a missing assumption gives a null cost instead of `NaN`) are all in the map and all stay valid; a `@1` row has no `derived` key and the reader treats it as absent, and a `@3` row has no `comparedValue`. A row with an unknown version or blocks that fail their schema is treated as absent and reported to Sentry. A formula change bumps the constant, adds a schema to the map and never rewrites or blanks old rows. `tests/features/benchmark/runbook.test.ts` pins the version and the map named here to the code.
+`model_version` names the rule set and the block schema (`MODEL_VERSION` in `src/features/benchmark/catalogue.ts`, `benchmark-model@5`). The reader (`src/features/benchmark/queries.ts`) picks the schema through `SNAPSHOT_SCHEMAS` in `snapshot.ts`, which is keyed by **literal** version strings, not by the live constant, so a bump adds an entry instead of renaming the only one: `benchmark-model@1` (the five blocks), `benchmark-model@2` (plus `derived`, spec 0012), `benchmark-model@3` (plus the peer `shape`, `sourceKey` and `basis` and the assumption `note` and `isAssumption`, spec 0016) and `benchmark-model@4` (plus `comparedValue` on each result, and the rules of the 2026-09-12 amendment: a peer reference of 0 prices to zero incidents, fatalities compare as a rate per 100 000 employed persons, a missing assumption gives a null cost instead of `NaN`) and `benchmark-model@5` (plus `inputs.country` and the `peers` blocks of spec 0021, no formula change) are all in the map and all stay valid; a `@1` row has no `derived` key and the reader treats it as absent, and a `@3` row has no `comparedValue`. A row with an unknown version or blocks that fail their schema is treated as absent and reported to Sentry. A formula change bumps the constant, adds a schema to the map and never rewrites or blanks old rows. `tests/features/benchmark/runbook.test.ts` pins the version and the map named here to the code.
 
 The dashboard state is derived, never stored: a snapshot with nothing compared is `noData` (with the facts form), any other snapshot is `ready`; with no snapshot, a run that succeeded, a company edit or a client figure save (`clientKpiUpdatedAt`, the newest client row) younger than two minutes (`BENCHMARK_WAIT_MS`) is `calculating`, anything older is `unavailable`.
 
@@ -146,16 +147,36 @@ It reads `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` (the project's name f
 
 ## Local proof and the worker
 
-The whole thread runs without a vendor: `pnpm trigger:dev` with `RESEARCH_PROVIDER=fixture` (the fixture company has 420 employees, NOGA 23.61, an accident rate of 68 and 12.5 lost days per accident, so the committed seed gives a cost of about CHF 1 961 000 (28.56 incidents × (4 811 + 12.5 × 1 100) × 3.7, rounded; `runbook.test.ts` computes it from `FIXTURE_VALUES` and the seed and fails when this sentence drifts), then `TRIGGER_DEV_RUNNING=1 pnpm test:e2e e2e/benchmark.spec.ts`.
+The whole thread runs without a vendor: `pnpm trigger:dev` with `RESEARCH_PROVIDER=fixture` (the fixture company has 420 employees, NOGA 23.61, an accident rate of 68 and 12.5 lost days per accident, so the committed seed gives a cost of about CHF 1 961 000 (28.56 incidents × (4 811 + 12.5 × 1 100) × 3.7, rounded; `runbook.test.ts` computes it from `FIXTURE_VALUES` and the seed and fails when this sentence drifts), and with the committed peer library its LTIFR of 2.4 ranks 2nd of 3 European manufacturers that publish an LTIFR, with a saving at the best peer of about CHF 62 000 a year (Sandvik's 1.2, on the per million hours arm; the same test pins it), then `TRIGGER_DEV_RUNNING=1 pnpm test:e2e e2e/benchmark.spec.ts`.
 
 Two things to know when running the worker locally:
 
 - Only one `trigger dev` may be connected to the dev environment at a time; a second one (another checkout, another terminal) takes the runs and the first one never sees them.
 - The Trigger.dev dev environment's own variables apply to the worker and an env file value overrides them, but an empty env file value does not. When the dev environment carries `RESEND_API_KEY` and `EMAIL_ALLOWED_RECIPIENTS`, a test address is skipped as `not_allowlisted` (the delivery row still proves the send) and the Playwright thread asserts Mailpit only when the delivery's transport is `smtp`. Do not lift the allowlist in a worker env file while the Resend key is set: the sends then go out for real.
 
+## Peer library
+
+Named companies beside the sector statistics (spec 0021). Two CSV files are the whole of two global tables, on the same rails as the sector seed:
+
+- `supabase/seed-data/peer-companies.csv`: `key, name, country (ISO 3166 alpha 2), industry_section (A to U, never ALL), headcount, headcount_year, report_url, note_de, note_en`. One row per company that prints a safety figure in its own report.
+- `supabase/seed-data/peer-figures.csv`: `peer_key, kpi_key (ltifr, trifr, lost_days_per_incident or iso_45001_certified), period_year, value_as_published, unit_as_published (per_million_hours, per_200k_hours, days or boolean), basis (employees or employees_and_contractors), source_url, verified_at, verified_by`. The generator computes `value` in the KPI's own unit: a per 200 000 hours rate times five, days and per million hours as printed, a boolean 0 or 1. The table shows the converted value with the published one in a tooltip.
+
+**The verified pair.** A figure reaches a client only when a person has read the source page: `verified_at` and `verified_by` are both set or both empty (a database check and the seed schema enforce it). A row without them may sit in the CSV as work in progress; the benchmark task never loads it (`verified_at is not null` is in the query) and the third launch gate query below counts it. `verified_by` is the curator's name; it never reaches a client page. Ten of the seeded figures (six companies, 13 Sep 2026) carry `Claude Fable 5.1 (agent read; owner re-read owed)`: an agent fetched each company's own report page and read the figure off it, which is not a person's reading. Before the production promotion the owner re reads each source page and replaces that name with their own, or empties the pair, so the gate finds no agent read row.
+
+**The ladder, in words.** The task loads the companies of the client's NACE section (`sectionOfDivision(industry_code)`) and never widens the industry. Per KPI it keeps figures from the current Zurich year minus three or later, the latest year per company, and within that year the employees only figure when both bases exist. Then it climbs: the client's country, its region (`src/lib/countries.ts`: dach, nordics, benelux, british_isles, southern, central_eastern), Europe, the world; the first rung with at least three companies wins and every company on it is a peer. A client country outside the catalogue lands on the world. Fewer than three even worldwide gives no block and the row says "No published peer yet". The rank counts peers strictly better than the client (ties share a rank); the saving at a peer is the client's own, priced on the LTIFR arm on both sides or with the client's incidents against the peer's lost days, and null for TRIFR and ISO 45001; no number ever describes what a peer loses.
+
+**Generate and recompute.** `pnpm benchmarks:migration` parses all four CSVs, refuses with the file and line a figure of an unknown company, a company without a figure, a verified pair half filled, a unit that does not fit the KPI or a year after the current Zurich year, and renders the upserts and then the retirement (figures, then companies). Then `pnpm db:reset`, `pnpm test:db` (`peer_companies.test.sql` and `peer_figures.test.sql`), `pnpm db:types` if a column changed. A snapshot copies the peer rows it used, so a later CSV edit never changes what a client already saw; after a seed change, `pnpm benchmarks:recompute` as above.
+
+**Owed after the named peers deploy (spec 0021, AC-15).** After the seed migration and the `benchmark-model@5` code land, run `pnpm benchmarks:recompute` once on staging and then once on production, after the whole feature has merged and never before, and watch it to completion on the Trigger.dev dashboard. Until then existing `@4` snapshots render as today with no peer card, and a company whose research finishes after the deploy gets a `@5` row on its own.
+
+- [ ] Recompute run on staging after the named peers deploy
+- [ ] Recompute run on production after the named peers deploy
+
+**What the first curation holds (13 Sep 2026).** Manufacturing (C): Geberit (CH, LTIFR 6.0 per million hours, employees only, ISO 45001 at all plants), Rieter (CH, 3.3), Sandvik (SE, LTIFR 1.2 and TRIFR 3.0 with contractors, ISO 45001 at about 80 percent of sites), BASF (DE, recordable rate 3.78 with contractors). Construction (F): STRABAG (AT, recordable rate 13.2, own workforce, ISO 45001), NCC (SE, LTIF 3.3, own employees). A Swiss manufacturer reaches three LTIFR peers on the Europe rung. Spec 0021 AC-4 asks for at least 8 manufacturers and 6 construction groups with three LTIFR and three TRIFR figures per section; the reading that fills the rest is the owner's, one afternoon per section. Leads with a located report but no figure read from an HTML page yet: Sulzer, Georg Fischer, Schindler, Bühler (TRIR 0.94 in a snippet only), Holcim, ABB, Siemens, SKF; Skanska (LTAR 2.2 with subcontractors, no headcount on the metrics page), Porr (LTIFR 13.5 in a snippet only), Implenia (per 1 000 full time jobs, not an allowed unit), Vinci, Hochtief, Ferrovial, Eiffage, Peab, Bouygues.
+
 ## Launch gate
 
-The gate is two queries, because an unread value and an unsourceable one are different problems (spec 0016, AC-3). Before the promotion, replace the readable rows from the published tables, generate the seed migration, run `pnpm benchmarks:recompute` on staging, then run both.
+The gate is three queries, because an unread value, an unsourceable one and an unverified named peer are different problems (spec 0016, AC-3; spec 0021, AC-14). Before the promotion, replace the readable rows from the published tables, generate the seed migration, run `pnpm benchmarks:recompute` on staging, then run all three.
 
 **One: nothing is still waiting to be read.** This must return zero on both tables.
 
@@ -176,7 +197,13 @@ order by 1, 2;
 
 Expected, and only these: `indirect_multiplier_low`, `indirect_multiplier`, `indirect_multiplier_high`, all on `benchmark_assumptions`. No peer row may be a declared assumption. A new name in that list is a new claim the product is making without a source, so it needs a decision, not a tick.
 
-The pgTAP suites (`supabase/tests/benchmarks.test.sql`, `benchmark_assumptions.test.sql`) assert both flags across both tables, including that no row is both provisional and a declared assumption; update them in the same change that clears a flag.
+**Three: no named peer figure is waiting for a person to read its page.** This must return zero in production (spec 0021, AC-14); a row with `verified_at` null is skipped by the task, so it can only ever cost a peer, never show one.
+
+```sql
+select count(*) from public.peer_figures where verified_at is null;
+```
+
+The pgTAP suites (`supabase/tests/benchmarks.test.sql`, `benchmark_assumptions.test.sql`, `peer_figures.test.sql`) assert both flags across both tables, including that no row is both provisional and a declared assumption, and that the seed holds no unverified peer figure; update them in the same change that clears a flag.
 
 ## What is readable, and where
 

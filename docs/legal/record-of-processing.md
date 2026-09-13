@@ -49,6 +49,8 @@ two lists differ. A new table is therefore a row here in the same pull request.
 | `benchmark_snapshots` | An immutable computed benchmark | Show a client where they stand, and be able to explain it later | contract | indefinite | Supabase | Immutable by design, so a figure a client was shown can always be reproduced. Named in the privacy page's third bucket. |
 | `benchmarks` | Peer values, no person | Peer comparison data | none | n/a | Supabase | Seeded from `supabase/seed-data/`. |
 | `benchmark_assumptions` | Model assumptions, no person | Peer comparison data | none | n/a | Supabase | Seeded from `supabase/seed-data/`. |
+| `peer_companies` | Named companies that publish a safety figure, no person | Named peer comparison (spec 0021) | none | n/a | Supabase | Seeded from `supabase/seed-data/peer-companies.csv`; a company is not a natural person and the rows cite public reports. |
+| `peer_figures` | Published company figures; `verified_by` holds the name of the staff curator who read the source page | Named peer comparison (spec 0021) | interest | indefinite | Supabase | Seeded from `supabase/seed-data/peer-figures.csv`. The curator's name is the record of who verified a figure; it is never shown to a client. |
 | `kpi_definitions` | Catalogue, no person | Define what a KPI means | none | n/a | Supabase | Seed data. |
 | `questionnaire_versions` | Checklist outline, no person | The versioned content an assessment is rated against | none | n/a | Supabase | Seeded from `src/features/assessments/content/` through `pnpm questionnaires:migration`. |
 | `questionnaire_items` | Checklist items and texts, no person | The versioned content an assessment is rated against | none | n/a | Supabase | As `questionnaire_versions`. |

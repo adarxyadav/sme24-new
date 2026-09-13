@@ -1,7 +1,7 @@
 # 0021. Named published peers
 
 **Date**: 2026-09-13
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -112,10 +112,10 @@ The four owner calls of the Peer Standing page, decided on 13 Sep 2026: larger l
 
 Tracer Bullet: the first slice runs one real thread, three hand curated manufacturers through the task into a snapshot and onto a minimal card, before the rules and the chart are thickened.
 
-1. The thin thread: the whole country catalogue in `src/lib/countries.ts` with its test; the two schema files, the generated migration read by hand, the `peers` column, pgTAP and types; the two CSVs with three verified manufacturers and one figure each, the seed schema and the migration script extension with the unit conversion and the retirement; the task's library read; `benchmark-model@5` with the ladder's happy path (`geoRung`, peers, rank), `inputs.country` and the snapshot schema; the reader; a first card with the rank line and the table in place of the LTIFR row, satisfies **AC-1**, **AC-2**, **AC-3**, **AC-5**, **AC-9**.
-2. The rules: freshness, latest year, basis preference, the four rungs and the minimum of three, rank ties, the gap to the best, the ISO share, the saving per peer on one arm, the unknown country rule, the unit tooltip; the Vitest suites for each, satisfies **AC-6**, **AC-7**, **AC-8**, **AC-13**.
-3. The card: the strip SVG with its `sr-only` sentence, the rank line in both shapes (with and without a rank), the rung sentence, the linked rows, the no saving text, the gallery section, every string in both catalogs, the catalogue test extended to the rank, rung and table keys, satisfies **AC-10**, **AC-11**, **AC-12**.
-4. Curation, gate and thread: the C and F peers read from the reports and verified, the gate query and the runbook section, the recompute plan, the fixture's LTIFR and TRIFR, the e2e thread, satisfies **AC-4**, **AC-14**, **AC-15**, **AC-16**, **AC-17**.
+1. [x] The thin thread: the whole country catalogue in `src/lib/countries.ts` with its test; the two schema files, the generated migration read by hand, the `peers` column, pgTAP and types; the two CSVs with three verified manufacturers and one figure each, the seed schema and the migration script extension with the unit conversion and the retirement; the task's library read; `benchmark-model@5` with the ladder's happy path (`geoRung`, peers, rank), `inputs.country` and the snapshot schema; the reader; a first card with the rank line and the table in place of the LTIFR row, satisfies **AC-1**, **AC-2**, **AC-3**, **AC-5**, **AC-9**.
+2. [x] The rules: freshness, latest year, basis preference, the four rungs and the minimum of three, rank ties, the gap to the best, the ISO share, the saving per peer on one arm, the unknown country rule, the unit tooltip; the Vitest suites for each, satisfies **AC-6**, **AC-7**, **AC-8**, **AC-13**.
+3. [x] The card: the strip SVG with its `sr-only` sentence, the rank line in both shapes (with and without a rank), the rung sentence, the linked rows, the no saving text, the gallery section, every string in both catalogs, the catalogue test extended to the rank, rung and table keys, satisfies **AC-10**, **AC-11**, **AC-12**.
+4. [ ] Curation, gate and thread: the C and F peers read from the reports and verified, the gate query and the runbook section, the recompute plan, the fixture's LTIFR and TRIFR, the e2e thread, satisfies **AC-4**, **AC-14**, **AC-15**, **AC-16**, **AC-17**.
 
 ## Consequences
 
