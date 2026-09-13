@@ -550,15 +550,6 @@
       "retainerCta": "Let’s talk",
       "overviewLink": "See what’s included",
       "overviewLinkFor": "See what’s included: {name}",
-      "included": {
-        "title": "What every package includes.",
-        "items": {
-          "expert": "A senior expert, not a junior with a template.",
-          "fixedPrice": "One fixed price, agreed before the first visit.",
-          "onSite": "On site from the System Snapshot up; the Culture Snapshot runs remote in one day.",
-          "report": "A written report with ranked actions."
-        }
-      },
       "faq": {
         "title": "Questions.",
         "items": {

@@ -550,15 +550,6 @@
       "retainerCta": "Sprechen wir",
       "overviewLink": "Leistungen ansehen",
       "overviewLinkFor": "Leistungen ansehen: {name}",
-      "included": {
-        "title": "Was jedes Paket enthält.",
-        "items": {
-          "expert": "Ein Senior-Experte, kein Junior mit Vorlage.",
-          "fixedPrice": "Ein Fixpreis, vereinbart vor dem ersten Besuch.",
-          "onSite": "Vor Ort ab dem System-Snapshot; der Kultur-Snapshot läuft remote an einem Tag.",
-          "report": "Ein schriftlicher Bericht mit priorisierten Massnahmen."
-        }
-      },
       "faq": {
         "title": "Fragen.",
         "items": {

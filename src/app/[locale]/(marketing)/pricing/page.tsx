@@ -14,7 +14,6 @@ import { absoluteUrl } from "@/i18n/metadata";
 import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
 
-const INCLUDED = ["expert", "fixedPrice", "onSite", "report"] as const;
 const FAQ = ["vat", "afterPayment", "date", "cancellation"] as const;
 
 /** Title, description, alternates and social fields of the pricing page (spec 0009, AC-1, AC-2). */
@@ -129,19 +128,6 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
             className="flex flex-col gap-3 md:grid-cols-none md:gap-3"
           />
           <PackagesCompare />
-        </div>
-      </section>
-
-      <section aria-labelledby="included-heading">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
-          <SectionHeader tier="minor" id="included-heading" title={t("included.title")} />
-          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {INCLUDED.map((item) => (
-              <li key={item} className="flex flex-col gap-2 border-t pt-4">
-                <p className="text-sm">{t(`included.items.${item}`)}</p>
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
