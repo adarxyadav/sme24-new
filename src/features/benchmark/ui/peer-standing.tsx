@@ -211,6 +211,9 @@ export function PeerStanding({
                 {t("peers.rank.ordinal", { rank: block.rank })}
               </span>
             ) : null}
+            {/* A real space between the two spans: the flex gap paints one but adds no character,
+                so without it the ordinal and the sentence read as one word to a screen reader. */}
+            {block.rank !== null ? " " : null}
             <span className="text-muted-foreground text-sm">
               {block.rank !== null
                 ? t("peers.rank.ranked", { count, industry, scope, kpi })

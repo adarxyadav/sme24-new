@@ -350,6 +350,23 @@ describe("the priority gaps (AC-9)", () => {
     );
   });
 
+  it("reads the value, the median and the relative gap as one sentence with a real space between them", async () => {
+    // The two phrases are spans in a flex row: the gap paints a space but adds no character, so a
+    // screen reader and copy and paste would run "49.90" into "36.3%" without the text node.
+    const { container } = await renderSegment();
+    const rate = container.querySelector('[data-gap="accident_rate_per_1000_fte"]') as HTMLElement;
+    expect(rate.textContent).toMatch(/68\.00 vs\. median 49\.90 36\.3\s?% above the median/);
+  });
+
+  it("ends the sentence at the median, with no trailing space, when the relative gap is null", async () => {
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot({}, { gaps: [gap(1, "accident_rate_per_1000_fte")] }),
+    });
+    const rate = container.querySelector('[data-gap="accident_rate_per_1000_fte"]') as HTMLElement;
+    expect(within(rate).queryByText(/above the median/)).not.toBeInTheDocument();
+    expect(rate.textContent).toMatch(/68\.00 vs\. median 49\.90$/);
+  });
+
   it("puts a fatality first with its own sentence and no numbers", async () => {
     const { container } = await renderSegment();
     const fatality = container.querySelector('[data-gap="fatalities"]') as HTMLElement;

@@ -407,6 +407,8 @@ function GapItem({
               median: formatQuartile(gap.key, result.peer.median, format, yesNo),
             })}
           </span>
+          {/* A real space: the flex gap paints one but adds no character between the two phrases. */}
+          {gap.gapRelative !== null ? " " : null}
           {gap.gapRelative !== null ? (
             <span>
               {t("gaps.relative", { percent: format.number(gap.gapRelative, "percent") })}

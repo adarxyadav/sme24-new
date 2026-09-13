@@ -115,9 +115,10 @@ describe("the Peer Standing card (spec 0021, AC-10)", () => {
     expect(card).toHaveAttribute("data-geo-rung", "europe");
     expect(card).toHaveAttribute("data-rank", "4");
     const rankLine = card.querySelector("[data-rank-line]") as HTMLElement;
-    expect(rankLine).toHaveTextContent("4th");
+    // One sentence to a screen reader and to copy and paste: the ordinal and the rest are two
+    // spans in a flex row, so a real space has to sit between them (the gap alone renders none).
     expect(rankLine).toHaveTextContent(
-      "of 5 companies in Manufacturing in Europe that publish an LTIFR",
+      "4th of 5 companies in Manufacturing in Europe that publish an LTIFR",
     );
     expect(card.querySelector("[data-gap-line]")).toHaveTextContent(
       "1.50 behind HELVETIA AG, the best published peer",
