@@ -2,7 +2,7 @@ import type { getFormatter, getTranslations } from "next-intl/server";
 import type { ChartPoint, SnapshotBlocks } from "@/features/benchmark/snapshot";
 import type { LocaleCode } from "@/i18n/routing";
 import { countryName } from "@/lib/countries";
-import { chartDomain } from "./chart-scale";
+import { chartDomain, type Domain, niceTicks, type Tick, tickDecimals } from "./chart-scale";
 import { type BubblePoint, PeerBubbleChart } from "./peer-bubble-chart";
 
 type Formatter = Awaited<ReturnType<typeof getFormatter>>;
@@ -122,6 +122,15 @@ export function PeerChart({ blocks, t, format, locale }: PeerChartProps) {
     ...all.map((point) => point.y),
     ...(sectorMedian === null ? [] : [sectorMedian]),
   ]);
+  // Round ticks inside each domain, formatted here so the client component prints strings only.
+  const ticksOf = (domain: Domain, target: number): readonly Tick[] => {
+    const values = niceTicks(domain, target);
+    const digits = tickDecimals(values);
+    return values.map((value) => ({
+      value,
+      label: format.number(value, { minimumFractionDigits: digits, maximumFractionDigits: digits }),
+    }));
+  };
 
   return (
     <section aria-labelledby="peer-chart-heading" className="flex flex-col gap-2">
@@ -148,10 +157,8 @@ export function PeerChart({ blocks, t, format, locale }: PeerChartProps) {
           tableCaption: t("peers.chart.tableCaption"),
           xAxis: t("peers.chart.xAxis"),
           yAxis: t("peers.chart.yAxis"),
-          xLow: decimal(xDomain[0]),
-          xHigh: decimal(xDomain[1]),
-          yLow: decimal(yDomain[0]),
-          yHigh: decimal(yDomain[1]),
+          xTicks: ticksOf(xDomain, 5),
+          yTicks: ticksOf(yDomain, 4),
           legendClient: t("peers.chart.legend.client"),
           legendPeer: t("peers.chart.legend.peer"),
           legendSector: t("peers.chart.legend.sector"),

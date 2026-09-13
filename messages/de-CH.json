@@ -1944,8 +1944,8 @@
       },
       "chart": {
         "title": "Wo Sie unter den publizierten Vergleichsunternehmen stehen",
-        "description": "LTIFR waagrecht, Ausfalltage je Unfall senkrecht, Blasengrösse nach Personalbestand. Zeigen Sie auf eine Blase oder fokussieren Sie sie, um die Zahlen und die Quellseite zu sehen.",
-        "label": "Blasendiagramm der LTIFR gegen die Ausfalltage je Unfall: Ihr Unternehmen und {count} publizierte Vergleichsunternehmen, Blasengrösse nach Personalbestand.",
+        "description": "Unten links ist besser. Die Blasengrösse folgt dem Personalbestand.",
+        "label": "Blasendiagramm der LTIFR gegen die Ausfalltage je Unfall: Ihr Unternehmen und {count, plural, one {# publiziertes Vergleichsunternehmen} other {# publizierte Vergleichsunternehmen}}, Blasengrösse nach Personalbestand.",
         "tableCaption": "Die Zahlen des Diagramms: LTIFR, Ausfalltage je Unfall und Personalbestand je Unternehmen",
         "xAxis": "LTIFR, je Million Arbeitsstunden",
         "yAxis": "Ausfalltage je Unfall",

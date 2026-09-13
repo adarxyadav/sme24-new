@@ -1944,8 +1944,8 @@
       },
       "chart": {
         "title": "Where you sit among the published peers",
-        "description": "LTIFR across, days lost per incident up, bubble size by headcount. Hover or focus a bubble for the figures and the page they were read from.",
-        "label": "Bubble chart of LTIFR against days lost per incident: your company and {count} published peers, bubble size by headcount.",
+        "description": "Lower left is better. Bubble size follows headcount.",
+        "label": "Bubble chart of LTIFR against days lost per incident: your company and {count, plural, one {# published peer} other {# published peers}}, bubble size by headcount.",
         "tableCaption": "The chart's figures: LTIFR, days lost per incident and headcount per company",
         "xAxis": "LTIFR, per million hours worked",
         "yAxis": "Days lost per incident",

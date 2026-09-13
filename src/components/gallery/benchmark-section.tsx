@@ -186,7 +186,6 @@ export function BenchmarkSection() {
           <p className="text-muted-foreground text-xs tabular-nums" data-numeric>
             {b("positions.sector", { value: "44.30" })}
           </p>
-          <p className="text-muted-foreground text-xs">{b("positions.pointBasis")}</p>
         </Example>
       </div>
       <div className="grid gap-8 lg:grid-cols-2">
@@ -237,7 +236,7 @@ export function BenchmarkSection() {
         </Example>
       </div>
       {/* The Peer Standing card (spec 0021, AC-10) on invented figures, so axe scans the rank line,
-          the strip, the linked table and the rung sentence. */}
+          the strip and the linked table. */}
       <div className="grid gap-8">
         <Example label={t("peerStanding")}>
           <div className="w-full rounded-lg border p-4">
@@ -273,10 +272,8 @@ export function BenchmarkSection() {
                 tableCaption: b("peers.chart.tableCaption"),
                 xAxis: b("peers.chart.xAxis"),
                 yAxis: b("peers.chart.yAxis"),
-                xLow: "0.65",
-                xHigh: "4.25",
-                yLow: "4.89",
-                yHigh: "76.11",
+                xTicks: [1, 2, 3, 4].map((value) => ({ value, label: String(value) })),
+                yTicks: [20, 40, 60].map((value) => ({ value, label: String(value) })),
                 legendClient: b("peers.chart.legend.client"),
                 legendPeer: b("peers.chart.legend.peer"),
                 legendSector: b("peers.chart.legend.sector"),

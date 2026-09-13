@@ -4,7 +4,12 @@ import { createFormatter, createTranslator } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
 import type { ChartPoint, SnapshotPeerBlock, SnapshotPeerRow } from "@/features/benchmark/snapshot";
 import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
-import { bubbleRadius, chartDomain } from "@/features/benchmark/ui/chart-scale";
+import {
+  bubbleRadius,
+  chartDomain,
+  niceTicks,
+  tickDecimals,
+} from "@/features/benchmark/ui/chart-scale";
 import { formats, TIME_ZONE } from "@/i18n/formats";
 import { catalogue, company, en, parsedSnapshot, readyBlocks, renderEnglish } from "./helpers";
 
@@ -157,6 +162,18 @@ describe("the chart scale (spec 0021, AC-22)", () => {
     expect(bubbleRadius(2_500, 10_000)).toBe(13);
     expect(bubbleRadius(300, 284_526)).toBe(7);
     expect(bubbleRadius(null, 10_000)).toBe(7);
+  });
+
+  it("annotates a domain with round ticks inside it and says how many decimals they need", () => {
+    // The gallery domains: 1, 2, 2.5 or 5 times a power of ten, never a padded domain end.
+    expect(niceTicks(chartDomain([0.9, 4.0]), 5)).toEqual([1, 2, 3, 4]);
+    expect(niceTicks(chartDomain([9.8, 71.2, 14.5]), 4)).toEqual([20, 40, 60]);
+    // A single value still gets ticks, at the step its tiny span demands.
+    expect(niceTicks(chartDomain([2.4]), 5)).toEqual([2.35, 2.4, 2.45]);
+    expect(tickDecimals([1, 2, 3, 4])).toBe(0);
+    expect(tickDecimals([12.5, 15, 17.5, 20])).toBe(1);
+    expect(tickDecimals([20, 40, 60])).toBe(0);
+    expect(tickDecimals([2.35, 2.4, 2.45])).toBe(2);
   });
 });
 
