@@ -141,20 +141,45 @@ export const assumptionFileSchema = z
     { message: "indirect_multiplier_low <= indirect_multiplier <= indirect_multiplier_high" },
   );
 
-/** The units a published figure may carry (spec 0021, AC-13); `value` is derived from the pair. */
-export const PUBLISHED_UNITS = ["per_million_hours", "per_200k_hours", "days", "boolean"] as const;
+/**
+ * The units a published figure may carry (spec 0021, AC-13, AC-18); `value` is derived from the
+ * pair. `days_over_lost_time_accidents` is the one quotient unit: the report prints the total days
+ * lost and the count of lost time accidents in one table, and the generator divides them.
+ */
+export const PUBLISHED_UNITS = [
+  "per_million_hours",
+  "per_200k_hours",
+  "days",
+  "days_over_lost_time_accidents",
+  "boolean",
+] as const;
 export type PublishedUnit = (typeof PUBLISHED_UNITS)[number];
+
+/** The unit whose `value` is the generator's quotient of two printed numbers (spec 0021, AC-18). */
+export const QUOTIENT_UNIT = "days_over_lost_time_accidents" satisfies PublishedUnit;
 
 /** What a published figure counts (spec 0021, AC-2). */
 export const PEER_BASES = ["employees", "employees_and_contractors"] as const;
 export type PeerBasis = (typeof PEER_BASES)[number];
 
 /**
- * A published figure in the KPI's own unit (spec 0021, AC-13): a per 200 000 hours rate times
- * five, days and per million hours as published, a boolean 0 or 1 (and only 0 or 1). Returns
- * `null` for an unknown unit or a boolean outside 0 and 1, so the caller refuses the row. Pure.
+ * A published figure in the KPI's own unit (spec 0021, AC-13, AC-18): a per 200 000 hours rate
+ * times five, days and per million hours as published, a boolean 0 or 1 (and only 0 or 1), and
+ * for `days_over_lost_time_accidents` the total days lost divided by the count of lost time
+ * accidents, rounded to one decimal the way a report would print it (2 275 over 111 is 20.5).
+ * Returns `null` for an unknown unit, a boolean outside 0 and 1, the quotient unit without a
+ * positive denominator, or any other unit with one, so the caller refuses the row. Pure.
  */
-export function publishedValueOf(valueAsPublished: number, unit: string): number | null {
+export function publishedValueOf(
+  valueAsPublished: number,
+  unit: string,
+  denominator: number | null = null,
+): number | null {
+  if (unit === QUOTIENT_UNIT) {
+    if (denominator === null || !(denominator > 0)) return null;
+    return Math.round((valueAsPublished / denominator) * 10) / 10;
+  }
+  if (denominator !== null) return null;
   switch (unit) {
     case "per_200k_hours":
       return valueAsPublished * 5;
@@ -167,6 +192,19 @@ export function publishedValueOf(valueAsPublished: number, unit: string): number
       return null;
   }
 }
+
+const csvOptionalNumber = z
+  .string()
+  .trim()
+  .transform((value, ctx) => {
+    if (value === "") return null;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      ctx.addIssue({ code: "custom", message: `not a number: ${value}` });
+      return z.NEVER;
+    }
+    return parsed;
+  });
 
 const csvInteger = csvNumber.pipe(z.number().int());
 const csvOptionalTimestamp = csvOptionalText.pipe(
@@ -205,10 +243,11 @@ export const peerCompanyRowSchema = z
 export type PeerCompanySeedRow = z.infer<typeof peerCompanyRowSchema>;
 
 /**
- * One row of supabase/seed-data/peer-figures.csv (spec 0021, AC-3): the published pair becomes
- * `value` by the AC-13 rule, and `verified_at` and `verified_by` are both set or both empty. The
- * cross file rules (a known company, a company with a figure, the year cap) live in
- * `peerFilesSchema`.
+ * One row of supabase/seed-data/peer-figures.csv (spec 0021, AC-3, AC-18, AC-19): the published
+ * pair becomes `value` by the AC-13 rule, a quotient row carries its denominator (and only such a
+ * row does), `verified_at` and `verified_by` are both set or both empty, and so are the two note
+ * columns. The cross file rules (a known company, a company with a figure, the year cap, a `days`
+ * row beside a quotient row) live in `checkPeerFiles`.
  */
 export const peerFigureRowSchema = z
   .object({
@@ -219,16 +258,47 @@ export const peerFigureRowSchema = z
     kpi_key: z.enum(PEER_KPI_KEYS),
     period_year: csvInteger.pipe(z.number().min(2000).max(2100)),
     value_as_published: csvNumber,
+    denominator_as_published: csvOptionalNumber,
     unit_as_published: z.enum(PUBLISHED_UNITS),
     basis: z.enum(PEER_BASES),
     source_url: z.string().trim().pipe(z.url()),
     verified_at: csvOptionalTimestamp,
     verified_by: csvOptionalText,
+    note_de: csvOptionalText,
+    note_en: csvOptionalText,
   })
   .refine((row) => (row.verified_at === null) === (row.verified_by === null), {
     message: "verified_at and verified_by are both set or both empty",
     path: ["verified_by"],
   })
+  .refine((row) => (row.note_de === null) === (row.note_en === null), {
+    message: "note_de and note_en are both set or both empty",
+    path: ["note_en"],
+  })
+  // The quotient unit carries a positive denominator and no other unit carries one (AC-18).
+  .refine(
+    (row) =>
+      row.unit_as_published !== QUOTIENT_UNIT ||
+      (row.denominator_as_published !== null && row.denominator_as_published > 0),
+    {
+      message: `a ${QUOTIENT_UNIT} figure needs a positive denominator_as_published`,
+      path: ["denominator_as_published"],
+    },
+  )
+  .refine(
+    (row) => row.unit_as_published === QUOTIENT_UNIT || row.denominator_as_published === null,
+    {
+      message: `only a ${QUOTIENT_UNIT} figure carries a denominator_as_published`,
+      path: ["denominator_as_published"],
+    },
+  )
+  .refine(
+    (row) => row.unit_as_published !== QUOTIENT_UNIT || row.kpi_key === "lost_days_per_incident",
+    {
+      message: `only a lost_days_per_incident figure may be ${QUOTIENT_UNIT}`,
+      path: ["unit_as_published"],
+    },
+  )
   .refine((row) => row.kpi_key !== "iso_45001_certified" || row.unit_as_published === "boolean", {
     message: "an iso_45001_certified figure is a boolean",
     path: ["unit_as_published"],
@@ -237,10 +307,16 @@ export const peerFigureRowSchema = z
     message: "only an iso_45001_certified figure may be a boolean",
     path: ["unit_as_published"],
   })
-  .refine((row) => row.kpi_key !== "lost_days_per_incident" || row.unit_as_published === "days", {
-    message: "a lost_days_per_incident figure is in days",
-    path: ["unit_as_published"],
-  })
+  .refine(
+    (row) =>
+      row.kpi_key !== "lost_days_per_incident" ||
+      row.unit_as_published === "days" ||
+      row.unit_as_published === QUOTIENT_UNIT,
+    {
+      message: `a lost_days_per_incident figure is in days or ${QUOTIENT_UNIT}`,
+      path: ["unit_as_published"],
+    },
+  )
   .refine(
     (row) =>
       !(row.kpi_key === "ltifr" || row.kpi_key === "trifr") ||
@@ -249,7 +325,11 @@ export const peerFigureRowSchema = z
     { message: "a rate is per million or per 200 000 hours", path: ["unit_as_published"] },
   )
   .transform((row, ctx) => {
-    const value = publishedValueOf(row.value_as_published, row.unit_as_published);
+    const value = publishedValueOf(
+      row.value_as_published,
+      row.unit_as_published,
+      row.denominator_as_published,
+    );
     if (value === null) {
       ctx.addIssue({
         code: "custom",
@@ -271,10 +351,12 @@ export const PEER_FIGURE_CONFLICT_COLUMNS = [
 ] as const;
 
 /**
- * The cross file rules of the two peer CSVs (spec 0021, AC-3): every figure names a company in
- * the companies file, every company has at least one figure, and no figure is dated after
- * `currentYear` (the Europe/Zurich year, passed in so a test can freeze it). Returns the first
- * violation with the file and line, or `null`. Pure.
+ * The cross file rules of the two peer CSVs (spec 0021, AC-3, AC-18): every figure names a
+ * company in the companies file, every company has at least one figure, no figure is dated after
+ * `currentYear` (the Europe/Zurich year, passed in so a test can freeze it), and no company has
+ * both a `days` row and a quotient row for the same year and basis (they would collide on the
+ * unique key with a bare 23505 otherwise). Returns the first violation with the file and line, or
+ * `null`. Pure.
  */
 export function checkPeerFiles(
   companies: readonly PeerCompanySeedRow[],
@@ -286,8 +368,21 @@ export function checkPeerFiles(
   readonly message: string;
 } | null {
   const keys = new Set(companies.map((row) => row.key));
+  const lostDaysUnits = new Map<string, PublishedUnit>();
   for (const [index, figure] of figures.entries()) {
     const line = index + 2;
+    if (figure.kpi_key === "lost_days_per_incident") {
+      const tuple = `${figure.peer_key}|${figure.period_year}|${figure.basis}`;
+      const earlier = lostDaysUnits.get(tuple);
+      if (earlier !== undefined && earlier !== figure.unit_as_published) {
+        return {
+          file: "peer-figures.csv",
+          line,
+          message: `${figure.peer_key} ${figure.period_year} ${figure.basis} has both a days row and a ${QUOTIENT_UNIT} row`,
+        };
+      }
+      lostDaysUnits.set(tuple, figure.unit_as_published);
+    }
     if (!keys.has(figure.peer_key)) {
       return {
         file: "peer-figures.csv",

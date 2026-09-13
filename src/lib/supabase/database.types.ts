@@ -2036,8 +2036,10 @@ export type Database = {
         Row: {
           basis: string
           created_at: string
+          denominator_as_published: number | null
           id: string
           kpi_key: string
+          note: Json | null
           peer_key: string
           period_year: number
           source_url: string
@@ -2051,8 +2053,10 @@ export type Database = {
         Insert: {
           basis: string
           created_at?: string
+          denominator_as_published?: number | null
           id?: string
           kpi_key: string
+          note?: Json | null
           peer_key: string
           period_year: number
           source_url: string
@@ -2066,8 +2070,10 @@ export type Database = {
         Update: {
           basis?: string
           created_at?: string
+          denominator_as_published?: number | null
           id?: string
           kpi_key?: string
+          note?: Json | null
           peer_key?: string
           period_year?: number
           source_url?: string

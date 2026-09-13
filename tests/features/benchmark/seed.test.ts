@@ -281,7 +281,7 @@ describe("the seed migration generator (spec 0008, AC-2)", () => {
 const PEER_COMPANY_HEADER =
   "key,name,country,industry_section,headcount,headcount_year,report_url,note_de,note_en";
 const PEER_FIGURE_HEADER =
-  "peer_key,kpi_key,period_year,value_as_published,unit_as_published,basis,source_url,verified_at,verified_by";
+  "peer_key,kpi_key,period_year,value_as_published,denominator_as_published,unit_as_published,basis,source_url,verified_at,verified_by,note_de,note_en";
 
 function companies(lines: readonly string[]) {
   const parsed = parseSeedRows(
@@ -312,40 +312,95 @@ describe("the peer seed schemas (spec 0021, AC-3, AC-13)", () => {
     expect(publishedValueOf(0.5, "boolean")).toBeNull();
     expect(publishedValueOf(1, "per_hour")).toBeNull();
     const parsed = figures([
-      "acme,ltifr,2024,3.2,per_200k_hours,employees,https://example.org/r,2026-09-13,A. Curator",
+      "acme,ltifr,2024,3.2,,per_200k_hours,employees,https://example.org/r,2026-09-13,A. Curator,,",
     ]);
     expect(parsed.ok && parsed.rows[0]?.value).toBe(16);
     expect(parsed.ok && parsed.rows[0]?.value_as_published).toBe(3.2);
   });
 
+  it("divides a quotient row's two printed numbers, rounded to one decimal, and refuses a missing denominator or one on days (AC-18)", () => {
+    expect(publishedValueOf(2275, "days_over_lost_time_accidents", 111)).toBe(20.5);
+    expect(publishedValueOf(521, "days_over_lost_time_accidents", 34)).toBe(15.3);
+    expect(publishedValueOf(2275, "days_over_lost_time_accidents")).toBeNull();
+    expect(publishedValueOf(2275, "days_over_lost_time_accidents", 0)).toBeNull();
+    expect(publishedValueOf(12.5, "days", 3)).toBeNull();
+    expect(publishedValueOf(3.2, "per_200k_hours", 3)).toBeNull();
+    const parsed = figures([
+      "acme,lost_days_per_incident,2024,2275,111,days_over_lost_time_accidents,employees,https://example.org/r,,,365 Tage je tödlichen Unfall,365 days charged per fatal accident",
+    ]);
+    expect(parsed.ok && parsed.rows[0]?.value).toBe(20.5);
+    expect(parsed.ok && parsed.rows[0]?.value_as_published).toBe(2275);
+    expect(parsed.ok && parsed.rows[0]?.denominator_as_published).toBe(111);
+    expect(parsed.ok && parsed.rows[0]?.note_en).toBe("365 days charged per fatal accident");
+    const bad = (line: string) => {
+      const parsed = figures([
+        "acme,ltifr,2024,1,,per_million_hours,employees,https://example.org/r,,,,",
+        line,
+      ]);
+      return parsed.ok ? null : parsed.error.line;
+    };
+    // The unit with an empty or non positive denominator, a denominator on days, the unit on
+    // another KPI, and a note with one language, each refused with the line.
+    expect(
+      bad(
+        "acme,lost_days_per_incident,2024,2275,,days_over_lost_time_accidents,employees,https://example.org/r,,,,",
+      ),
+    ).toBe(3);
+    expect(
+      bad(
+        "acme,lost_days_per_incident,2024,2275,0,days_over_lost_time_accidents,employees,https://example.org/r,,,,",
+      ),
+    ).toBe(3);
+    expect(
+      bad("acme,lost_days_per_incident,2024,12.5,3,days,employees,https://example.org/r,,,,"),
+    ).toBe(3);
+    expect(
+      bad(
+        "acme,ltifr,2024,2275,111,days_over_lost_time_accidents,employees,https://example.org/r,,,,",
+      ),
+    ).toBe(3);
+    expect(
+      bad(
+        "acme,lost_days_per_incident,2024,2275,111,days_over_lost_time_accidents,employees,https://example.org/r,,,,only English",
+      ),
+    ).toBe(3);
+    expect(
+      bad("acme,lost_days_per_incident,2024,12.5,,days,employees,https://example.org/r,,,,"),
+    ).toBeNull();
+  });
+
   it("refuses a verified_at without a verified_by and the reverse, a KPI outside the four and a unit that does not fit the KPI, with the line", () => {
     const bad = (line: string) => {
       const parsed = figures([
-        "acme,ltifr,2024,1,per_million_hours,employees,https://example.org/r,,",
+        "acme,ltifr,2024,1,,per_million_hours,employees,https://example.org/r,,,,",
         line,
       ]);
       return parsed.ok ? null : parsed.error.line;
     };
     expect(
-      bad("acme,ltifr,2024,1,per_million_hours,employees,https://example.org/r,2026-09-13,"),
+      bad("acme,ltifr,2024,1,,per_million_hours,employees,https://example.org/r,2026-09-13,,,"),
     ).toBe(3);
     expect(
-      bad("acme,ltifr,2024,1,per_million_hours,employees,https://example.org/r,,A. Curator"),
-    ).toBe(3);
-    expect(bad("acme,fatalities,2024,1,per_million_hours,employees,https://example.org/r,,")).toBe(
-      3,
-    );
-    expect(bad("acme,ltifr,2024,1,days,employees,https://example.org/r,,")).toBe(3);
-    expect(
-      bad("acme,iso_45001_certified,2024,1,per_million_hours,employees,https://example.org/r,,"),
+      bad("acme,ltifr,2024,1,,per_million_hours,employees,https://example.org/r,,A. Curator,,"),
     ).toBe(3);
     expect(
-      bad("acme,lost_days_per_incident,2024,1,per_million_hours,employees,https://example.org/r,,"),
+      bad("acme,fatalities,2024,1,,per_million_hours,employees,https://example.org/r,,,,"),
     ).toBe(3);
-    expect(bad("acme,ltifr,2024,1,per_million_hours,everyone,https://example.org/r,,")).toBe(3);
-    expect(bad("acme,ltifr,2024,1,per_million_hours,employees,not a url,,")).toBe(3);
+    expect(bad("acme,ltifr,2024,1,,days,employees,https://example.org/r,,,,")).toBe(3);
     expect(
-      bad("acme,trifr,2024,1,per_million_hours,employees_and_contractors,https://example.org/r,,"),
+      bad("acme,iso_45001_certified,2024,1,,per_million_hours,employees,https://example.org/r,,,,"),
+    ).toBe(3);
+    expect(
+      bad(
+        "acme,lost_days_per_incident,2024,1,,per_million_hours,employees,https://example.org/r,,,,",
+      ),
+    ).toBe(3);
+    expect(bad("acme,ltifr,2024,1,,per_million_hours,everyone,https://example.org/r,,,,")).toBe(3);
+    expect(bad("acme,ltifr,2024,1,,per_million_hours,employees,not a url,,,,")).toBe(3);
+    expect(
+      bad(
+        "acme,trifr,2024,1,,per_million_hours,employees_and_contractors,https://example.org/r,,,,",
+      ),
     ).toBeNull();
   });
 
@@ -356,19 +411,19 @@ describe("the peer seed schemas (spec 0021, AC-3, AC-13)", () => {
       if (!parsed.ok) throw new Error(parsed.error.message);
       return parsed.rows;
     };
-    const ok = rows(["acme,ltifr,2024,1,per_million_hours,employees,https://example.org/r,,"]);
+    const ok = rows(["acme,ltifr,2024,1,,per_million_hours,employees,https://example.org/r,,,,"]);
     expect(checkPeerFiles(acme, ok, 2026)).toBeNull();
     expect(
       checkPeerFiles(
         acme,
-        rows(["ghost,ltifr,2024,1,per_million_hours,employees,https://example.org/r,,"]),
+        rows(["ghost,ltifr,2024,1,,per_million_hours,employees,https://example.org/r,,,,"]),
         2026,
       ),
     ).toMatchObject({ file: "peer-figures.csv", line: 2 });
     expect(
       checkPeerFiles(
         acme,
-        rows(["acme,ltifr,2027,1,per_million_hours,employees,https://example.org/r,,"]),
+        rows(["acme,ltifr,2027,1,,per_million_hours,employees,https://example.org/r,,,,"]),
         2026,
       ),
     ).toMatchObject({
@@ -386,12 +441,38 @@ describe("the peer seed schemas (spec 0021, AC-3, AC-13)", () => {
         2026,
       ),
     ).toMatchObject({ file: "peer-companies.csv", line: 3 });
+    // A days row and a quotient row for the same company, year and basis would collide on the
+    // unique key with a bare 23505; the generator names the line instead (AC-18).
+    expect(
+      checkPeerFiles(
+        acme,
+        rows([
+          "acme,lost_days_per_incident,2024,12.5,,days,employees,https://example.org/r,,,,",
+          "acme,lost_days_per_incident,2024,2275,111,days_over_lost_time_accidents,employees,https://example.org/r,,,,",
+        ]),
+        2026,
+      ),
+    ).toMatchObject({
+      file: "peer-figures.csv",
+      line: 3,
+      message: expect.stringContaining("days"),
+    });
+    expect(
+      checkPeerFiles(
+        acme,
+        rows([
+          "acme,lost_days_per_incident,2023,12.5,,days,employees,https://example.org/r,,,,",
+          "acme,lost_days_per_incident,2024,2275,111,days_over_lost_time_accidents,employees,https://example.org/r,,,,",
+        ]),
+        2026,
+      ),
+    ).toBeNull();
   });
 
   it("renders the upserts on both tables and the retirement, figures first", () => {
     const [acme] = companies(["acme,Acme AG,CH,C,500,2024,https://example.org,Notiz,Note"]);
     const parsed = figures([
-      "acme,ltifr,2024,3.2,per_200k_hours,employees,https://example.org/r,2026-09-13,O'Brien",
+      "acme,ltifr,2024,3.2,,per_200k_hours,employees,https://example.org/r,2026-09-13,O'Brien,,",
     ]);
     if (!parsed.ok || !acme) throw new Error("fixture");
     const [figure] = parsed.rows;
@@ -402,12 +483,26 @@ describe("the peer seed schemas (spec 0021, AC-3, AC-13)", () => {
     expect(companySql).toContain("on conflict (key) do update set name = excluded.name");
     const figureSql = renderPeerFigureUpsert(figure);
     expect(figureSql).toContain(
-      "values ('acme', 'ltifr', 2024, 16, 3.2, 'per_200k_hours', 'employees'",
+      "insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, denominator_as_published, unit_as_published, basis, source_url, verified_at, verified_by, note)",
     );
-    expect(figureSql).toContain("'2026-09-13'::timestamptz, 'O''Brien'");
+    expect(figureSql).toContain(
+      "values ('acme', 'ltifr', 2024, 16, 3.2, null, 'per_200k_hours', 'employees'",
+    );
+    expect(figureSql).toContain("'2026-09-13'::timestamptz, 'O''Brien', null)");
     expect(figureSql).toContain(
       "on conflict (peer_key, kpi_key, period_year, basis) do update set value = excluded.value",
     );
+    // The denominator and the note reach the update, so a re seed never keeps a stale one (AC-18).
+    expect(figureSql).toContain("denominator_as_published = excluded.denominator_as_published");
+    expect(figureSql).toContain("note = excluded.note");
+    const quotient = figures([
+      "acme,lost_days_per_incident,2024,2275,111,days_over_lost_time_accidents,employees,https://example.org/r,,,Notiz,Note",
+    ]);
+    const quotientSql = renderPeerFigureUpsert((quotient.ok && quotient.rows[0]) || figure);
+    expect(quotientSql).toContain(
+      "values ('acme', 'lost_days_per_incident', 2024, 20.5, 2275, 111, 'days_over_lost_time_accidents'",
+    );
+    expect(quotientSql).toContain(`null, null, '{"de":"Notiz","en":"Note"}'::jsonb)`);
     const retirement = renderPeerRetirement([acme], parsed.rows) ?? "";
     expect(retirement.indexOf("delete from public.peer_figures")).toBeLessThan(
       retirement.indexOf("delete from public.peer_companies"),
@@ -438,6 +533,19 @@ describe("the peer seed schemas (spec 0021, AC-3, AC-13)", () => {
     expect(
       figureRows.rows.every((row) => (row.verified_at === null) === (row.verified_by === null)),
     ).toBe(true);
+    // Every committed quotient row carries both printed numbers and never a hand typed value
+    // (AC-18): the stored value is the generator's rounded division.
+    const quotientRows = figureRows.rows.filter(
+      (row) => row.unit_as_published === "days_over_lost_time_accidents",
+    );
+    expect(quotientRows.length).toBeGreaterThanOrEqual(1);
+    for (const row of quotientRows) {
+      expect(row.kpi_key).toBe("lost_days_per_incident");
+      expect(row.denominator_as_published).toBeGreaterThan(0);
+      expect(row.value).toBe(
+        Math.round((row.value_as_published / (row.denominator_as_published ?? 1)) * 10) / 10,
+      );
+    }
     expect(figureRows.rows.every((row) => row.period_year >= SEED_YEAR - PEER_YEARS_BACK)).toBe(
       true,
     );

@@ -13,21 +13,33 @@ create table public.peer_figures (
   period_year integer not null check (period_year between 2000 and 2100),
   value numeric not null,
   value_as_published numeric not null,
+  denominator_as_published numeric null
+    check (denominator_as_published is null or denominator_as_published > 0),
   unit_as_published text not null
-    check (unit_as_published in ('per_million_hours', 'per_200k_hours', 'days', 'boolean')),
+    check (unit_as_published in ('per_million_hours', 'per_200k_hours', 'days', 'days_over_lost_time_accidents', 'boolean')),
   basis text not null check (basis in ('employees', 'employees_and_contractors')),
   source_url text not null,
   verified_at timestamptz null,
   verified_by text null,
+  note jsonb null check (
+    note is null
+    or (jsonb_typeof(note) = 'object' and note ? 'de' and note ? 'en')
+  ),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint peer_figures_verified_pair check ((verified_at is null) = (verified_by is null)),
+  -- The quotient unit carries its denominator and no other unit does (spec 0021, AC-18).
+  constraint peer_figures_denominator_unit check (
+    (unit_as_published = 'days_over_lost_time_accidents') = (denominator_as_published is not null)
+  ),
   constraint peer_figures_peer_kpi_year_basis_key unique (peer_key, kpi_key, period_year, basis)
 );
 
 comment on table public.peer_figures is 'Published safety figures of the peer companies (spec 0021). Every signed in user reads; ops and migrations write; nobody deletes through the app roles.';
-comment on column public.peer_figures.value is 'The figure in the KPI''s own unit: a per 200 000 hours rate is stored times five (spec 0021, AC-13), days and per million hours as printed, a boolean as 0 or 1.';
-comment on column public.peer_figures.value_as_published is 'The figure exactly as the report prints it, shown in the table''s tooltip with its unit.';
+comment on column public.peer_figures.value is 'The figure in the KPI''s own unit: a per 200 000 hours rate is stored times five (spec 0021, AC-13), days and per million hours as printed, a boolean as 0 or 1, and for days_over_lost_time_accidents the total days lost divided by the count of lost time accidents, rounded to one decimal (AC-18); always computed by the generator, never typed by hand.';
+comment on column public.peer_figures.value_as_published is 'The figure exactly as the report prints it, shown in the table''s tooltip with its unit; on the quotient unit the total days lost.';
+comment on column public.peer_figures.denominator_as_published is 'On days_over_lost_time_accidents only: the count of lost time accidents the same table prints for the same population and period (spec 0021, AC-18), shown beside the numerator in every tooltip. Null on every other unit.';
+comment on column public.peer_figures.note is 'Localized {de, en} curator sentence on what changes how the figure reads (a fatality charged as 365 days, a threshold), or null; rendered only beside the figure (spec 0021, AC-19).';
 comment on column public.peer_figures.basis is 'What the figure counts: own employees only, or employees and contractors together.';
 comment on column public.peer_figures.verified_at is 'When a person read the source page; null means work in progress, skipped by the task and counted by the launch gate.';
 comment on column public.peer_figures.verified_by is 'The curator''s name, present exactly when verified_at is; never rendered to a client.';

@@ -1,10 +1,11 @@
 -- peer_figures (spec 0021, kind G): every signed in user reads, only ops and migrations write,
 -- nobody deletes through the app roles, anon is blocked, the checks and the verified pair hold,
--- the cascade takes a retired company's figures, and the committed seed holds the first curation
--- with no unverified figure, the third launch gate query (AC-2, AC-4, AC-14).
+-- the quotient unit carries its denominator and no other unit does (AC-18), the note is a {de, en}
+-- pair or null (AC-19), the cascade takes a retired company's figures, and the committed seed
+-- holds the first curation, the third launch gate query (AC-2, AC-4, AC-14).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(28);
+select plan(36);
 
 create function pg_temp.impersonate(user_id uuid, app_role text, org_id uuid default null)
 returns void language plpgsql as $$
@@ -87,6 +88,11 @@ select is((select count(*) from public.peer_figures where unit_as_published = 'p
   'every per 200 000 hours figure is stored times five');
 select is((select count(*) from public.peer_figures where unit_as_published in ('per_million_hours', 'days') and value <> value_as_published), 0::bigint,
   'per million hours and days figures are stored as published');
+-- A quotient row (AC-18) is the generator's division of the two printed numbers, rounded to one
+-- decimal; numeric division here, so the band is the rounding and nothing else.
+select is((select count(*) from public.peer_figures where unit_as_published = 'days_over_lost_time_accidents'
+    and abs(value - value_as_published / denominator_as_published) > 0.05), 0::bigint,
+  'every quotient figure is within 0.05 of its printed numerator over its printed denominator');
 
 -- Shape rules (AC-2), as the superuser so no policy hides them.
 select throws_ok(
@@ -107,6 +113,29 @@ select throws_ok(
 select throws_ok(
   $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url, verified_by) values ('test-co', 'ltifr', 2024, 1, 1, 'per_million_hours', 'employees', 'https://example.org', 'A. Curator') $$,
   '23514', null, 'a verified_by without a verified_at is rejected');
+-- The quotient unit (AC-18): the denominator and the unit come together or not at all, the
+-- denominator is positive, and the old four units still insert without one.
+select throws_ok(
+  $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url) values ('test-co', 'lost_days_per_incident', 2024, 20.5, 2275, 'days_over_lost_time_accidents', 'employees', 'https://example.org') $$,
+  '23514', null, 'the quotient unit without a denominator is rejected');
+select throws_ok(
+  $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, denominator_as_published, unit_as_published, basis, source_url) values ('test-co', 'lost_days_per_incident', 2024, 12, 12, 3, 'days', 'employees', 'https://example.org') $$,
+  '23514', null, 'a denominator on a days figure is rejected');
+select throws_ok(
+  $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, denominator_as_published, unit_as_published, basis, source_url) values ('test-co', 'lost_days_per_incident', 2024, 20.5, 2275, 0, 'days_over_lost_time_accidents', 'employees', 'https://example.org') $$,
+  '23514', null, 'a denominator of zero is rejected');
+select throws_ok(
+  $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, denominator_as_published, unit_as_published, basis, source_url, note) values ('test-co', 'lost_days_per_incident', 2024, 20.5, 2275, 111, 'days_over_lost_time_accidents', 'employees', 'https://example.org', '{"en":"365 days per fatality"}'::jsonb) $$,
+  '23514', null, 'a note with one language is rejected (AC-19)');
+select lives_ok(
+  $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, denominator_as_published, unit_as_published, basis, source_url, note) values ('test-co', 'lost_days_per_incident', 2024, 20.5, 2275, 111, 'days_over_lost_time_accidents', 'employees', 'https://example.org', '{"de":"365 Tage je tödlichen Unfall","en":"365 days charged per fatal accident"}'::jsonb) $$,
+  'a quotient figure with its denominator and a two language note is accepted');
+select lives_ok(
+  $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url) values ('test-co', 'lost_days_per_incident', 2023, 12.5, 12.5, 'days', 'employees', 'https://example.org') $$,
+  'a days figure still inserts without a denominator');
+select lives_ok(
+  $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url) values ('test-co', 'iso_45001_certified', 2024, 1, 1, 'boolean', 'employees', 'https://example.org') $$,
+  'a boolean figure still inserts without a denominator');
 select lives_ok(
   $$ insert into public.peer_figures (peer_key, kpi_key, period_year, value, value_as_published, unit_as_published, basis, source_url) values ('test-co', 'ltifr', 2024, 1.5, 1.5, 'per_million_hours', 'employees', 'https://example.org') $$,
   'an unverified figure is accepted as work in progress');
@@ -146,7 +175,7 @@ select is(pg_temp.affected($$ delete from public.peer_figures where peer_key = '
 
 -- The cascade (AC-2): retiring a company through the migration path takes its figures.
 select pg_temp.as_postgres();
-select is((select count(*) from public.peer_figures where peer_key = 'test-co'), 3::bigint, 'the three test figures are there');
+select is((select count(*) from public.peer_figures where peer_key = 'test-co'), 6::bigint, 'the six test figures are there');
 delete from public.peer_companies where key = 'test-co';
 select is((select count(*) from public.peer_figures where peer_key = 'test-co'), 0::bigint, 'a retired company takes its figures with it');
 select is((select count(*) from public.audit_log where table_name in ('peer_figures', 'peer_companies')), 0::bigint,

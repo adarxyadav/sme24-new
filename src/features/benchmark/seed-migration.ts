@@ -162,7 +162,11 @@ export function renderPeerCompanyUpsert(row: PeerCompanySeedRow): string {
   ].join("\n");
 }
 
-/** The upsert of one peer figure, with `value` already converted by the seed schema (spec 0021, AC-3, AC-13). Pure. */
+/**
+ * The upsert of one peer figure, with `value` already converted by the seed schema (spec 0021,
+ * AC-3, AC-13, AC-18, AC-19). The denominator and the note are in the column list so both reach
+ * the `on conflict do update` and a re seed can never keep a stale denominator. Pure.
+ */
 export function renderPeerFigureUpsert(row: PeerFigureSeedRow): string {
   const columns = [
     "peer_key",
@@ -170,11 +174,13 @@ export function renderPeerFigureUpsert(row: PeerFigureSeedRow): string {
     "period_year",
     "value",
     "value_as_published",
+    "denominator_as_published",
     "unit_as_published",
     "basis",
     "source_url",
     "verified_at",
     "verified_by",
+    "note",
   ];
   const values = [
     literal(row.peer_key),
@@ -182,11 +188,13 @@ export function renderPeerFigureUpsert(row: PeerFigureSeedRow): string {
     number(row.period_year),
     number(row.value),
     number(row.value_as_published),
+    row.denominator_as_published === null ? "null" : number(row.denominator_as_published),
     literal(row.unit_as_published),
     literal(row.basis),
     literal(row.source_url),
     row.verified_at === null ? "null" : `${literal(row.verified_at)}::timestamptz`,
     literal(row.verified_by),
+    localized(row.note_de, row.note_en),
   ];
   const updates = columns
     .filter((column) => !(PEER_FIGURE_CONFLICT_COLUMNS as readonly string[]).includes(column))
