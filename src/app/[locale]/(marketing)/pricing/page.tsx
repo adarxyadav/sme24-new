@@ -92,11 +92,19 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
       */}
       <section aria-labelledby="compare-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
+          {/*
+            Stacked rather than the minor tier's own inline row (heading left, lead right): the
+            lead here names the table's columns ("scope, output, and price"), so it reads as the
+            table's caption and belongs directly above it rather than off to one side. The
+            override is one section's layout, not a change to the tier -- every other minor band
+            on the site keeps the inline shape.
+          */}
           <SectionHeader
             tier="minor"
             id="compare-heading"
             title={t("compare.heading")}
             lead={t("compare.lead")}
+            className="flex flex-col gap-3 md:grid-cols-none md:gap-3"
           />
           <PackagesCompare />
         </div>

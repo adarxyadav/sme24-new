@@ -119,7 +119,13 @@ export function PackagesCompare() {
         the four package columns equal, so a long cell in one does not widen its column against
         the others -- the comparison only reads if the columns are comparable.
       */}
-      <table className="w-full min-w-4xl table-fixed border-separate border-spacing-0">
+      {/*
+        The closed hairline frame the packages and trust sections use, so the table reads as one
+        block rather than a set of loose rules. `border-separate` with no spacing means the outer
+        border and the cells' own edges meet without doubling: the cells draw their bottom and
+        left rules, the frame draws the outside, and the last row leaves its bottom to the frame.
+      */}
+      <table className="w-full min-w-4xl table-fixed border border-separate border-spacing-0">
         <colgroup>
           <col className="w-40" />
           <col className="w-1/4" />
