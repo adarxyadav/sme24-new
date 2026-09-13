@@ -49,7 +49,8 @@ export const FIXTURE_SOURCES = [
     title: "Health and safety policy",
   },
   { url: "https://www.example.ch/about/certifications", title: "Certifications" },
-  { url: "https://www.zefix.ch/en/search/entity/list", title: "Zefix commercial register" },
+  // A neutral register title, not one country's registry (spec 0022, AC-3).
+  { url: "https://www.example.ch/register/entity", title: "Commercial register" },
 ] as const;
 
 export const FIXTURE_FACTS = {

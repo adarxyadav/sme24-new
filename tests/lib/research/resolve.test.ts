@@ -34,7 +34,7 @@ function candidate(overrides: Partial<Candidate> & { field: string }): Candidate
 
 describe("candidates from a provider result (AC-5, AC-6)", () => {
   it("builds the flat output schema from the catalogue: reporting years, 24 KPI fields, 7 facts", () => {
-    const schema = buildOutputSchema();
+    const schema = buildOutputSchema("CH");
     expect(schema.required).toHaveLength(1 + 8 * 3 + 7);
     expect(schema.properties.ltifr_latest?.description).toContain("Lost time injury");
     expect(schema.additionalProperties).toBe(false);

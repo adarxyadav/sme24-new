@@ -1684,6 +1684,11 @@
       "title": "Unternehmen recherchieren",
       "description": "Der Name ist aus Ihrer Organisation übernommen. Eine Website hilft, die richtigen Berichte zu finden.",
       "name": "Firmenname",
+      "country": "Land",
+      "countryPlaceholder": "Land auswählen",
+      "countryEurope": "Europa",
+      "countryRest": "Übrige Welt",
+      "countryHint": "Wo das Unternehmen registriert ist. Das bestimmt, nach welchen Vergleichsunternehmen und Fachpersonen wir suchen.",
       "website": "Website (optional)",
       "websiteHint": "Zum Beispiel example.ch",
       "submit": "Recherche starten",
@@ -1772,6 +1777,11 @@
       "title": "Angaben korrigieren und erneut recherchieren",
       "description": "Ihre Angaben haben Vorrang vor der Recherche.",
       "name": "Firmenname",
+      "country": "Land",
+      "countryPlaceholder": "Land auswählen",
+      "countryEurope": "Europa",
+      "countryRest": "Übrige Welt",
+      "countryHint": "Wo das Unternehmen registriert ist. Das bestimmt, nach welchen Vergleichsunternehmen und Fachpersonen wir suchen.",
       "legalName": "Rechtlicher Name (optional)",
       "website": "Website (optional)",
       "submit": "Erneut recherchieren",
@@ -1799,6 +1809,7 @@
       "nameShort": "Der Firmenname braucht mindestens 2 Zeichen.",
       "nameLong": "Der Firmenname darf höchstens 200 Zeichen haben.",
       "legalNameLong": "Der rechtliche Name darf höchstens 200 Zeichen haben.",
+      "countryRequired": "Wählen Sie das Land, in dem das Unternehmen registriert ist.",
       "websiteInvalid": "Bitte geben Sie eine gültige Website ein, zum Beispiel example.ch."
     }
   },
@@ -1913,7 +1924,11 @@
         "benelux": "den Benelux-Ländern",
         "british_isles": "den Britischen Inseln",
         "southern": "Südeuropa",
-        "central_eastern": "Mittel- und Osteuropa"
+        "central_eastern": "Mittel- und Osteuropa",
+        "north_america": "Nordamerika",
+        "latin_america": "Lateinamerika",
+        "middle_east_africa": "dem Nahen Osten und Afrika",
+        "asia_pacific": "dem asiatisch-pazifischen Raum"
       },
       "srStrip": "Ihr Wert {value} im Vergleich zu {count} publizierten Vergleichsunternehmen {scope}, von {best} bis {worst}.",
       "srStripNoValue": "{count} publizierte Vergleichsunternehmen {scope}, von {best} bis {worst}; Sie haben noch keinen Wert.",
@@ -2067,6 +2082,11 @@
       "industry": "Branche",
       "industryHint": "Die NOGA-Abteilung, unter der Ihr Unternehmen eingeordnet ist.",
       "industryPlaceholder": "Abteilung wählen",
+      "country": "Land",
+      "countryPlaceholder": "Land auswählen",
+      "countryEurope": "Europa",
+      "countryRest": "Übrige Welt",
+      "countryHint": "Wo das Unternehmen registriert ist. Das bestimmt Vergleichsunternehmen, Fachpersonen und Währung.",
       "employees": "Mitarbeiterzahl",
       "employeesHint": "Mitarbeitende, gezählt als Vollzeitstellen.",
       "submit": "Speichern und neu berechnen",
@@ -2076,7 +2096,8 @@
       "validation": {
         "industryInvalid": "Wählen Sie eine Abteilung aus der Liste.",
         "employeesInvalid": "Geben Sie eine ganze Zahl von 1 bis 1 000 000 ein.",
-        "nothingToSave": "Ändern Sie die Abteilung oder die Mitarbeiterzahl vor dem Speichern."
+        "countryRequired": "Wählen Sie das Land, in dem das Unternehmen registriert ist.",
+        "nothingToSave": "Ändern Sie die Abteilung, das Land oder die Mitarbeiterzahl vor dem Speichern."
       }
     },
     "errors": {

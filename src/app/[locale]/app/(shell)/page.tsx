@@ -202,6 +202,7 @@ export default async function AppPage() {
               id: company.id,
               industryCode: company.industry_code,
               employeesCount: company.employees_count,
+              country: company.country,
             }}
             locale={locale}
             // `noData` is the one state where entering a figure by hand is the fix the alert is
@@ -280,6 +281,7 @@ export default async function AppPage() {
                     name: company.name,
                     legalName: company.legal_name,
                     website: company.website,
+                    country: company.country,
                   }}
                   blocked={blocked}
                 />

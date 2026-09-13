@@ -2,7 +2,7 @@
 -- read; ops everything; every write audited (spec 0002 AC-3, AC-4, AC-5).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(18);
+select plan(19);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
@@ -116,11 +116,18 @@ select lives_ok(
 select throws_ok(
   $$ insert into public.companies (organization_id, name) values ('0b000000-0000-4000-8000-000000000000', 'Intruder') $$,
   '42501', null, 'an insert naming another organization is rejected');
--- uid is checked the way canton is: the Swiss identifier has one canonical spelling.
-select throws_ok(
-  $$ insert into public.companies (organization_id, name, uid)
-     values ('0a000000-0000-4000-8000-000000000000', 'Malformed', 'CHE123456789') $$,
-  '23514', null, 'a uid that is not CHE-123.456.789 is rejected');
+-- The register identifier is whatever the company's country prints (spec 0022, AC-3): no format
+-- check in the database, and Zod holds the CHE shape only when the country is CH. Asserted on
+-- the catalogue rather than by writing, so the row counts and the audit trail below stay put.
+select is_empty(
+  $$ select conname from pg_constraint
+     where conrelid = 'public.companies'::regclass and conname = 'companies_uid_check' $$,
+  'no uid format check: the register identifier is the country''s, not Switzerland''s');
+-- The currency follows the country and is written by the action, never chosen (AC-1).
+select ok(
+  (select count(*) from pg_constraint
+   where conrelid = 'public.companies'::regclass and conname = 'companies_currency_check') = 1,
+  'currency is checked as three upper case letters');
 select lives_ok(
   $$ update public.companies set employees_count = 42 where id = '0c000000-0000-4000-8000-000000000002' $$,
   'a member updates a company of their organization');

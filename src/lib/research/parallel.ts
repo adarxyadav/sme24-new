@@ -38,8 +38,10 @@ const CONFIDENCE_LEVELS: readonly BasisConfidence[] = ["low", "medium", "high"];
 /** The task input Parallel sees: public company data and the research objective, nothing else (AC-13). Pure. */
 export function buildParallelInput(input: ProviderInput): Record<string, string> {
   return {
+    // Nothing here names a country: the company's own country is a field below, and the
+    // register is whichever one that country keeps (spec 0022, AC-3).
     objective:
-      "Research the company's published occupational health and safety figures (sustainability, ESG, annual and safety reports, press releases, certification registers) for the latest three reporting years, and its registered company facts.",
+      "Research the company's published occupational health and safety figures (sustainability, ESG, annual and safety reports, press releases, certification registers) for the latest three reporting years, and its registered company facts as held by the commercial register of the company's country.",
     company_name: input.name,
     legal_name: input.legalName ?? "",
     website: input.website ?? "",

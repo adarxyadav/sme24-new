@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { CountrySelect } from "@/components/country-select";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -31,6 +32,7 @@ import {
   companyFactsFormSchema,
   divisionOf,
 } from "@/features/benchmark/schema";
+import { isCountryCode } from "@/lib/countries";
 import { issueMessage, zodLocaleError } from "@/lib/validation";
 
 export type FactsFormProps = {
@@ -38,14 +40,16 @@ export type FactsFormProps = {
     readonly id: string;
     readonly industryCode: string | null;
     readonly employeesCount: number | null;
+    readonly country: string;
   };
   /** Overrides the generated id prefix; only a test or a stable anchor needs to pass one. */
   readonly idPrefix?: string;
 };
 
 /**
- * The company facts form (spec 0008, AC-11): the NOGA division grouped by section and the
- * headcount. Only a changed field is sent, so an untouched `23.61` is never flattened to `23`;
+ * The company facts form (spec 0008, AC-11; spec 0022, AC-1): the NOGA division grouped by
+ * section, the country and the headcount. Saving a new country sets the currency with it.
+ * Only a changed field is sent, so an untouched `23.61` is never flattened to `23`;
  * a success refreshes the page, which shows `calculating` until the new snapshot lands. Every id
  * is derived from a `useId` prefix, so two instances on one page (the facts card and the "Your
  * figures" card both sit on the dashboard) never collide. Browser.
@@ -65,14 +69,19 @@ export function FactsForm({ company, idPrefix }: FactsFormProps) {
   const employeesId = `${prefix}-employees`;
   const employeesHintId = `${prefix}-employees-hint`;
   const employeesErrorId = `${prefix}-employees-error`;
+  const countryId = `${prefix}-country`;
+  const countryHintId = `${prefix}-country-hint`;
+  const countryErrorId = `${prefix}-country-error`;
   const initialDivision = divisionOf(company.industryCode);
   const initialEmployees = company.employeesCount === null ? "" : String(company.employeesCount);
+  const initialCountry = isCountryCode(company.country) ? company.country : undefined;
   const form = useForm<CompanyFactsInput, unknown, CompanyFactsValues>({
     resolver: zodResolver(companyFactsFormSchema, { error: zodLocaleError(locale) }),
     defaultValues: {
       companyId: company.id,
       industryCode: initialDivision,
       employeesCount: initialEmployees,
+      country: initialCountry,
       locale,
     },
   });
@@ -90,12 +99,14 @@ export function FactsForm({ company, idPrefix }: FactsFormProps) {
     // Only what changed goes to the server (the schema then demands at least one field).
     const division = values.industryCode ?? "";
     const employees = values.employeesCount;
+    const country = values.country;
     startTransition(() =>
       dispatch({
         companyId: company.id,
         industryCode: division !== "" && division !== initialDivision ? division : undefined,
         employeesCount:
           employees !== undefined && String(employees) !== initialEmployees ? employees : undefined,
+        country: country !== undefined && country !== initialCountry ? country : undefined,
         locale,
       }),
     );
@@ -155,6 +166,29 @@ export function FactsForm({ company, idPrefix }: FactsFormProps) {
               </Select>
               <FieldDescription id={industryHintId}>{t("industryHint")}</FieldDescription>
               <FieldError id={industryErrorId}>
+                {issueMessage(fieldState.error?.message, v)}
+              </FieldError>
+            </Field>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="country"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid ? true : undefined}>
+              <FieldLabel htmlFor={countryId}>{t("country")}</FieldLabel>
+              <CountrySelect
+                id={countryId}
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                placeholder={t("countryPlaceholder")}
+                europeLabel={t("countryEurope")}
+                restLabel={t("countryRest")}
+                invalid={fieldState.invalid}
+                describedBy={fieldState.invalid ? countryErrorId : countryHintId}
+              />
+              <FieldDescription id={countryHintId}>{t("countryHint")}</FieldDescription>
+              <FieldError id={countryErrorId}>
                 {issueMessage(fieldState.error?.message, v)}
               </FieldError>
             </Field>

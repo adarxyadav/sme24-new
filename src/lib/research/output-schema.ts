@@ -24,8 +24,8 @@ export type FactField = (typeof FACT_FIELDS)[number];
 
 const FACT_DESCRIPTIONS: Record<FactField, string> = {
   legal_name:
-    "The registered legal name of the company as in the Swiss commercial register, or 'not found'.",
-  uid: "The Swiss company identification number in the form CHE-123.456.789, or 'not found'.",
+    "The registered legal name of the company as in the commercial register of the company's country, or 'not found'.",
+  uid: "The national commercial register identifier as printed, or 'not found'.",
   website: "The company's main website, or 'not found'.",
   industry_noga:
     "The NOGA 2008 industry code of the main activity as 'dd' or 'dd.dd' (for example '23.61'), or 'not found'.",
@@ -48,8 +48,16 @@ export function kpiField(key: KpiKey, slot: YearSlot): string {
   return `${key}_${slot}`;
 }
 
-/** Builds the provider output schema from the catalogue. Pure. */
-export function buildOutputSchema(): ProviderOutputSchema {
+/**
+ * The fact fields asked of a company in this country (spec 0022, AC-3): the canton is a Swiss
+ * concept, so it is asked for only when the country is `CH`. Pure.
+ */
+export function factFieldsFor(country: string): readonly FactField[] {
+  return country === "CH" ? FACT_FIELDS : FACT_FIELDS.filter((field) => field !== "canton");
+}
+
+/** Builds the provider output schema from the catalogue, for one company's country. Pure. */
+export function buildOutputSchema(country: string): ProviderOutputSchema {
   const kpiProperties = Object.fromEntries(
     KPI_LIST.flatMap((kpi) =>
       YEAR_SLOTS.map((slot) => [
@@ -62,7 +70,7 @@ export function buildOutputSchema(): ProviderOutputSchema {
     ),
   );
   const factProperties = Object.fromEntries(
-    FACT_FIELDS.map((field) => [
+    factFieldsFor(country).map((field) => [
       field,
       { type: "string" as const, description: FACT_DESCRIPTIONS[field] },
     ]),

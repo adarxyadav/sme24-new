@@ -1684,6 +1684,11 @@
       "title": "Research your company",
       "description": "The name comes from your organization. A website helps us find the right reports.",
       "name": "Company name",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countryEurope": "Europe",
+      "countryRest": "Rest of the world",
+      "countryHint": "Where the company is registered. It sets which peers and experts we look for.",
       "website": "Website (optional)",
       "websiteHint": "For example example.ch",
       "submit": "Start research",
@@ -1772,6 +1777,11 @@
       "title": "Correct the details and research again",
       "description": "Your details take precedence over the research.",
       "name": "Company name",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countryEurope": "Europe",
+      "countryRest": "Rest of the world",
+      "countryHint": "Where the company is registered. It sets which peers and experts we look for.",
       "legalName": "Legal name (optional)",
       "website": "Website (optional)",
       "submit": "Research again",
@@ -1799,6 +1809,7 @@
       "nameShort": "The company name needs at least 2 characters.",
       "nameLong": "The company name can have at most 200 characters.",
       "legalNameLong": "The legal name can have at most 200 characters.",
+      "countryRequired": "Select the country the company is registered in.",
       "websiteInvalid": "Please enter a valid website, for example example.ch."
     }
   },
@@ -1913,7 +1924,11 @@
         "benelux": "the Benelux",
         "british_isles": "the British Isles",
         "southern": "southern Europe",
-        "central_eastern": "central and eastern Europe"
+        "central_eastern": "central and eastern Europe",
+        "north_america": "North America",
+        "latin_america": "Latin America",
+        "middle_east_africa": "the Middle East and Africa",
+        "asia_pacific": "the Asia Pacific region"
       },
       "srStrip": "Your value {value} against {count} published peers {scope}, from {best} to {worst}.",
       "srStripNoValue": "{count} published peers {scope}, from {best} to {worst}; you have no value yet.",
@@ -2067,6 +2082,11 @@
       "industry": "Industry",
       "industryHint": "The NOGA division your company is classified under.",
       "industryPlaceholder": "Choose a division",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countryEurope": "Europe",
+      "countryRest": "Rest of the world",
+      "countryHint": "Where the company is registered. It sets the peers, the experts and the currency.",
       "employees": "Headcount",
       "employeesHint": "Employees, counted as full time jobs.",
       "submit": "Save and recalculate",
@@ -2076,7 +2096,8 @@
       "validation": {
         "industryInvalid": "Choose a division from the list.",
         "employeesInvalid": "Enter a whole number from 1 to 1 000 000.",
-        "nothingToSave": "Change the division or the headcount before saving."
+        "countryRequired": "Select the country the company is registered in.",
+        "nothingToSave": "Change the division, the country or the headcount before saving."
       }
     },
     "errors": {

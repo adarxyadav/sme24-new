@@ -125,7 +125,7 @@ describe("classifyParallelError (AC-10)", () => {
 describe("createParallelProvider (AC-4)", () => {
   it("creates the client with the key and no SDK retries, and one run on core with the json schema", async () => {
     const provider = createParallelProvider("pk_test");
-    const schema = buildOutputSchema();
+    const schema = buildOutputSchema("CH");
     await expect(provider.createRun(input, schema)).resolves.toEqual({ providerRunId: "trun_1" });
     expect(sdk.options).toEqual({ apiKey: "pk_test", maxRetries: 0 });
     expect(PARALLEL_PROCESSOR).toBe("core");
@@ -214,7 +214,7 @@ describe("createParallelProvider (AC-4)", () => {
     sdk.retrieve.mockRejectedValue(apiError(401));
     sdk.result.mockRejectedValue(new APIConnectionError({ message: "reset" }));
     const provider = createParallelProvider("pk_test");
-    await expect(provider.createRun(input, buildOutputSchema())).rejects.toBeInstanceOf(
+    await expect(provider.createRun(input, buildOutputSchema("CH"))).rejects.toBeInstanceOf(
       ProviderUnavailableError,
     );
     await expect(provider.getRun("trun_1")).rejects.toBeInstanceOf(ProviderRejectedError);

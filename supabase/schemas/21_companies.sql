@@ -6,12 +6,15 @@ create table public.companies (
   organization_id uuid not null references public.organizations (id) on delete cascade,
   name text not null,
   legal_name text null,
-  uid text null check (uid ~ '^CHE-[0-9]{3}\.[0-9]{3}\.[0-9]{3}$'),
+  -- No format check: the register identifier is whatever the company's country prints (spec
+  -- 0022, AC-3). The CHE shape is checked in Zod, and only when the country is CH.
+  uid text null,
   website text null,
   industry_code text null,
   employees_count integer null check (employees_count >= 0),
   canton text null check (canton ~ '^[A-Z]{2}$'),
   country text not null default 'CH',
+  currency text not null default 'CHF' check (currency ~ '^[A-Z]{3}$'),
   created_by uuid null references public.profiles (id) on delete set null,
   archived_at timestamptz null,
   created_at timestamptz not null default now(),
@@ -19,7 +22,8 @@ create table public.companies (
 );
 
 comment on table public.companies is 'An assessed company inside an organization.';
-comment on column public.companies.uid is 'The Swiss company identifier, formatted CHE-123.456.789.';
+comment on column public.companies.uid is 'The national commercial register identifier as printed in the company''s country.';
+comment on column public.companies.currency is 'ISO 4217, set from the country by the catalogue in src/lib/countries.ts; money on the snapshot is in it.';
 comment on column public.companies.industry_code is 'NOGA industry code.';
 
 create index companies_organization_id_created_at_idx on public.companies (organization_id, created_at desc);

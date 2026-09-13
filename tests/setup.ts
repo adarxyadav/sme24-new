@@ -42,4 +42,19 @@ if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
   });
 }
 
+// jsdom implements none of the APIs Radix's Select uses to open and position its listbox, so
+// without these the trigger never opens and a country can never be picked in a test.
+if (typeof window !== "undefined") {
+  if (typeof Element.prototype.hasPointerCapture !== "function") {
+    Element.prototype.hasPointerCapture = () => false;
+    Element.prototype.setPointerCapture = () => {};
+    Element.prototype.releasePointerCapture = () => {};
+  }
+  if (typeof Element.prototype.scrollIntoView !== "function") {
+    Element.prototype.scrollIntoView = () => {};
+  }
+  // No `ResizeObserver` shim here on purpose: `tests/chart.test.tsx` needs it absent so Recharts
+  // keeps the size it was handed, and stubs its own where it wants a resize.
+}
+
 afterEach(() => cleanup());

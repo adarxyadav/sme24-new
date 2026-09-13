@@ -46,13 +46,32 @@ export const CANTON_CODES = [
   "ZH",
 ] as const;
 
+/**
+ * The facts a run may write onto the company, as a function of the company's country (spec 0022,
+ * AC-3). The register identifier is only forced into the Swiss `CHE-123.456.789` shape when the
+ * country is `CH`; elsewhere it is whatever the national register prints, kept as a short string.
+ * The canton is Swiss by definition, so a company outside CH never carries one. Pure.
+ */
+export function companyFactsSchemaFor(country: string) {
+  const swiss = country === "CH";
+  const uid = z.string().trim().min(1).max(40);
+  return z.object({
+    legalName: z.string().trim().min(1).max(200).optional(),
+    uid: (swiss ? uid.regex(/^CHE-\d{3}\.\d{3}\.\d{3}$/) : uid).optional(),
+    industryCode: z
+      .string()
+      .trim()
+      .regex(/^\d{2}(?:\.\d{2})?$/)
+      .optional(),
+    employeesCount: z.number().int().min(0).optional(),
+    ...(swiss ? { canton: z.enum(CANTON_CODES).optional() } : {}),
+  });
+}
+
+/** The stored shape of `summary.companyFacts`: every field a run may have written, all optional. */
 export const companyFactsSchema = z.object({
   legalName: z.string().trim().min(1).max(200).optional(),
-  uid: z
-    .string()
-    .trim()
-    .regex(/^CHE-\d{3}\.\d{3}\.\d{3}$/)
-    .optional(),
+  uid: z.string().trim().min(1).max(40).optional(),
   industryCode: z
     .string()
     .trim()

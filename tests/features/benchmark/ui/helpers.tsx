@@ -322,4 +322,9 @@ export function derivedCount(overrides: Partial<DerivedCount> = {}): DerivedCoun
 }
 
 /** The company facts the segment passes to the form. */
-export const company = { id: COMPANY_ID, industryCode: "23.61", employeesCount: 420 };
+export const company = {
+  id: COMPANY_ID,
+  industryCode: "23.61",
+  employeesCount: 420,
+  country: "CH",
+};

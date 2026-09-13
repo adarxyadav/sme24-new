@@ -51,7 +51,7 @@ export async function validateResearch({
     const output = await structuredOutput({
       apiKey,
       schema: researchValidationSchema,
-      system: researchValidationSystemPrompt(),
+      system: researchValidationSystemPrompt(company.country),
       prompt: researchValidationPrompt(company, candidates, facts),
     });
     const verdicts = new Map<string, Verdict>();
@@ -65,7 +65,11 @@ export async function validateResearch({
         sourceIndexes: value.sourceIndexes,
       });
     }
-    return { verdicts, facts: acceptedFacts(output.companyFacts), promptVersion: PROMPT_VERSION };
+    return {
+      verdicts,
+      facts: acceptedFacts(output.companyFacts, company.country),
+      promptVersion: PROMPT_VERSION,
+    };
   } catch (error) {
     log.error("research validation failed; continuing with the provider's values", {
       reason: error instanceof Error ? error.message : String(error),

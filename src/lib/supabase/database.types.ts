@@ -430,6 +430,7 @@ export type Database = {
           country: string
           created_at: string
           created_by: string | null
+          currency: string
           employees_count: number | null
           id: string
           industry_code: string | null
@@ -446,6 +447,7 @@ export type Database = {
           country?: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           employees_count?: number | null
           id?: string
           industry_code?: string | null
@@ -462,6 +464,7 @@ export type Database = {
           country?: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           employees_count?: number | null
           id?: string
           industry_code?: string | null

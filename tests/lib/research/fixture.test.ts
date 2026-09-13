@@ -51,7 +51,7 @@ describe("the fixture constants (AC-12)", () => {
 describe("fixtureResult and fixtureEmptyResult", () => {
   it("fills every field of the output schema: eight KPIs for three years, the seven facts and the years", () => {
     const result = fixtureResult([2025, 2024, 2023]);
-    const schemaFields = Object.keys(buildOutputSchema().properties);
+    const schemaFields = Object.keys(buildOutputSchema("CH").properties);
     expect(Object.keys(result.fields).sort()).toEqual([...schemaFields].sort());
     expect(result.fields.reporting_years).toBe("2025, 2024, 2023");
     expect(result.fields.ltifr_latest).toBe("2.4 (per 1 000 000 hours worked), 2025");
@@ -93,7 +93,7 @@ describe("createFixtureProvider (AC-12)", () => {
   it("pauses one step per call, encodes the name into the run id and is done on the first poll", async () => {
     const sleep = vi.fn(async () => {});
     const provider = createFixtureProvider(sleep);
-    const { providerRunId } = await provider.createRun(input, buildOutputSchema());
+    const { providerRunId } = await provider.createRun(input, buildOutputSchema("CH"));
     expect(providerRunId.startsWith(FIXTURE_RUN_PREFIX)).toBe(true);
     expect(sleep).toHaveBeenCalledWith(FIXTURE_STEP_MS);
     await expect(provider.getRun(providerRunId)).resolves.toEqual({ status: "done" });
@@ -107,14 +107,14 @@ describe("createFixtureProvider (AC-12)", () => {
     const provider = createFixtureProvider(async () => {});
     const { providerRunId } = await provider.createRun(
       { ...input, name: "Leere Empty GmbH" },
-      buildOutputSchema(),
+      buildOutputSchema("CH"),
     );
     await expect(provider.getResult(providerRunId)).resolves.toEqual(fixtureEmptyResult());
   });
 
   it("throws the retryable class with a 503 for a name containing fail", async () => {
     const provider = createFixtureProvider(async () => {});
-    const failure = provider.createRun({ ...input, name: "Fail AG" }, buildOutputSchema());
+    const failure = provider.createRun({ ...input, name: "Fail AG" }, buildOutputSchema("CH"));
     await expect(failure).rejects.toBeInstanceOf(ProviderUnavailableError);
     await expect(failure).rejects.toMatchObject({ status: 503 });
   });

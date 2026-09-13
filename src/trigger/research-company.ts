@@ -139,7 +139,8 @@ export const researchCompanyTask = schemaTask({
             website: company.website,
             country: company.country,
           },
-          buildOutputSchema(),
+          // The canton is only asked of a Swiss company (spec 0022, AC-3).
+          buildOutputSchema(company.country),
         ),
       );
       providerRunId = created.providerRunId;
