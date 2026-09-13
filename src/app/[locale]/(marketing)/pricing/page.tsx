@@ -83,15 +83,26 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         </div>
       </section>
 
+      {/*
+        The packages carry no visible opener (owner decision of 2026-09-14). They had a major one
+        from 2026-09-10, added because the h1 was then doing both jobs and the prices arrived with
+        nothing said about how they relate; the centred h1 above and the comparison table below
+        now carry that between them, and a display heading in between pushed the cards -- the one
+        thing this page is for -- most of a screen further down. The heading stays as `sr-only`,
+        so the landmark keeps its name and the heading hierarchy keeps its level.
+      */}
       <section aria-labelledby="packages-heading">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
-          <SectionHeader
-            tier="major"
-            id="packages-heading"
-            eyebrow={t("packagesHeading.eyebrow")}
-            title={t("packagesHeading.title")}
-            lead={t("packagesHeading.lead")}
-          />
+        {/*
+          The band keeps its tier's bottom padding and drops its top one. The tier sets the space a
+          section needs around its own content, and with the opener gone there is no content up
+          there to clear: the anchor's `md:py-40` bottom and this band's `md:py-28` top stacked to
+          309px of empty white between the lead and the first card. The `gap` goes with it, since
+          it now sits under an `sr-only` heading and spaces nothing a reader can see.
+        */}
+        <div className="mx-auto flex max-w-6xl flex-col px-4 pb-16 sm:px-6 md:pb-28">
+          <h2 id="packages-heading" className="sr-only">
+            {t("packagesHeading.title")}
+          </h2>
           <PackagesGrid variant="full" />
         </div>
       </section>

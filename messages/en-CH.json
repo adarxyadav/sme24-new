@@ -539,9 +539,7 @@
       "lead": "Every package is one price, one senior expert, one report. Prices exclude 8.1% VAT.",
       "packagesLabel": "The packages",
       "packagesHeading": {
-        "eyebrow": "The packages",
-        "title": "Three snapshots, each building on the one below.",
-        "lead": "Start where your questions are. Moving up a rung is a step, not a fresh start — and the partner picks up the work that follows."
+        "title": "Three snapshots, each building on the one below."
       },
       "vatNote": "excl. 8.1% VAT",
       "onDemand": "On demand",

@@ -154,7 +154,9 @@ The opener follows from the tier, so there is nothing extra to decide per sectio
 
 `SectionHeader` in `src/features/marketing/ui/` renders all three from a `tier` prop; a page composes it rather than hand rolling the markup. A section that is deliberately different (the campaign wall, the packages grid) may still open with its own markup, but it picks one of the three shapes.
 
-One band is deliberately openerless: the landing page's worked figure, the passage between the hero and the steps (2026-09-10). It is one sentence with the figure set inside it and nothing else -- no opener, no footnote and no link -- and it carries an `sr-only` `h2` so the landmark is still named. A minor opener above one sentence re-created the stack -- heading, lead, figure, footnote -- that three passes had already been spent removing, on a band a reader crosses rather than stops at. A section may drop its opener only when it is a single sentence long; anything with two blocks takes one of the three shapes above.
+The pricing page's packages band is openerless for a second reason (owner decision of 2026-09-14): its content is the four package cards, each with its own `h3`, price and promise, and the centred `h1` directly above already says what they are. It carried a major opener from 2026-09-10, added when the `h1` shared the band and the cards had no heading of their own; once the opener moved into its own band and went centred, the display heading in between was a third statement between two things that already spoke, and it pushed the prices most of a screen down. The heading survives as `sr-only`, so the landmark keeps its name and the `h3` cards keep a level above them. A band that drops its opener this way also drops the padding that opener needed -- the tier's top padding exists to clear its own content, and with nothing there it stacks with the band above into dead white.
+
+One band is deliberately openerless for a different reason: the landing page's worked figure, the passage between the hero and the steps (2026-09-10). It is one sentence with the figure set inside it and nothing else -- no opener, no footnote and no link -- and it carries an `sr-only` `h2` so the landmark is still named. A minor opener above one sentence re-created the stack -- heading, lead, figure, footnote -- that three passes had already been spent removing, on a band a reader crosses rather than stops at. A section may drop its opener in exactly two cases: it is a single sentence long, or its content is a set of cards that each carry their own heading and the band directly above it has already named them (the pricing packages, above). Anything else takes one of the three shapes above, and both cases still carry an `sr-only` heading so the landmark keeps its name.
 
 ### The steps rail
 
@@ -211,7 +213,7 @@ The tier of every section that exists today. A new section joins this table.
 | Landing | anchor hero on the page ground, centred, with the hero object under it · minor worked figure beside the cost iceberg (the walkthrough photograph until 2026-09-12) · **major steps** · major packages · major experts · major trust, centred rather than split · minor FAQ · anchor jet closing |
 | How it works | anchor opener · **major steps** · major split of labour · minor timing · anchor jet closing |
 | Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
-| Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |
+| Pricing | anchor opener, centred · **major packages, openerless** · minor compare · minor included · minor FAQ · anchor jet closing |
 | About | anchor opener · major story · **major ruled campaign grid** · minor how we work · anchor jet closing |
 | Contact | anchor opener · major facts and form · anchor jet closing |
 
