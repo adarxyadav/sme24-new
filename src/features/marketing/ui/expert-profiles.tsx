@@ -236,7 +236,14 @@ export function ExpertProfiles() {
               // The `Card` treatment rather than the primitive itself: this is an `li`, and the
               // component renders its own `div`. Same ring hairline and flat ground, so a card
               // here and a card in the signed in areas are the same object.
-              className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
+              // `gap-6` rather than `gap-5`, so the card's one structural break is its largest
+              // (2026-09-14). The head and the specification are the card's two halves, and at
+              // `gap-5` (20px) that break was only 4px wider than the 16px between two ordinary
+              // rows inside the block below it -- four levels of spacing compressed into 4px, so
+              // the card read as one undifferentiated column. The scale is now 4px inside a pair
+              // (name and seniority), 6px inside the discipline pair, 16px between fields, 24px
+              // between the halves: each level is visibly its own.
+              className="flex min-w-0 flex-col gap-6 rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
             >
               {/*
                 Aligned to the top of the type, not the centre of the block (2026-09-14). The
