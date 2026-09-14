@@ -282,16 +282,6 @@ export function ExpertProfiles() {
                 {catalogue(`competencies.${profile.competency}`)}
               </p>
               {/*
-                What the name means, in the client's own words. "Management system" and "Safety
-                culture" are the product's competency codes (`COMPETENCY_CODES`) -- a safety
-                manager parses them, the CFO who signs the order does not, and both read this page.
-                The line is written in the register the packages' own promises use ("Know where you
-                stand"), so the site says one thing in one voice.
-              */}
-              <p className="mt-1 text-pretty text-copy-13 text-muted-foreground">
-                {t(`plain.${profile.competency}`)}
-              </p>
-              {/*
                 Icons on the three reference fields only, never on the name or the discipline:
                 those two are the card's claim and an icon beside them would compete with the
                 accent already marking it. These three are facts a reader scans for, where a glyph

@@ -241,11 +241,6 @@
         "experienceLabel": "Erfahrung",
         "standardsLabel": "Arbeitet nach",
         "languagesLabel": "Arbeitssprachen",
-        "plain": {
-          "management_system": "Baut das System auf, das Sie Jahr für Jahr rechtskonform hält.",
-          "safety_culture": "Sorgt dafür, dass sicher gearbeitet wird, auch wenn niemand hinschaut.",
-          "compliance": "Findet die Lücken, bevor eine Inspektion oder ein Unfall sie findet."
-        },
         "manufacturing": {
           "name": "M. Muster",
           "years": "22 Jahre",
