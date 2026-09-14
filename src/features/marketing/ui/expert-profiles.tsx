@@ -1,4 +1,4 @@
-import { Briefcase, Languages, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -231,9 +231,9 @@ export function ExpertProfiles() {
               // The `Card` treatment rather than the primitive itself: this is an `li`, and the
               // component renders its own `div`. Same ring hairline and flat ground, so a card
               // here and a card in the signed in areas are the same object.
-              className="flex min-w-0 flex-col rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
+              className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-center gap-4">
                 {/* `ExpertAvatar`, the primitive the expert pages and the gallery already use
                     (spec 0013, AC-6), rather than a monogram of this section's own. An earlier
                     pass drew a solid square here for the weight it gave the card; the gallery
@@ -251,12 +251,12 @@ export function ExpertProfiles() {
                   photoUrl={null}
                   className="size-14 shrink-0 bg-brand-accent-subtle **:data-[slot=avatar-fallback]:bg-transparent **:data-[slot=avatar-fallback]:text-brand-accent"
                 />
-                <div className="min-w-0">
-                  <h3 className="break-words text-heading-20">{t(`${profile.key}.name`)}</h3>
-                  <p className="mt-1 text-pretty text-copy-14 text-muted-foreground">
-                    {t(`${profile.key}.role`)}
-                  </p>
-                </div>
+                {/* The name alone, centred on the avatar. The role used to sit under it and now
+                    rides with the years in the specification below, where "22 years, ASA
+                    specialist" reads as one fact about seniority; a subtitle here would repeat it.
+                    The row centres rather than aligning to the top, so a one line name sits on the
+                    avatar's middle and a wrapped one stays balanced against it. */}
+                <h3 className="min-w-0 break-words text-heading-20">{t(`${profile.key}.name`)}</h3>
               </div>
 
               {/*
@@ -273,112 +273,105 @@ export function ExpertProfiles() {
                 carrier: remove it and the line still reads.
               */}
               {/*
-                Body size, not a heading. The accent already marks this as the card's claim, and
-                size on top of colour was two devices doing one job -- at `heading-20` it also read
-                as a second headline under the name. `font-medium` is all the weight it needs once
-                the colour is carrying.
+                The claim: what this person does, and the sector and canton it is done in. One
+                group rather than three stacked rows, because a reader weighing an expert asks
+                those together -- "management system, manufacturing, Zurich" is one sentence about
+                fit. The discipline keeps `--brand-accent` (rule 3's single decorative role, spent
+                here on the one field a client picks on) and the location sits directly under it in
+                the quiet type, so the colour marks the group rather than one line in a stack.
               */}
-              <p className="mt-6 text-balance font-medium text-brand-accent text-copy-14">
-                {catalogue(`competencies.${profile.competency}`)}
-              </p>
-              {/*
-                Icons on the three reference fields only, never on the name or the discipline:
-                those two are the card's claim and an icon beside them would compete with the
-                accent already marking it. These three are facts a reader scans for, where a glyph
-                is how you find the line rather than decoration on it.
-
-                `size-4`, `aria-hidden` and `text-muted-foreground`, the shape `TrustSection`
-                already uses (docs/design.md: decorative icons are `aria-hidden`). Every one sits
-                beside its own words, so nothing here is carried by the glyph alone -- strip the
-                icons and the card still reads, which is the same test the accent passes.
-              */}
-              <p className="mt-1.5 flex items-center gap-1.5 text-pretty text-copy-13 text-muted-foreground">
-                <MapPin aria-hidden="true" className="size-4 shrink-0" />
-                <span>
-                  {catalogue(`industries.${profile.industry}`)}
-                  <span aria-hidden="true"> · </span>
-                  <span className="sr-only">, </span>
-                  {catalogue(`regions.${profile.region}`)}
-                </span>
-              </p>
+              <div className="flex flex-col gap-1">
+                <p className="text-balance font-medium text-brand-accent text-copy-14">
+                  {catalogue(`competencies.${profile.competency}`)}
+                </p>
+                <p className="flex items-start gap-1.5 text-pretty text-copy-13 text-muted-foreground">
+                  {/* `size-4`, `aria-hidden`, the shape `TrustSection` uses. The glyph is how a
+                      reader finds the line, never what carries it: strip the icons and the card
+                      still reads. `mt-px` puts a 16px glyph on the cap height of 13px text. */}
+                  <MapPin aria-hidden="true" className="mt-px size-4 shrink-0" />
+                  <span>
+                    {catalogue(`industries.${profile.industry}`)}
+                    <span aria-hidden="true"> · </span>
+                    <span className="sr-only">, </span>
+                    {catalogue(`regions.${profile.region}`)}
+                  </span>
+                </p>
+              </div>
 
               {/*
-                The experience row as a spec line: label and figure on one baseline at the same
-                size, the figure carrying the weight rather than a larger size. At `label-18`
-                against a `copy-13` label the two sat at different scales and the pair read as a
-                heading with a caption rather than one row of a datasheet.
+                The specification: three labelled fields under one hairline, the shape the earlier
+                card had and the current one lost. `mt-auto` pins the block to the foot, so the
+                hairline lands on the same line in all six cards however long the name, the role or
+                the discipline above it ran -- which is what makes the grid read as comparable
+                rather than as six cards of different heights.
+
+                A caps label over its value, rather than a label and value on one baseline. The
+                inline shape only works where the value is one short token; "Suva ASA specialists ·
+                Labour Act and ordinances" is not, so it wrapped under a right aligned figure and
+                the rows stopped lining up. Stacked, every field is two lines whatever it holds.
+
+                `dl` because these are name and value pairs, and a `dt`/`dd` per field rather than
+                one long list: each pair is its own group, which is how a screen reader announces
+                "Experience, 22 years" instead of running the three together.
               */}
-              <dl className="mt-5 flex items-baseline justify-between gap-4 border-t pt-4 text-copy-14">
-                <dt className="flex items-center gap-1.5 text-muted-foreground">
-                  <Briefcase aria-hidden="true" className="size-4 shrink-0" />
-                  {t("experienceLabel")}
-                </dt>
-                <dd data-numeric className="font-medium tabular-nums">
-                  {t(`${profile.key}.years`)}
-                </dd>
+              <dl className="mt-auto flex flex-col gap-3 border-t pt-4">
+                <div className="flex flex-col gap-0.5">
+                  <dt className="eyebrow text-muted-foreground">{t("experienceLabel")}</dt>
+                  {/* The years carry the weight and the tabular figures, so the six cards'
+                      numbers align down the column; the role rides in the same line because
+                      "22 years, ASA specialist" is one fact about seniority, not two. */}
+                  <dd className="text-copy-14">
+                    <span data-numeric className="font-medium tabular-nums">
+                      {t(`${profile.key}.years`)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      <span aria-hidden="true">, </span>
+                      {t(`${profile.key}.role`)}
+                    </span>
+                  </dd>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <dt className="eyebrow text-muted-foreground">{t("standardsLabel")}</dt>
+                  <dd>
+                    {/*
+                      The tag carries the identifier, not the whole label. A safety manager reads
+                      "ISO 45001" or "BauAV" at a glance; the parenthetical gloss is for everyone
+                      else, and inside a badge it made each tag 40 odd characters, so the block had
+                      a different shape in every card. The full label rides in an `sr-only` span
+                      with the short name `aria-hidden` beside it: `title` is itself an accessible
+                      name and does not defer to hidden text, and `aria-label` on `Badge`'s bare
+                      `span` is widely ignored.
+                    */}
+                    <ul className="flex flex-wrap gap-1.5">
+                      {profile.standards.map((standard) => {
+                        const label = catalogue(`standards.${standard}`);
+                        return (
+                          <li key={standard}>
+                            <Badge variant="outline" className="font-normal">
+                              <span aria-hidden="true">{standardName(label)}</span>
+                              <span className="sr-only">{label}</span>
+                            </Badge>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </dd>
+                </div>
+
+                {/* A site visit happens in the language of the floor, which is why the catalogue
+                    carries four while the app serves two. It is the last thing anyone checks, so
+                    it closes the block -- but as a labelled field like the two above it, since a
+                    bare line under three labelled ones read as an afterthought. */}
+                <div className="flex flex-col gap-0.5">
+                  <dt className="eyebrow text-muted-foreground">{t("languagesLabel")}</dt>
+                  <dd className="text-copy-14">
+                    {profile.languages
+                      .map((language) => catalogue(`languages.${language}`))
+                      .join(", ")}
+                  </dd>
+                </div>
               </dl>
-
-              {/*
-                The standards, one per line behind a hairline each, so the rules separate one entry
-                from the next rather than dividing blocks of copy: the structure carries the
-                information, and a reader can count what this person works to at a glance. The
-                visible label goes because a list of standard names under a discipline announces
-                itself; `sr-only` keeps it for anyone who cannot see that.
-
-                These are areas of practice, not verified certifications (owner, 2026-09-14), which
-                is why the heading above them says "works to" rather than naming them credentials.
-              */}
-              {/*
-                The tag carries the identifier, not the whole label. A safety manager reads "ISO
-                45001" or "BauAV" at a glance; the parenthetical gloss is for everyone else, and
-                inside a badge it made each tag 40 odd characters, so two cards wrapped to two rows
-                and one fitted two tags on one. The block had a different shape in every card,
-                which is what stopped the six reading as comparable.
-
-                Nothing is lost: the full label rides on `title` for a pointer and in an `sr-only`
-                span for a screen reader, so the gloss is one hover or one announcement away. The
-                `sr-only` is what actually carries it -- `title` alone is invisible to touch and to
-                assistive tech, so it is the convenience, not the mechanism.
-              */}
-              <ul className="mt-5 flex flex-wrap gap-1.5">
-                <li className="sr-only">{t("standardsLabel")}</li>
-                {profile.standards.map((standard) => {
-                  const label = catalogue(`standards.${standard}`);
-                  const name = standardName(label);
-                  return (
-                    <li key={standard}>
-                      {/* `Badge variant="outline"`, the primitive the gallery's Buttons and badges
-                          row already shows. Outline and not a status or severity variant: those
-                          carry meaning next to a label and must keep it, while a standard is a
-                          plain tag. */}
-                      {/*
-                        The full label in an `sr-only` span and the short name `aria-hidden`
-                        beside it, with no `title`. Three shapes were tried: `title` plus
-                        `sr-only` announced the name and then the whole label one after the other,
-                        because `title` is itself an accessible name and does not defer to hidden
-                        text; `aria-label` alone is unreliable here, since `Badge` renders a bare
-                        `span` with no role and a generic element's label is widely ignored. What
-                        is left is the plain, well supported shape: hide the abbreviation from the
-                        accessibility tree, announce the label the catalogue actually holds.
-                      */}
-                      <Badge variant="outline" className="font-normal">
-                        <span aria-hidden="true">{name}</span>
-                        <span className="sr-only">{label}</span>
-                      </Badge>
-                    </li>
-                  );
-                })}
-              </ul>
-
-              {/* Languages close the card in its quietest type, pinned to the foot so six cards end
-                  on one line. A site visit happens in the language of the floor, which is why the
-                  catalogue carries four while the app serves two -- but it is the last thing anyone
-                  checks, so it is an aside rather than a labelled field. */}
-              <p className="mt-auto flex items-center gap-1.5 pt-5 text-pretty text-copy-13 text-muted-foreground">
-                <Languages aria-hidden="true" className="size-4 shrink-0" />
-                <span className="sr-only">{t("languagesLabel")}: </span>
-                {profile.languages.map((language) => catalogue(`languages.${language}`)).join(", ")}
-              </p>
             </li>
           ))}
         </ul>
