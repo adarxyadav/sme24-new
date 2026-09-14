@@ -141,7 +141,17 @@ export function SectionHeader({
           {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
           {heading}
         </div>
-        {lead ? <p className="max-w-prose self-end text-lg text-muted-foreground">{lead}</p> : null}
+        {lead ? (
+          <p
+            // Named for the same reason the anchor's lead is: a section can retune its own measure
+            // or alignment without the tier changing for everyone. The expert network's standard
+            // band uses it to drop `self-end` when it collapses the split to a stack.
+            data-slot="lead"
+            className="max-w-prose self-end text-lg text-muted-foreground"
+          >
+            {lead}
+          </p>
+        ) : null}
       </div>
     );
   }

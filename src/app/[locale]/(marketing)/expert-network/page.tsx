@@ -119,11 +119,27 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
 
       <section aria-labelledby="standard-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
+          {/*
+            Stacked rather than the major tier's own split row (heading left, lead right), the
+            override pattern the pricing page's compare and FAQ bands already use -- one section's
+            layout, not a change to the tier.
+
+            The split shape bottom aligns the lead to the heading column (`self-end`), which is
+            right for a one line heading and wrong for this one: "What we mean by senior." turns to
+            two lines at every width the split applies, so the lead sat on the second line's
+            baseline, a full display line below the heading's first, and read as a stray sentence
+            floating mid band rather than as this heading's lead. Stacked, the lead sits directly
+            under the heading it belongs to and the band opens as one block.
+
+            `gap-3` between the heading and its lead against the wrapper's own `gap-10` to the grid
+            below: the pair has to read as one group against the cells it introduces.
+          */}
           <SectionHeader
             tier="major"
             id="standard-heading"
             title={t("standard.title")}
             lead={t("standard.intro")}
+            className="flex flex-col gap-3 lg:grid-cols-none lg:gap-3 **:data-[slot=lead]:self-start"
           />
           <ul className="grid gap-px border bg-border sm:grid-cols-2">
             {STANDARD.map((item) => (
