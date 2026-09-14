@@ -27,8 +27,12 @@ const FACT_DESCRIPTIONS: Record<FactField, string> = {
     "The registered legal name of the company as in the commercial register of the company's country, or 'not found'.",
   uid: "The national commercial register identifier as printed, or 'not found'.",
   website: "The company's main website, or 'not found'.",
+  // The code the peer search matches on (spec 0022, AC-5), so it must describe what the group
+  // actually does. Asked plainly it answers the register's own entry, which for a group is its
+  // legal form: Glencore came back 46.72 (wholesale trade) and Anglo American 64.20 (holding
+  // companies), both miners, so the peer search was told to find wholesale and holding peers.
   industry_noga:
-    "The NOGA 2008 industry code of the main activity as 'dd' or 'dd.dd' (for example '23.61'), or 'not found'.",
+    "The NOGA 2008 industry code of the company's main operating activity as 'dd' or 'dd.dd' (for example '23.61'), or 'not found'. Classify what the company and its group actually produce or do, not its legal form: never answer a holding company code (64.20) or a wholesale or trading code (46.xx) for a group whose operations are mining, manufacturing, construction or transport. A mining group is 05 to 09 even when the register lists its head office as a holding or trading company.",
   employees:
     "The number of employees (headcount or full time equivalents, say which) in the latest reporting year, or 'not found'.",
   canton:

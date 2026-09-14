@@ -60,9 +60,16 @@ describe("the unit conversion in code (AC-8)", () => {
 describe("the peer output schema (AC-6)", () => {
   const schema = buildPeerOutputSchema();
 
-  it("asks for one array of at most eight peers", () => {
-    const peers = schema.properties.peers as { maxItems: number; items: { required: string[] } };
-    expect(peers.maxItems).toBe(PEER_LIMIT);
+  it("asks for one array of at most eight peers, the cap stated in the description", () => {
+    const peers = schema.properties.peers as {
+      maxItems?: number;
+      description: string;
+      items: { required: string[] };
+    };
+    // Parallel answers 422 for `maxItems`, which aborted every peer run before the search began
+    // (spec 0022): the cap reaches the provider as prose and is enforced by `parsePeerContent`.
+    expect(peers.maxItems).toBeUndefined();
+    expect(peers.description).toContain(String(PEER_LIMIT));
     expect(peers.items.required).toEqual([
       "name",
       "website",
@@ -99,6 +106,35 @@ describe("the peer output schema (AC-6)", () => {
   it("closes the object so the provider adds no field of its own", () => {
     expect(schema.additionalProperties).toBe(false);
     expect(schema.required).toEqual(["peers"]);
+  });
+
+  it("carries no keyword Parallel's validator rejects, at any depth", () => {
+    // The validator answers 422 on the first unsupported keyword and the task aborts without a
+    // retry, so a keyword added anywhere in this schema takes the peer search down silently. The
+    // whole tree is walked rather than the two levels the tests above happen to name.
+    const unsupported = [
+      "maxItems",
+      "minItems",
+      "minLength",
+      "maxLength",
+      "minimum",
+      "maximum",
+      "pattern",
+      "format",
+      "default",
+      "examples",
+    ];
+    const walk = (node: unknown, path: string): readonly string[] => {
+      if (Array.isArray(node)) return node.flatMap((item, i) => walk(item, `${path}[${i}]`));
+      if (node === null || typeof node !== "object") return [];
+      return Object.entries(node).flatMap(([key, value]) =>
+        unsupported.includes(key)
+          ? [`${path}.${key}`]
+          : // `properties` holds field names, which may legitimately be spelled like a keyword.
+            walk(value, key === "properties" ? `${path}.properties` : `${path}.${key}`),
+      );
+    };
+    expect(walk(schema, "schema")).toEqual([]);
   });
 });
 
