@@ -3542,6 +3542,10 @@
       "buy": "Buy credits",
       "unlocks": "Your unlocks"
     },
+    "size": {
+      "companies": "Companies",
+      "contacts": "Contacts"
+    },
     "search": {
       "legend": "Search",
       "company": "Company",

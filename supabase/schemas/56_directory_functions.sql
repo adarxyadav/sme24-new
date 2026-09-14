@@ -170,6 +170,30 @@ $$;
 
 comment on function public.directory_countries() is 'The alpha 2 codes present in the directory with a contact count each (spec 0018, AC-5). Active experts and ops only.';
 
+-- The size of the directory, for the two figures above the search form. The contact tables carry
+-- no select policy for an expert, so a count has to come through a definer function the way every
+-- other expert read does; the ops `getDirectoryTotals` counts the tables directly under the ops
+-- policy and also carries the suppression count, which is not an expert's business.
+create or replace function public.directory_size()
+returns table (companies bigint, contacts bigint)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not (private.is_ops() or private.is_active_expert()) then
+    raise exception 'forbidden' using errcode = 'SM403';
+  end if;
+  return query
+    select
+      (select count(*) from public.directory_companies),
+      (select count(*) from public.directory_contacts);
+end;
+$$;
+
+comment on function public.directory_size() is 'The company and contact counts of the directory (spec 0018, AC-5), for the figures above the search form. Active experts and ops only.';
+
 -- Supabase's default privileges grant execute to anon on every new public function and the
 -- declarative diff never emits the revoke, so the migration repeats these lines by hand
 -- (AGENTS.md).
@@ -177,6 +201,8 @@ revoke execute on function public.directory_search(text, text, text, text, uuid,
 grant execute on function public.directory_search(text, text, text, text, uuid, integer, integer) to authenticated;
 revoke execute on function public.directory_countries() from anon, public;
 grant execute on function public.directory_countries() to authenticated;
+revoke execute on function public.directory_size() from anon, public;
+grant execute on function public.directory_size() to authenticated;
 
 -- The caller's credit balance (AC-5, invariant 2): sum(delta) over their ledger rows, never a
 -- stored figure. An expert reads their own; ops may pass an expert_id to read anyone's. The rows

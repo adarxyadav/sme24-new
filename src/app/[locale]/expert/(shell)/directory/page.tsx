@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { DIRECTORY_MAX_PAGE } from "@/features/directory/catalogue";
 import {
   getCreditBalance,
+  getDirectorySize,
   listDirectoryCountries,
   searchDirectory,
 } from "@/features/directory/queries";
@@ -24,6 +25,7 @@ import { DirectoryProvider } from "@/features/directory/ui/directory-context";
 import { DirectorySearched } from "@/features/directory/ui/directory-searched";
 import { DirectoryResultsTable } from "@/features/directory/ui/results-table";
 import { DirectorySearchForm, type SearchFormErrors } from "@/features/directory/ui/search-form";
+import { DirectorySizeCards } from "@/features/directory/ui/size-cards";
 import { clientMessages } from "@/i18n/client-messages";
 import { Link } from "@/i18n/navigation";
 import { LOCALE_CODE, resolveLocale } from "@/i18n/routing";
@@ -83,9 +85,10 @@ export default async function ExpertDirectoryPage({ searchParams }: Props) {
     createServerSupabaseClient(),
     getMessages(),
   ]);
-  const [balance, countries, page] = await Promise.all([
+  const [balance, countries, size, page] = await Promise.all([
     getCreditBalance(supabase),
     listDirectoryCountries(supabase),
+    getDirectorySize(supabase),
     parsed.success && !pastDepth ? searchDirectory(supabase, search, cursor) : null,
   ]);
 
@@ -130,6 +133,10 @@ export default async function ExpertDirectoryPage({ searchParams }: Props) {
               </>
             }
           />
+
+          {/* The reach of a search, above the form that runs it. An empty directory shows no
+              figures rather than two zeroes; the empty state below already says it is empty. */}
+          {directoryEmpty ? null : <DirectorySizeCards size={size} />}
 
           <DirectorySearchForm
             values={{ q: raw.q ?? "", title: raw.title ?? "", country: search.country ?? "" }}

@@ -100,6 +100,20 @@ export async function searchDirectory(
   return { rows, page, nextCursor };
 }
 
+export type DirectorySize = { readonly companies: number; readonly contacts: number };
+
+/**
+ * The size of the whole directory for the two figures above the search form (AC-5). A definer
+ * function, because the contact tables carry no select policy for an expert; the ops
+ * `getDirectoryTotals` is a different read under the ops policy. Throws. Server component.
+ */
+export async function getDirectorySize(supabase: Client): Promise<DirectorySize> {
+  const { data, error } = await supabase.rpc("directory_size");
+  if (error) throw queryError(error);
+  const row = data[0];
+  return { companies: Number(row?.companies ?? 0), contacts: Number(row?.contacts ?? 0) };
+}
+
 export type DirectoryCountry = { readonly code: CountryCode; readonly contacts: number };
 
 /** The alpha 2 codes present in the directory with a contact count each (AC-5). Throws. Server component. */

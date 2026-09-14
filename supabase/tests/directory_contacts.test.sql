@@ -5,7 +5,7 @@
 -- function, and ops read directory_imports while an expert gets zero rows from it.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(36);
+select plan(39);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`). A hand run `pnpm directory:import`
 -- against the local stack leaves tens of thousands of rows behind, which sort ahead of the
@@ -138,6 +138,8 @@ select throws_ok($$ select * from public.directory_search() $$, 'SM403', 'forbid
   'a client gets SM403 from directory_search');
 select throws_ok($$ select * from public.directory_countries() $$, 'SM403', 'forbidden',
   'a client gets SM403 from directory_countries');
+select throws_ok($$ select * from public.directory_size() $$, 'SM403', 'forbidden',
+  'a client gets SM403 from directory_size');
 select throws_ok($$ select * from public.directory_reveal('dc000000-0000-4000-8000-000000000001') $$, 'SM403', 'forbidden',
   'a client gets SM403 from directory_reveal');
 select throws_ok($$ select * from public.directory_unlocked_contacts() $$, 'SM403', 'forbidden',
@@ -162,6 +164,8 @@ select throws_ok($$ select * from public.directory_search() $$, 'SM403', 'forbid
   'an invited expert gets SM403 from directory_search');
 select throws_ok($$ select * from public.directory_countries() $$, 'SM403', 'forbidden',
   'an invited expert gets SM403 from directory_countries');
+select throws_ok($$ select * from public.directory_size() $$, 'SM403', 'forbidden',
+  'an invited expert gets SM403 from directory_size');
 select throws_ok($$ select * from public.directory_reveal('dc000000-0000-4000-8000-000000000001') $$, 'SM403', 'forbidden',
   'an invited expert gets SM403 from directory_reveal');
 select throws_ok($$ select * from public.directory_remove_contact('x@alpha.test', 'ops') $$, 'SM403', 'forbidden',
@@ -171,6 +175,10 @@ select throws_ok($$ select * from public.directory_remove_contact('x@alpha.test'
 select pg_temp.as_anon();
 select throws_ok($$ select * from public.directory_search() $$, '42501', null,
   'an anonymous visitor cannot execute directory_search');
+-- Proves the hand written `anon` revoke in the migration took: the declarative diff never emits
+-- it, so without that line Supabase's default grant would leave this callable.
+select throws_ok($$ select * from public.directory_size() $$, '42501', null,
+  'an anonymous visitor cannot execute directory_size');
 select is((select count(*) from public.directory_contacts), 0::bigint,
   'an anonymous visitor selecting directory_contacts gets zero rows');
 

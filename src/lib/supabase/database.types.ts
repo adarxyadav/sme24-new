@@ -2523,6 +2523,13 @@ export type Database = {
           unlocked: boolean
         }[]
       }
+      directory_size: {
+        Args: never
+        Returns: {
+          companies: number
+          contacts: number
+        }[]
+      }
       directory_unlocked_contacts: {
         Args: {
           after_created_at?: string

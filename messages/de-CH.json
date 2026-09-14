@@ -3542,6 +3542,10 @@
       "buy": "Credits kaufen",
       "unlocks": "Ihre Freischaltungen"
     },
+    "size": {
+      "companies": "Firmen",
+      "contacts": "Kontakte"
+    },
     "search": {
       "legend": "Suche",
       "company": "Firma",
