@@ -4,7 +4,6 @@ import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
 import { collectionPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
-import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { CornerBrackets } from "@/features/marketing/ui/corner-brackets";
 import { ExpertProfiles } from "@/features/marketing/ui/expert-profiles";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
@@ -249,11 +248,20 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
 
         Both key groups leave both catalogs with it, so nothing dead is left behind.
       */}
-      <ClosingCta title={t("closing.title")}>
-        <Button asChild size="lg">
-          <Link href="/sign-up">{t("closing.cta")}</Link>
-        </Button>
-      </ClosingCta>
+      {/*
+        No closing call to action (owner decision of 2026-09-14). The jet anchor stood here and is
+        gone, so the page ends on the vetting ladder.
+
+        This is the second such page after pricing, and it departs from the rule in
+        `docs/design.md` that every other marketing page closes on a jet anchor -- the bookend that
+        gives a page the same weight at its close that it opened with. Pricing earns the exception
+        by being the page whose content is the action: four cards each carrying their own call to
+        action. This page does not have that, so the exception here is the owner's composition
+        call rather than an argument the page makes on its own, and the `closing.*` keys stay in
+        both catalogs so restoring the band is one element rather than a copy round trip.
+
+        The reader still has a way on: the hero's own control, which links to the public register.
+      */}
     </>
   );
 }
