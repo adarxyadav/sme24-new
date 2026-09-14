@@ -214,20 +214,20 @@
         "title": "Wie jemand aufgenommen wird.",
         "steps": {
           "record": {
-            "title": "Werdegang.",
-            "body": "Rollen, Betriebe, Normen, Referenzen von Leuten, die ihnen unterstellt waren."
+            "title": "Wir prüfen den Werdegang.",
+            "body": "Die Rollen, die Betriebe, die Normen. Dann rufen wir die Leute an, die für sie gearbeitet haben."
           },
           "shadow": {
-            "title": "Ein begleiteter Besuch.",
-            "body": "Die erste Beurteilung läuft neben einem etablierten Experten, beide schreiben."
+            "title": "Sie werden begleitet.",
+            "body": "Beim ersten Besuch kommt ein erfahrener Experte mit. Beide schreiben einen Bericht, und wir vergleichen sie."
           },
           "review": {
-            "title": "Schriftliche Prüfung.",
-            "body": "Wir lesen den Bericht wie ein Kunde. Vage Befunde bestehen nicht."
+            "title": "Wir lesen den Bericht.",
+            "body": "Wir lesen ihn so, wie Sie ihn lesen würden. Ist ein Befund vage, kommt die Person nicht rein."
           },
           "ongoing": {
-            "title": "Und danach jeder Bericht.",
-            "body": "Jede Arbeit wird von den Kunden bewertet. Die Latte sinkt nach der Aufnahme nicht."
+            "title": "Die Prüfung hört nicht auf.",
+            "body": "Sie bewerten jeden Auftrag. Wer die Latte nicht mehr hält, bekommt keine Arbeit mehr."
           }
         }
       },

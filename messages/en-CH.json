@@ -214,20 +214,20 @@
         "title": "How someone gets in.",
         "steps": {
           "record": {
-            "title": "Record check.",
-            "body": "Roles, sites, standards, references from people who reported to them."
+            "title": "We check the record.",
+            "body": "The roles they held, the sites they ran, the standards they know. Then we call the people who worked for them."
           },
           "shadow": {
-            "title": "A shadowed visit.",
-            "body": "Their first assessment runs alongside an established expert, both writing."
+            "title": "They are shadowed.",
+            "body": "An experienced expert joins their first site visit. Both write a report, and we compare them."
           },
           "review": {
-            "title": "Written review.",
-            "body": "We read the report as a client would. Vague findings do not pass."
+            "title": "We read the report.",
+            "body": "We read it the way you would. If a finding is vague, they do not get in."
           },
           "ongoing": {
-            "title": "Every report after.",
-            "body": "Client feedback is scored on each assignment. The bar does not drop after entry."
+            "title": "The checks continue.",
+            "body": "You rate every job. Anyone who stops meeting the bar stops getting work."
           }
         }
       },
