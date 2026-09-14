@@ -80,12 +80,14 @@ export default async function DirectoryPage({
             flow carry over because they are about the opener's own shape rather than its axis, and
             the sibling page a reader arrives from wears both.
 
-            The heading flows for the reason the reference does: "The whole register. Open." is
-            short enough to set on one line, and broken per sentence it put the round "O" of
-            "Open." under the flat stem of "The", which reads as a ragged left edge even though the
-            two lines start at exactly the same x. Flowed, there is no second line to disagree.
-            Measured at 1440: 866.8px in English, 903.5px in German, inside the flowed cap of
-            1024px and the band's own 1104px. Re-measure both catalogs if this copy changes.
+            The heading keeps the campaign shape of one sentence per line. It flowed while the
+            title was "The whole register. Open.", which set on one line in both catalogs (866.8px
+            and 903.5px against a 1024px cap); this copy is half again as long and fills that cap,
+            so flowed it wraps wherever the words happen to fall. In English that lands between
+            "EHS" and "Specialists", splitting the term across two lines -- a worse break than the
+            full stop it was avoiding. German breaks cleanly at the sentence by luck of word
+            length, which is exactly the kind of agreement not to depend on. Per sentence, both
+            catalogs break at the stop: two lines at 72px from 1280 up, three at 768.
 
             No control here, unlike the reference: that opener's button points at this page, and
             this page is already the register.
@@ -95,7 +97,6 @@ export default async function DirectoryPage({
             as="h1"
             eyebrow={t("eyebrow")}
             eyebrowVariant="pill"
-            layout="flow"
             title={t("title")}
             lead={t("lead")}
           />
