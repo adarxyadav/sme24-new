@@ -3544,7 +3544,8 @@
     },
     "size": {
       "companies": "Firmen",
-      "contacts": "Kontakte"
+      "contacts": "Kontakte",
+      "atLeast": "{count}+"
     },
     "search": {
       "legend": "Suche",
