@@ -103,7 +103,6 @@ export default async function ExpertClientPage({ params }: Props) {
           <BenchmarkSegment
             snapshot={dashboard.benchmark}
             state={dashboard.benchmarkState}
-            catalogue={dashboard.catalogue}
             company={{
               id: company?.id ?? "",
               industryCode: company?.industry_code ?? null,

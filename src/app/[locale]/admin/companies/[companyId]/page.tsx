@@ -337,21 +337,32 @@ export default async function AdminCompanyDetailPage({ params }: Props) {
                     [t("benchmark.modelVersion"), snapshot.modelVersion, true],
                     [t("benchmark.trigger"), t(`triggers.${snapshot.triggerKind as "research"}`)],
                     [t("benchmark.kpisCompared"), snapshot.kpisCompared],
-                    [
-                      t("benchmark.provisional"),
-                      snapshot.peerProvisional ? t("benchmark.yes") : t("benchmark.no"),
-                    ],
+                    // A `benchmark-model@7` row carries the loss in its own currency; the CHF
+                    // named columns below belong to `@1` to `@6` and are null on it (spec 0022,
+                    // AC-16), so a stored old row still reads here.
                     [
                       t("benchmark.cost"),
-                      snapshot.costChf === null
-                        ? t("none")
-                        : format.number(snapshot.costChf, "chfWhole"),
+                      snapshot.lossAmount === null
+                        ? snapshot.costChf === null
+                          ? t("none")
+                          : format.number(snapshot.costChf, "chfWhole")
+                        : format.number(snapshot.lossAmount, {
+                            style: "currency",
+                            currency: snapshot.currency ?? "CHF",
+                            maximumFractionDigits: 0,
+                          }),
                     ],
                     [
                       t("benchmark.savingMedian"),
-                      snapshot.savingMedianChf === null
-                        ? t("none")
-                        : format.number(snapshot.savingMedianChf, "chfWhole"),
+                      snapshot.savingAtMedian === null
+                        ? snapshot.savingMedianChf === null
+                          ? t("none")
+                          : format.number(snapshot.savingMedianChf, "chfWhole")
+                        : format.number(snapshot.savingAtMedian, {
+                            style: "currency",
+                            currency: snapshot.currency ?? "CHF",
+                            maximumFractionDigits: 0,
+                          }),
                     ],
                     [
                       t("benchmark.savingTop"),

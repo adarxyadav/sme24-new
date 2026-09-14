@@ -33,19 +33,18 @@ export const welcomeDataSchema = templateDataBaseSchema.extend({
 });
 export type WelcomeData = z.infer<typeof welcomeDataSchema>;
 
-/** `benchmark_ready` (spec 0008, AC-7): the company's first snapshot; the money is already rounded, absent when no cost was computed. */
+/**
+ * `benchmark_ready` (spec 0008, AC-7; spec 0022, AC-17): the company's first snapshot. The money is
+ * already rounded by `roundMoney` in the task and is denominated in `currency`, the snapshot's own,
+ * so a client outside Switzerland is not told its losses in francs. Both amounts are absent when the
+ * loss could not be computed, and `savingAtMedian` alone is absent when the run found no peer.
+ */
 export const benchmarkReadyDataSchema = templateDataBaseSchema.extend({
   companyName: z.string().trim().min(1).max(200),
-  kpisCompared: z.number().int().min(0).max(8),
-  costChf: z.number().nonnegative().optional(),
-  savingMedianChf: z.number().nonnegative().optional(),
-  /**
-   * The cost range, already rounded outward by `roundChfRange` in the task (spec 0016, AC-13).
-   * The template renders the range only when both ends are present and falls back to the single
-   * figure alone when either is absent, so an older queued payload still sends.
-   */
-  costLowChf: z.number().nonnegative().optional(),
-  costHighChf: z.number().nonnegative().optional(),
+  currency: z.string().regex(/^[A-Z]{3}$/),
+  peersCompared: z.number().int().min(0),
+  lossAmount: z.number().nonnegative().optional(),
+  savingAtMedian: z.number().nonnegative().optional(),
 });
 export type BenchmarkReadyData = z.infer<typeof benchmarkReadyDataSchema>;
 /**

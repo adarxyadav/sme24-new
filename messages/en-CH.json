@@ -1412,14 +1412,12 @@
       "preview": "Your safety figures are compared with your peers. See where you stand and what it costs.",
       "greeting": "Hello {firstName}",
       "greetingNeutral": "Hello",
-      "intro": "We compared the safety figures of {companyName} with companies like yours: {kpisCompared, plural, =0 {no KPI could be compared yet} =1 {1 KPI compared} other {# KPIs compared}}.",
-      "cost": "Workplace incidents cost you about {cost} per year.",
-      "saving": "Reaching the peer median would save about {saving} per year.",
-      "noCost": "We could not estimate the annual cost yet. Add your headcount in the client area and we recalculate at once.",
-      "nextStep": "The client area shows your position per KPI, the priority gaps and how every number is calculated.",
+      "intro": "We compared the safety figures of {companyName} with published figures from other companies: {peersCompared, plural, =0 {no peer found yet} =1 {1 peer found} other {# peers found}}.",
+      "saving": "At your peer group's median that would be about {saving} less.",
+      "nextStep": "The client area shows the peer table, your estimated yearly cost and the package that fits.",
       "button": "See the benchmark",
-      "range": "Workplace incidents cost you about {low} to {high} per year.",
-      "working": "Our working estimate within that range is {cost}."
+      "loss": "Workplace incidents cost you about {loss} per year.",
+      "noLoss": "We could not estimate the yearly cost yet. Enter your headcount and your LTIFR in the client area and we will recalculate straight away."
     },
     "enquiry_received": {
       "subject": "Your enquiry has reached SME24",
@@ -1818,7 +1816,8 @@
     "state": {
       "calculating": "We are calculating your benchmark. This takes a moment.",
       "unavailable": "The benchmark is not available yet. We will show it as soon as it is computed.",
-      "noData": "Not enough data to compare yet. We need at least one KPI with peer data."
+      "noData": "Not enough data to compare yet. Enter your headcount and your LTIFR and we will recalculate straight away.",
+      "outdated": "This benchmark comes from an earlier model. Run the research again and we will recalculate it against the current peer group."
     },
     "provisionalNote": "Some cost assumptions are still being verified.",
     "card": {

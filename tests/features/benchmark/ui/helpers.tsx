@@ -1,19 +1,9 @@
 import { render } from "@testing-library/react";
 import { createFormatter, NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
+import { MODEL_VERSION } from "@/features/benchmark/catalogue";
 import type { ParsedSnapshot } from "@/features/benchmark/queries";
-import {
-  type AssumptionUsed,
-  type AssumptionUsedV3,
-  type DerivedCount,
-  type InputKpi,
-  peerShapeOf,
-  type SnapshotBlocks,
-  type SnapshotDerived,
-  type SnapshotGap,
-  type SnapshotPeerV3,
-  type SnapshotResult,
-} from "@/features/benchmark/snapshot";
+import type { InputKpi, SnapshotBlocks, SnapshotPeerRow } from "@/features/benchmark/snapshot";
 import type { KpiKey } from "@/features/research/catalogue";
 import { formats, TIME_ZONE } from "@/i18n/formats";
 import { definition, en } from "../../research/ui/helpers";
@@ -36,6 +26,8 @@ export function renderEnglish(ui: ReactNode) {
   );
 }
 
+const KPI_INDEX: readonly KpiKey[] = ["ltifr", "trifr", "fatalities"];
+
 /** A KPI input as the task stores it in `inputs.kpis`. */
 export function inputKpi(key: KpiKey, value: number, overrides: Partial<InputKpi> = {}): InputKpi {
   return {
@@ -50,76 +42,23 @@ export function inputKpi(key: KpiKey, value: number, overrides: Partial<InputKpi
   };
 }
 
-const KPI_INDEX: readonly KpiKey[] = [
-  "ltifr",
-  "trifr",
-  "lost_days_per_incident",
-  "absenteeism_rate",
-  "fatalities",
-  "iso_45001_certified",
-  "near_miss_rate",
-];
-
-/** A peer selection as the task stores it on a result. */
-export function peer(
-  [p25, median, p75]: readonly [number, number, number],
-  overrides: Partial<SnapshotPeerV3> = {},
-): SnapshotPeerV3 {
+/** One kept peer as `@7` stores it (spec 0022, AC-13). */
+export function peerRow(
+  peerName: string,
+  ltifr: number | null,
+  trifr: number | null,
+  overrides: Partial<SnapshotPeerRow> = {},
+): SnapshotPeerRow {
   return {
-    rowId: UUID(500),
-    rung: 1,
-    industrySection: "C",
-    sizeBand: "250+",
-    periodYear: 2022,
-    yearMatch: "same",
-    p25,
-    median,
-    p75,
-    sampleSize: null,
-    provisional: true,
-    // Derived the same way the model derives it, so a fixture can never claim a shape its own
-    // values contradict (spec 0016, AC-4).
-    shape: peerShapeOf({ p25, median, p75 }),
-    sourceKey: null,
-    basis: null,
-    ...overrides,
-  };
-}
-
-export function result(key: KpiKey, overrides: Partial<SnapshotResult> = {}): SnapshotResult {
-  return {
-    key,
-    peer: null,
-    position: null,
-    gapToMedian: null,
-    gapRelative: null,
-    confidence: 0.9,
-    ...overrides,
-  };
-}
-
-export function gap(rank: number, key: KpiKey, overrides: Partial<SnapshotGap> = {}): SnapshotGap {
-  return { rank, key, reason: "distance", savingMedianChf: null, gapRelative: null, ...overrides };
-}
-
-/**
- * An assumption as the task stores it. Overrides are the version 3 shape (spec 0016, AC-10), so a
- * fixture can set `isAssumption` and `note`; a stored @1 or @2 row carries neither and the default
- * omits both, which is the path the UI must still render.
- */
-export function assumptionUsed(
-  key: AssumptionUsed["key"],
-  value: number,
-  overrides: Partial<AssumptionUsedV3> = {},
-): AssumptionUsed & Partial<Omit<AssumptionUsedV3, keyof AssumptionUsed>> {
-  return {
-    key,
-    value,
-    unit: "CHF per case",
-    sourceName: "Suva statistics",
-    sourceUrl: null,
-    provisional: true,
-    effectiveFrom: "2022-12-31",
+    peerName,
+    country: "CH",
+    headcount: 1_000,
+    periodYear: 2024,
+    ltifr,
+    trifr,
+    sourceUrl: `https://example.org/${peerName}`,
+    confidence: 0.8,
+    estimatedLoss: 500_000,
     ...overrides,
   };
 }
@@ -139,100 +78,43 @@ export const catalogue = [
   definition("near_miss_rate", { sort_order: 8, direction: "higher_is_better" }),
 ];
 
-/** The blocks of a snapshot that priced the accident rate against a section peer. */
+/** The blocks of a `@7` snapshot: 500 FTE at LTIFR 6 and TRIFR 10, against three country peers. */
 export function readyBlocks(overrides: Partial<SnapshotBlocks> = {}): SnapshotBlocks {
   return {
     inputs: {
-      fte: 420,
+      fte: 500,
       section: "C",
-      sizeBand: "250+",
       industryCode: "23.61",
-      companyUpdatedAt: "2026-09-06T07:00:00.000Z",
-      kpis: [
-        inputKpi("ltifr", 2.4),
-        inputKpi("trifr", 6.1),
-        inputKpi("lost_days_per_incident", 12.5, { source: "client", confidence: 1 }),
-        inputKpi("absenteeism_rate", 3.8),
-        inputKpi("fatalities", 1, { confidence: 0.95 }),
-        inputKpi("iso_45001_certified", 1, { confidence: null }),
+      country: "CH",
+      currency: "CHF",
+      companyUpdatedAt: "2026-09-14T07:00:00.000Z",
+      kpis: [inputKpi("ltifr", 6), inputKpi("trifr", 10)],
+    },
+    peers: {
+      rung: "country",
+      thin: false,
+      rows: [
+        peerRow("Alpha AG", 2, 5, { estimatedLoss: 275_000 }),
+        peerRow("Beta SA", 4, 9, { headcount: 2_400, estimatedLoss: 1_100_000 }),
+        peerRow("Gamma GmbH", 8, 13, { headcount: null, estimatedLoss: null }),
       ],
+      rates: {
+        ltifr: { count: 3, median: 4, best: 2, rank: 3, of: 4, gapToMedian: 2 },
+        trifr: { count: 3, median: 9, best: 5, rank: 3, of: 4, gapToMedian: 1 },
+      },
     },
-    results: [
-      result("ltifr", {
-        peer: peer([1, 2, 4], {
-          rowId: UUID(501),
-          rung: 4,
-          industrySection: "ALL",
-          sizeBand: "all",
-          periodYear: 2021,
-          yearMatch: "nearest",
-        }),
-        position: "above_median",
-        gapToMedian: 0.4,
-        gapRelative: 0.2,
-      }),
-      result("trifr"),
-      result("lost_days_per_incident", {
-        peer: peer([8, 10, 14], { rowId: UUID(502), rung: 3, industrySection: "ALL" }),
-        position: "below_median",
-        gapToMedian: 2.5,
-        gapRelative: 0.25,
-        confidence: 1,
-      }),
-      result("absenteeism_rate", {
-        peer: peer([2.5, 3.5, 4.5], { rowId: UUID(503), rung: 2, sizeBand: "all" }),
-        position: "below_median",
-        gapToMedian: 0.3,
-        gapRelative: 0.086,
-      }),
-      result("fatalities", { confidence: 0.95 }),
-      result("iso_45001_certified", {
-        peer: peer([0.3, 0.3, 0.3], {
-          rowId: UUID(504),
-          rung: 4,
-          industrySection: "ALL",
-          sizeBand: "all",
-        }),
-        // One figure repeated as all three quartiles is a point row, so the model gives it an
-        // average position rather than a quartile one (spec 0016, AC-5).
-        position: "above_average",
-        gapToMedian: 0,
-        gapRelative: 0,
-        confidence: null,
-      }),
-    ],
-    gaps: [
-      gap(1, "fatalities", { reason: "fatality" }),
-      gap(2, "lost_days_per_incident", {
-        reason: "cost",
-        savingMedianChf: 88_120,
-        gapRelative: 0.25,
-      }),
-      gap(3, "absenteeism_rate", { gapRelative: 0.086 }),
-    ],
-    cost: {
-      incidentKpi: "ltifr",
-      incidents: 28.56,
-      lostDays: 12.5,
-      lostDaysSource: "kpi",
-      costPerCase: 18_561,
-      annual: 1_961_340,
-      low: 1_060_180,
-      high: 2_650_450,
-      atMedian: 1_439_000,
-      atTop: 1_006_000,
-      savingMedian: 522_340,
-      savingTop: 955_340,
+    loss: {
+      ltis: 5.4,
+      recordables: 3.6,
+      trifrMissing: false,
+      fatalities: 0,
+      loss: 365_715,
+      atMedian: 275_467.5,
+      atBest: 144_517.5,
+      savingAtMedian: 90_247.5,
+      savingAtBest: 221_197.5,
     },
-    assumptions: [
-      assumptionUsed("direct_cost_per_case_chf", 4811, {
-        sourceUrl: "https://www.suva.ch/statistik",
-      }),
-      assumptionUsed("cost_per_absence_day_chf", 1100, { unit: "CHF per day", provisional: false }),
-      assumptionUsed("indirect_multiplier", 3.7, { unit: "factor" }),
-    ],
-    // A stored version 1 row has no peer block; the reader normalises it to `[]` (spec 0021, AC-9).
-    peers: [],
+    recommendation: { packageKey: "sms", reason: "one_worse" },
     ...overrides,
   };
 }
@@ -244,45 +126,18 @@ export function parsedSnapshot(
 ): ParsedSnapshot {
   return {
     id: SNAPSHOT_ID,
-    createdAt: "2026-09-06T08:00:00.000Z",
+    createdAt: "2026-09-14T08:00:00.000Z",
     triggerKind: "research",
-    // Deliberately a stored version 1 row: the UI must render one with no derived block (spec 0012, AC-12).
-    modelVersion: "benchmark-model@1",
-    kpisCompared: 5,
-    peerProvisional: true,
+    modelVersion: MODEL_VERSION,
+    kpisCompared: 2,
     confidence: 0.8,
-    costChf: 1_961_340,
-    costLowChf: 1_060_180,
-    costHighChf: 2_650_450,
-    savingMedianChf: 522_340,
-    savingTopChf: 955_340,
+    currency: "CHF",
+    lossAmount: 365_715,
+    savingAtMedian: 90_247.5,
+    costChf: null,
+    savingMedianChf: null,
+    savingTopChf: null,
     blocks: readyBlocks(blocks),
-    ...overrides,
-  };
-}
-
-/**
- * A derived block (spec 0012): both counts by default, either one droppable, so a test can model
- * a partial derivation or a stored version 1 row that carries none at all.
- */
-export function derivedBlock(overrides: Partial<SnapshotDerived> = {}): SnapshotDerived {
-  return {
-    fte: 420,
-    hoursPerFte: 1800,
-    lostTime: derivedCount(),
-    recordable: derivedCount({ count: 4.6116, fromKey: "trifr", fromValue: 6.1 }),
-    ...overrides,
-  };
-}
-
-/** One derived count, defaulting to the researched LTIFR the block is built from. */
-export function derivedCount(overrides: Partial<DerivedCount> = {}): DerivedCount {
-  return {
-    count: 1.8144,
-    fromKey: "ltifr",
-    fromValue: 2.4,
-    fromSource: "research",
-    fromYear: 2025,
     ...overrides,
   };
 }
@@ -291,6 +146,6 @@ export function derivedCount(overrides: Partial<DerivedCount> = {}): DerivedCoun
 export const company = {
   id: COMPANY_ID,
   industryCode: "23.61",
-  employeesCount: 420,
+  employeesCount: 500,
   country: "CH",
 };

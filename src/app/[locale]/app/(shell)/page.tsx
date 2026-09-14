@@ -197,7 +197,6 @@ export default async function AppPage() {
           <BenchmarkSegment
             snapshot={dashboard.benchmark}
             state={dashboard.benchmarkState}
-            catalogue={dashboard.catalogue}
             company={{
               id: company.id,
               industryCode: company.industry_code,

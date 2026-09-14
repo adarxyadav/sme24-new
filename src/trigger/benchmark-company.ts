@@ -5,19 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, queue, schemaTask } from "@trigger.dev/sdk";
 import { z } from "zod";
 import { MODEL_VERSION, TRIGGER_KINDS, type TriggerKind } from "@/features/benchmark/catalogue";
-import {
-  computeBenchmark,
-  type ModelAssumption,
-  type ModelCatalogueEntry,
-  type ModelKpiRow,
-  type ModelPeerLibrary,
-  type ModelPeerRow,
-  roundChf,
-  roundChfRange,
-} from "@/features/benchmark/model";
+import { roundMoney } from "@/features/benchmark/loss";
+import { computeBenchmark, type ModelKpiRow, type ModelPeerRow } from "@/features/benchmark/model";
 import { SNAPSHOT_SCHEMAS, type SnapshotBody } from "@/features/benchmark/snapshot";
 import { localeForUser } from "@/features/localization/queries";
 import { isKpiKey } from "@/features/research/catalogue";
+import { PEER_RUNGS, type PeerRung, parseSummary } from "@/features/research/summary";
 import { LOCALE_CODE } from "@/i18n/routing";
 import { captureServerEvent } from "@/lib/analytics/server";
 import { BENCHMARK_SNAPSHOT_CREATED_EVENT, type NewSendPayload } from "@/lib/email/schema";
@@ -91,15 +84,10 @@ export const benchmarkCompanyTask = schemaTask({
       attempt: ctx.attempt.number,
     });
 
-    const [catalogue, kpis] = await Promise.all([loadCatalogue(supabase), loadKpis(supabase, ids)]);
-    // Spec 0022 (AC-19) dropped the four curated tables these three inputs were loaded from. The
-    // peers of a research run take their place and `benchmark-model@7` takes no sector row or
-    // assumption at all, so they are empty until `computeBenchmark` is rewritten; a snapshot
-    // written in between carries no peer comparison, which is what an `outdated` row means to the
-    // reader anyway (AC-18).
-    const peers: readonly ModelPeerRow[] = [];
-    const assumptions: readonly ModelAssumption[] = [];
-    const library: ModelPeerLibrary = { companies: [], figures: [] };
+    const [kpis, peerSearch] = await Promise.all([
+      loadKpis(supabase, ids),
+      loadPeers(supabase, ids, payload),
+    ]);
     // The re read right before computing: its updated_at becomes inputs.companyUpdatedAt (AC-5).
     const fresh = (await loadCompany(supabase, ids.companyId, ids.organizationId)) ?? company;
     const body = computeBenchmark({
@@ -108,13 +96,12 @@ export const benchmarkCompanyTask = schemaTask({
         employeesCount: fresh.employees_count,
         industryCode: fresh.industry_code,
         country: fresh.country,
+        currency: fresh.currency,
         updatedAt: fresh.updated_at,
       },
-      catalogue,
       kpis,
-      peers,
-      assumptions,
-      library,
+      peers: peerSearch.peers,
+      thin: peerSearch.thin,
     });
     // Parse against the schema for the version this task writes, looked up rather than named, so a
     // later MODEL_VERSION bump cannot silently strip a block zod does not know about (AC-15).
@@ -122,46 +109,22 @@ export const benchmarkCompanyTask = schemaTask({
     if (!writeSchema) throw new Error(`no snapshot schema for ${MODEL_VERSION}`);
     const blocks = writeSchema.parse({
       inputs: body.inputs,
-      results: body.results,
-      gaps: body.gaps,
-      cost: body.cost,
-      assumptions: body.assumptions,
-      derived: body.derived,
       peers: body.peers,
+      loss: body.loss,
+      recommendation: body.recommendation,
     });
-    for (const result of blocks.results) {
-      step("benchmark peer selected", {
-        kpi: result.key,
-        rung: result.peer?.rung ?? null,
-        section: result.peer?.industrySection ?? null,
-        band: result.peer?.sizeBand ?? null,
-        year: result.peer?.periodYear ?? null,
-        yearMatch: result.peer?.yearMatch ?? null,
-        position: result.position,
-      });
-    }
-    for (const block of blocks.peers) {
-      step("benchmark named peers selected", {
-        kpi: block.key,
-        geoRung: block.geoRung,
-        peers: block.rows.length,
-        rank: block.rank,
-        best: block.best,
-      });
-    }
     step("benchmark computed", {
       kpiRows: kpis.length,
-      peerRows: peers.length,
-      libraryCompanies: library.companies.length,
-      libraryFigures: library.figures.length,
-      kpisCompared: body.kpisCompared,
-      gaps: blocks.gaps.length,
-      costChf: body.costChf,
-      // Why a company with a headcount and a rate still has no cost: an assumption row is missing
-      // or not a number (spec 0016 amendment, AC-20). Logged, never stored.
-      costSkipped: body.costSkipped,
+      peerRunId: peerSearch.researchRunId,
+      peerRows: peerSearch.peers.length,
+      rung: blocks.peers?.rung ?? null,
+      thin: blocks.peers?.thin ?? null,
+      ratesCompared: blocks.peers ? Object.keys(blocks.peers.rates) : [],
+      currency: body.currency,
+      lossAmount: body.lossAmount,
+      savingAtMedian: body.savingAtMedian,
+      recommendation: blocks.recommendation,
       confidence: body.confidence,
-      peerProvisional: body.peerProvisional,
     });
 
     // Read before the insert: after it, a retry's own crashed row would look like a predecessor.
@@ -175,21 +138,30 @@ export const benchmarkCompanyTask = schemaTask({
           payload.triggerKind === "research" ? (payload.researchRunId ?? null) : null,
         trigger_kind: payload.triggerKind,
         model_version: MODEL_VERSION,
-        peer_provisional: body.peerProvisional,
+        // No curated row reaches `@7`, so nothing it stores can be provisional (AC-16).
+        peer_provisional: false,
         kpis_compared: body.kpisCompared,
         confidence: body.confidence,
-        cost_chf: body.costChf,
-        cost_low_chf: body.costLowChf,
-        cost_high_chf: body.costHighChf,
-        saving_median_chf: body.savingMedianChf,
-        saving_top_chf: body.savingTopChf,
+        currency: body.currency,
+        loss_amount: body.lossAmount,
+        saving_at_median: body.savingAtMedian,
+        // The CHF named columns and the three block columns belong to `@1` to `@6` and stay null
+        // from `@7` on (AC-16).
+        cost_chf: null,
+        cost_low_chf: null,
+        cost_high_chf: null,
+        saving_median_chf: null,
+        saving_top_chf: null,
+        results: null,
+        gaps: null,
+        assumptions: null,
         inputs: blocks.inputs as unknown as Json,
-        results: blocks.results as unknown as Json,
-        gaps: blocks.gaps as unknown as Json,
-        cost: blocks.cost as unknown as Json,
-        assumptions: blocks.assumptions as unknown as Json,
-        derived: (blocks.derived ?? null) as unknown as Json,
         peers: blocks.peers as unknown as Json,
+        // `loss` rides in `cost` and `recommendation` in `derived`: AC-16 added no column for them
+        // and these two are what the old model left free. `snapshot.ts` reads them back the same
+        // way, and the two ends are the only places the mapping is spelled.
+        cost: blocks.loss as unknown as Json,
+        derived: blocks.recommendation as unknown as Json,
       })
       .select("id, created_at")
       .single();
@@ -333,18 +305,14 @@ async function sendBenchmarkReady(
     .select("user_id")
     .eq("organization_id", ids.organizationId);
   if (error) throw queryError(error);
-  // Rounded outward here, with the same function the card uses, so the two surfaces never show
-  // different numbers for one snapshot (spec 0016, AC-13).
-  const range =
-    body.costLowChf === null || body.costHighChf === null
-      ? null
-      : roundChfRange(body.costLowChf, body.costHighChf);
+  // Rounded here, with the same function the card uses, so the two surfaces never show different
+  // numbers for one snapshot (spec 0016, AC-13; spec 0022, AC-14, AC-17).
   const data: NewSendPayload["data"] = {
     companyName,
-    kpisCompared: body.kpisCompared,
-    ...(body.costChf === null ? {} : { costChf: roundChf(body.costChf) }),
-    ...(body.savingMedianChf === null ? {} : { savingMedianChf: roundChf(body.savingMedianChf) }),
-    ...(range === null ? {} : { costLowChf: range.low, costHighChf: range.high }),
+    currency: body.currency,
+    peersCompared: body.peers?.rows.length ?? 0,
+    ...(body.lossAmount === null ? {} : { lossAmount: roundMoney(body.lossAmount) }),
+    ...(body.savingAtMedian === null ? {} : { savingAtMedian: roundMoney(body.savingAtMedian) }),
   };
   let queued = 0;
   for (const member of members) {
@@ -388,24 +356,114 @@ async function loadCompany(
   return data;
 }
 
-async function loadCatalogue(supabase: Service): Promise<readonly ModelCatalogueEntry[]> {
-  const { data, error } = await supabase
-    .from("kpi_definitions")
-    .select("key, direction, sort_order")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true });
+/** What the peers of one run come back as: the rows, the run they belong to and its thin flag. */
+type PeerSearch = {
+  readonly researchRunId: string | null;
+  readonly peers: readonly ModelPeerRow[];
+  readonly thin: boolean;
+};
+
+/**
+ * The peers the snapshot compares against (AC-17): the rows of `researchRunId` when this run was
+ * triggered by research, else the rows of the company's latest `succeeded` run that has any peer
+ * row, and failing that the latest `succeeded` run, which then contributes none. The run's own
+ * `summary.peers.thin` rides along, because whether a comparison is thin is a property of the
+ * search, not of how many rows survived into this query.
+ *
+ * Nothing is read from `benchmarks`, `benchmark_assumptions`, `peer_companies` or `peer_figures`:
+ * spec 0022 (AC-19) dropped all four.
+ */
+async function loadPeers(
+  supabase: Service,
+  ids: CompanyIds,
+  payload: BenchmarkCompanyPayload,
+): Promise<PeerSearch> {
+  const runId =
+    payload.triggerKind === "research" && payload.researchRunId
+      ? payload.researchRunId
+      : await latestRunWithPeers(supabase, ids);
+  if (!runId) return { researchRunId: null, peers: [], thin: true };
+  const [rows, thin] = await Promise.all([
+    peerRowsOf(supabase, ids, runId),
+    thinOf(supabase, ids, runId),
+  ]);
+  return { researchRunId: runId, peers: rows, thin };
+}
+
+/** The latest `succeeded` run holding a peer row, else the latest `succeeded` run at all (AC-17). */
+async function latestRunWithPeers(supabase: Service, ids: CompanyIds): Promise<string | null> {
+  const { data: runs, error } = await supabase
+    .from("research_runs")
+    .select("id")
+    .eq("company_id", ids.companyId)
+    .eq("organization_id", ids.organizationId)
+    .eq("status", "succeeded")
+    .order("finished_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .limit(20);
   if (error) throw queryError(error);
-  return data.flatMap((row) =>
-    isKpiKey(row.key)
-      ? [
-          {
-            key: row.key,
-            direction: row.direction as ModelCatalogueEntry["direction"],
-            sortOrder: row.sort_order,
-          },
-        ]
-      : [],
-  );
+  if (runs.length === 0) return null;
+  const { data: withPeers, error: peerError } = await supabase
+    .from("research_peers")
+    .select("research_run_id")
+    .eq("company_id", ids.companyId)
+    .eq("organization_id", ids.organizationId)
+    .in(
+      "research_run_id",
+      runs.map((run) => run.id),
+    );
+  if (peerError) throw queryError(peerError);
+  const hasPeers = new Set(withPeers.map((row) => row.research_run_id));
+  // `runs` is newest first, so the first match is the newest run that has peers (AC-17).
+  return runs.find((run) => hasPeers.has(run.id))?.id ?? runs[0]?.id ?? null;
+}
+
+/** The run's `research_peers` rows as the model takes them (AC-17). */
+async function peerRowsOf(
+  supabase: Service,
+  ids: CompanyIds,
+  runId: string,
+): Promise<readonly ModelPeerRow[]> {
+  const { data, error } = await supabase
+    .from("research_peers")
+    .select(
+      "peer_name, peer_country, headcount, kpi_key, period_year, value, source_url, confidence, rung",
+    )
+    .eq("company_id", ids.companyId)
+    .eq("organization_id", ids.organizationId)
+    .eq("research_run_id", runId);
+  if (error) throw queryError(error);
+  return data.flatMap((row) => {
+    // The table's own check constrains both columns, but the generated types say `string`: a row
+    // outside the two enums is dropped rather than cast into the model.
+    if (!isKpiKey(row.kpi_key) || (row.kpi_key !== "ltifr" && row.kpi_key !== "trifr")) return [];
+    if (!(PEER_RUNGS as readonly string[]).includes(row.rung)) return [];
+    return [
+      {
+        peerName: row.peer_name,
+        country: row.peer_country,
+        headcount: row.headcount,
+        kpiKey: row.kpi_key,
+        periodYear: row.period_year,
+        value: Number(row.value),
+        sourceUrl: row.source_url,
+        confidence: Number(row.confidence),
+        rung: row.rung as PeerRung,
+      },
+    ];
+  });
+}
+
+/** The run's own `summary.peers.thin`; true when the run recorded no peer search at all. */
+async function thinOf(supabase: Service, ids: CompanyIds, runId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("research_runs")
+    .select("summary")
+    .eq("id", runId)
+    .eq("organization_id", ids.organizationId)
+    .maybeSingle();
+  if (error) throw queryError(error);
+  return parseSummary(data?.summary)?.peers?.thin ?? true;
 }
 
 /** The company's effective KPI rows (the view already picks client over research per year). */

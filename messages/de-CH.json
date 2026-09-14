@@ -1412,14 +1412,12 @@
       "preview": "Ihre Sicherheitskennzahlen im Vergleich mit Ihrer Branche. Sehen Sie, wo Sie stehen und was es kostet.",
       "greeting": "Guten Tag {firstName}",
       "greetingNeutral": "Guten Tag",
-      "intro": "Wir haben die Sicherheitskennzahlen von {companyName} mit ähnlichen Unternehmen verglichen: {kpisCompared, plural, =0 {noch keine Kennzahl konnte verglichen werden} =1 {1 Kennzahl verglichen} other {# Kennzahlen verglichen}}.",
-      "cost": "Arbeitsunfälle kosten Sie rund {cost} pro Jahr.",
-      "saving": "Der Median Ihrer Vergleichsgruppe würde rund {saving} pro Jahr einsparen.",
-      "noCost": "Die Jahreskosten konnten wir noch nicht schätzen. Erfassen Sie Ihre Mitarbeiterzahl im Kundenbereich, dann rechnen wir sofort neu.",
-      "nextStep": "Der Kundenbereich zeigt Ihre Position pro Kennzahl, die prioritären Lücken und wie jede Zahl berechnet wird.",
+      "intro": "Wir haben die Sicherheitskennzahlen von {companyName} mit veröffentlichten Zahlen anderer Unternehmen verglichen: {peersCompared, plural, =0 {noch kein Vergleichsunternehmen gefunden} =1 {1 Vergleichsunternehmen gefunden} other {# Vergleichsunternehmen gefunden}}.",
+      "saving": "Beim Median Ihrer Vergleichsgruppe wären es rund {saving} weniger.",
+      "nextStep": "Der Kundenbereich zeigt die Vergleichstabelle, Ihre geschätzten Jahreskosten und das passende Paket.",
       "button": "Benchmark ansehen",
-      "range": "Arbeitsunfälle kosten Sie rund {low} bis {high} pro Jahr.",
-      "working": "Unser Arbeitswert innerhalb dieser Bandbreite liegt bei {cost}."
+      "loss": "Arbeitsunfälle kosten Sie rund {loss} pro Jahr.",
+      "noLoss": "Die Jahreskosten konnten wir noch nicht schätzen. Erfassen Sie Ihre Mitarbeiterzahl und Ihre LTIFR im Kundenbereich, dann rechnen wir sofort neu."
     },
     "enquiry_received": {
       "subject": "Ihre Anfrage ist bei SME24 eingegangen",
@@ -1818,7 +1816,8 @@
     "state": {
       "calculating": "Wir berechnen Ihren Benchmark. Das dauert einen Moment.",
       "unavailable": "Der Benchmark ist noch nicht verfügbar. Wir zeigen ihn, sobald er berechnet ist.",
-      "noData": "Noch nicht genug Daten für einen Vergleich. Wir brauchen mindestens eine Kennzahl mit Vergleichswerten."
+      "noData": "Noch nicht genug Daten für einen Vergleich. Erfassen Sie Ihre Mitarbeiterzahl und Ihre LTIFR, dann rechnen wir sofort neu.",
+      "outdated": "Dieser Benchmark stammt aus einem früheren Modell. Starten Sie die Recherche neu, dann rechnen wir ihn mit der aktuellen Vergleichsgruppe."
     },
     "provisionalNote": "Einige Kostenannahmen werden noch geprüft.",
     "card": {
