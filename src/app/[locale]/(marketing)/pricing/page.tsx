@@ -129,13 +129,21 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
         </div>
       </section>
 
+      {/*
+        Stacked rather than the minor tier's own side by side row (owner decision of 2026-09-14).
+        The accordion is a full width object with its own frame, so a heading beside it left the
+        frame reading as the right hand half of a two column band rather than as the section's
+        content; above it, the heading names the block and the block fills the measure. The
+        `SectionHeader` override collapses the tier's inner grid the same way the compare band
+        above does -- one section's layout, not a change to the tier.
+      */}
       <section aria-labelledby="faq-heading">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-12 sm:px-6 md:py-20">
           <SectionHeader
             tier="minor"
             id="faq-heading"
             title={t("faq.title")}
-            className="border-0 pt-0"
+            className="flex flex-col border-0 pt-0 md:grid-cols-none"
           />
           <Faq
             items={FAQ.map((item) => ({

@@ -551,7 +551,7 @@
       "overviewLink": "See what’s included",
       "overviewLinkFor": "See what’s included: {name}",
       "faq": {
-        "title": "Questions.",
+        "title": "Frequently asked questions.",
         "items": {
           "vat": {
             "question": "Is VAT included?",
