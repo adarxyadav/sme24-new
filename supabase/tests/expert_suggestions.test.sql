@@ -38,6 +38,13 @@ begin
     meta, now(), now());
 end $$;
 
+-- The ladder assertions below name the exact three rows the function must return for section C,
+-- so the seed's own section C experts (spec 0022, AC-28: three active Swiss experts for the
+-- benchmark page to show) would compete with the fixtures for those three places. Clear the table
+-- first: everything here runs in one transaction that is rolled back, so the seeded rows come back
+-- untouched when the suite ends.
+delete from public.expert_profiles;
+
 -- Fixtures: a client with no expert assignment at all (the benchmark page suggests experts before
 -- any assignment exists), and five experts in section C across the three ladder rungs.
 select pg_temp.make_user('a0000000-0000-4000-8000-000000000001', 'a-owner@test.local', 'client');

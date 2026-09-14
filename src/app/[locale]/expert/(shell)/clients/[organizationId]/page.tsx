@@ -110,6 +110,7 @@ export default async function ExpertClientPage({ params }: Props) {
               country: company?.country ?? "CH",
             }}
             locale={localeCode}
+            companyName={company?.name ?? ""}
             // The facts belong to the client; an expert reads them and calls if they are wrong.
             readOnly
           />

@@ -363,6 +363,64 @@ export async function getAssignedClient(
   };
 }
 
+export type ExpertSuggestion = {
+  readonly expertId: string;
+  readonly fullName: string | null;
+  readonly headline: string | null;
+  readonly industries: readonly string[];
+  readonly countries: readonly string[];
+  readonly languages: readonly string[];
+  readonly availability: string;
+  readonly photoUrl: string | null;
+};
+
+/**
+ * Up to three experts to suggest beside a client's benchmark (spec 0022, AC-22, AC-26). The whole
+ * choice is the `expert_suggestions` function: it matches the section, walks the country, region
+ * and world ladder and orders by availability then experience, and it returns only the eight
+ * columns a client may see, so nothing here filters, sorts or trims a row. A client may not select
+ * `expert_profiles` at all, which is why the function is `security definer` and this is the one
+ * read path.
+ *
+ * `regionCountries` is the caller's own `regionCountriesOf(country)`, computed from the catalogue in
+ * code rather than in SQL. An empty `section` has nothing to match on and answers nothing rather
+ * than suggesting three arbitrary experts. Each photo is signed with the caller's client, so the
+ * storage policy for active experts decides per viewer. Throws. Server component.
+ */
+export async function loadExpertSuggestions(
+  supabase: Client,
+  {
+    section,
+    country,
+    regionCountries,
+  }: {
+    readonly section: string | null;
+    readonly country: string;
+    readonly regionCountries: readonly string[];
+  },
+): Promise<readonly ExpertSuggestion[]> {
+  if (!section) return [];
+  const { data, error } = await supabase.rpc("expert_suggestions", {
+    section,
+    country,
+    region_countries: [...regionCountries],
+  });
+  if (error) throw queryError(error);
+
+  return Promise.all(
+    (data ?? []).map(async (row) => ({
+      expertId: row.expert_id,
+      fullName: row.full_name,
+      headline: row.headline,
+      industries: row.industries ?? [],
+      countries: row.countries ?? [],
+      languages: row.languages ?? [],
+      availability: row.availability,
+      photoUrl: await photoUrl(supabase, row.photo_path),
+    })),
+  );
+}
+
 export type AssignedExpertSummary = {
   readonly assignmentId: string;
   readonly expertId: string;

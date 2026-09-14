@@ -1348,9 +1348,8 @@
       "bandBelow": "Band, Wert unter dem Median",
       "bandOutside": "Band, Wert jenseits p75",
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
-      "card": "Potenzialkarte",
-      "pointComparison": "Punktvergleich",
-      "peerStanding": "Karte der publizierten Vergleichsunternehmen (Spec 0021), erfundenes Beispiel"
+      "peerTable": "Vergleichstabelle, drei Zeilenformen",
+      "lossCard": "Karte geschätzter Verlust"
     },
     "marketing": {
       "packages": "Paketkarte: Fixpreis und Preis auf Anfrage",
@@ -1891,31 +1890,12 @@
       }
     },
     "peers": {
-      "kpi": {
-        "ltifr": "eine LTIFR",
-        "trifr": "eine TRIFR",
-        "lost_days_per_incident": "Ausfalltage pro Unfall",
-        "iso_45001_certified": "einen ISO-45001-Status"
-      },
-      "rank": {
-        "ranked": "von {count} Unternehmen in {industry} {scope}, die {kpi} publizieren",
-        "unranked": "{count} Unternehmen in {industry} {scope} publizieren {kpi}",
-        "gap": "{gap} hinter {name}, dem besten publizierten Vergleichsunternehmen",
-        "leading": "Vor jedem publizierten Vergleichsunternehmen; {name} liegt am nächsten",
-        "ordinal": "{rank, selectordinal, other {#.}}"
-      },
+      "heading": "Publizierte Vergleichsunternehmen",
+      "badge": "{count, plural, =1 {1 Vergleichsunternehmen} other {# Vergleichsunternehmen}} {scope}",
       "rung": {
         "country": "in {country}",
         "region": "in {region}",
-        "europe": "in Europa",
-        "world": "weltweit",
-        "sentence": {
-          "country": "Alle publizierten Vergleichsunternehmen stammen aus {country}.",
-          "region": "Weniger als drei Unternehmen in {country} publizieren {kpi}, deshalb wurde der Vergleich auf {region} ausgeweitet.",
-          "europe": "Weniger als drei Unternehmen in {country} publizieren {kpi}, deshalb wurde der Vergleich auf Europa ausgeweitet.",
-          "world": "Weniger als drei Unternehmen in Europa publizieren {kpi}, deshalb wurde der Vergleich auf die ganze Welt ausgeweitet."
-        },
-        "larger": "Publizierte Vergleichsunternehmen sind grössere Unternehmen, die ihre Zahlen veröffentlichen; jede Zeile verlinkt auf die Seite, von der sie gelesen wurde."
+        "world": "weltweit"
       },
       "region": {
         "dach": "der DACH-Region",
@@ -1929,30 +1909,75 @@
         "middle_east_africa": "dem Nahen Osten und Afrika",
         "asia_pacific": "dem asiatisch-pazifischen Raum"
       },
-      "srStrip": "Ihr Wert {value} im Vergleich zu {count} publizierten Vergleichsunternehmen {scope}, von {best} bis {worst}.",
-      "srStripNoValue": "{count} publizierte Vergleichsunternehmen {scope}, von {best} bis {worst}; Sie haben noch keinen Wert.",
+      "rank": {
+        "both": "Sie liegen auf Rang {ltifrRank} von {ltifrOf} bei der LTIFR und auf Rang {trifrRank} von {trifrOf} bei der TRIFR unter den publizierten Vergleichsunternehmen in {industry} {scope}.",
+        "ltifr": "Sie liegen auf Rang {ltifrRank} von {ltifrOf} bei der LTIFR unter den publizierten Vergleichsunternehmen in {industry} {scope}.",
+        "trifr": "Sie liegen auf Rang {trifrRank} von {trifrOf} bei der TRIFR unter den publizierten Vergleichsunternehmen in {industry} {scope}.",
+        "none": "Ihre eigenen Zahlen sind noch nicht im Ranking: Erfassen Sie eine LTIFR oder eine TRIFR unter Ihre Zahlen.",
+        "thin": "Wir haben nur {count, plural, =1 {1 publiziertes Vergleichsunternehmen} other {# publizierte Vergleichsunternehmen}} für Ihre Branche gefunden."
+      },
       "table": {
-        "caption": "Publizierte Vergleichsunternehmen für {kpi}",
+        "caption": "Publizierte Vergleichsunternehmen in {industry} {scope}, mit Ihren eigenen Zahlen an ihrer Stelle",
         "company": "Unternehmen",
         "country": "Land",
-        "basis": "Zählt",
         "year": "Jahr",
-        "saving": "Wenn Sie gleichziehen, pro Jahr",
-        "you": "Sie",
-        "alreadyAhead": "bereits voraus",
-        "noSaving": "nicht beziffert",
-        "employees": "nur Mitarbeitende",
-        "employees_and_contractors": "inkl. Auftragnehmer",
-        "headcount": "{n} Mitarbeitende, {year}",
-        "asPublished": "{value} pro 200 000 Stunden wie publiziert",
-        "sourceLink": "{name}, Quellseite"
+        "ltifr": "LTIFR",
+        "trifr": "TRIFR",
+        "loss": "Geschätzter Verlust pro Jahr",
+        "source": "Quelle",
+        "you": "Ihre Zahlen",
+        "yourCompany": "Ihr Unternehmen",
+        "headcount": "{n} Mitarbeitende",
+        "noHeadcount": "Keine Mitarbeiterzahl publiziert",
+        "sourceLink": "{name}, Quellseite",
+        "none": "—"
       },
-      "iso": {
-        "share": "{certified} von {count} publizierten Vergleichsunternehmen Ihrer Branche sind zertifiziert.",
-        "youYes": "Sie sind zertifiziert.",
-        "youNo": "Sie sind es nicht."
+      "footnote": "Die Recherche hat diese Unternehmen in öffentlichen Berichten gefunden. Jeder geschätzte Verlust folgt derselben Formel wie Ihrer, angewendet auf die publizierte Mitarbeiterzahl und die publizierten Raten des Unternehmens, in Ihrer Währung: Es ist eine Gesamtsumme und wächst deshalb mit der Unternehmensgrösse. Raten gelten pro Million Arbeitsstunden; Angaben pro 200 000 Stunden oder pro 100 Mitarbeitende werden umgerechnet.",
+      "empty": "Die Recherche hat noch kein publiziertes Vergleichsunternehmen für Ihre Branche gefunden."
+    },
+    "loss": {
+      "heading": "Ihr geschätzter Verlust",
+      "headline": "{amount} pro Jahr",
+      "description": "Was Sie Arbeitsunfälle nach Ihren eigenen Zahlen pro Jahr kosten.",
+      "savingAtMedian": "{amount} weniger beim Median der Vergleichsgruppe",
+      "savingAtBest": "{amount} weniger beim besten Vergleichsunternehmen",
+      "noSaving": "Sie liegen bereits auf oder unter den Werten der Vergleichsgruppe.",
+      "counts": {
+        "heading": "Die Zahlen dahinter",
+        "ltis": "{count} Unfälle mit Ausfallzeit",
+        "recordables": "{count} weitere dokumentationspflichtige Unfälle",
+        "fatalities": "{count, plural, =1 {1 Todesfall} other {# Todesfälle}}",
+        "calculated": "Berechnet",
+        "trifrMissing": "Keine TRIFR publiziert, deshalb werden keine weiteren dokumentationspflichtigen Unfälle gezählt."
       },
-      "none": "Noch kein publiziertes Vergleichsunternehmen"
+      "empty": {
+        "title": "Erfassen Sie Ihre LTIFR unter Ihre Zahlen, dann sehen Sie Ihren geschätzten Verlust",
+        "link": "Zu Ihre Zahlen"
+      }
+    },
+    "experts": {
+      "heading": "Fachleute für Ihre Branche",
+      "description": "Unser Ops-Team weist Ihnen Ihre Fachperson zu, sobald Sie ein Paket gekauft haben.",
+      "empty": "Wir haben noch keine Fachperson für Ihre Branche erfasst. Kaufen Sie ein Paket, dann finden wir eine.",
+      "availability": "Verfügbarkeit: {value}",
+      "countries": "Länder",
+      "languages": "Sprachen",
+      "sectors": "Branchen",
+      "unnamed": "Fachperson"
+    },
+    "package": {
+      "heading": "Das Paket, das wir empfehlen",
+      "reason": {
+        "fatality": "Es wurde ein Todesfall gemeldet. Das wiegt schwerer als jede andere Zahl, und dieses Paket stellt Ihnen das ganze Jahr jemanden zur Seite.",
+        "large_saving": "Die Einsparung beim Median der Vergleichsgruppe ist gross genug, dass sich eine laufende Begleitung selbst trägt.",
+        "no_figures": "Sie haben noch keine Unfallrate mit Ausfallzeit, deshalb lässt sich nichts beziffern. Dieses Paket schafft das System, das die Zahlen liefert.",
+        "both_worse": "Sie liegen bei beiden Raten hinter dem Median der Vergleichsgruppe, deshalb beginnen Sie mit der vollen Prüfung.",
+        "one_worse": "Sie liegen bei einer Rate hinter dem Median der Vergleichsgruppe, deshalb beginnen Sie mit dem System.",
+        "both_better": "Sie liegen bei beiden Raten vor dem Median der Vergleichsgruppe. Was noch zu holen ist, liegt in der Kultur."
+      },
+      "buy": "{name} kaufen",
+      "enquire": "Zu {name} anfragen",
+      "others": "Alle Pakete und Preise ansehen"
     },
     "noga": {
       "sections": {

@@ -4,10 +4,11 @@ import { BenchmarkSection } from "@/components/gallery/benchmark-section";
 import { en, renderWithIntl } from "../../features/emails/ui/helpers";
 
 /**
- * The benchmark gallery section (spec 0008, AC-14): three quartile bands each with a screen reader
- * sentence and the point comparison beside them, so axe scans both on `/admin/design`. The
- * opportunity card went with the cost model (spec 0022, AC-12) and the peer table, the loss card
- * and the package card join this section with the page itself.
+ * The benchmark gallery section (spec 0008, AC-14; spec 0022, AC-20, AC-21): three quartile bands
+ * each with a screen reader sentence, the one merged peer table in its three row shapes, and the
+ * loss card's headline with its derived counts, so axe scans each of them on `/admin/design`. The
+ * opportunity card, the point comparison and the Peer Standing card went with the cost model and
+ * the curated library (spec 0022, AC-12).
  */
 const labels = en.gallery.benchmark;
 const b = en.benchmark;
@@ -30,10 +31,18 @@ describe("BenchmarkSection (AC-14)", () => {
     expect(screen.getByText(labels.bandOutside)).toBeInTheDocument();
   });
 
-  it("shows the point comparison, which gets no band and no replacement graphic", () => {
+  it("shows the peer table with a published row, a row without a headcount and the client's own", () => {
+    const { container } = renderWithIntl(<BenchmarkSection />, "en-CH");
+    expect(screen.getByText(labels.peerTable)).toBeInTheDocument();
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(3);
+    expect(screen.getByText(b.peers.table.noHeadcount)).toBeInTheDocument();
+    expect(screen.getByText(b.peers.table.you)).toBeInTheDocument();
+    expect(screen.getByText(b.peers.footnote)).toBeInTheDocument();
+  });
+
+  it("shows the loss card's headline and its three counts, each Calculated", () => {
     renderWithIntl(<BenchmarkSection />, "en-CH");
-    expect(screen.getByText(labels.pointComparison)).toBeInTheDocument();
-    expect(screen.getByText(b.positions.band.above_average)).toBeInTheDocument();
-    expect(screen.getByText(b.positions.pointBasis)).toBeInTheDocument();
+    expect(screen.getByText(labels.lossCard)).toBeInTheDocument();
+    expect(screen.getAllByText(b.loss.counts.calculated)).toHaveLength(3);
   });
 });

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { MODEL_VERSION } from "@/features/benchmark/catalogue";
 import type { ParsedSnapshot } from "@/features/benchmark/queries";
 import type { InputKpi, SnapshotBlocks, SnapshotPeerRow } from "@/features/benchmark/snapshot";
+import type { ExpertSuggestion } from "@/features/experts/queries";
 import type { KpiKey } from "@/features/research/catalogue";
 import { formats, TIME_ZONE } from "@/i18n/formats";
 import { definition, en } from "../../research/ui/helpers";
@@ -138,6 +139,24 @@ export function parsedSnapshot(
     savingMedianChf: null,
     savingTopChf: null,
     blocks: readyBlocks(blocks),
+    ...overrides,
+  };
+}
+
+/** One suggested expert as `loadExpertSuggestions` hands it to the segment (spec 0022, AC-22). */
+export function suggestion(
+  suffix = "1",
+  overrides: Partial<ExpertSuggestion> = {},
+): ExpertSuggestion {
+  return {
+    expertId: `0f000000-0000-4000-8000-00000000000${suffix}`,
+    fullName: `Erika Expert ${suffix}`,
+    headline: "Safety engineer",
+    industries: ["C"],
+    countries: ["CH"],
+    languages: ["de"],
+    availability: "available",
+    photoUrl: null,
     ...overrides,
   };
 }

@@ -118,11 +118,12 @@ describe("the copy around the distribution rows (spec 0016 amendment, AC-30)", (
   });
 });
 
-// The named peer card (spec 0021, AC-7): the rank, rung and table strings never say quarter,
-// quartile or median in either language; `benchmark.peers.chart.*` (the next slice) is exempt
-// because its sector line is the sector median by name.
-describe("the named peer strings (spec 0021, AC-7)", () => {
-  const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
+// The four page blocks of `benchmark-model@7` (spec 0022, AC-27): every string the peer table, the
+// loss card, the expert cards and the package card render lives in both catalogs, and the forbidden
+// word test of spec 0021 keeps "verified" out of the peer keys. The research found these companies
+// in public reports and nobody checked them, so no peer string may claim otherwise.
+describe("the page strings of the peer benchmark (spec 0022, AC-27)", () => {
+  const VERIFIED = /verified|verifiziert|geprüft|bestätigt/i;
   const flatten = (value: unknown, prefix = ""): ReadonlyArray<readonly [string, string]> =>
     typeof value === "string"
       ? [[prefix, value]]
@@ -130,49 +131,130 @@ describe("the named peer strings (spec 0021, AC-7)", () => {
           flatten(child, prefix ? `${prefix}.${key}` : key),
         );
 
-  it("keeps quartile wording out of the rank, rung and table keys in both catalogs", () => {
-    for (const [locale, messages] of [
-      ["de", de],
-      ["en", en],
-    ] as const) {
+  const catalogs = [
+    ["de", de],
+    ["en", en],
+  ] as const;
+
+  it("never calls a peer figure verified, in either language", () => {
+    for (const [locale, messages] of catalogs) {
+      const strings = flatten(messages.benchmark.peers, "peers");
+      expect(strings.length, `${locale}: peers has strings`).toBeGreaterThan(0);
+      for (const [key, text] of strings) {
+        expect(text, `${locale}: benchmark.${key} calls a peer figure verified`).not.toMatch(
+          VERIFIED,
+        );
+      }
+    }
+  });
+
+  it("has every key the peer table renders, in both catalogs", () => {
+    for (const [locale, messages] of catalogs) {
       const peers = messages.benchmark.peers as Record<string, unknown>;
-      for (const namespace of ["rank", "rung", "table"]) {
-        const strings = flatten(peers[namespace], namespace);
-        expect(strings.length, `${locale}: ${namespace} has strings`).toBeGreaterThan(0);
-        for (const [key, text] of strings) {
-          expect(text, `${locale}: peers.${key} carries quartile wording`).not.toMatch(
-            QUARTILE_WORDING,
-          );
-        }
+      // The badge, both rank shapes, the thin sentence and the footnote (AC-20).
+      for (const key of ["heading", "badge", "footnote", "empty"]) {
+        expect(peers[key], `${locale}: peers.${key}`).toBeTruthy();
       }
-      // The word "publish" is always in the heading (AC-10), in both shapes.
       const rank = peers.rank as Record<string, string>;
-      expect(rank.ranked).toMatch(/publish|publizieren/);
-      expect(rank.unranked).toMatch(/publish|publizieren/);
-      // Every rung and region has its word, and the no peer text exists.
-      const rung = peers.rung as Record<string, unknown>;
-      for (const key of ["country", "region", "europe", "world"]) {
-        expect(rung[key], `${locale}: rung.${key}`).toBeTruthy();
-        expect(
-          (rung.sentence as Record<string, string>)[key],
-          `${locale}: rung.sentence.${key}`,
-        ).toBeTruthy();
+      for (const key of ["both", "ltifr", "trifr", "none", "thin"]) {
+        expect(rank[key], `${locale}: peers.rank.${key}`).toBeTruthy();
       }
-      for (const region of [
+      // Both ranks appear in the one sentence AC-20 fixes, each with its own `of`.
+      for (const placeholder of ["{ltifrRank}", "{ltifrOf}", "{trifrRank}", "{trifrOf}"]) {
+        expect(rank.both, `${locale}: peers.rank.both misses ${placeholder}`).toContain(
+          placeholder,
+        );
+      }
+      // Every column of the one table, plus the two headcount shapes and the client's own row.
+      const table = peers.table as Record<string, string>;
+      for (const key of [
+        "caption",
+        "company",
+        "country",
+        "year",
+        "ltifr",
+        "trifr",
+        "loss",
+        "source",
+        "you",
+        "yourCompany",
+        "headcount",
+        "noHeadcount",
+        "sourceLink",
+        "none",
+      ]) {
+        expect(table[key], `${locale}: peers.table.${key}`).toBeTruthy();
+      }
+      // The three rungs of the ladder in code (`PEER_RUNGS`), no Europe rung any more.
+      const rung = peers.rung as Record<string, string>;
+      for (const key of ["country", "region", "world"]) {
+        expect(rung[key], `${locale}: peers.rung.${key}`).toBeTruthy();
+      }
+      expect("europe" in rung, `${locale}: peers.rung.europe is gone`).toBe(false);
+      const region = peers.region as Record<string, string>;
+      for (const key of [
         "dach",
         "nordics",
         "benelux",
         "british_isles",
         "southern",
         "central_eastern",
+        "north_america",
+        "latin_america",
+        "middle_east_africa",
+        "asia_pacific",
       ]) {
-        expect(
-          (peers.region as Record<string, string>)[region],
-          `${locale}: region.${region}`,
-        ).toBeTruthy();
+        expect(region[key], `${locale}: peers.region.${key}`).toBeTruthy();
       }
-      expect(peers.none, `${locale}: none`).toBeTruthy();
-      expect(peers.srStrip, `${locale}: srStrip`).toBeTruthy();
+    }
+  });
+
+  it("has every key the loss card renders, and names no price it must not (AC-21)", () => {
+    for (const [locale, messages] of catalogs) {
+      const loss = messages.benchmark.loss as Record<string, unknown>;
+      for (const key of ["heading", "headline", "description", "savingAtMedian", "savingAtBest"]) {
+        expect(loss[key], `${locale}: loss.${key}`).toBeTruthy();
+      }
+      const counts = loss.counts as Record<string, string>;
+      for (const key of ["ltis", "recordables", "fatalities", "calculated"]) {
+        expect(counts[key], `${locale}: loss.counts.${key}`).toBeTruthy();
+      }
+      expect(
+        (loss.empty as Record<string, string>).title,
+        `${locale}: loss.empty.title`,
+      ).toBeTruthy();
+      // The hourly cost, the hours per incident and the fatality price are inputs to one figure,
+      // never quoted back at the client (AC-14, AC-21).
+      for (const [key, text] of flatten(loss, "loss")) {
+        expect(text, `${locale}: benchmark.${key} names a constant of the loss table`).not.toMatch(
+          /769|201|1 ?200 ?000|1'200'000/,
+        );
+      }
+    }
+  });
+
+  it("has every key the expert and package cards render (AC-22, AC-23)", () => {
+    for (const [locale, messages] of catalogs) {
+      const experts = messages.benchmark.experts as Record<string, string>;
+      for (const key of ["heading", "description", "empty", "availability", "unnamed"]) {
+        expect(experts[key], `${locale}: experts.${key}`).toBeTruthy();
+      }
+      const pack = messages.benchmark.package as Record<string, unknown>;
+      for (const key of ["heading", "buy", "enquire", "others"]) {
+        expect(pack[key], `${locale}: package.${key}`).toBeTruthy();
+      }
+      // One sentence per reason the model can return (AC-15).
+      const reason = pack.reason as Record<string, string>;
+      for (const key of [
+        "fatality",
+        "large_saving",
+        "no_figures",
+        "both_worse",
+        "one_worse",
+        "both_better",
+      ]) {
+        expect(reason[key], `${locale}: package.reason.${key}`).toBeTruthy();
+      }
     }
   });
 });
