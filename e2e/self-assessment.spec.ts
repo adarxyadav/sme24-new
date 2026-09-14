@@ -148,6 +148,13 @@ test("a client prefills from research, saves and corrects figures, sees them in 
     // A correction of a research value (AC-5, AC-8): the client badge replaces the confidence.
     await ltifr.fill("2,9");
     await section.getByRole("button", { name: strings.submit }).click();
+    // Wait for this save to land before reading the table, the way the TRIFR save above does.
+    // Without it the clear further down can fire while the write is still in flight, and then
+    // there is no client LTIFR row to clear and no Clear button to press.
+    await expect(form.locator("[data-kpis-saved]")).toHaveText(strings.saved);
+    await expect(
+      section.getByRole("button", { name: strings.clear.replace("{kpi}", LTIFR) }),
+    ).toBeVisible();
     await expect(cell(page, "ltifr", 2024)).toContainText("2.90");
     await expect(cell(page, "ltifr", 2024).locator('[data-source="client"]')).toBeVisible();
     await expect(cell(page, "ltifr", 2024).locator("[data-confidence]")).toHaveCount(0);
