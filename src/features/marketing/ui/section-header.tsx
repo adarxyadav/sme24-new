@@ -175,10 +175,11 @@ export function SectionHeader({
         <p
           className={cn(
             "max-w-prose text-lg text-muted-foreground",
-            // Pulled in off `max-w-prose` (~65ch, which held this lead on one line at desktop
-            // widths) so it breaks to two under the heading and the block reads as a plate. The
-            // cap is a width rather than a break point: the two catalogs are different lengths,
-            // so where the line actually turns is left to `text-pretty` per language.
+            // Pulled in off `max-w-prose` (~65ch): a centred lead reads as a plate under the
+            // heading rather than a column, and a measure that wide puts the turn too far from
+            // the centre when the copy does wrap. A short lead still sits on one line -- the cap
+            // is a ceiling, not a break point -- and where a longer one turns is left to
+            // `text-pretty` per language, since the two catalogs are different lengths.
             centred && "mx-auto max-w-136 text-pretty",
           )}
         >
