@@ -16,13 +16,14 @@ import {
 } from "@/components/ui/table";
 import {
   filterRegister,
-  LEVELS,
-  type Level,
   locationCounts,
   NO_FILTERS,
   REGISTER,
+  type RegisterEntry,
   type RegisterFilters,
-  type StoredLevel,
+  TITLES,
+  type Title,
+  titleOf,
 } from "@/features/marketing/register";
 
 /** How many rows render before the reader asks for more: enough to fill a screen, cheap to paint. */
@@ -60,7 +61,7 @@ export function filtersFromSearch(search: string): RegisterFilters {
   return {
     query: params.get(PARAM.query) ?? "",
     location: LOCATION_NAMES.has(location) ? location : "",
-    level: (LEVELS as readonly string[]).includes(level) ? level : "",
+    level: (TITLES as readonly string[]).includes(level) ? level : "",
   };
 }
 
@@ -77,30 +78,31 @@ export function searchFromFilters(filters: RegisterFilters): string {
   return search === "" ? "" : `?${search}`;
 }
 
-/** The badge variant that carries each competency level, so the colour never stands alone. */
-const LEVEL_VARIANT: Readonly<Record<Level, "success" | "secondary">> = {
+/**
+ * The badge variant that carries each published title, so the colour never stands alone. The two
+ * rated titles are the ones a reader is scanning for, so they carry weight; "specialist" is the
+ * unremarkable majority and stays quiet, which is what keeps the 146 rated entries findable by eye
+ * in a table of 2,075.
+ */
+const TITLE_VARIANT: Readonly<Record<Title, "success" | "secondary" | "outline">> = {
   sme: "success",
   practitioner: "secondary",
+  specialist: "outline",
 };
 
 /**
- * One competency cell. An entry whose source records no level renders an em dash rather than an
- * empty cell: the SGAS half of the directory has no PSM or MOC rating at all, and a blank cell
- * reads as missing data where a dash reads as not applicable. The dash carries an `sr-only` word
- * so the column is not announced as silence.
+ * One row's title cell: the merged title as a badge, in the reader's language. The German word for
+ * the unrated majority is long enough to widen the column on its own, so the badge wraps rather
+ * than forcing a horizontal scrollbar across the whole table.
  */
-function LevelCell({ level, absent }: { readonly level: StoredLevel; readonly absent: string }) {
-  if (level === "") {
-    return (
-      <TableCell className="text-muted-foreground">
-        <span aria-hidden="true">—</span>
-        <span className="sr-only">{absent}</span>
-      </TableCell>
-    );
-  }
+function TitleCell({ entry }: { readonly entry: RegisterEntry }) {
+  const t = useTranslations("marketing.directory");
+  const title = titleOf(entry);
   return (
-    <TableCell>
-      <Badge variant={LEVEL_VARIANT[level]}>{level === "sme" ? "SME" : "Practitioner"}</Badge>
+    <TableCell className="whitespace-normal">
+      <Badge className="whitespace-normal" variant={TITLE_VARIANT[title]}>
+        {t(`level.${title}`)}
+      </Badge>
     </TableCell>
   );
 }
@@ -216,6 +218,12 @@ export function RegisterDirectory() {
             <option value="">{t("level.all")}</option>
             <option value="sme">{t("level.sme")}</option>
             <option value="practitioner">{t("level.practitioner")}</option>
+            {/*
+              The unrated majority is offered too, now that the filter matches the published title
+              rather than the ratings behind it: without this option the title most of the table
+              carries would be the one title a reader cannot narrow to.
+            */}
+            <option value="specialist">{t("level.specialist")}</option>
           </select>
         </div>
         {active ? (
@@ -244,8 +252,7 @@ export function RegisterDirectory() {
                 <TableRow>
                   <TableHead>{t("columns.name")}</TableHead>
                   <TableHead>{t("columns.location")}</TableHead>
-                  <TableHead>{t("columns.psm")}</TableHead>
-                  <TableHead>{t("columns.moc")}</TableHead>
+                  <TableHead>{t("columns.title")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -261,8 +268,8 @@ export function RegisterDirectory() {
                     {/*
                       The cell default is `whitespace-nowrap`, which a long location like
                       "Australia / New Zealand" would turn into a table wider than the viewport.
-                      These two columns wrap instead and are capped, so the two badge columns
-                      after them keep their place.
+                      These two columns wrap instead and are capped, so the title column after
+                      them keeps its place.
                     */}
                     <TableCell className="max-w-[18rem] break-words font-medium whitespace-normal">
                       {entry[0]}
@@ -270,8 +277,13 @@ export function RegisterDirectory() {
                     <TableCell className="max-w-[14rem] break-words whitespace-normal text-muted-foreground">
                       {entry[1] === "" ? t("notGiven") : entry[1]}
                     </TableCell>
-                    <LevelCell level={entry[2]} absent={t("level.none")} />
-                    <LevelCell level={entry[3]} absent={t("level.none")} />
+                    {/*
+                      One merged title per row rather than the two competency columns the sources
+                      record: the higher rating wins, and an entry the SGAS register contributes
+                      publishes "specialist", which names its registration rather than claiming a
+                      PSM/MOC rating that register never granted.
+                    */}
+                    <TitleCell entry={entry} />
                   </TableRow>
                 ))}
               </TableBody>

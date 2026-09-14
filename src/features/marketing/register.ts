@@ -16,6 +16,14 @@ export type Level = (typeof LEVELS)[number];
 /** The stored level, which may be absent. */
 export type StoredLevel = Level | "";
 
+/**
+ * The titles the directory publishes, one per entry. "specialist" is not a competency rating: it
+ * is what an entry carrying no PSM/MOC rating publishes, and it names the registration its source
+ * does attest. See `titleOf`.
+ */
+export const TITLES = ["specialist", "practitioner", "sme"] as const;
+export type Title = (typeof TITLES)[number];
+
 /** One published entry, in the column order `register.json` stores. */
 export type RegisterEntry = readonly [
   name: string,
@@ -68,13 +76,33 @@ export function atLevel(level: Level, entries: readonly RegisterEntry[] = REGIST
   return entries.filter((entry) => entry[2] === level || entry[3] === level).length;
 }
 
+/**
+ * The one title an entry publishes, merged from the two competency ratings its source records.
+ *
+ * The sources rate in two disciplines (process safety and management of change) but a reader
+ * scanning for depth wants one answer per person, so the higher of the two wins and the
+ * discipline is not shown: "SME in something" is the question the column answers. No entry
+ * carries exactly one rating -- the PSM/MOC half of the directory rates both disciplines or
+ * neither -- so the merge never has to choose between a rating and a blank.
+ *
+ * An entry the SGAS register contributes carries no PSM/MOC rating at all, which is a different
+ * thing from a low one: that register attests Swiss safety specialist registration and grades
+ * nothing. Those entries publish "specialist", and the catalog word for it says exactly that,
+ * so no cell claims a competency rating its source never granted. Pure.
+ */
+export function titleOf(entry: RegisterEntry): Title {
+  if (entry[2] === "sme" || entry[3] === "sme") return "sme";
+  if (entry[2] === "practitioner" || entry[3] === "practitioner") return "practitioner";
+  return "specialist";
+}
+
 /** The filters the directory applies, all optional and all independent. */
 export type RegisterFilters = {
   /** A case insensitive substring of the name or the location. */
   readonly query: string;
   /** A location, or "" for every location. */
   readonly location: string;
-  /** A competency level held in either PSM or MOC, or "" for every level. */
+  /** A published title, or "" for every title. */
   readonly level: string;
 };
 
@@ -84,9 +112,10 @@ export const NO_FILTERS: RegisterFilters = { query: "", location: "", level: "" 
 /**
  * The entries a filter set selects, in the register's own order. The query matches the name and
  * the location, which is what someone checking "is there anyone near us" actually types. The
- * level matches either competency, so filtering to Subject Matter Expert answers "who is senior
- * in something" rather than forcing a choice of discipline first. Pure, and fast enough on the
- * full list to run on every keystroke without a worker or an index.
+ * level matches the title the row publishes, not the ratings behind it: the table shows one
+ * merged title per row, and a filter reading the columns underneath would return a row whose
+ * visible title disagrees with the filter that found it. Pure, and fast enough on the full list
+ * to run on every keystroke without a worker or an index.
  */
 export function filterRegister(
   entries: readonly RegisterEntry[],
@@ -95,9 +124,7 @@ export function filterRegister(
   const query = filters.query.trim().toLowerCase();
   return entries.filter((entry) => {
     if (filters.location !== "" && entry[1] !== filters.location) return false;
-    if (filters.level !== "" && entry[2] !== filters.level && entry[3] !== filters.level) {
-      return false;
-    }
+    if (filters.level !== "" && titleOf(entry) !== filters.level) return false;
     if (query === "") return true;
     return entry[0].toLowerCase().includes(query) || entry[1].toLowerCase().includes(query);
   });

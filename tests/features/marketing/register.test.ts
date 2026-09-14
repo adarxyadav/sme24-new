@@ -8,6 +8,8 @@ import {
   REGISTER,
   type RegisterEntry,
   ratedCount,
+  TITLES,
+  titleOf,
 } from "@/features/marketing/register";
 
 /**
@@ -93,6 +95,29 @@ describe("ratedCount and atLevel", () => {
   });
 });
 
+describe("titleOf", () => {
+  it("publishes the higher of the two ratings, whichever discipline holds it", () => {
+    expect(titleOf(["Carla", "India", "sme", "practitioner"])).toBe("sme");
+    expect(titleOf(["Dilip", "LATAM", "practitioner", "sme"])).toBe("sme");
+    expect(titleOf(["Fritz", "Germany", "sme", "sme"])).toBe("sme");
+    expect(titleOf(["Greta", "Austria", "practitioner", "practitioner"])).toBe("practitioner");
+  });
+
+  it("never reports a competency rating for an entry whose source records none", () => {
+    // The SGAS half of the directory is 93% of the published rows and carries no PSM/MOC rating
+    // at all. Titling those entries "sme" would assert a credential for ~1,900 named people that
+    // no source grants them, so this is the assertion that guards the claim, not a style check.
+    expect(titleOf(["Anna", "Switzerland", "", ""])).toBe("specialist");
+    for (const entry of REGISTER) {
+      if (entry[2] === "" && entry[3] === "") expect(titleOf(entry)).toBe("specialist");
+    }
+  });
+
+  it("gives every published entry exactly one known title", () => {
+    for (const entry of REGISTER) expect(TITLES).toContain(titleOf(entry));
+  });
+});
+
 describe("filterRegister", () => {
   it("returns every entry without filters", () => {
     expect(filterRegister(ROWS, NO_FILTERS)).toEqual(ROWS);
@@ -113,13 +138,21 @@ describe("filterRegister", () => {
     expect(filterRegister(ROWS, { query: "carla", location: "LATAM", level: "" })).toHaveLength(0);
   });
 
-  it("matches a level held in either competency", () => {
-    // Carla is an SME in PSM and a practitioner in MOC, Dilip the other way round, so either
-    // filter selects both: the question the control answers is "who is senior in something".
+  it("matches the title the row publishes, not the ratings behind it", () => {
+    // Carla is an SME in PSM and a practitioner in MOC, Dilip the other way round. Both publish
+    // the higher title, so both answer the SME filter and neither answers the practitioner one:
+    // a row must never be found under a title it does not display.
     expect(filterRegister(ROWS, { ...NO_FILTERS, level: "sme" }).map((entry) => entry[0])).toEqual([
       "Carla",
       "Dilip",
     ]);
+    expect(filterRegister(ROWS, { ...NO_FILTERS, level: "practitioner" })).toHaveLength(0);
+  });
+
+  it("selects the unrated entries by their own title", () => {
+    expect(
+      filterRegister(ROWS, { ...NO_FILTERS, level: "specialist" }).map((entry) => entry[0]),
+    ).toEqual(["Anna", "Beat", "Eva"]);
   });
 
   it("ignores surrounding whitespace in the query", () => {

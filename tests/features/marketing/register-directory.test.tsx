@@ -36,13 +36,13 @@ describe("RegisterDirectory", () => {
     ).toBeInTheDocument();
   });
 
-  it("offers every location with its count, and both competency levels", () => {
+  it("offers every location with its count, and every published title", () => {
     renderDirectory();
     const location = screen.getByLabelText(en.marketing.directory.location.label);
     expect(within(location).getAllByRole("option").length).toBeGreaterThan(20);
     const level = screen.getByLabelText(en.marketing.directory.level.label);
-    // Every level, plus the "every level" option that clears the filter.
-    expect(within(level).getAllByRole("option")).toHaveLength(3);
+    // Every title, plus the "every level" option that clears the filter.
+    expect(within(level).getAllByRole("option")).toHaveLength(4);
   });
 
   it("narrows the table to one location and back", async () => {
@@ -60,16 +60,34 @@ describe("RegisterDirectory", () => {
     expect(bodyRows()).toHaveLength(50);
   });
 
-  it("narrows to the entries rated at a level in either competency", async () => {
+  it("narrows to the entries carrying one published title", async () => {
     const user = userEvent.setup();
     renderDirectory();
     const level = screen.getByLabelText(en.marketing.directory.level.label);
     await user.selectOptions(level, "sme");
     const rows = bodyRows();
     expect(rows.length).toBeGreaterThan(0);
-    // Every row shows the SME badge in at least one of the two competency columns.
+    // The filter matches the title the row shows, so every row reads back the title asked for:
+    // a row found under one title must never display another.
     for (const row of rows) {
-      expect(within(row).getAllByText("SME").length).toBeGreaterThan(0);
+      expect(within(row).getByText(en.marketing.directory.level.sme)).toBeInTheDocument();
+    }
+  });
+
+  it("gives the unrated majority a title of their own rather than a competency rating", async () => {
+    const user = userEvent.setup();
+    renderDirectory();
+    const level = screen.getByLabelText(en.marketing.directory.level.label);
+    await user.selectOptions(level, "specialist");
+    const rows = bodyRows();
+    expect(rows).toHaveLength(50);
+    // These entries carry no PSM/MOC rating, so no row may claim one.
+    for (const row of rows) {
+      expect(within(row).getByText(en.marketing.directory.level.specialist)).toBeInTheDocument();
+      expect(within(row).queryByText(en.marketing.directory.level.sme)).not.toBeInTheDocument();
+      expect(
+        within(row).queryByText(en.marketing.directory.level.practitioner),
+      ).not.toBeInTheDocument();
     }
   });
 
