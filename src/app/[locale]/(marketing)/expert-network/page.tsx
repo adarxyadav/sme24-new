@@ -209,32 +209,33 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
         </section>
       </RuledField>
 
-      <section aria-labelledby="matching-heading coverage-heading">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-2">
-          <div className="flex flex-col gap-4">
-            <SectionHeader
-              tier="minor"
-              id="matching-heading"
-              title={t("matching.title")}
-              className="md:grid-cols-1 md:gap-4"
-            />
-            <p className="max-w-prose text-base leading-relaxed">{t("matching.lead")}</p>
-          </div>
-          <div className="flex flex-col gap-4">
-            <SectionHeader
-              tier="minor"
-              id="coverage-heading"
-              title={t("coverage.title")}
-              className="md:grid-cols-1 md:gap-4"
-            />
-            <p className="max-w-prose text-base leading-relaxed">{t("coverage.lead")}</p>
-            <p className="text-muted-foreground text-sm">{t("coverage.note")}</p>
-            <p className="text-sm">
-              <Link href="/expert-network/directory" className="underline underline-offset-4">
-                {t("coverage.directory")}
-              </Link>
-            </p>
-          </div>
+      {/*
+        Matching alone, where this band carried "Where we go." beside it until 2026-09-14. Three
+        things went with that column and all three were reasons to drop it rather than reword it:
+        it was the page's most Swiss bound copy ("all of German and French speaking Switzerland",
+        "Ticino by arrangement") two bands below cells that now say the expert knows the regime
+        wherever the site sits; it repeated the hero's own link to the SGAS register, so one page
+        offered the same destination twice; and it was the second heading on a landmark that named
+        itself with two ids at once.
+
+        What is left is the half that carries a commitment: we assign, and if the fit is wrong you
+        get another expert and we absorb the cost. That is the page's only risk reversal and the
+        answer to the obvious objection to a curated network, so it reads stronger alone than it
+        did sharing a row with a coverage note.
+
+        One column rather than the two the band had, so the section is a plain minor again and the
+        landmark takes one heading. The `coverage.*` keys leave both catalogs in the same commit
+        rather than staying behind as dead copy.
+      */}
+      <section aria-labelledby="matching-heading">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-12 sm:px-6 md:py-20">
+          <SectionHeader
+            tier="minor"
+            id="matching-heading"
+            title={t("matching.title")}
+            className="md:grid-cols-1 md:gap-4"
+          />
+          <p className="max-w-prose text-base leading-relaxed">{t("matching.lead")}</p>
         </div>
       </section>
 
