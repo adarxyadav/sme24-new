@@ -87,6 +87,21 @@ const PROFILES = [
 }[];
 
 /**
+ * The identifier half of a catalogue standard label, which is written `NAME (gloss)` for most of
+ * the list: "ISO 45001 (occupational health and safety)" gives "ISO 45001", and a label with no
+ * parenthetical ("Suva ASA specialists", "Labour Act and ordinances") is returned whole, because
+ * there is no shorter name to fall back to.
+ *
+ * The split is taken from the label rather than held as a second list of names beside the
+ * catalogue: two lists drift, and the label is already the one source both catalogs share. Pure,
+ * runs anywhere.
+ */
+function standardName(label: string): string {
+  const open = label.indexOf(" (");
+  return open === -1 ? label : label.slice(0, open);
+}
+
+/**
  * The example profiles band of the expert network page (docs/design.md, tier map: major): six
  * profiles in the shape a real one takes, so a reader who has just been told what "senior" has to
  * mean and how someone is vetted can see who that produces. It sits after the vetting ladder,
@@ -232,21 +247,46 @@ export function ExpertProfiles() {
                 These are areas of practice, not verified certifications (owner, 2026-09-14), which
                 is why the heading above them says "works to" rather than naming them credentials.
               */}
+              {/*
+                The tag carries the identifier, not the whole label. A safety manager reads "ISO
+                45001" or "BauAV" at a glance; the parenthetical gloss is for everyone else, and
+                inside a badge it made each tag 40 odd characters, so two cards wrapped to two rows
+                and one fitted two tags on one. The block had a different shape in every card,
+                which is what stopped the six reading as comparable.
+
+                Nothing is lost: the full label rides on `title` for a pointer and in an `sr-only`
+                span for a screen reader, so the gloss is one hover or one announcement away. The
+                `sr-only` is what actually carries it -- `title` alone is invisible to touch and to
+                assistive tech, so it is the convenience, not the mechanism.
+              */}
               <ul className="mt-5 flex flex-wrap gap-1.5">
                 <li className="sr-only">{t("standardsLabel")}</li>
-                {profile.standards.map((standard) => (
-                  <li key={standard}>
-                    {/* `Badge variant="outline"`, the primitive the gallery's Buttons and badges
-                        row already shows, rather than hairline rows of this section's own. Outline
-                        and not a status or severity variant: those carry meaning next to a label
-                        and must keep it, while a standard is a plain tag. The badge is square at
-                        the 0.125rem radius like everything else, so a row of them reads as tags on
-                        a document rather than pills. */}
-                    <Badge variant="outline" className="text-pretty font-normal">
-                      {catalogue(`standards.${standard}`)}
-                    </Badge>
-                  </li>
-                ))}
+                {profile.standards.map((standard) => {
+                  const label = catalogue(`standards.${standard}`);
+                  const name = standardName(label);
+                  return (
+                    <li key={standard}>
+                      {/* `Badge variant="outline"`, the primitive the gallery's Buttons and badges
+                          row already shows. Outline and not a status or severity variant: those
+                          carry meaning next to a label and must keep it, while a standard is a
+                          plain tag. */}
+                      {/*
+                        The full label in an `sr-only` span and the short name `aria-hidden`
+                        beside it, with no `title`. Three shapes were tried: `title` plus
+                        `sr-only` announced the name and then the whole label one after the other,
+                        because `title` is itself an accessible name and does not defer to hidden
+                        text; `aria-label` alone is unreliable here, since `Badge` renders a bare
+                        `span` with no role and a generic element's label is widely ignored. What
+                        is left is the plain, well supported shape: hide the abbreviation from the
+                        accessibility tree, announce the label the catalogue actually holds.
+                      */}
+                      <Badge variant="outline" className="font-normal">
+                        <span aria-hidden="true">{name}</span>
+                        <span className="sr-only">{label}</span>
+                      </Badge>
+                    </li>
+                  );
+                })}
               </ul>
 
               {/* Languages close the card in its quietest type, pinned to the foot so six cards end
