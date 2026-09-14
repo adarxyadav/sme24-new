@@ -182,5 +182,5 @@ spec [0022](../specs/0022-ai-peer-benchmark/index.md) · code in `src/trigger/re
   - [x] Proof and docs: the e2e thread through the worker with axe, `docs/benchmark.md` rewritten, `docs/research.md` amended, the hosted spike on the runbook (AC-28, AC-29)
 - [x] Verify it: `/check verify peer benchmark from the research run`
 - [x] Test it: `/test peer benchmark from the research run`
-- [ ] Review it (fresh model): `/check review peer benchmark from the research run`
-- [ ] Document it: `/document peer benchmark from the research run`
+- [x] Review it (fresh model): `/check review peer benchmark from the research run`
+- [x] Document it: `/document peer benchmark from the research run`
