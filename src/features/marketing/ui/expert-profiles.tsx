@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { Factory, Languages, MapPin, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -251,12 +251,28 @@ export function ExpertProfiles() {
                   photoUrl={null}
                   className="size-14 shrink-0 bg-brand-accent-subtle **:data-[slot=avatar-fallback]:bg-transparent **:data-[slot=avatar-fallback]:text-brand-accent"
                 />
-                {/* The name alone, centred on the avatar. The role used to sit under it and now
-                    rides with the years in the specification below, where "22 years, ASA
-                    specialist" reads as one fact about seniority; a subtitle here would repeat it.
-                    The row centres rather than aligning to the top, so a one line name sits on the
-                    avatar's middle and a wrapped one stays balanced against it. */}
-                <h3 className="min-w-0 break-words text-heading-20">{t(`${profile.key}.name`)}</h3>
+                {/* The name over the seniority line (owner, 2026-09-14). "22 years, ASA
+                    specialist" is who this person is rather than one specification among five, so
+                    it reads as the name's subtitle and the block below keeps only the facts a
+                    reader compares across cards. The years carry the weight and the tabular
+                    figures so they align down the column; the role follows in the quiet colour. */}
+                <div className="flex min-w-0 flex-col gap-1">
+                  <h3 className="break-words text-heading-20">{t(`${profile.key}.name`)}</h3>
+                  {/* Two lines of room whatever the role's length. "16 years, Fleet and warehouse
+                      safety" turns at three across where the other five sit on one line, and one
+                      card taller by a line takes its whole grid row with it. Reserved rather than
+                      truncated: the role is the half of this line that says what the seniority was
+                      in. Two `copy-14` lines at leading 1.5 is 42px. */}
+                  <p className="min-h-10.5 text-pretty text-copy-14">
+                    <span data-numeric className="font-medium tabular-nums">
+                      {t(`${profile.key}.years`)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      <span aria-hidden="true">, </span>
+                      {t(`${profile.key}.role`)}
+                    </span>
+                  </p>
+                </div>
               </div>
 
               {/*
@@ -273,37 +289,27 @@ export function ExpertProfiles() {
                 carrier: remove it and the line still reads.
               */}
               {/*
-                The claim: what this person does, and the sector and canton it is done in. One
-                group rather than three stacked rows, because a reader weighing an expert asks
-                those together -- "management system, manufacturing, Zurich" is one sentence about
-                fit. The discipline keeps `--brand-accent` (rule 3's single decorative role, spent
-                here on the one field a client picks on) and the location sits directly under it in
-                the quiet type, so the colour marks the group rather than one line in a stack.
+                The claim, alone: the one field a client picks on, in `--brand-accent` (rule 3's
+                single decorative role). The sector and canton used to sit under it as one row
+                behind a `MapPin`, on the reading that discipline, sector and canton are one
+                sentence about fit. Two things were wrong with that (owner, 2026-09-14): the pin
+                is a location glyph and a sector is not a location, so the icon mislabelled half
+                of what it sat beside; and both are the same kind of fact as the three in the
+                block below, which did not exist when that row was written. They are labelled
+                fields there now, and the middot and its `sr-only` comma go with the row.
               */}
-              <div className="flex flex-col gap-1">
-                <p className="text-balance font-medium text-brand-accent text-copy-14">
-                  {catalogue(`competencies.${profile.competency}`)}
-                </p>
-                <p className="flex items-start gap-1.5 text-pretty text-copy-13 text-muted-foreground">
-                  {/* `size-4`, `aria-hidden`, the shape `TrustSection` uses. The glyph is how a
-                      reader finds the line, never what carries it: strip the icons and the card
-                      still reads. `mt-px` puts a 16px glyph on the cap height of 13px text. */}
-                  <MapPin aria-hidden="true" className="mt-px size-4 shrink-0" />
-                  <span>
-                    {catalogue(`industries.${profile.industry}`)}
-                    <span aria-hidden="true"> · </span>
-                    <span className="sr-only">, </span>
-                    {catalogue(`regions.${profile.region}`)}
-                  </span>
-                </p>
-              </div>
+              <p className="text-balance font-medium text-brand-accent text-copy-14">
+                {catalogue(`competencies.${profile.competency}`)}
+              </p>
 
               {/*
-                The specification: three labelled fields under one hairline, the shape the earlier
-                card had and the current one lost. `mt-auto` pins the block to the foot, so the
-                hairline lands on the same line in all six cards however long the name, the role or
-                the discipline above it ran -- which is what makes the grid read as comparable
-                rather than as six cards of different heights.
+                The specification: four labelled fields under one hairline, the shape the earlier
+                card had and the current one lost. It holds what a reader compares across cards --
+                sector, canton, standards, languages -- while who the person is (the name and the
+                seniority line) stays in the head. `mt-auto` pins the block to the foot, so the
+                hairline lands on the same line in all six cards however long the name or the
+                discipline above it ran, which is what makes the grid read as comparable rather
+                than as six cards of different heights.
 
                 A caps label over its value, rather than a label and value on one baseline. The
                 inline shape only works where the value is one short token; "Suva ASA specialists ·
@@ -312,28 +318,48 @@ export function ExpertProfiles() {
 
                 `dl` because these are name and value pairs, and a `dt`/`dd` per field rather than
                 one long list: each pair is its own group, which is how a screen reader announces
-                "Experience, 22 years" instead of running the three together.
+                "Sector, manufacturing" instead of running the four together.
               */}
-              <dl className="mt-auto flex flex-col gap-3 border-t pt-4">
-                <div className="flex flex-col gap-0.5">
-                  <dt className="eyebrow text-muted-foreground">{t("experienceLabel")}</dt>
-                  {/* The years carry the weight and the tabular figures, so the six cards'
-                      numbers align down the column; the role rides in the same line because
-                      "22 years, ASA specialist" is one fact about seniority, not two. */}
-                  <dd className="text-copy-14">
-                    <span data-numeric className="font-medium tabular-nums">
-                      {t(`${profile.key}.years`)}
-                    </span>
-                    <span className="text-muted-foreground">
-                      <span aria-hidden="true">, </span>
-                      {t(`${profile.key}.role`)}
-                    </span>
+              <dl className="mt-auto flex flex-col gap-2.5 border-t pt-4">
+                {/*
+                  An icon in place of the caps label (owner, 2026-09-14). Each field was a label
+                  over its value, two lines of which one was a heading the reader does not need
+                  spelled out on every card: "Zurich" is obviously a canton and "German, English"
+                  obviously languages. The glyph marks the row instead, the value sits beside it,
+                  and the block halves in height.
+
+                  The label survives in an `sr-only` `dt`, because an icon cannot name a field for
+                  a screen reader and `dl` needs a `dt` per `dd` regardless. So the four rows still
+                  announce "Sector, manufacturing" and the glyph is never the only carrier of
+                  meaning, which is what rule 3 and the icon rule both ask (docs/design.md).
+                */}
+                <div className="flex items-start gap-2 text-copy-14">
+                  <dt className="sr-only">{t("sectorLabel")}</dt>
+                  <Factory
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <dd className="min-w-0 text-pretty">
+                    {catalogue(`industries.${profile.industry}`)}
                   </dd>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <dt className="eyebrow text-muted-foreground">{t("standardsLabel")}</dt>
-                  <dd>
+                <div className="flex items-start gap-2 text-copy-14">
+                  <dt className="sr-only">{t("cantonLabel")}</dt>
+                  <MapPin
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <dd className="min-w-0 text-pretty">{catalogue(`regions.${profile.region}`)}</dd>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <dt className="sr-only">{t("standardsLabel")}</dt>
+                  <ShieldCheck
+                    aria-hidden="true"
+                    className="mt-1 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <dd className="min-w-0">
                     {/*
                       The tag carries the identifier, not the whole label. A safety manager reads
                       "ISO 45001" or "BauAV" at a glance; the parenthetical gloss is for everyone
@@ -361,11 +387,14 @@ export function ExpertProfiles() {
 
                 {/* A site visit happens in the language of the floor, which is why the catalogue
                     carries four while the app serves two. It is the last thing anyone checks, so
-                    it closes the block -- but as a labelled field like the two above it, since a
-                    bare line under three labelled ones read as an afterthought. */}
-                <div className="flex flex-col gap-0.5">
-                  <dt className="eyebrow text-muted-foreground">{t("languagesLabel")}</dt>
-                  <dd className="text-copy-14">
+                    it closes the block. */}
+                <div className="flex items-start gap-2 text-copy-14">
+                  <dt className="sr-only">{t("languagesLabel")}</dt>
+                  <Languages
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <dd className="min-w-0 text-pretty">
                     {profile.languages
                       .map((language) => catalogue(`languages.${language}`))
                       .join(", ")}

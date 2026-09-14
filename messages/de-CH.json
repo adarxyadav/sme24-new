@@ -238,6 +238,8 @@
         "title": "Wer vorbeikommt. Sechs Beispiele.",
         "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
         "listLabel": "Beispielprofile von Fachpersonen",
+        "sectorLabel": "Branche",
+        "cantonLabel": "Kanton",
         "experienceLabel": "Erfahrung",
         "standardsLabel": "Arbeitet nach",
         "languagesLabel": "Arbeitssprachen",
