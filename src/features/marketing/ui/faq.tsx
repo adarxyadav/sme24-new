@@ -39,10 +39,22 @@ export function Faq({ items }: { readonly items: readonly FaqItem[] }) {
           <AccordionItem key={item.id} value={item.id}>
             {/*
               `py-5` rather than the primitive's own `py-2.5`: this is a marketing band where the
-              questions are the content, not a dense settings list. It is passed per call site, so
-              the shared accordion's default is untouched in `/app`, `/expert` and `/admin`.
+              questions are the content, not a dense settings list.
+
+              `hover:no-underline` turns off the primitive's own `hover:underline`. In this design
+              system the underline belongs to links, which are always underlined (docs/design.md,
+              rule 3), and a question that expands an answer in place does not navigate -- the
+              accordion's own content styles say the same thing, underlining the `a` elements
+              inside an answer. The hover is carried instead by the chevron coming to full
+              strength, which marks the control the pointer is actually on without spending the
+              link signal on it.
+
+              Both are passed per call site, so the shared accordion's defaults are untouched in
+              `/app`, `/expert` and `/admin`.
             */}
-            <AccordionTrigger className="py-5 text-base">{item.question}</AccordionTrigger>
+            <AccordionTrigger className="cursor-pointer py-5 text-base hover:no-underline hover:**:data-[slot=accordion-trigger-icon]:text-foreground">
+              {item.question}
+            </AccordionTrigger>
             <AccordionContent>
               <p className="max-w-prose text-muted-foreground">{item.answer}</p>
             </AccordionContent>
