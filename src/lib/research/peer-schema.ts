@@ -140,8 +140,10 @@ export function buildPeerOutputSchema(): PeerOutputSchema {
     properties: {
       peers: {
         type: "array",
-        maxItems: PEER_LIMIT,
-        description: `Up to ${PEER_LIMIT} companies, each with at least one published injury rate.`,
+        // `maxItems` is not among the keywords Parallel's schema validator accepts: sending it
+        // answers 422 before the search starts, which aborted every peer run (spec 0022). The cap
+        // is stated in the description instead and enforced in code by `parsePeerContent`.
+        description: `At most ${PEER_LIMIT} companies, each with at least one published injury rate. Never return more than ${PEER_LIMIT}.`,
         items: {
           type: "object",
           properties: {
