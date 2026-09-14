@@ -3755,7 +3755,7 @@
   },
   "assessments": {
     "questionnaires": {
-      "iso45001": "ISO 45001 gap assessment",
+      "iso45001": "ISO 45001 assessment",
       "compliance": "Compliance assessment"
     },
     "status": {

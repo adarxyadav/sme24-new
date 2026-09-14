@@ -2,8 +2,8 @@
   "key": "iso45001",
   "version": 1,
   "title": {
-    "de": "ISO 45001 Gap-Analyse",
-    "en": "ISO 45001 Gap Assessment"
+    "de": "ISO 45001 Beurteilung",
+    "en": "ISO 45001 Assessment"
   },
   "sourceNote": "Built from iso45001_assessment.html (\"ISO 45001 Gap Assessment\"), export dated 2026-09-12.",
   "sections": [
