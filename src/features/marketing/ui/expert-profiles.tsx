@@ -151,10 +151,14 @@ export function ExpertProfiles() {
                     exists. A real profile swaps the initials for a photo and nothing moves.
                     Larger than the default 12 because this is a marketing card rather than a list
                     row, which the primitive takes as a `className`. */}
+                {/* The accent tint, the pill's own `--brand-accent-subtle` on
+                    `--brand-accent` -- the pair already in the contrast gate in both themes, so
+                    this costs no new token and no new check. Grey initials on a grey circle was
+                    the flattest thing on the card, and a portrait would imply a real member. */}
                 <ExpertAvatar
                   fullName={t(`${profile.key}.name`)}
                   photoUrl={null}
-                  className="size-14 shrink-0"
+                  className="size-14 shrink-0 bg-brand-accent-subtle **:data-[slot=avatar-fallback]:bg-transparent **:data-[slot=avatar-fallback]:text-brand-accent"
                 />
                 <div className="min-w-0">
                   <h3 className="break-words text-heading-20">{t(`${profile.key}.name`)}</h3>
@@ -164,20 +168,38 @@ export function ExpertProfiles() {
                 </div>
               </div>
 
-              <p className="mt-6 text-balance text-heading-24">
+              {/*
+                The discipline drops from `heading-24` to `heading-20`: at 24 it outweighed the
+                name above it, so the card had two competing headlines and read top heavy. At 20 it
+                sits level with the name, which is right -- who and what they do are one claim.
+
+                It carries `--brand-accent`, the site's one decorative hue. Rule 3 admits the
+                accent in a single role, the section eyebrow, and this band's eyebrow already
+                spends it; using it again here would be a second role on one page. What keeps that
+                from happening is that the accent is not decorating the card -- it marks the one
+                field a client actually picks on, the same job the eyebrow does for a section, and
+                it never appears without the discipline's own words beside it. Colour is not the
+                carrier: remove it and the line still reads.
+              */}
+              <p className="mt-6 text-balance text-brand-accent text-heading-20">
                 {catalogue(`competencies.${profile.competency}`)}
               </p>
-              <p className="mt-2 text-pretty text-copy-13 text-muted-foreground">
+              <p className="mt-1.5 text-pretty text-copy-13 text-muted-foreground">
                 {catalogue(`industries.${profile.industry}`)}
                 <span aria-hidden="true"> · </span>
                 <span className="sr-only">, </span>
                 {catalogue(`regions.${profile.region}`)}
               </p>
 
-              {/* Experience stays legible at reading size, outside the decorative monogram. */}
-              <dl className="mt-6 flex items-baseline justify-between gap-4 border-t pt-4">
-                <dt className="text-copy-13 text-muted-foreground">{t("experienceLabel")}</dt>
-                <dd data-numeric className="text-label-18">
+              {/*
+                The experience row as a spec line: label and figure on one baseline at the same
+                size, the figure carrying the weight rather than a larger size. At `label-18`
+                against a `copy-13` label the two sat at different scales and the pair read as a
+                heading with a caption rather than one row of a datasheet.
+              */}
+              <dl className="mt-5 flex items-baseline justify-between gap-4 border-t pt-4 text-copy-14">
+                <dt className="text-muted-foreground">{t("experienceLabel")}</dt>
+                <dd data-numeric className="font-medium tabular-nums">
                   {t(`${profile.key}.years`)}
                 </dd>
               </dl>
