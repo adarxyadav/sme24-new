@@ -147,7 +147,26 @@ export function ExpertProfilesFilter({
             aria-controls={controls}
             onClick={() => setValue(option)}
             className={cn(
-              "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-copy-13 transition-colors",
+              // Smaller than the chips shipped at: this row narrows six example cards, so it is a
+              // secondary control and was competing with the cards it filters. `text-label-12` is
+              // the scale's own single line size at 12px, and the label family is right because a
+              // chip never wraps. The padding does not shrink with the type -- `px-2.5 py-1` keeps
+              // the box wider than its text, so the chip stays a thumb-sized target and the row
+              // stays one scrollable line on a phone where four German labels would wrap.
+              //
+              // The size is `text-[0.75rem]` rather than `text-label-12`, and the arbitrary value
+              // is load bearing: `cn` is tailwind-merge, which treats `text-label-12` and the
+              // `text-background` / `text-muted-foreground` below as the same `text-*` group and
+              // keeps only the last, so the size class was being dropped from the class list
+              // entirely. The chips had therefore always rendered at the inherited 16px -- the
+              // `text-copy-13` they shipped with never applied either. Arbitrary values sit in
+              // their own group and survive the merge.
+              //
+              // Only the size is set here; the label family's leading, tracking and weight are the
+              // three lines under it, so the chip still takes its metrics from the scale rather
+              // than from a bare font-size.
+              "shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 transition-colors",
+              "text-[0.75rem] leading-[1.33] tracking-[0.004em] font-normal",
               "focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               active
                 ? "border-foreground bg-foreground text-background"
