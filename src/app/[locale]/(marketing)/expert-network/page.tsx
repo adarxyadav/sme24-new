@@ -193,11 +193,25 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
       */}
       <section aria-labelledby="vetting-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
+          {/*
+            The pill eyebrow and the stacked shape, so the page's three openers agree. The hero
+            wears the accent pill, the standard band above stacks its heading over its lead, and
+            this one was the last still carrying the bare caps line over the tier's split grid --
+            a second eyebrow shape and a second layout on one page, for no reason a reader could
+            infer.
+
+            Stacked costs nothing here because this major passes no `lead`: the split grid put the
+            heading in a 2fr column and left the 3fr beside it empty, so "How someone gets in."
+            wrapped to two lines at a measure narrower than the band it introduces. Collapsed, the
+            heading takes the full width and sets on one line at desktop widths.
+          */}
           <SectionHeader
             tier="major"
             id="vetting-heading"
             eyebrow={t("vetting.eyebrow")}
+            eyebrowVariant="pill"
             title={t("vetting.title")}
+            className="flex flex-col gap-3 lg:grid-cols-none lg:gap-3"
           />
           <ol className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-4">
             {VETTING.map((step, index) => (

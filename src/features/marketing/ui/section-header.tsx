@@ -25,6 +25,14 @@ export type SectionHeaderProps = {
    * passes no `lead` with it -- the count says how many opening sentences stay at full strength.
    */
   readonly emphasis?: { readonly leadSentences: number };
+  /**
+   * The eyebrow's shape. `line` is the bare caps line every left aligned opener has always used
+   * and stays the default, so no existing section moves. `pill` is the accent badge the centred
+   * anchor and the emphasis heading already wear -- the same `EYEBROW_PILL`, so the site keeps one
+   * pill rather than two that drift. Opt in per section, for a page that carries a pill above the
+   * fold and would otherwise answer it with a bare line further down.
+   */
+  readonly eyebrowVariant?: "line" | "pill";
   /** `h1` on the page opener, `h2` everywhere else. */
   readonly as?: "h1" | "h2";
   /**
@@ -53,6 +61,7 @@ export function SectionHeader({
   title,
   lead,
   emphasis,
+  eyebrowVariant = "line",
   as = "h2",
   align = "left",
   id,
@@ -137,8 +146,23 @@ export function SectionHeader({
       <div
         className={cn("grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-10", className)}
       >
-        <div className="flex flex-col gap-3">
-          {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
+        <div className="flex flex-col items-start gap-3">
+          {/*
+            The pill is opt in here (`eyebrowVariant`), where the centred anchor takes it by
+            definition: a left aligned eyebrow has a left edge to sit on, so the bare caps line
+            works and stays the default for every section that already uses one. A page whose
+            opener wears the pill can answer it further down rather than mixing the two shapes.
+            `items-start` so the badge shrinks to its text instead of stretching the column.
+          */}
+          {eyebrow ? (
+            eyebrowVariant === "pill" ? (
+              <Badge variant="brand-accent" className={EYEBROW_PILL}>
+                {eyebrow}
+              </Badge>
+            ) : (
+              <p className="eyebrow text-brand-accent">{eyebrow}</p>
+            )
+          ) : null}
           {heading}
         </div>
         {lead ? (
