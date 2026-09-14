@@ -1,239 +1,133 @@
-# Peer benchmark and CHF opportunity
+# Peer benchmark and the estimated loss
 
-The runbook for feature 9 (spec [0008](specs/0008-peer-benchmark-chf-opportunity/index.md)): how the benchmark is computed, what a snapshot holds, how the peer seed is curated and generated, how to recompute every company, and the gate production must pass. Nothing here calls a model. The benchmark is arithmetic over stored rows.
+The runbook for the benchmark (spec [0022](specs/0022-ai-peer-benchmark/index.md), which superseded specs 0008, 0012, 0016, 0020 and 0021 on 14 Sep 2026): how the loss is computed, where the peers come from, what a snapshot holds, and how the page is proved locally. Nothing here calls a model. The benchmark is arithmetic over the client's own figures and the peers one research run found.
+
+The change spec 0022 made, in one line: the peers used to be a curated library of sector statistics and named companies that ops maintained in CSV files, and they are now a property of the research run. There is no library, no seed, no curator's reading and no launch gate; the four curated tables are dropped. A peer reaches a client because a research run found it in a public report and the validator supported the figure against the cited page.
 
 ## The model in words
 
-The `benchmark-company` task (`src/trigger/benchmark-company.ts`) runs after a research run ends `succeeded`, after a client saves the industry or the headcount, and on `pnpm benchmarks:recompute`. It reads the company, its current KPI rows (`company_kpi_current`, the newest year per KPI), the peer rows in `benchmarks` and the seven constants in `benchmark_assumptions`, hands them to the pure function `computeBenchmark` in `src/features/benchmark/model.ts`, and inserts one immutable `benchmark_snapshots` row. The dashboard reads only that row.
+The `benchmark-company` task (`src/trigger/benchmark-company.ts`) runs after a research run ends, after a client saves the industry, the country or the headcount, after a client saves or clears a figure, and on `pnpm benchmarks:recompute`. It reads the company, its current KPI rows (`company_kpi_current`, the newest year per KPI) and the `research_peers` rows of one run, hands them to the pure `computeBenchmark` in `src/features/benchmark/model.ts`, and inserts one immutable `benchmark_snapshots` row. The dashboard reads only that row.
 
-1. **Inputs.** FTE equals `companies.employees_count`; every employee counts as one full time job (a fixed assumption; the page no longer states it since the disclosure was cut on 13 Sep 2026). The NOGA section comes from `sectionOfDivision(industry_code)`, the size band from `sizeBandOf(employees_count)` (`1-49`, `50-249`, `250+`, or `all` when the headcount is unknown).
-2. **Peer selection** per KPI, the first rung with any row: (section, band), (section, all), (ALL, band), (ALL, all). Within the rung the row for the KPI's year wins, else the nearest year, the newer on a tie. A KPI with no row on any rung gets no position and does not count as compared.
-3. **Position.** A fatality count is first turned into a rate per 100 000 employed persons (`count ÷ FTE × 100 000`, the unit of the Eurostat peer row; with no headcount the KPI is not compared at all) and the snapshot records that rate as `comparedValue`; every other KPI is judged on its stored value. For a `lower_is_better` KPI a value at or below p25 is the top quarter, at or below the median is better than the median, at or below p75 is worse than the median, else the bottom quarter; mirrored for `higher_is_better`. For `iso_45001_certified` the peer median is the share of certified peers: 1 is better than the median, 0 is worse.
-4. **Gap.** `gapToMedian` is the signed distance in the KPI's unit, positive meaning worse than the median; `gapRelative` is that distance divided by the median (null when the median is 0, 1 for a missing ISO certificate). A KPI is a gap when the distance is positive.
-5. **Cost.** No cost when FTE is missing or 0, or when neither the accident rate nor the LTIFR has a row.
+1. **Inputs.** FTE equals `companies.employees_count`; every employee counts as one full time job. The NACE section comes from `sectionOfDivision(industry_code)`, the country and the currency from `companies.country` and `companies.currency` (spec 0022, AC-1, AC-2). Every amount in the snapshot is denominated in that currency.
+2. **The client's three figures.** The loss reads `ltifr`, `trifr` and `fatalities` only, each the newest year on file for that key, chosen per key independently; the year used is recorded per key in `inputs.kpis`. The other five catalogue KPIs are collected by the research and shown in the table, but nothing is compared or priced from them any more.
+3. **The loss**, the owner's table (AC-14), with the constants in `src/features/benchmark/loss.ts`:
 
    ```
-   incidents    = accident_rate_per_1000_fte × FTE ÷ 1 000
-                  (else LTIFR × FTE × hours_per_fte ÷ 1 000 000)
-   lostDays     = the company's lost_days_per_incident, else lost_days_per_incident_default
-   costPerCase  = direct_cost_per_case_chf + lostDays × cost_per_absence_day_chf
-   annual       = incidents × costPerCase × indirect_multiplier
-   low, high    = the same with indirect_multiplier_low and indirect_multiplier_high
-   atMedian     = the formula at the incident KPI's peer median (and the lost days peer median when that KPI has a peer row)
-   atTop        = the same at p25
-   savingMedian = max(0, annual − atMedian), savingTop likewise; null only when the incident KPI has no peer row
-                  (a peer value of 0 is a real reference that prices to zero incidents, so the saving is then the whole annual cost)
+   ltis         = ltifr × FTE × 1 800 ÷ 1 000 000
+   recordables  = max(0, trifr − ltifr) × FTE × 1 800 ÷ 1 000 000
+   loss         = (ltis × 769 + recordables × 201) × 75 + fatalities × 1 200 000
    ```
 
-   Fatalities are never priced; absenteeism, near misses and TRIFR carry no CHF line in this version. No cost either when an assumption the arm needs is missing or not a number (`hours_per_fte` on the LTIFR arm, the default lost days without a lost days row, the cost and multiplier rows on both arms): the body then carries `costSkipped` naming the key, which the task logs and never stores, so ops read a named cause rather than a `NaN`.
-6. **Ranking.** A `fatalities` value above 0 is rank 1. Then the cost linked gaps (`accident_rate_per_1000_fte`, `ltifr`, `lost_days_per_incident`) by the saving of moving only that KPI to its peer median, descending; then the other gaps by `gapRelative` descending. Ties and null sort keys break by the catalogue `sort_order`.
-7. **Confidence.** The minimum confidence over the rows the cost used (1 for a client entered row); null when there is no cost.
-8. **Scalars.** `kpis_compared` counts the KPIs with a peer row; `peer_provisional` is true when any used peer row or assumption is provisional. Money is stored unrounded and rounded once at display and in the email (`roundChf`: nearest 100 below 10 000, else nearest 1 000).
+   1 800 is the working hours one FTE covers in a year, 769 the hours a lost time injury costs, 201 the hours a further recordable injury costs, 75 the cost of a working hour and 1 200 000 the cost of a death, all in the company's own currency. A TRIFR below the LTIFR contributes no recordable term rather than a negative one: a company that publishes a TRIFR under its LTIFR has counted differently, not fewer injuries than zero. Without a TRIFR the recordable term is zero and the block carries `trifrMissing: true`, which the card says in one sentence. The whole block is null when the FTE is missing or zero or the client has no LTIFR; the card then asks for the LTIFR and links to the figures card.
+4. **The savings.** `atMedian` and `atBest` evaluate the same formula with each rate's peer median or best in place of the client's, for the rates present in `peers.rates`, fatalities held at the client's own count. `savingAtMedian = max(0, loss − atMedian)`, `savingAtBest` likewise; both null when there are no peers. A client already ahead of the peers has a saving of zero, not a negative one, and the card says so rather than printing a zero.
+5. **The recommendation** (AC-15), first match wins: any fatality above zero or `savingAtMedian` above 250 000 gives `retainer` (reason `fatality` or `large_saving`); no LTIFR gives `sms` (`no_figures`); worse than the median on both rates gives `compliance` (`both_worse`); worse on one gives `sms` (`one_worse`); else `culture` (`both_better`). A rate absent from `peers.rates` counts as neither better nor worse.
+6. **Scalars.** `confidence` is the minimum over the client rows the loss used, a null confidence counting 1 for a client entered row and 0.5 for a research row. `kpis_compared` counts the keys of `peers.rates`, so 0 to 2. `peer_provisional` is always false: there is no provisional row left to flag.
+7. **Money is stored unrounded and rounded once at display**, by `roundMoney` (nearest 100 below 10 000, else nearest 1 000). Both the page (`money` in `ui/benchmark-segment.tsx`) and the task, before it hands the figures to the `benchmark_ready` email, round through that one function, so the card and the email can never disagree for one snapshot. The hourly cost and the fatality price are never rendered anywhere: they are inputs to one figure the client reads as money, not prices we quote back at them.
+
+The known simplification, recorded as a Follow-up in the spec: the 75, the 1 200 000 and the 250 000 retainer threshold are read in the snapshot's currency without conversion, so a client in the euro area prices a death at 1 200 000 euros.
+
+## Where the peers come from
+
+The `research-peers` task (`src/trigger/research-peers.ts`) runs after `research-company` writes its terminal status, on the `research` queue with its own 20 minute budget and three attempts.
+
+1. **The search.** One provider call (`createPeerRun`) asks for up to eight companies of the client's own NACE section, with `name`, `website`, `country`, `headcount`, `headcount_year` and per rate the value as printed, the unit as printed, the period year and the source page. The objective tells the provider to prefer companies headquartered in the client's country, then in its region, then anywhere, and to prefer employees only figures. `research_runs.peer_provider_run_id` is stored before the first poll, so a retry resumes the stored provider run rather than paying for a second one.
+2. **The units are converted in code** (AC-8), never by the model: `per_200k_hours` and `per_100_workers` both times five, `per_million_hours` as printed. A unit outside the three is `unsupported`. This is the one arithmetic step the provider is never trusted with, because a wrong unit moves a rate by a factor of five and nothing downstream would notice.
+3. **The validator** (`peer-validation@1`) makes one structured call that answers per peer and rate: supported by the cited page or not, the period year, a confidence and the supporting source indexes. A peer whose normalised name contains the client's normalised name or the reverse, or whose website host equals the client's, is dropped as `self`; a peer with no supported rate is dropped as `unsupported`. Every drop is listed in `summary.peers.dropped`. When the call fails after the SDK's retries the peers are kept with the code converted values, confidence capped at 0.5 and `summary.peers.validation = skipped`.
+4. **The rung is climbed in code** (AC-7), never trusted from the provider: the peers of the client's country when at least three carry a usable rate, else the peers of the region's countries when at least three do, else every peer. The rung (`country`, `region`, `world`) and the count go to `summary.peers` and the rung is stored on every row. Fewer than three even worldwide keeps what there is with `thin = true`, and the page then replaces the rank sentence with the count it found: no rank is quoted off two peers. Zero kept peers writes `{ status: ok, found: 0, rung: null, thin: true }` and no row.
+5. **The write and the hand off.** The kept rows are inserted in one statement, every row carrying a source URL and a rung, and then `benchmark-company` is triggered under `benchmark/run/<runId>`. Whatever the outcome — `ok`, `skipped`, `failed` or `timeout` — the task's last step and its `onFailure` hook after the retries both trigger the benchmark, so the loss computes from the client's own figures even when the peer search found nothing. The peer task never writes `research_runs.status` or `error_code` and raises no alert; one `log.warn` line names the cause. A run is `succeeded` because it stored at least one client KPI row, as before: peers never decide a run's status.
+
+**Which peers a later recompute uses** (AC-17): for a `research` trigger, the rows of that run. For `client_edit` and `recompute`, the rows of the company's latest `succeeded` run that has at least one peer row, else the latest `succeeded` run, which gives no rows. So a client who edits a figure keeps the peer group the research found rather than losing it.
 
 ## The snapshot
 
-`benchmark_snapshots` (`supabase/schemas/26_benchmark_snapshots.sql`) is a tenant table with the full contract (organization index, audit trigger, `updated_at`), readable by members and assigned experts, written only by the task as the service role: the write grants are revoked from every app role. The scalar columns feed the card; the five jsonb blocks hold everything used:
+`benchmark_snapshots` (`supabase/schemas/26_benchmark_snapshots.sql`) is a tenant table with the full contract, readable by members and assigned experts, written only by the task as the service role. `model_version` names the rule set and the block schema (`MODEL_VERSION` in `src/features/benchmark/catalogue.ts`, `benchmark-model@7`).
 
-- `inputs`: FTE, section, band, industry code, `companyUpdatedAt` (the company row re read right before computing) and one entry per KPI row (id, value, year, source, confidence, run id).
-- `results`: per KPI the peer row copied (id, rung, section, band, year, `yearMatch`, quartiles, sample size, provisional), the position, the gap and the relative gap.
-- `gaps`: the ranked list with `reason` (`fatality`, `cost`, `distance`) and the solo move saving.
-- `cost`: the block of rule 5, or null.
-- `assumptions`: every assumption the cost used, value, unit, source and provisional flag copied.
-- `derived`: the two display only injury counts, or null. Added by spec 0012, so it exists only on a `benchmark-model@2` or later row.
-- `peers`: the named published peer blocks, one per KPI with at least three published peers (spec 0021, see "Peer library" below), or null. Exists only on a `benchmark-model@5` or later row; the reader normalises an older row to an empty list.
+The body is three blocks and the inputs:
 
-`model_version` names the rule set and the block schema (`MODEL_VERSION` in `src/features/benchmark/catalogue.ts`, `benchmark-model@5`). The reader (`src/features/benchmark/queries.ts`) picks the schema through `SNAPSHOT_SCHEMAS` in `snapshot.ts`, which is keyed by **literal** version strings, not by the live constant, so a bump adds an entry instead of renaming the only one: `benchmark-model@1` (the five blocks), `benchmark-model@2` (plus `derived`, spec 0012), `benchmark-model@3` (plus the peer `shape`, `sourceKey` and `basis` and the assumption `note` and `isAssumption`, spec 0016) and `benchmark-model@4` (plus `comparedValue` on each result, and the rules of the 2026-09-12 amendment: a peer reference of 0 prices to zero incidents, fatalities compare as a rate per 100 000 employed persons, a missing assumption gives a null cost instead of `NaN`) and `benchmark-model@5` (plus `inputs.country` and the `peers` blocks of spec 0021, no formula change) are all in the map and all stay valid; a `@1` row has no `derived` key and the reader treats it as absent, and a `@3` row has no `comparedValue`. A row with an unknown version or blocks that fail their schema is treated as absent and reported to Sentry. A formula change bumps the constant, adds a schema to the map and never rewrites or blanks old rows. `tests/features/benchmark/runbook.test.ts` pins the version and the map named here to the code.
+- `inputs`: FTE, section, industry code, country, currency, `companyUpdatedAt` and one entry per KPI row the loss read (id, key, value, year, source, confidence, run id).
+- `peers`: null when no peer was kept, else `{ rung, thin, rows, rates }`. `rows` lists every kept peer once, sorted by LTIFR ascending with peers lacking an LTIFR last, each `{ peerName, country, headcount, periodYear, ltifr, trifr, sourceUrl, confidence, estimatedLoss }`. `rates` holds, per rate with at least one peer value, the `count`, `median`, `best`, `rank`, `of` and `gapToMedian`.
+- `loss`: the block of rule 3 and 4, or null.
+- `recommendation`: `{ packageKey, reason }`.
 
-The dashboard state is derived, never stored: a snapshot with nothing compared is `noData` (with the facts form), any other snapshot is `ready`; with no snapshot, a run that succeeded, a company edit or a client figure save (`clientKpiUpdatedAt`, the newest client row) younger than two minutes (`BENCHMARK_WAIT_MS`) is `calculating`, anything older is `unavailable`.
+**A peer's `estimatedLoss` is that peer's own yearly loss**, by the same formula, with the peer's published headcount and rates (a rate the peer did not publish counts as zero for its term), the same constants and the client's currency; null when the peer's headcount is unknown. It is a **total**, so it grows with the peer's size: a 5 400 employee peer shows a larger figure than a 240 employee one at the same rates, which is arithmetic and not a judgement. That is the owner's decision of 14 Sep 2026, kept until Phillip or a client approves the per 100 employees form (spec 0022, Follow-up). The table's footnote says so in the client's own words.
+
+**`SNAPSHOT_SCHEMAS` in `snapshot.ts` holds `@7` only.** The `@1` to `@6` schemas went with the rewrite, along with the `results`, `gaps`, `cost` and `derived` blocks, `POSITIONS`, `PEER_SHAPES`, the quartile position, the exposure count and the CHF range. `loadLatestSnapshot` returns the raw `model_version` beside the parsed blocks and `benchmarkStateOf` answers `outdated` for any row whose version is not `benchmark-model@7`, or whose blocks fail their own schema (that case is reported to Sentry). Nothing from an unreadable row is ever rendered.
+
+The `benchmark_snapshots` columns that carry the new figures are `currency`, `loss_amount` and `saving_at_median`; the CHF named columns stay and are null from `@7` on, and `results`, `gaps` and `assumptions` lost their `not null` and are null from `@7` on. Snapshots are insert only, so nothing stored is ever rewritten.
+
+**No recompute runs on deploy** (AC-18). Every company that has a snapshot from before the deploy shows the outdated sentence and the rerun form on `/app`, and a rerun replaces the row with a `@7` one computed against a real peer group. `pnpm benchmarks:recompute` still exists and still triggers `benchmark-company` for every company with a snapshot, but running it after this deploy would only rewrite old rows against whatever peers the company's last run happens to hold, which for a pre spec 0022 company is none. Rerunning the research is the upgrade path, not a recompute.
+
+## The dashboard states
+
+Derived, never stored:
+
+- `outdated`: the newest snapshot is of a model version this code no longer reads. One sentence plus the rerun form, and nothing of the stored row.
+- `noData`: a readable snapshot with neither a loss nor peers. The alert plus the "Your figures" card, so entering a figure by hand is the remedy beside the alert.
+- `ready`: any other readable snapshot. The four sections in the order AC-20 to AC-23 fix.
+- `calculating` / `unavailable`: no snapshot, with a run that succeeded, a company edit or a client figure save younger than two minutes (`BENCHMARK_WAIT_MS`), or older.
+
+## The page, in order
+
+`src/features/benchmark/ui/benchmark-segment.tsx`, four sections then the facts card:
+
+1. **The peer table** (AC-20). One badge with the peer count and the rung named (the country by name, the region by its label, or worldwide), one rank sentence carrying both ranks, then **one** table in the order of `peers.rows` with the columns company (headcount under the name), country, year, LTIFR, TRIFR, estimated loss and a source link that opens the page in a new tab. **The client's own row is highlighted in place by its LTIFR**, so the table reads as one ranking rather than a list with the reader appended; without an LTIFR there is no place to put them and the row is left out, which is the same condition that empties the rank sentence. One footnote, and never the word "verified" — the forbidden word test of spec 0021 still guards the peer keys. No chart in this spec's contract (the D-chart decision is a Follow-up on the owner's screenshot).
+2. **The estimated loss** (AC-21). The loss per year as the headline, the saving at the median and at the best peer, and the three counts behind it each with a "Calculated" badge. The empty state asks for the LTIFR and links to the figures card.
+3. **The experts** (AC-22). Three cards from `public.expert_suggestions(section, country, region_countries)`, a `security definer` function that returns at most three `active` experts whose `industries` contain the section, by the same ladder the peers climb, ordered by availability then years of experience descending. It returns only the id, full name, headline, industries, countries, languages, availability and photo path — no email, no notes, no status — and a storage select policy lets any signed in user read an `expert-photos` object whose owning expert is `active`, so the photo is signed with the caller's own client. The sentence above the cards says ops assigns the expert after a package is bought; there is no button (Follow-up).
+4. **The package** (AC-23). The recommended package's own marketing copy, the one sentence from `reason`, and the buy button into the existing checkout; `retainer` shows the enquiry link instead of a price. The other packages are one link to the pricing page.
+
+The read only view an assigned expert sees stops after the loss: they are not being sold a package or shown three colleagues to choose between.
 
 ## Client figures
 
-Feature 10 (spec 0010) lets a client type the same eight KPIs by hand in the "Your figures" card under the KPI table (`src/features/self-assessment/`). Nothing changed in the schema; the rules worth knowing:
+Feature 10 (spec 0010) lets a client type the catalogue KPIs by hand in the "Your figures" card under the KPI table (`src/features/self-assessment/`). The rules worth knowing are unchanged by spec 0022, except that only the LTIFR, the TRIFR and the fatality count now move the loss:
 
-- **One year per save.** The picker offers one contiguous run of years, newest first, from the current `Europe/Zurich` year down to the smaller of four years back and the oldest year on file, never below 2000 (`yearOptions` in `years.ts`); it starts on the newest year on file, else last year. Every figure in the form belongs to that year, and a year change refills the fields from the rows already on the page.
-- **The view decides what is current.** A client value is an ordinary `company_kpis` row with `source 'client'`, no run, no confidence and no sources; `company_kpi_current` puts it before the research row of the same year, so the table, the coverage line and the benchmark (which reads the newest year per KPI and applies confidence 1 to a client row) follow without any app logic. The table marks such a cell "Your figure" instead of a confidence badge.
-- **Clearing is a delete.** The clear button beside a field deletes the client row; the research row of that year, when there is one, is current again by the view's ordering. There is no "cleared" state.
-- **The write path works around the partial index.** The client unique index is partial (`where source = 'client'`), which PostgREST cannot upsert onto, so `saveClientKpis` reads the existing client rows for the sent keys, updates each by id (zero rows means another member created it: `forbidden`, and nothing is inserted) and inserts the rest in one statement; a `23505` on that insert is a second tab racing and answers `conflict`. Only fields the client changed reach the action, so an untouched research value is never copied into a client row.
-- **Two idempotency keys.** A save triggers `benchmark-company` with `triggerKind 'client_edit'` under `benchmark/kpis/<companyId>/<newest updated_at the writes returned>`, a clear under `benchmark/kpis-clear/<deleted row id>`, both with a one hour TTL. Saves inside one write moment collapse; a save followed by a clear are two snapshots a minute apart, which is expected.
-- **Policies are per creator.** Members update and delete only client rows they created (`created_by = auth.uid()`); with one member per organization this is invisible. Feature 22 (client team invitations) relaxes both policies to organization scope and updates `supabase/tests/company_kpis.test.sql`, where one assertion pins today's behaviour.
+- **One year per save.** The picker offers one contiguous run of years, newest first, from the current `Europe/Zurich` year down to the smaller of four years back and the oldest year on file, never below 2000. Every figure in the form belongs to that year.
+- **The view decides what is current.** A client value is an ordinary `company_kpis` row with `source 'client'`, no run and no confidence; `company_kpi_current` puts it before the research row of the same year, so the table, the coverage line and the benchmark follow without any app logic. The table marks such a cell "Your figure" instead of a confidence badge.
+- **Clearing is a delete.** The clear button beside a field deletes the client row; the research row of that year, when there is one, is current again by the view's ordering.
+- **The write path works around the partial index.** The client unique index is partial (`where source = 'client'`), which PostgREST cannot upsert onto, so `saveClientKpis` reads the existing client rows for the sent keys, updates each by id (zero rows means another member created it: `forbidden`) and inserts the rest in one statement; a `23505` on that insert is a second tab racing and answers `conflict`. Only fields the client changed reach the action.
+- **Two idempotency keys.** A save triggers `benchmark-company` under `benchmark/kpis/<companyId>/<newest updated_at the writes returned>`, a clear under `benchmark/kpis-clear/<deleted row id>`, both with a one hour TTL.
+- **Policies are per creator.** Members update and delete only client rows they created; feature 22 (client team invitations) relaxes both policies to organization scope.
 
-## Derived injury counts
+## The rails around the tasks
 
-The card shows roughly how many injuries a year the company's own rates and headcount imply, so the CHF figure reads as a consequence rather than an assertion (spec 0012). Two numbers, both display only:
-
-- **Lost time injuries a year**, from LTIFR when there is one, else the Suva accident rate.
-- **Recordable injuries a year**, from TRIFR.
-
-They are deliberately **not KPIs**. `kpi_definitions` gains no rows, `company_kpis` gains no rows and its `source` constraint still reads `('research', 'client')`. A count is a function of company size while a rate is not, so no peer distribution can compare one; giving them the KPI path would put two permanently empty peer columns in the table and two unrankable entries in the priority gaps. They are an explanation of the cost model, stored where the cost model lives.
-
-What to know when changing them:
-
-- **One exposure formula.** `exposureCount(shape, rate, fte, hoursPerFte)` in `model.ts` is the only place a rate becomes a count; `costAt` calls it for the cost line's `incidents` and the derived block calls it for both counts, so the two cannot disagree. It dispatches on the rate's shape, `per_1000_fte` (`rate * fte / 1000`) for the Suva rate or `per_million_hours` (`rate * fte * hoursPerFte / 1e6`) for LTIFR and TRIFR, not on the cost model's own two arm KPI union, which has no arm for TRIFR.
-- **The whole block is null** without a positive `inputs.fte`, without the `hours_per_fte` assumption row, or when no usable rate exists. There is no partial block and no `NaN`. The two counts inside it are independently nullable.
-- **The cost line and the derived block can name different rates.** The cost model prefers the Suva rate; the derived block prefers LTIFR, because that is the reader's lost time figure. They agree on the number only when both name the same key, which is what the Vitest assertion pins.
-- **`hours_per_fte` is registered as used** whenever either count is produced, including on the Suva cost path where the cost line alone would not have recorded it, so the snapshot's assumption list records the hours even though no client page renders that list since 13 Sep 2026.
-- **No confidence, ever.** A derived value inherits its input's reliability, so showing a score would imply the derivation was independently assessed. The type has no `confidence` key. The provenance line names the input figure and its reporting year instead, following the source of that row ("Calculated from your LTIFR for 2024" or "the researched LTIFR"), which points the reader at the number they should actually judge. The Suva rate uses a dedicated short phrase because its catalogue name does not read inside a sentence, and every other name is shortened to the part before its parenthetical gloss.
-- **Only the lost time count is shown since 13 Sep 2026.** The opportunity card keeps it as a clause under the working estimate ("from about 1.8 lost time injuries across 420 employees") and no badge. The recordable count, both provenance sentences, the priced note, the computed on date, the KPIs compared count and the confidence driver rendered as rows at the top of the "How this is calculated" disclosure until the owner cut that disclosure the same day: the formula, the assumptions and the inputs used no longer render for the client either. The block stays in the snapshot untouched (the model and the email are unchanged). The design gallery mirrors the card so axe scans it.
-- Values render at one decimal (the `oneDecimal` named format), so a company whose rates imply 0.4 injuries a year sees 0.4 and not 0.
-
-## The seed: format and generator
-
-The peer values and the assumptions live in two CSV files and reach the database through a generated migration, so a replaced value is a reviewed diff and a rerun changes no row count.
-
-- `supabase/seed-data/benchmarks.csv`: `kpi_key, industry_section (A to U or ALL), size_band (1-49, 50-249, 250+, all), period_year, p25, median, p75, sample_size (empty allowed), source_name, source_url, source_note_de, source_note_en, source_key, basis_de, basis_en, provisional, is_assumption`.
-- `supabase/seed-data/benchmark-assumptions.csv`: `key, value, unit, label_de, label_en, source_name, source_url, note_de, note_en, provisional, is_assumption, effective_from`. Exactly the seven keys of `ASSUMPTION_KEYS`, once each, with `indirect_multiplier_low <= indirect_multiplier <= indirect_multiplier_high`.
-
-### The two flags, and the two source columns (spec 0016)
-
-`provisional` and `is_assumption` mean different things and are never both true on one row:
-
-- **`provisional`**: the value has not been read from its named source yet. It is a promise to go and read it. The launch gate requires zero of these.
-- **`is_assumption`**: no published source exists, so the value is a declared modelling assumption. Waiting for it is pointless. The gate permits these, by name.
-
-The three `indirect_multiplier*` rows are the only declared assumptions today: no Swiss or European body publishes an indirect to direct accident cost ratio, so the low bound is the ILO's, the high bound is Heinrich (1931) which modern safety science disputes, and the middle is SME24's own estimate. Each says so in its own `note`; since the disclosure was cut on 13 Sep 2026 the note lives in the database only and reaches no client page (spec 0008 AC-10 no longer holds).
-
-Two columns record what a peer value actually came from. Both are filled on every one of the 122 seeded rows since the peer data refresh of 12 Sep 2026 (`benchmarks.test.sql` and `seed.test.ts` both assert it), so a new row without them is a seed error, not a pending curation step.
-
-- **`source_key`**: the source's own classification the row was read from, for example `Suva class 22A`. Set it when the source publishes on a different axis than the row is keyed by. The positions list names it instead of the NOGA section.
-- **`basis`** (`basis_de`, `basis_en`, both or neither): one sentence saying what the quartiles describe. This is the caveat the client sees. `source_note` stays an internal reading note and is not shown.
-
-A row's **shape** is never a column. `p25 == median == p75` makes it a `point` row, anything else a `distribution` row, derived in the model from the values themselves (AC-4). A point row renders one sector figure with no quartile band and never the words quarter, quartile or median. Of the 122 seeded rows, 84 are point rows: every Eurostat and BFS row by construction (one published figure per section), and 21 of the 59 accident rate rows, those whose NOGA section holds a single Suva branch or are a band scaled from one. `tests/features/benchmark/runbook.test.ts` pins both counts to the committed CSV.
-- `pnpm benchmarks:migration` parses both files with the Zod schemas in `src/features/benchmark/seed-schema.ts`, stops with the file and line number on the first invalid row, and writes `supabase/migrations/<timestamp>_benchmark_seed.sql` with one `insert … on conflict do update` per row, followed by one `delete` that retires every peer row the CSV no longer names (so the CSV is the whole peer table and a replaced reading under a new year does not linger beside the new row; snapshots keep their own copy of the rows they used, so nothing stored changes). The timestamp is strictly later than the newest migration, so the seed always applies after the table migration. Commit the generated file; every run makes a new one, so delete a duplicate you did not mean to keep.
-
-After generating: `pnpm db:reset`, `pnpm test:db` (the pgTAP suites count the seven assumptions, every KPI's row set and the `ALL`/`all` accident rate row, and assert that no seeded peer row is provisional, so a new row that has not been read from its source fails there first), then `pnpm db:types` if a column changed.
-
-## The source checklist, and what the seed actually holds
-
-Every peer row was read on 2026-09-12 from the source named on its row and carries `provisional = false`, `source_key` and `basis` (the spec 0016 amendment, block B); the four readable assumptions still carry `provisional = true` from the first reading of 2026-09-06 and are the owner's to replace. No value was invented: where a table could not be read, the KPI is left uncovered and the dashboard says so.
-
-| KPI or assumption | Read on | What the seed holds |
-|---|---|---|
-| `accident_rate_per_1000_fte` | 2026-09-12: UVG-Statistik 2026 (SSUV/Suva), Tabelle 1.2 "Versicherungsbestand und Unfallrisiko nach Wirtschaftszweig, 2024", BUV column only, https://www.unfallstatistik.ch/d/publik/unfstat/pdf/Ts26.pdf | 22 rows for 2024, band `all`: the `ALL` row with the published all industries rate 58.2 as median and the hinges across the 50 branches as p25 and p75; one row per section A to U with the hinges across the section's branches (Moore and McCabe: the median of the lower and of the upper half, the middle value excluded; a section with one branch has p25 = median = p75). The branches are NOGA division groups with one published mean each, so the spread is of branches, never of companies; `basis` says so on every row and `sample_size` stays empty because the card would read it as peers. Plus 37 scaled rows for 2024 on the bands `1-49`, `50-249` and `250+` (D4, AC-27): each is the section's Suva p25, median and p75 times the Eurostat 2023 ratio of the band's accident rate to the whole section's (accidents from `hsw_n2_05` over persons employed from SBS `sbs_sc_ovw`, the `0-9` employed class taken as the total minus the other classes where Eurostat suppresses it; Eurostat 0, 1 to 9 and 10 to 49 fold into `1-49`, 250 to 499 and 500 or more into `250+`, each fold as combined accidents over combined persons). A row is written only where the band holds at least 100 accidents and 5 000 employed persons (owner decision, 12 Sep 2026), which passes 37 of the 45 candidate cells: the 15 sections B to J and L to R have an SBS denominator, and B `1-49`, B `50-249`, B `250+`, D `1-49`, E `250+`, L `50-249`, L `250+` and R `250+` fall under the floor; A, K, O, S, T and U have no SBS denominator and keep their `all` row only. The two-decimal ratio and both counts sit in `source_note`, and `basis` says the row is a scaled estimate in the section row's unit, not a measured rate for companies of that size. |
-| `lost_days_per_incident` | 2026-09-12: Eurostat `hsw_n2_04` (ESAW), Switzerland 2023, through the Eurostat API; the UVG statistics publish no absence duration per case (a full text search of the 2026 edition for Absenztage, Ausfalltage, Arbeitsunfähigkeitstage and Fehltage finds nothing) | 21 point rows for 2023 (`ALL` plus every section but U, which has three accidents): the days lost by the median accident, interpolated linearly inside the band that holds it (bands 4 to 6, 7 to 13, 14 to 20, 21 to 30, 31 to 90, 91 to 182, 183 and more days; fatal excluded), over accidents with four or more days lost. All industries 16.3 days. Describes accidents, not companies; the company's own figure is a mean per accident. |
-| `absenteeism_rate` | 2026-09-12: BFS AVOL, Tabelle T 03.02.03.02.06 "Quote der gesundheitsbedingten Absenzen (Krankheit/Unfall) der Vollzeitarbeitnehmenden nach Geschlecht, Nationalität und anderen Merkmalen", sheet 2025 (revised August 2026), block Wirtschaftsabschnitte, https://www.bfs.admin.ch/asset/de/je-d-03.02.03.02.06 (the chart asset 36569173 the first pass found is the picture of this table) | 20 point rows for 2025 in percent: `ALL` (A to T, 3.62) and one per section, where BFS groups B to E, L with N, and R with S and T (members of a group share the value); none for P (not published by BFS) and U (not shown). |
-| `ltifr`, `trifr` | Industry association and company reports, at least five per section | Uncovered; needs the report reading the owner planned. |
-| `iso_45001_certified` | ISO Survey certificate counts by country and sector (the data files are behind the ISO site) over STATENT establishments | Uncovered. |
-| `fatalities` | 2026-09-12: Eurostat `hsw_n2_02` (ESAW), Switzerland 2023, unit `RT_INC`, through the Eurostat API | 22 point rows for 2023 in deaths per 100 000 employed persons (`ALL` 1.13, 48 deaths; construction 4.94, agriculture 17.36; seven sections at 0). The model converts the company's count to the same rate from its FTE at compare time (D3). |
-| `near_miss_rate` | No source anywhere: no national body collects near miss reports | Uncovered by design. |
-| `hours_per_fte` | BFS, Tabelle T 03.02.03.01.02.04 "Tatsächliche Jahresarbeitszeit der Vollzeitarbeitnehmenden nach Wirtschaftsabschnitten", 2025 (revised August 2026), https://www.bfs.admin.ch/asset/de/je-d-03.02.03.01.02.04 | 1 804 hours (all sections 1 803.75). |
-| `direct_cost_per_case_chf` | UVG-Statistik 2024, Tabellen 6.4 and 6.5 | 4 811 CHF: the mean of CHF 5 700 (Suva) and CHF 3 000 (other insurers) weighted by their yearly occupational accidents (168 318 and 82 575). |
-| `cost_per_absence_day_chf` | SWICA Präventionsmanagement, calculation on BFS data (https://www.swica.ch/tiefe-absenzquoten-der-schluessel-zu-hoeherer-produktivitaet/); no SECO or Suva figure was located | 1 100 CHF per day. Replace with the SECO or Suva estimate. |
-| `lost_days_per_incident_default` | Derived from UVG-Statistik 2024: daily allowance cost per accident (CHF 2 900 Suva, CHF 1 500 others, weighted CHF 2 439) over the daily allowance (80 percent of the average insured earnings of CHF 79 289 in 2022, over 365 days) | 14 days. A derivation, not a published mean; the allowance starts on the third day. |
-| `indirect_multiplier_low` | ILO (2007), the accident cost iceberg: indirect costs at least equal the direct ones, https://www.ilo.org/media/42526/download | 2 (total cost twice the insured cost). |
-| `indirect_multiplier` | National Safety Council ratio of 2.7, as cited in OSHAcademy course 700 | 3.7. A US figure; replace with a Swiss or European estimate. |
-| `indirect_multiplier_high` | Heinrich (1931) ratio 1:4, as cited in OSHAcademy course 700 | 5. |
-
-The two multiplier rows and the absence day cost are the weakest rows of the seed: their sources are secondary citations, not the EU OSHA or ILO tables the spec names. They exist so the cost model runs end to end; the owner replaces them.
-
-## Recompute every company
-
-After a seed replacement or a model change on the same version, refresh the clients:
-
-```bash
-pnpm benchmarks:recompute
-```
-
-It reads `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` (the project's name for the service role key) and `TRIGGER_SECRET_KEY` from `.env.local`, swapped to the target environment as `docs/auth.md` describes for `pnpm user:invite`, lists every distinct company in `benchmark_snapshots`, triggers `benchmark-company` per company with `triggerKind` `recompute` under the key `benchmark/recompute/<companyId>/<yyyy-mm-dd>` (24 hour TTL, so a second run on the same day is a no op), and prints the count. It never writes the database and exits 1 when a variable is missing.
-
-**Owed after the peer data refresh deploy (spec 0016 amendment, AC-32).** A stored row keeps the version it was written under until it is recomputed, and nothing breaks in between: a `@1`, `@2` or `@3` row parses under its own schema and its card renders as it did, without the blocks a later version added. So after the refreshed seed migration and the `benchmark-model@4` code land on staging, run `select model_version, count(*) from public.benchmark_snapshots group by 1 order by 1` with the staging keys to see what is stored, then run `pnpm benchmarks:recompute` **once**, after the whole refresh has merged and never before, and watch it on the Trigger.dev dashboard to completion (the script only enqueues). It recomputes **everything**: the refreshed Suva bar, the new lost days, fatality and size band rows and the amended rules all move a company's numbers at the same time, so be ready to explain a shifted CHF figure once rather than twice. Snapshots are insert only, so the older rows stay in place as history. Companies whose research finishes or whose figures change after the deploy get a `@4` row on their own, with no ops action. Then run both launch gate queries below, and tick the recompute boxes in `docs/specs/0012-derived-injury-counts/verify.md` and in spec 0016's follow up.
-
-## The rails around the task
-
-- The research task triggers the benchmark right after its terminal `succeeded` write under `benchmark/run/<runId>`; a trigger failure is logged and reported and never changes the run.
-- `updateCompanyFacts` (the form on the facts card after the positions and on the "missing input" card) triggers it under `benchmark/edit/<companyId>/<updated_at>` (one hour TTL).
-- `saveClientKpis` and `clearClientKpi` (the "Your figures" card, spec 0010) trigger it under `benchmark/kpis/<companyId>/<updated_at>` and `benchmark/kpis-clear/<rowId>` (one hour TTL); see "Client figures" above.
-- The company's first snapshot sends the `benchmark_ready` email to every member (one delivery per member, key `benchmark-ready/<companyId>/<userId>`); a retry that inserts a second row is not first, so the email is never sent twice.
-- A task that fails after its retries raises the `benchmark.failed` Slack alert with the Trigger.dev run page; the dashboard keeps showing the previous snapshot or "not available yet".
+- `research-company` triggers `research-peers` after its terminal write, and falls back to triggering `benchmark-company` itself when that trigger fails, so a benchmark is always queued.
+- `research-peers` triggers `benchmark-company` under `benchmark/run/<runId>` from both its last step and its `onFailure` hook.
+- `updateCompanyFacts` triggers it under `benchmark/edit/<companyId>/<updated_at>` (one hour TTL); `saveClientKpis` and `clearClientKpi` as above.
+- The company's first snapshot sends the `benchmark_ready` email to every member (one delivery per member, key `benchmark-ready/<companyId>/<userId>`), stating the loss and the saving in the snapshot's currency; a retry that inserts a second row is not first, so the email is never sent twice.
+- A benchmark task that fails after its retries raises the `benchmark.failed` Slack alert with the Trigger.dev run page; the dashboard keeps showing the previous snapshot. A peer task failure raises nothing.
 
 ## Local proof and the worker
 
-The whole thread runs without a vendor: `pnpm trigger:dev` with `RESEARCH_PROVIDER=fixture` (the fixture company has 420 employees, NOGA 23.61, an accident rate of 68 and 12.5 lost days per accident, so the committed seed gives a cost of about CHF 1 961 000 (28.56 incidents × (4 811 + 12.5 × 1 100) × 3.7, rounded; `runbook.test.ts` computes it from `FIXTURE_VALUES` and the seed and fails when this sentence drifts), and with the committed peer library its LTIFR of 2.4 ranks 1st of 4 Swiss manufacturers that publish an LTIFR, so the saving column reads `already_ahead` on every row and no money is quoted (the same test pins the rank, the rung and the count; the ladder stops at the country rung since the curation of 13 Sep 2026 gave Switzerland four published manufacturers, where it used to widen to Europe), then `TRIGGER_DEV_RUNNING=1 pnpm test:e2e e2e/benchmark.spec.ts`.
+The whole thread runs without a vendor. With `supabase start` and `pnpm dev` up:
+
+```bash
+pnpm trigger:dev                 # RESEARCH_PROVIDER=fixture in .env.local
+TRIGGER_DEV_RUNNING=1 PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:e2e e2e/benchmark.spec.ts
+```
+
+`e2e/benchmark.spec.ts` (AC-28) drives the real chain: the lookup form with its required country, the client run, the peer search, the conversion, the rung and the benchmark task, then the page section by section with axe on every state. What the fixture makes true, so the spec's numbers are arithmetic rather than magic:
+
+- The client is 420 employees in NOGA 23.61 (section C) in CH, LTIFR 2.4 and TRIFR 6.1 for the latest fixture year.
+- The peer search answers eight companies: five in the client's country, two in its region, one outside it. Three of the five carry a usable rate, so the run lands on the **country** rung and those five are the whole peer set.
+- Three units appear among them, so the code conversion is exercised on every fixture run: a printed `per_200k_hours` 0.9 must render as 4.50 and a `per_100_workers` 1.4 as 7.00.
+- The client leads on both rates, so the saving is zero, the card says "You are already at or below the peer figures" and the standing recommends `culture`.
+- A company name containing `thinpeers` gives two peers, both outside the region, so the rung falls to `world`, `thin` is true and the rank sentence is replaced by the count.
+- `supabase/seed.sql` seeds three active section C experts with `countries = {CH}`, so the expert cards have something to show; they differ in availability and years of experience on purpose, because that pair is what `expert_suggestions` orders by once the country rung has matched.
 
 Two things to know when running the worker locally:
 
 - Only one `trigger dev` may be connected to the dev environment at a time; a second one (another checkout, another terminal) takes the runs and the first one never sees them.
-- The Trigger.dev dev environment's own variables apply to the worker and an env file value overrides them, but an empty env file value does not. When the dev environment carries `RESEND_API_KEY` and `EMAIL_ALLOWED_RECIPIENTS`, a test address is skipped as `not_allowlisted` (the delivery row still proves the send) and the Playwright thread asserts Mailpit only when the delivery's transport is `smtp`. Do not lift the allowlist in a worker env file while the Resend key is set: the sends then go out for real.
+- The Trigger.dev dev environment's own variables apply to the worker and an env file value overrides them, but an empty env file value does not. When the dev environment carries `RESEND_API_KEY` and `EMAIL_ALLOWED_RECIPIENTS`, a test address is skipped as `not_allowlisted` and the delivery row still proves the send. Do not lift the allowlist in a worker env file while the Resend key is set: the sends then go out for real. The worker also holds the SMTP connection, so `tests/trigger/send-email*.local.test.ts` fail while it runs; that pair is expected to be red locally.
 
-## Peer library
+## Hosted spike, owed before the first real client
 
-Named companies beside the sector statistics (spec 0021). Two CSV files are the whole of two global tables, on the same rails as the sector seed:
+Everything above is proved on the fixture provider. One live run on a real company is what tells us whether the peer search is worth its cost, and it has not been run.
 
-- `supabase/seed-data/peer-companies.csv`: `key, name, country (ISO 3166 alpha 2), industry_section (A to U, never ALL), headcount, headcount_year, report_url, note_de, note_en`. One row per company that prints a safety figure in its own report.
-- `supabase/seed-data/peer-figures.csv`: `peer_key, kpi_key (ltifr, trifr, lost_days_per_incident or iso_45001_certified), period_year, value_as_published, denominator_as_published, unit_as_published (per_million_hours, per_200k_hours, days, days_over_lost_time_accidents or boolean), basis (employees or employees_and_contractors), source_url, verified_at, verified_by, note_de, note_en`. The generator computes `value` in the KPI's own unit: a per 200 000 hours rate times five, days and per million hours as printed, a boolean 0 or 1, and for `days_over_lost_time_accidents` (spec 0021 AC-18, the chart amendment of 13 Sep 2026) the total days lost in `value_as_published` divided by the count of lost time accidents in `denominator_as_published`, rounded to one decimal; the denominator column is filled on that unit and empty on every other, and the database checks it. The table shows the converted value with the published one in a tooltip; a quotient row's tooltip shows both printed numbers, never the quotient alone. `note_de` and `note_en` (both or neither) carry what changes how a number reads, such as a fatality charged as 365 days; the note shows in the chart's tooltip and screen reader table.
+- [ ] **The spike**: on staging, with `PARALLEL_API_KEY` set and `RESEARCH_PROVIDER` unset, run one research on a known company in the owner's sector (a Swiss manufacturer of 200 to 1 000 employees with a published sustainability report). Then read, on the Trigger.dev run and in the database:
+  - how many peers the provider returned, how many the validator supported, and which rung the run landed on. Fewer than three supported peers in Switzerland is the outcome to expect from the sector statistics work of spec 0021 (Swiss companies publish per 1 000 full time equivalents, not per million hours), and it is the single most load bearing unknown in this spec.
+  - whether the units the provider reported match what the source pages print. A unit the model guessed rather than read is the failure that moves a rate by five, and the only way to see it is to open two or three of the cited pages.
+  - whether any peer is the client itself under another name, and whether the self drop caught it.
+  - `summary.peers.durationMs` and the Parallel run cost beside the client run's, so the owner can decide whether the peer search stays on every run or becomes a separate, rarer step.
+- [ ] **Then**: if the country rung is empty in practice, the decision owed is whether the region rung is honest enough to lead with, or whether a thin run should say so more loudly than one sentence. That is an owner decision, not a code change to make first.
 
-**The verified pair.** A figure reaches a client only when a person has read the source page: `verified_at` and `verified_by` are both set or both empty (a database check and the seed schema enforce it). A row without them may sit in the CSV as work in progress; the benchmark task never loads it (`verified_at is not null` is in the query) and the third launch gate query below counts it. `verified_by` is the curator's name; it never reaches a client page.
-
-All twenty four figures were signed off on 13 Sep 2026 by `admin`, who read each source page; the third launch gate query below reads zero and no agent read row remains. The ten figures of the first pass carried `Claude Fable 5.1 (agent read; owner re-read owed)` until that reading replaced the name, and the fourteen of the curation pass carried an empty pair, which is the shape to use for any future addition: a figure becomes visible to a client by being read, never by default. A new row belongs in the CSV with both columns empty, and the gate is what says when the reading is still owed.
-
-**The ladder, in words.** The task loads the companies of the client's NACE section (`sectionOfDivision(industry_code)`) and never widens the industry. Per KPI it keeps figures from the current Zurich year minus three or later, the latest year per company, and within that year the employees only figure when both bases exist. Then it climbs: the client's country, its region (`src/lib/countries.ts`: dach, nordics, benelux, british_isles, southern, central_eastern), Europe, the world; the first rung with at least three companies wins and every company on it is a peer. A client country outside the catalogue lands on the world. Fewer than three even worldwide gives no block and the row says "No published peer yet". The rank counts peers strictly better than the client (ties share a rank); the saving at a peer is the client's own, priced on the LTIFR arm on both sides or with the client's incidents against the peer's lost days, and null for TRIFR and ISO 45001; no number ever describes what a peer loses.
-
-**Generate and recompute.** `pnpm benchmarks:migration` parses all four CSVs, refuses with the file and line a figure of an unknown company, a company without a figure, a verified pair half filled, a unit that does not fit the KPI or a year after the current Zurich year, and renders the upserts and then the retirement (figures, then companies). Then `pnpm db:reset`, `pnpm test:db` (`peer_companies.test.sql` and `peer_figures.test.sql`), `pnpm db:types` if a column changed. A snapshot copies the peer rows it used, so a later CSV edit never changes what a client already saw; after a seed change, `pnpm benchmarks:recompute` as above.
-
-**Owed after the named peers deploy (spec 0021, AC-15).** After the seed migration and the `benchmark-model@5` code land, run `pnpm benchmarks:recompute` once on staging and then once on production, after the whole feature has merged and never before, and watch it to completion on the Trigger.dev dashboard. Until then existing `@4` snapshots render as today with no peer card, and a company whose research finishes after the deploy gets a `@5` row on its own.
-
-- [ ] Recompute run on staging after the named peers deploy
-- [ ] Recompute run on production after the named peers deploy
-
-**What the curation holds (13 Sep 2026).** Fourteen companies, the AC-4 counts met: 8 manufacturers and 6 construction groups, with three LTIFR and three TRIFR figures in C and three LTIFR in F.
-
-Manufacturing (C): Geberit (CH, LTIFR 6.0 per million hours, employees only, ISO 45001 at all plants), Rieter (CH, 3.3), Sandvik (SE, LTIFR 1.2 and TRIFR 3.0 with contractors, ISO 45001 at about 80 percent of sites), BASF (DE, recordable rate 3.78 with contractors), SFS (CH, LTIFR 4.1, permanent and temporary employees, 27 locations ISO 45001), Georg Fischer (CH, LTIFR 6.5, employees and leased personnel), Lenzing (AT, TRIFR 4.5, employees, all manufacturing sites ISO 45001), Wienerberger (AT, recordable rate 9.36, own workforce, no ISO 45001 row). Construction (F): STRABAG (AT, recordable rate 13.2, own workforce, ISO 45001), NCC (SE, LTIF 3.3, own employees), VINCI (FR, LTIFR 5.8, employees), Eiffage (FR, LTIFR 4.22, own personnel), Royal BAM (NL, LTIFR 2.9 and TRIFR 3.1, own employees, all subsidiaries ISO 45001:2018), Skanska (SE, LTAR 2.2 with subcontractors and 2.1 employees only, ISO 45001).
-
-**All fourteen companies are signed off.** The library holds no unverified figure and no agent read row; the third launch gate query reads zero. A future addition enters with an empty verified pair and becomes visible when a person has read its page.
-
-**Units are the trap, and they differ by sector.** Every figure above is per million hours as printed. Rejected for an unreadable or unconvertible unit: Covestro (DE, RIR 1.70 — the 2024 ESRS page states no denominator at all and the 200 000 hour basis appears only in the 2023 methodology page, so the unit would be an inference across years, and a wrong one shows 8.5; superseded on 13 Sep 2026 by the second reading, which found the LTRIR 1.10 with its 200 000 hour basis on page 217 of the 2024 sustainability statement, a lost time rate rather than the recordable one, so Covestro enters as an LTIFR of 5.5 with the page as its source), Implenia (CH, 37 accidents per 1 000 full time positions, a third convention that cannot be converted without hours Implenia does not publish), PORR (AT, LTIFR 13.5) and Peab (SE, LTIF4 5.9), both printing a rate with no stated denominator. Bouygues returned 403 on both report PDFs. Voestalpine's LTIFR counts only accidents with more than three sick days, so it is not comparable. Sika returned 403; HOCHTIEF renders its key figures dynamically and the numbers come back blank; Schindler publishes fatalities only.
-
-**No company publishes days lost per incident as an average, and the library divides for four of them.** Across all fourteen plus the rejected candidates, not one prints an average days lost per accident, because ESRS S1-14 88(e) asks for the total days lost and never the average. They publish a total day count (VINCI 204 991, Royal BAM 2 117, Wienerberger 5 751.5), or a severity rate on a per 1 000 hours basis (VINCI 0.41, Eiffage 0.43), or days per 1 000 full time equivalents (SFS 96), and the conventions do not convert into one another: Eiffage counts the days of accidents from the last three years, VINCI imputes 365 days per fatality, Wienerberger counts calendar days including weekends, Georg Fischer combines accidents with illness. The owner's decision of 13 Sep 2026 (spec 0021, the chart amendment, AC-18): a `lost_days_per_incident` row may be the generator's quotient of two numbers printed in one table of one report for one population, the total days lost over the count of lost time accidents, stored as the unit `days_over_lost_time_accidents` with both printed numbers on the row. The denominator is lost time accidents only, the count the company's own LTIFR divides by; days over recordable cases, a numerator that mixes illness, a rolling multi year count and a severity rate per hours are not entered. The per company verdicts of that reading are under "What is readable, and where" below; do not read those reports again.
-
-## Launch gate
-
-**Retired on 14 Sep 2026 (spec 0022, AC-19).** The gate was three queries over `benchmarks`,
-`benchmark_assumptions` and `peer_figures`: no value still waiting to be read, no undeclared
-assumption, no named peer figure waiting for a person to read its page. All four curated tables
-are dropped, so there is nothing left to count.
-
-What replaced it is a property of the run rather than a state of a table: the peers come from the
-research run that found them, each row carries its own `source_url` and the confidence the
-validator gave it, and a rate the validator could not support is dropped before it is ever
-stored (AC-8). There is no provisional row to clear and no curator's reading to owe, so no
-promotion is blocked on this file. The rest of this document is rewritten with the model in
-module 7 of the spec 0022 build plan.
-
-## What is readable, and where
-
-Recorded so the curation pass does not spend a second afternoon on the same dead ends, and corrected on 2026-09-12: the first pass searched Swiss sources only, and Switzerland reports into the European accident statistics (ESAW), which Eurostat publishes by NACE Rev. 2 section. A NACE section is a NOGA section, so those tables need no crosswalk.
-
-**Readable, by table:**
-
-- **Occupational accidents per 1 000 full time equivalents by Suva class**: UVG-Statistik, Table 1.2 (SSUV/Suva), the BUV column only. The 2026 edition carries 2024 figures. The classes are Suva's premium scheme, not NOGA, so a section's row spans the classes read into it and `source_key` names them; the quartiles describe the spread of classes, never of companies, which `basis` says on every row. Never read the NBUV column: non occupational accidents invert the ranking (office workers ski).
-- **Fatal accidents per 100 000 employed persons by section**: Eurostat `hsw_n2_02`, Switzerland, by NACE section, latest year 2023. One rate per section, so a point row. Feeds `fatalities`; the model converts the company's count to the same unit at compare time.
-- **Accidents by days lost band by section**: Eurostat `hsw_n2_04`, Switzerland, by NACE section, counts per band for accidents with four or more days lost. Feeds `lost_days_per_incident` as the median interpolated inside the band that holds the median accident; a point row, because the bands describe accidents rather than companies.
-- **Accidents by section and enterprise size**: Eurostat `hsw_n2_05`, Switzerland, by NACE section and size class (0 to 9, 10 to 49, 50 to 249, 250 to 499, 500 or more). Feeds the `1-49`, `50-249` and `250+` rows of `accident_rate_per_1000_fte` as a scaled estimate: the section's Suva row times the Eurostat band to all size ratio, never a raw Eurostat rate on that KPI, because peer selection would prefer the wrong unit row.
-- **The BFS health related absence rate by Wirtschaftsabschnitt**: BFS AVOL table T 03.02.03.02.06 (`je-d-03.02.03.02.06`), an Excel file with one sheet per year 2010 to 2025, the block "Wirtschaftsabschnitte" giving the rate for A, B to E together, F, G, H, I, J, K, L with N, M, O, Q and R with S and T, with a 95 percent interval; P is not published. The three chart assets the first pass found (36569171, 36569173, 36569174) are pictures of tables .05 to .07 in that series. Feeds `absenteeism_rate` as a point row per section.
-
-Two caveats travel with every Eurostat row rather than being absorbed: the denominator is employed persons, not full time equivalents, and raw Swiss counts look worse than the EU average because of the reporting regime (EKAS/ZHAW 2025), so no row may be read as "Switzerland is dangerous".
-
-**Still unreadable, confirmed:**
-
-- **No Swiss or European body publishes an indirect to direct accident cost ratio.** The multiplier the CHF figure turns on is an assumption and is declared as one. The ISSA "return on prevention" figure of 2.2 is a return on prevention spending, not a cost ratio, and must not be used as a multiplier.
-- **No public LTIFR or TRIFR peer exists for Switzerland**: the country reports per 1 000 full time equivalents, not per million hours.
-- **No ISO 45001 share by sector**: the ISO Survey sector data lacks sector designations for most certificates and the Swiss count sits behind an IAF CertSearch login.
-- **No near miss rate anywhere**: no national body collects it. `near_miss_rate` is `no_source` in `KPI_CATALOGUE` and says so on the card, rather than showing "not yet" forever.
-
-**Published lost days per accident, for the bubble chart (read on 13 Sep 2026, two agents, about thirty European C and F reports; do not repeat).** No company prints an average of days lost per lost time accident. ESRS S1-14 88(e) asks for the number of days lost as a total, never the average, and several groups cite the transitional provision and print nothing yet; FY2025 reports should widen the pool. The decision this led to is in spec 0021 (AC-18): a quotient of two numbers printed in one table is allowed as its own unit. The verdicts, so the next curator only reads what has changed:
-
-| Company | Section | What the report prints | Verdict |
-|---|---|---|---|
-| Geberit (CH) | C | 2 275 days lost and 111 lost time accidents in one table, same population; LTIFR 6.0 per million hours | Quotient 20.5, entered |
-| Symrise (DE) | C | 1 105 days lost and 54 lost time accidents, Unternehmensbericht 2024 p. 176; MAQ 1.97 per million hours (the curator confirms on the page that the MAQ counts lost time accidents and notes its threshold if any) | Quotient 20.5, entered with the LTIFR |
-| Covestro (DE) | C | 521 days lost and 34 lost time accidents; LTRIR 1.10 per 200 000 hours, sustainability statement 2024 p. 217 | Quotient 15.3, entered with the LTIFR (5.5 after conversion) |
-| Vinci (FR) | F | 204 991 days lost and 2 879 lost time accidents, données sociales 2024; TF 5.80 per million hours; 365 days charged per fatal accident | Quotient 71.2, entered with a note on the fatality charge |
-| Goldbeck (DE) | F | 38.6 days per accident, the one company that prints the average (Nachhaltigkeitsbericht FY2023/24), but its accident rate is per 1 000 employees | Not entered: the rate cannot sit on the LTIFR axis |
-| BASF, STRABAG, Hochtief, ABB | C, F | Days over recordable cases | Not comparable: the denominator is not lost time accidents |
-| Georg Fischer (CH) | C | A days figure that combines accidents with illness | Not comparable: the numerator is mixed |
-| Eiffage (FR) | F | Days of accidents from the last three years, rolling | Not comparable: not one period |
-| Ferrovial (ES) | F | A days figure with an ambiguous unit | Not entered |
-| Sulzer (CH), Heidelberg Materials (DE) | C | A severity rate per million hours | A different KPI, not entered |
-| Rieter, Sandvik, NCC, Skanska, Peab, Porr, Implenia, Wacker, Evonik, Voestalpine, Thyssenkrupp, Siemens, Schindler, Holcim, SKF, Bühler | C, F | No days lost per case in any form | Nothing to enter |
-| Bouygues (FR) | F | Both report PDFs answer 403 | Unread |
-
-The per KPI status lives in `KPI_CATALOGUE` (`src/features/research/catalogue.ts`) as `peerStatus`, one of `sourced`, `pending` or `no_source`, with a `peerNote` message key in both catalogs. A Vitest test keeps every key's status and note present.
+`docs/research.md` carries the per environment checklist the spike belongs to (Parallel, the AI Gateway, the schedule, Slack, the Vercel firewall rule).

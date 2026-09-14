@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { type BenchmarkState, sectionOfDivision } from "@/features/benchmark/catalogue";
+import { roundMoney } from "@/features/benchmark/loss";
 import type { ParsedSnapshot } from "@/features/benchmark/queries";
 import type {
   SnapshotBlocks,
@@ -183,11 +184,18 @@ export async function BenchmarkSegment({
 /**
  * An amount in the snapshot's own currency, whole units (AC-14). The named `chfWhole` format is
  * fixed to francs, so the currency is passed explicitly the way the `benchmark_ready` email does:
- * a client outside Switzerland is never told its losses in francs. A modelled figure shows no
- * decimals, so it never looks exact. Pure.
+ * a client outside Switzerland is never told its losses in francs.
+ *
+ * Money is stored unrounded and rounded once at display, here, by the same `roundMoney` the task
+ * applies before it hands the figures to the email: a modelled loss printed to the franc would
+ * read as a measurement, and the card and the email would disagree for one snapshot. Pure.
  */
 function money(value: number, currency: string, format: Formatter): string {
-  return format.number(value, { style: "currency", currency, maximumFractionDigits: 0 });
+  return format.number(roundMoney(value), {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
 }
 
 /** A rate as the table prints it: two decimals, or the dash when the company published none. Pure. */

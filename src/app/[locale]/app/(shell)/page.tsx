@@ -158,6 +158,11 @@ export default async function AppPage() {
   // render site on this page stands down: an older snapshot with a failed or still running rerun
   // reaches this state too, not only a finished one.
   const figuresInBenchmark = dashboard.benchmarkState === "noData";
+  // Spec 0022, AC-18: a snapshot written under a model version this code no longer reads shows one
+  // sentence and the rerun form, because running the research again is the only thing that replaces
+  // it (no recompute runs on deploy). The run itself succeeded, so without this the sentence would
+  // ask for a rerun the page offers nowhere.
+  const outdated = dashboard.benchmarkState === "outdated";
   // Spec 0022, AC-22: the three experts to suggest beside the benchmark, chosen by the database
   // function from the company's own section and country. Only worth a query when a readable
   // snapshot will actually render the cards, and the section is what the function matches on.
@@ -283,7 +288,7 @@ export default async function AppPage() {
             card would appear twice on the same page. */}
         {finished && !figuresInBenchmark ? selfAssessment : null}
 
-        {latestRun?.status === "empty" || latestRun?.status === "failed" ? (
+        {latestRun?.status === "empty" || latestRun?.status === "failed" || outdated ? (
           <section aria-labelledby="rerun-heading" className="flex flex-col gap-4">
             <Card className="max-w-2xl">
               <CardHeader>

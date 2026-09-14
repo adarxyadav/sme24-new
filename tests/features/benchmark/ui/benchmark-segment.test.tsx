@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import axe from "axe-core";
 import { createFormatter, createTranslator } from "next-intl";
 import { describe, expect, it, vi } from "vitest";
+import { roundMoney } from "@/features/benchmark/loss";
 import { BenchmarkSegment } from "@/features/benchmark/ui/benchmark-segment";
 import { formats, TIME_ZONE } from "@/i18n/formats";
 import {
@@ -42,9 +43,13 @@ vi.mock("next/navigation", () => ({
 
 const b = en.benchmark;
 
-/** An amount as the segment prints it, from the real formatter rather than a typed out string. */
+/**
+ * An amount as the segment prints it, from the real formatter rather than a typed out string, and
+ * through the same `roundMoney` the segment applies: money is stored unrounded and rounded once at
+ * display (AC-14), so a stored 365 715 reads as 366 000 on the card and in the email alike.
+ */
 const money = (value: number, currency = "CHF") =>
-  enFormat.number(value, { style: "currency", currency, maximumFractionDigits: 0 });
+  enFormat.number(roundMoney(value), { style: "currency", currency, maximumFractionDigits: 0 });
 
 async function renderSegment(overrides: Partial<Parameters<typeof BenchmarkSegment>[0]> = {}) {
   const element = await BenchmarkSegment({

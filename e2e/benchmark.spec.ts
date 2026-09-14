@@ -1,59 +1,95 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { FIXTURE_VALUES, fixturePeerYear } from "../src/lib/research/fixture";
 import {
   accountByEmail,
   createConfirmedClient,
   dbAvailable,
   deleteAccount,
-  seedCompanyKpi,
-  seedResearchedCompany,
   serviceClient,
 } from "./db";
-import { mailAvailable, mailIds, noMailFor, readMail, uniqueEmail } from "./mail";
+import { mailAvailable, uniqueEmail } from "./mail";
 
 /**
- * The benchmark thread on the fixture research run (spec 0008, AC-16): a fresh client starts the
- * research, the worker (`pnpm trigger:dev` in fixture mode, `TRIGGER_DEV_RUNNING=1`) ends the run
- * `succeeded` and computes a snapshot from the committed seed, and the dashboard shows the
- * opportunity card, the priority gaps and the positions with deterministic values; axe runs on
- * the ready state. Without the worker the whole file skips; it also skips on a deployment.
+ * The peer benchmark thread on the fixture research run (spec 0022, AC-28): a fresh client picks a
+ * country, starts the research, and the local worker (`pnpm trigger:dev` in fixture mode,
+ * `TRIGGER_DEV_RUNNING=1`) walks the whole chain — the client run, the peer search, the code
+ * conversion and the rung, then `benchmark-company` writing a `benchmark-model@7` snapshot. The
+ * page is then asserted section by section in the order AC-20 to AC-23 fixes: the one peer table
+ * with the five country rung peers and the client's own row in place, the sentence carrying both
+ * ranks, the loss card in CHF, the three seeded experts and the recommended package. Axe runs on
+ * every state.
+ *
+ * Without the worker only the queued state is asserted (the first test); the file skips on a
+ * deployment, since the fixture provider and the seeded experts are local facts.
  */
 const localOnly = !mailAvailable || !dbAvailable;
 const workerRunning = process.env.TRIGGER_DEV_RUNNING === "1";
 const PASSWORD = "korrekt-pferd-batterie";
-const RUN_TIMEOUT = { timeout: 180_000, intervals: [1_000, 2_000] };
+// Two provider runs (the client search and the peer search) plus two Claude calls, then the
+// benchmark task: the whole chain runs well past the default test timeout.
+const RUN_TIMEOUT = { timeout: 240_000, intervals: [1_000, 2_000] };
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
-// The fixture company: accident rate 68 per 1 000 FTE, 420 employees, lost days 12.5, NOGA 23.61
-// (section C). Since the peer data refresh (spec 0016 amendment) the committed seed holds, for
-// section C, the 250+ band row scaled from the UVG-Statistik 2026 section row (quartiles 17.0,
-// 27.3, 38.2, period 2024) and the Eurostat lost days point row 14.5, plus the assumptions 4 811
-// CHF per case, 1 100 CHF per day and the multipliers 2, 3.7 and 5. The reference cost repeats
-// the formula at the peer median of both rows: the accident rate and the lost days.
-const INCIDENTS = (68 * 420) / 1000;
-const COST_PER_CASE = 4811 + 12.5 * 1100;
-const ANNUAL = INCIDENTS * COST_PER_CASE * 3.7;
-const PEER_MEDIAN_RATE = 27.3;
-const PEER_MEDIAN_LOST_DAYS = 14.5;
-const AT_MEDIAN = ((PEER_MEDIAN_RATE * 420) / 1000) * (4811 + PEER_MEDIAN_LOST_DAYS * 1100) * 3.7;
-// A gap's own saving prices that one KPI at the peer median and holds the other priced input at
-// the company's value (`soloSaving` in the model), so the accident rate gap keeps the company's
-// 12.5 lost days and its saving is larger than the card's, which moves both inputs to the median
-// (the company is already better than the peer on lost days). Both are shown; see the follow up in
-// spec 0016's amendment.
-const GAP_SAVING = ANNUAL - ((PEER_MEDIAN_RATE * 420) / 1000) * COST_PER_CASE * 3.7;
-// The lost time count (spec 0012) takes the per million hours arm, on the 1 804 hours assumption:
-// LTIFR 2.4 drives it. The recordable count is still computed but no longer shown anywhere since
-// the "How this is calculated" disclosure was cut (owner decision of 2026-09-13).
-const HOURS_PER_FTE = 1804;
-const LOST_TIME = (2.4 * 420 * HOURS_PER_FTE) / 1_000_000;
+/**
+ * What the fixture makes true, so the assertions below read as arithmetic rather than as magic
+ * numbers. The client is 420 employees in NOGA 23.61 (section C) in CH, LTIFR 2.4 and TRIFR 6.1
+ * for the latest fixture year. The peer search answers eight companies, five of them in CH, so the
+ * rung is `country` and those five are the whole peer set (AC-7, AC-11). Their printed rates are
+ * converted in code (AC-8): per 200 000 hours and per 100 workers both times five.
+ */
+const FTE = 420;
+const COUNTRY_PEER_LTIFR = [3.1, 0.9 * 5, 5.6, 1.4 * 5, 4.2];
+const COUNTRY_PEER_TRIFR = [7.4, 2.2 * 5, 11.8, 2.6 * 5];
+const PEER_COUNT = COUNTRY_PEER_LTIFR.length;
+
+/** The owner's loss table (AC-14), repeated here so a constant change fails this spec too. */
+const HOURS_PER_FTE = 1800;
+const HOURS_PER_LTI = 769;
+const HOURS_PER_RECORDABLE = 201;
+const HOURLY_COST = 75;
+
+function lossOf(ltifr: number, trifr: number, fte: number): number {
+  const exposure = (rate: number) => (rate * fte * HOURS_PER_FTE) / 1_000_000;
+  const ltis = exposure(ltifr);
+  const recordables = exposure(Math.max(0, trifr - ltifr));
+  return (ltis * HOURS_PER_LTI + recordables * HOURS_PER_RECORDABLE) * HOURLY_COST;
+}
+
+function medianOf(values: readonly number[]): number {
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1
+    ? (sorted[middle] as number)
+    : ((sorted[middle - 1] as number) + (sorted[middle] as number)) / 2;
+}
+
+/** Rounds as `roundMoney` does (AC-14): nearest 100 below 10 000, else nearest 1 000. */
+function roundMoney(value: number): number {
+  const step = Math.abs(value) < 10_000 ? 100 : 1_000;
+  return Math.round(value / step) * step;
+}
+
+/** The client's own loss, the headline of the loss card. */
+const CLIENT_LOSS = lossOf(FIXTURE_VALUES.ltifr, FIXTURE_VALUES.trifr, FTE);
+/** The same formula at each rate's peer median, fatalities held at zero (AC-14). */
+const AT_MEDIAN = lossOf(medianOf(COUNTRY_PEER_LTIFR), medianOf(COUNTRY_PEER_TRIFR), FTE);
+const AT_BEST = lossOf(Math.min(...COUNTRY_PEER_LTIFR), Math.min(...COUNTRY_PEER_TRIFR), FTE);
+
+/**
+ * A rounded amount as the page prints it in de-CH's sibling `en-CH`, whose group separator is the
+ * apostrophe the ICU data carries. The test matches on the digits with any separator between them,
+ * because a formatted 4+ digit number is exactly where Node and the browser have disagreed before
+ * (the hydration trap in `docs/design.md`), and a spec that pins one spelling would fail on the
+ * other for a reason that has nothing to do with the benchmark.
+ */
+function amountPattern(value: number): RegExp {
+  const digits = String(Math.round(Math.abs(value)));
+  return new RegExp([...digits].join("\\D?"));
+}
 
 test.skip(localOnly, "needs the local stack: Mailpit and the Supabase secret key");
-test.skip(
-  !workerRunning,
-  "set TRIGGER_DEV_RUNNING=1 while `pnpm trigger:dev` runs in fixture mode",
-);
-test.describe.configure({ timeout: 400_000 });
+test.describe.configure({ timeout: 600_000 });
 
 async function expectNoAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(WCAG_TAGS).analyze();
@@ -70,380 +106,369 @@ async function signInFresh(page: Page, email: string, organizationName: string) 
   await expect(page).toHaveURL(/\/en\/app$/);
 }
 
-test("the fixture run ends in a snapshot and the dashboard shows the card, the gaps and the positions", async ({
-  page,
-}) => {
-  const email = uniqueEmail("benchmark");
+/**
+ * Starts the research from the lookup form. The country is required since spec 0022 (AC-1) and has
+ * no default, so it is picked here on every run: a company is never created as Swiss by omission.
+ */
+async function startResearch(page: Page, country: string) {
+  // The lookup form's own select by id: the rerun form carries a second one with the same label,
+  // so a label lookup is ambiguous on any page that offers both.
+  await page.locator("#company-country").click();
+  await page.getByRole("option", { name: country, exact: true }).click();
+  await page.getByRole("button", { name: "Start research" }).click();
+}
+
+test("the lookup form requires a country and the run is queued", async ({ page }) => {
+  const email = uniqueEmail("benchmark-queued");
   try {
-    await signInFresh(page, email, "Benchmark Fixture AG");
-    const seenBefore = await mailIds(email);
+    await signInFresh(page, email, "Benchmark Queued AG");
+    await expect(page.getByRole("heading", { level: 1, name: "Your company" })).toBeVisible();
+
+    // The country carries no default (AC-1), so submitting without one is refused and nothing is
+    // queued; this is the guard that keeps a non Swiss company from being researched as Swiss.
     await page.getByRole("button", { name: "Start research" }).click();
-    await expect(page.getByRole("heading", { level: 1, name: "Benchmark Fixture AG" })).toBeVisible(
-      {
-        timeout: 20_000,
-      },
-    );
-    await expect
-      .poll(
-        () => page.locator("[data-run-status]").first().getAttribute("data-run-status"),
-        RUN_TIMEOUT,
-      )
-      .toBe("succeeded");
-
-    // The snapshot lands a few seconds after the run; the Realtime channel or the poll refreshes the page.
-    const segment = page.locator("[data-benchmark-state]");
-    await expect(segment).toBeVisible();
-    await expect
-      .poll(() => segment.getAttribute("data-benchmark-state"), RUN_TIMEOUT)
-      .toBe("ready");
-    await expect(
-      page.getByRole("heading", { level: 2, name: "Benchmark and opportunity" }),
-    ).toBeVisible();
-
-    // The opportunity card (AC-9 a): the range, the working estimate with the lost time count it
-    // is built from (spec 0012, AC-1, AC-8: 1.818 injuries a year to one decimal), both savings,
-    // the spelled out confidence in the title row, the provisional note. Nothing else: the date,
-    // the KPI count and the derived rows left the card on 2026-09-13 and the disclosure that took
-    // them was cut the same day (owner decisions).
-    const card = page.locator("[data-opportunity-card]");
-    expect(Number(await card.getAttribute("data-cost"))).toBeCloseTo(ANNUAL, 0);
-    await expect(card.locator("[data-cost-headline]")).toContainText(/1.961.000/);
-    await expect(card.locator("[data-cost-headline]")).toContainText(
-      `a year, from about ${LOST_TIME.toFixed(1)} lost time injuries across 420 employees.`,
-    );
-    await expect(card.locator("[data-saving-median]")).toContainText(/1.081.000/);
-    await expect(card.locator("[data-saving-median]")).toContainText("a year");
-    await expect(card.locator("[data-confidence]")).toContainText(/confidence$/);
-    await expect(card.getByText(/Computed on/)).toHaveCount(0);
-    await expect(card.locator("[data-compared]")).toHaveCount(0);
-    await expect(card.locator("[data-derived-count]")).toHaveCount(0);
-    // Every peer row the fixture company meets is read from its named source since the peer data
-    // refresh, but the four cost assumptions are still provisional, so the note stays until the
-    // launch gate reads them (spec 0016, AC-1).
-    await expect(page.locator("[data-provisional-note]")).toBeVisible();
-
-    // The priority gaps (AC-9 b): of the four compared KPIs the accident rate is the only one the
-    // fixture company sits above the peer median on (lost days 12.5 against 14.5, no fatality
-    // against 0.55 per 100 000, absence 3.8 against 3.97 are all better).
-    const gaps = page.locator("[data-gaps]");
-    await expect(gaps).toHaveAttribute("data-gaps", "1");
-    const gap = page.locator('[data-gap="accident_rate_per_1000_fte"]');
-    await expect(gap).toHaveAttribute("data-rank", "1");
-    await expect(gap.getByText("68.00 vs. median 27.30")).toBeVisible();
-    // 1 173 942, rounded to the nearest thousand.
-    expect(Math.round(GAP_SAVING)).toBe(1_173_942);
-    await expect(gap.locator("[data-gap-saving]")).toContainText(/1.174.000/);
-
-    // The positions (AC-9 c): one row per catalogue KPI, the band on the compared one.
-    await expect(page.locator("[data-position-kpi]")).toHaveCount(8);
-    const accident = page.locator('[data-position-kpi="accident_rate_per_1000_fte"]');
-    await expect(accident).toHaveAttribute("data-position", "bottom_quarter");
-    await expect(accident.locator("svg[data-value]")).toHaveAttribute("data-value", "68");
-    await expect(accident.getByText("Bottom quarter", { exact: true })).toBeVisible();
-    await expect(accident.locator(".sr-only")).toContainText(
-      "your value 68.00 is in the band Bottom quarter",
-    );
-    // The peer label names the source's own classification through `source_key` (spec 0016,
-    // AC-6) and the band row the 420 FTE company met on rung 1 (amendment, D4).
-    await expect(
-      accident.getByText(
-        /Suva Tab\. 1\.2 · NOGA 10–33 · 250 and more employees · 2024 \(nearest year\)/,
-      ),
-    ).toBeVisible();
-    // The fatality count is judged as a rate per 100 000 employed persons against the Eurostat
-    // point row, and the row says which value it compared (amendment, D3, AC-23).
-    const fatalities = page.locator('[data-position-kpi="fatalities"]');
-    await expect(fatalities).toHaveAttribute("data-peer-shape", "point");
-    await expect(fatalities).toHaveAttribute("data-position", "above_average");
-    await expect(fatalities.locator("[data-compared-value]")).toHaveAttribute(
-      "data-compared-value",
-      "0",
-    );
-    await expect(
-      fatalities.getByText("Your count as a rate: 0.00 per 100 000 employed persons"),
-    ).toBeVisible();
-    await expect(
-      fatalities.getByText(/Eurostat hsw_n2_02 · NACE C · all sizes · 2023/),
-    ).toBeVisible();
-    // The named published peers (spec 0021, AC-17): the fixture's LTIFR 2.4 against the committed
-    // library of section C. Switzerland holds two published manufacturers (Geberit, Rieter) and
-    // the DACH region no more, so the ladder widens to Europe, where Sandvik's 1.2 makes the
-    // fixture 2nd of 3. The card replaces the row: the rank line with the word publish, the
-    // rung sentence, one linked source per row, the client row with no money, and the strip's
-    // screen reader sentence.
-    const ltifr = page.locator('[data-position-kpi="ltifr"]');
-    await expect(ltifr.getByText("No peer data yet")).toHaveCount(0);
-    const standing = ltifr.locator('[data-peer-standing="ltifr"]');
-    await expect(standing).toHaveAttribute("data-geo-rung", "europe");
-    await expect(standing).toHaveAttribute("data-rank", "2");
-    await expect(standing.locator("[data-rank-line]")).toContainText(
-      "2nd of 3 companies in Manufacturing in Europe that publish an LTIFR",
-    );
-    await expect(standing.locator("[data-gap-line]")).toContainText(
-      "1.20 behind Sandvik AB, the best published peer",
-    );
-    await expect(standing.locator("[data-rung-sentence]")).toContainText(
-      "Fewer than three companies in Switzerland publish an LTIFR, so the comparison widened to Europe.",
-    );
-    const peerRows = standing.locator("[data-peer-row]");
-    await expect(peerRows).toHaveCount(3);
-    for (const key of ["sandvik", "rieter", "geberit"]) {
-      const link = standing.locator(`[data-peer-row="${key}"] a`);
-      await expect(link).toHaveAttribute("href", /^https:\/\//);
-      await expect(link).toHaveAttribute("rel", "noopener noreferrer");
-    }
-    const clientRow = standing.locator("[data-client-row]");
-    await expect(clientRow).toHaveCount(1);
-    await expect(clientRow).toContainText("2.40");
-    await expect(clientRow).not.toContainText("CHF");
-    // The saving column is the client's own: a figure at Sandvik, already ahead of the other two.
-    await expect(standing.locator('[data-peer-row="sandvik"] [data-saving]')).toContainText("CHF");
-    await expect(standing.locator('[data-peer-row="rieter"] [data-saving]')).toContainText(
-      "already ahead",
-    );
-    await expect(standing.locator('[data-slot="peer-strip"] .sr-only')).toContainText(
-      "Your value 2.40 against 3 published peers in Europe, from 1.20 to 6.00.",
-    );
-    // The forbidden words never appear on the card.
-    expect(((await standing.textContent()) ?? "").toLowerCase()).not.toMatch(
-      /quarter|quartile|median/,
-    );
-    // TRIFR has only two published manufacturers (Sandvik, BASF), so it keeps today's row and
-    // says so (AC-12).
-    const trifr = page.locator('[data-position-kpi="trifr"]');
-    await expect(trifr.locator("[data-peer-standing]")).toHaveCount(0);
-    await expect(trifr.getByText("No published peer yet")).toBeVisible();
+    await expect(page.locator("#company-country-error")).toBeVisible();
     await expectNoAxeViolations(page);
 
-    // The benchmark ready email (AC-7): one delivery per member on the first snapshot, in the
-    // member's language (the fixture client is German). It lands in Mailpit when the worker runs
-    // on SMTP; a worker whose Trigger.dev environment carries a Resend key and an allowlist skips
-    // the test address instead, so the inbox is asserted only on the SMTP transport.
-    const db = serviceClient();
-    const account = await accountByEmail(email);
-    const { data: companyRow } = await db
-      .from("companies")
-      .select("id")
-      .eq("name", "Benchmark Fixture AG")
-      .maybeSingle();
-    const deliveryKey = `benchmark-ready/${companyRow?.id}/${account?.user.id}`;
-    const delivery = await expect
-      .poll(
-        async () => {
-          const { data } = await db
-            .from("email_deliveries")
-            .select("status, locale, source_event, template, transport")
-            .eq("idempotency_key", deliveryKey)
-            .maybeSingle();
-          return data && data.status !== "queued" && data.status !== "sending" ? data : null;
-        },
-        { timeout: 60_000, intervals: [1_000, 2_000] },
-      )
-      .not.toBeNull()
-      .then(async () => {
-        const { data } = await db
-          .from("email_deliveries")
-          .select("status, locale, source_event, template, transport")
-          .eq("idempotency_key", deliveryKey)
-          .single();
-        return data;
-      });
-    expect(delivery).toMatchObject({
-      locale: "de",
-      source_event: "benchmark.snapshot_created",
-      template: "benchmark_ready",
+    await startResearch(page, "Switzerland");
+    await expect(page.getByRole("heading", { level: 1, name: "Benchmark Queued AG" })).toBeVisible({
+      timeout: 20_000,
     });
-    expect(["sent", "skipped"]).toContain(delivery?.status);
-    if (delivery?.transport === "smtp") {
-      const mail = await readMail(email, { seen: seenBefore, timeoutMs: 60_000 });
-      expect(mail.subject).toBe("Ihr Benchmark für Benchmark Fixture AG ist bereit");
-      expect(mail.html).toMatch(/1.961.000/);
-      expect(mail.html).toMatch(/1.081.000/);
-      expect(mail.links.some((link) => link.endsWith("/de/app"))).toBe(true);
-    } else {
-      console.log(
-        `benchmark email not asserted in Mailpit: transport ${delivery?.transport}, status ${delivery?.status}`,
-      );
-    }
-    const seenAfterFirst = await mailIds(email);
-
-    // No "How this is calculated" disclosure anywhere on the page (owner decision of 2026-09-13):
-    // the formula, the assumptions, the inputs used and the derived rows are gone, and the facts
-    // form stands as its own card after the positions.
-    await expect(page.locator("[data-calculation-disclosure]")).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "How this is calculated" })).toHaveCount(0);
-    await expect(page.getByText("Assumptions used")).toHaveCount(0);
-    const factsCard = page.locator("[data-facts-card]");
-    await expect(factsCard).toHaveCount(1);
-    await expect(factsCard.getByText("Select your industry and headcount")).toBeVisible();
-    await expectNoAxeViolations(page);
-
-    // The facts form (AC-11, AC-12): a new headcount is saved, the benchmark is recomputed and the
-    // card shows the new cost once the snapshot lands.
-    const form = factsCard.locator("[data-facts-form]");
-    await expect(form.getByLabel("Industry", { exact: true })).toContainText("23");
-    await form.getByLabel("Headcount").fill("500");
-    await form.getByRole("button", { name: "Save and recalculate" }).click();
-    await expect(form.locator("[data-facts-saved]")).toHaveAttribute("data-facts-saved", "true");
-    const NEW_ANNUAL = ((68 * 500) / 1000) * COST_PER_CASE * 3.7;
     await expect
-      .poll(async () => Number(await card.getAttribute("data-cost")), RUN_TIMEOUT)
-      .toBeCloseTo(NEW_ANNUAL, 0);
-    await expect(card.locator("[data-cost-headline]")).toContainText(/2.335.000/);
-    // The second snapshot is not the first: no second delivery and no second email (AC-5, AC-7).
-    expect(await noMailFor(email, seenAfterFirst)).toBe(true);
-    const { count: benchmarkDeliveries } = await db
-      .from("email_deliveries")
-      .select("id", { count: "exact", head: true })
-      .eq("recipient_email", email)
-      .eq("template", "benchmark_ready");
-    expect(benchmarkDeliveries).toBe(1);
-    if (process.env.BENCHMARK_SCREENSHOT) {
-      await page.screenshot({ path: process.env.BENCHMARK_SCREENSHOT, fullPage: true });
-    }
-
-    // The stored rows (AC-5): two snapshots, the first keyed to the run, four KPIs compared, the
-    // provisional flag still raised by the cost assumptions, the saving unrounded.
-    const { data: company } = await db
-      .from("companies")
-      .select("id, employees_count, industry_code")
-      .eq("name", "Benchmark Fixture AG")
-      .maybeSingle();
-    expect(company?.industry_code).toBe("23.61");
-    const { data: snapshots } = await db
-      .from("benchmark_snapshots")
-      .select(
-        "trigger_kind, research_run_id, kpis_compared, peer_provisional, saving_median_chf, created_at, model_version, peers",
-      )
-      .eq("company_id", company?.id ?? "");
-    expect(company?.employees_count).toBe(500);
-    expect(snapshots).toHaveLength(2);
-    const [first, second] = [...(snapshots ?? [])].sort((a, b) =>
-      a.created_at < b.created_at ? -1 : 1,
-    );
-    expect(first?.trigger_kind).toBe("research");
-    expect(first?.research_run_id).not.toBeNull();
-    expect(first?.kpis_compared).toBe(4);
-    // The peers block is stored under the version that carries it (spec 0021, AC-9).
-    expect(first?.model_version).toBe("benchmark-model@5");
-    const storedPeers = first?.peers as ReadonlyArray<{ key: string; rows: unknown[] }> | null;
-    expect(storedPeers?.map((block) => block.key)).toEqual(["ltifr"]);
-    expect(storedPeers?.[0]?.rows).toHaveLength(3);
-    expect(first?.peer_provisional).toBe(true);
-    expect(Number(first?.saving_median_chf)).toBeCloseTo(ANNUAL - AT_MEDIAN, 0);
-    expect(second?.trigger_kind).toBe("client_edit");
-    expect(second?.research_run_id).toBeNull();
+      .poll(() => page.locator("[data-run-status]").first().getAttribute("data-run-status"), {
+        timeout: 20_000,
+        intervals: [500],
+      })
+      .toMatch(/queued|running|succeeded/);
+    await expectNoAxeViolations(page);
   } finally {
-    // The delivery row outlives the user by design (recipient set to null), so it goes by hand.
-    if (!process.env.BENCHMARK_KEEP_DELIVERIES) {
-      await serviceClient().from("email_deliveries").delete().eq("recipient_email", email);
-    }
     await deleteAccount(email);
   }
 });
 
+test.describe("through the local worker", () => {
+  test.skip(
+    !workerRunning,
+    "set TRIGGER_DEV_RUNNING=1 while `pnpm trigger:dev` runs in fixture mode",
+  );
+
+  test("the fixture run lands on the country rung and the page shows the table, the loss, the experts and the package", async ({
+    page,
+  }) => {
+    const email = uniqueEmail("benchmark");
+    try {
+      await signInFresh(page, email, "Benchmark Fixture AG");
+      await startResearch(page, "Switzerland");
+      await expect(
+        page.getByRole("heading", { level: 1, name: "Benchmark Fixture AG" }),
+      ).toBeVisible({ timeout: 20_000 });
+      await expect
+        .poll(
+          () => page.locator("[data-run-status]").first().getAttribute("data-run-status"),
+          RUN_TIMEOUT,
+        )
+        .toBe("succeeded");
+
+      // The snapshot lands after the peer task and the benchmark task; the Realtime channel or the
+      // poll refreshes the page. `ready` is the only state whose blocks render at all (AC-18).
+      const segment = page.locator("[data-benchmark-state]");
+      await expect(segment).toBeVisible();
+      await expect
+        .poll(() => segment.getAttribute("data-benchmark-state"), RUN_TIMEOUT)
+        .toBe("ready");
+
+      // ── The peer table, first (AC-20) ────────────────────────────────────────────────────────
+      const peersCard = page.locator("[data-peers-card]");
+      await expect(peersCard).toBeVisible();
+      // Five peers, all Swiss, so the badge names the country rung by its own name.
+      await expect(peersCard.locator("[data-peer-count]")).toHaveAttribute(
+        "data-peer-count",
+        String(PEER_COUNT),
+      );
+      await expect(peersCard.locator("[data-peer-count]")).toContainText(
+        `${PEER_COUNT} peers in Switzerland`,
+      );
+
+      // The rank sentence carries both ranks (AC-20). The client's 2.4 is beaten by one peer's 2.4
+      // ... no: of the five converted LTIFRs (3.1, 4.5, 5.6, 7.0, 4.2) none is below 2.4, so the
+      // client leads on LTIFR; on TRIFR (7.4, 11.0, 11.8, 13.0) its 6.1 leads as well. Both ranks
+      // are computed from `peers.rates`, so they are read off the page rather than restated here,
+      // and only the shape of the sentence is pinned.
+      const rankSentence = peersCard.locator("[data-rank-sentence]");
+      await expect(rankSentence).toContainText(
+        /You rank \d+ of \d+ on LTIFR and \d+ of \d+ on TRIFR among published peers in .+ in Switzerland\./,
+      );
+      // The client is one of the compared set, so `of` is the rate's peer count plus one (AC-13).
+      await expect(rankSentence).toContainText(`of ${PEER_COUNT + 1} on LTIFR`);
+      await expect(rankSentence).toContainText(`of ${COUNTRY_PEER_TRIFR.length + 1} on TRIFR`);
+
+      // One table: the five peers plus the client's own row, highlighted in place by its LTIFR.
+      await expect(peersCard.locator("[data-peer]")).toHaveCount(PEER_COUNT);
+      const clientRow = peersCard.locator("[data-client-row]");
+      await expect(clientRow).toHaveCount(1);
+      await expect(clientRow).toContainText("Benchmark Fixture AG");
+      await expect(clientRow).toContainText("Your figures");
+      await expect(clientRow).toContainText(`${FTE} employees`);
+      // Its LTIFR of 2.4 is below every peer's, so the client sorts to the top of the table: the
+      // row is placed among the peers by its own rate rather than appended to them (AC-20).
+      await expect(peersCard.locator("tbody tr").first()).toHaveAttribute("data-client-row");
+
+      // Every peer row carries a headcount, a year, a converted rate and a source link that opens
+      // the page in a new tab. The fixture's per 200 000 hours 0.9 is the conversion of AC-8: it
+      // must print as 4.50 and never as 0.90.
+      const firstPeer = peersCard.locator("[data-peer]").first();
+      await expect(firstPeer).toContainText("Switzerland");
+      await expect(firstPeer).toContainText(String(fixturePeerYear()));
+      const sourceLink = firstPeer.locator("a");
+      await expect(sourceLink).toHaveAttribute("href", /^https:\/\//);
+      await expect(sourceLink).toHaveAttribute("target", "_blank");
+      await expect(sourceLink).toHaveAttribute("rel", "noopener noreferrer");
+      const tableText = (await peersCard.locator("table").textContent()) ?? "";
+      expect(tableText).toContain("4.50");
+      expect(tableText).toContain("7.00");
+
+      // The footnote, and never the word verified anywhere on the card (AC-20, AC-27).
+      await expect(peersCard.locator("[data-peers-footnote]")).toContainText("public reports");
+      expect(((await peersCard.textContent()) ?? "").toLowerCase()).not.toContain("verified");
+
+      // ── The estimated loss, second (AC-21) ───────────────────────────────────────────────────
+      const lossCard = page.locator("[data-loss-card]");
+      await expect(lossCard.locator("[data-loss-headline]")).toContainText(
+        amountPattern(roundMoney(CLIENT_LOSS)),
+      );
+      await expect(lossCard.locator("[data-loss-headline]")).toContainText("CHF");
+      // The client is ahead of the peer median on both rates, so there is nothing to save and the
+      // card says so rather than printing a zero.
+      expect(CLIENT_LOSS).toBeLessThan(AT_MEDIAN);
+      expect(CLIENT_LOSS).toBeLessThan(AT_BEST);
+      await expect(lossCard).toContainText("You are already at or below the peer figures.");
+      // The counts behind it, each with its badge; the hourly cost and the fatality price are
+      // never rendered (AC-14, AC-21).
+      const ltis = (FIXTURE_VALUES.ltifr * FTE * HOURS_PER_FTE) / 1_000_000;
+      await expect(lossCard).toContainText(`${ltis.toFixed(1)} lost time injuries`);
+      await expect(lossCard).toContainText("0 fatalities");
+      await expect(lossCard.getByText("Calculated").first()).toBeVisible();
+      const lossText = (await lossCard.textContent()) ?? "";
+      expect(lossText).not.toContain("769");
+      expect(lossText).not.toContain("201");
+      expect(lossText).not.toMatch(/1.200.000/);
+
+      // ── The experts, third (AC-22) ───────────────────────────────────────────────────────────
+      // The three seeded section C experts with `countries = {CH}`, in the order the function
+      // orders by: availability, then the longer career first.
+      const expertsCard = page.locator("[data-experts-card]");
+      const expertCards = expertsCard.locator("ul > li");
+      await expect(expertCards).toHaveCount(3);
+      await expect(expertsCard).toContainText("Nadja Brunner");
+      await expect(expertsCard).toContainText(
+        "Our ops team assigns your expert once you have bought a package.",
+      );
+      // No email, no status and no note reaches the page: the function returns none of them
+      // (AC-26), so the card cannot leak one.
+      const expertsText = (await expertsCard.textContent()) ?? "";
+      expect(expertsText).not.toContain("@example.com");
+
+      // ── The package, fourth (AC-23) ──────────────────────────────────────────────────────────
+      // Ahead on both rates with no fatality and a saving of zero: the standing lands on culture.
+      const packageCard = page.locator("[data-package-card]");
+      await expect(packageCard).toHaveAttribute("data-package", "culture");
+      await expect(packageCard.locator("[data-package-reason]")).toContainText(
+        "You are ahead of the peer median on both rates.",
+      );
+      await expect(packageCard.locator("[data-package-price]")).toBeVisible();
+      await expect(packageCard.getByRole("link", { name: /^Buy / })).toHaveAttribute(
+        "href",
+        /checkout/,
+      );
+      await expect(
+        packageCard.getByRole("link", { name: "See all packages and prices" }),
+      ).toBeVisible();
+
+      await expectNoAxeViolations(page);
+
+      // ── The stored row (AC-13, AC-16) ────────────────────────────────────────────────────────
+      const db = serviceClient();
+      const account = await accountByEmail(email);
+      const { data: company } = await db
+        .from("companies")
+        .select("id, country, currency")
+        .eq("organization_id", account?.organization?.id ?? "")
+        .maybeSingle();
+      expect(company?.country).toBe("CH");
+      expect(company?.currency).toBe("CHF");
+
+      // The peers of the run are stored once each, per rate, all on the country rung (AC-9, AC-10).
+      const { data: peerRows } = await db
+        .from("research_peers")
+        .select("peer_name, kpi_key, rung, value, source_url")
+        .eq("company_id", company?.id ?? "");
+      expect(new Set((peerRows ?? []).map((row) => row.peer_name)).size).toBe(PEER_COUNT);
+      expect((peerRows ?? []).every((row) => row.rung === "country")).toBe(true);
+      expect((peerRows ?? []).every((row) => row.source_url.startsWith("https://"))).toBe(true);
+
+      const { data: snapshot } = await db
+        .from("benchmark_snapshots")
+        .select(
+          "model_version, currency, loss_amount, saving_at_median, kpis_compared, peer_provisional, peers, results, gaps, assumptions",
+        )
+        .eq("company_id", company?.id ?? "")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      expect(snapshot?.model_version).toBe("benchmark-model@7");
+      expect(snapshot?.currency).toBe("CHF");
+      expect(Number(snapshot?.loss_amount)).toBeCloseTo(CLIENT_LOSS, 0);
+      // Ahead of the median on both rates, so the saving is zero rather than null: the peers are
+      // present, the formula just has nothing to give back (AC-14).
+      expect(Number(snapshot?.saving_at_median)).toBe(0);
+      // `@7` compares the rates of `peers.rates` and nothing else, and carries no provisional row.
+      expect(snapshot?.kpis_compared).toBe(2);
+      expect(snapshot?.peer_provisional).toBe(false);
+      // The blocks the rewrite dropped are null from `@7` on (AC-12, AC-16).
+      expect(snapshot?.results).toBeNull();
+      expect(snapshot?.gaps).toBeNull();
+      expect(snapshot?.assumptions).toBeNull();
+      const peers = snapshot?.peers as {
+        readonly rung: string;
+        readonly thin: boolean;
+        readonly rows: readonly { readonly estimatedLoss: number | null }[];
+      } | null;
+      expect(peers?.rung).toBe("country");
+      expect(peers?.thin).toBe(false);
+      expect(peers?.rows).toHaveLength(PEER_COUNT);
+      // Every fixture peer publishes a headcount, so every row prices its own estimated loss.
+      expect((peers?.rows ?? []).every((row) => row.estimatedLoss !== null)).toBe(true);
+    } finally {
+      if (!process.env.BENCHMARK_KEEP_DELIVERIES) {
+        await serviceClient().from("email_deliveries").delete().eq("recipient_email", email);
+      }
+      await deleteAccount(email);
+    }
+  });
+
+  test("a thin peer run replaces the rank sentence with the count it found", async ({ page }) => {
+    const email = uniqueEmail("benchmark-thin");
+    try {
+      // `thinpeers` in the name gives the fixture two peers, both outside the region, so the ladder
+      // falls to the world rung and the run is thin (AC-11).
+      await signInFresh(page, email, "Thinpeers Fixture AG");
+      await startResearch(page, "Switzerland");
+      await expect(
+        page.getByRole("heading", { level: 1, name: "Thinpeers Fixture AG" }),
+      ).toBeVisible({ timeout: 20_000 });
+      await expect
+        .poll(
+          () => page.locator("[data-run-status]").first().getAttribute("data-run-status"),
+          RUN_TIMEOUT,
+        )
+        .toBe("succeeded");
+      await expect
+        .poll(
+          () => page.locator("[data-benchmark-state]").getAttribute("data-benchmark-state"),
+          RUN_TIMEOUT,
+        )
+        .toBe("ready");
+
+      const peersCard = page.locator("[data-peers-card]");
+      await expect(peersCard.locator("[data-peer-count]")).toHaveAttribute("data-peer-count", "2");
+      await expect(peersCard.locator("[data-peer-count]")).toContainText("worldwide");
+      // The thin sentence stands in for the ranks entirely: no rank is quoted off two peers.
+      await expect(peersCard.locator("[data-rank-sentence]")).toContainText(
+        "We found only 2 published peers for your sector.",
+      );
+      await expect(peersCard.locator("[data-rank-sentence]")).not.toContainText("You rank");
+      await expect(peersCard.locator("[data-peer]")).toHaveCount(2);
+
+      const db = serviceClient();
+      const account = await accountByEmail(email);
+      const { data: company } = await db
+        .from("companies")
+        .select("id")
+        .eq("organization_id", account?.organization?.id ?? "")
+        .maybeSingle();
+      const { data: snapshot } = await db
+        .from("benchmark_snapshots")
+        .select("peers")
+        .eq("company_id", company?.id ?? "")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const peers = snapshot?.peers as { readonly rung: string; readonly thin: boolean } | null;
+      expect(peers?.rung).toBe("world");
+      expect(peers?.thin).toBe(true);
+
+      await expectNoAxeViolations(page);
+    } finally {
+      if (!process.env.BENCHMARK_KEEP_DELIVERIES) {
+        await serviceClient().from("email_deliveries").delete().eq("recipient_email", email);
+      }
+      await deleteAccount(email);
+    }
+  });
+});
+
 /**
- * The point row path (spec 0016, AC-15). Section D holds one Suva class, so its seeded peer rows
- * are one figure repeated as all three quartiles: `point` rows. A 200 employee company meets the
- * section's 50 to 249 band row, 48.9, scaled from the 41.1 section row (spec 0016 amendment, D4),
- * and a point row stays a point row under the scaling. The company is seeded straight into that
- * section and a snapshot is driven through the same `benchmark-company` task the product uses, so
- * the assertions run against the real model rather than a fixture of the rendering.
- *
- * What must hold: no quartile band is drawn and no replacement graphic takes its place, the words
- * quarter, quartile and median never appear on the row, one labelled sector figure is shown, and
- * the state passes axe. The distribution path stays covered by the test above, so both shapes are
- * exercised.
+ * A snapshot written by a model version this code no longer reads (AC-18): the segment shows one
+ * sentence and the rerun form, and nothing of the stored row is rendered. Driven by writing a row
+ * under an older version directly, which is exactly what a client who researched before the spec
+ * 0022 deploy has; no recompute is run on deploy, so this state is reached by real clients.
  */
-test("a point row renders a sector comparison with no band and no quartile wording", async ({
+test("an older snapshot renders the outdated sentence and nothing of the stored row", async ({
   page,
 }) => {
-  const email = uniqueEmail("benchmark-point");
+  const email = uniqueEmail("benchmark-outdated");
   try {
-    await signInFresh(page, email, "Point Row AG");
+    await signInFresh(page, email, "Outdated Snapshot AG");
     const account = await accountByEmail(email);
     const organizationId = account?.organization?.id;
     const userId = account?.user.id;
     if (!organizationId || !userId) throw new Error("the sign in created no organization");
 
-    // NOGA 35 is section D, whose 50 to 249 band row is a single figure (48.9 three times) in the
-    // committed seed. The company sits above it, so the position is `below_average`, never a
-    // quartile band.
-    const { companyId, runId } = await seedResearchedCompany({
-      organizationId,
-      userId,
-      name: "Point Row AG",
-      industryCode: "35",
-      employeesCount: 200,
-    });
-    await seedCompanyKpi({
-      organizationId,
-      companyId,
-      runId,
-      kpiKey: "accident_rate_per_1000_fte",
-      periodYear: 2024,
-      value: 60,
-    });
-
     const db = serviceClient();
-    await db.from("companies").update({ updated_at: new Date().toISOString() }).eq("id", companyId);
+    const { data: company } = await db
+      .from("companies")
+      .insert({
+        organization_id: organizationId,
+        name: "Outdated Snapshot AG",
+        created_by: userId,
+        industry_code: "23.61",
+        employees_count: FTE,
+      })
+      .select("id")
+      .single()
+      .throwOnError();
+    const { error } = await db.from("benchmark_snapshots").insert({
+      organization_id: organizationId,
+      company_id: company?.id ?? "",
+      trigger_kind: "client_edit",
+      model_version: "benchmark-model@5",
+      kpis_compared: 1,
+      peer_provisional: false,
+      inputs: { fte: FTE, section: "C", band: "250+", industryCode: "23.61", kpis: [] },
+      results: [],
+      gaps: [],
+      assumptions: [],
+      cost: null,
+    });
+    if (error) throw error;
+
     await page.goto("/en/app");
-    await expect(page.getByRole("heading", { level: 1, name: "Point Row AG" })).toBeVisible();
-
-    // Drive a snapshot through the product's own path: saving a figure queues `benchmark-company`.
-    // The form sends only the fields the client changed, so an untouched value is never copied into
-    // a client row and an untouched save returns `nothingToSave` without queueing anything. Enter a
-    // figure first, then wait for the save to land before polling for the snapshot.
-    const assessment = page.locator("[data-self-assessment]");
-    // 61 rather than the seeded 60: the form diffs each field against its prefilled research value
-    // and drops the ones that match, so re-entering 60 would send nothing at all. Any figure above
-    // the 48.9 band row keeps the position `below_average`.
-    // Wait for the prefilled research value to land before typing: the form refills from the rows
-    // after hydration with `keepDirtyValues`, so a fill that arrives first merges with the prefill
-    // ("6061") and fails validation instead of saving.
-    const accidentField = assessment.getByRole("textbox", { name: "Accident rate per 1 000 FTE" });
-    await expect(accidentField).toHaveValue("60");
-    await accidentField.fill("61");
-    await assessment.getByRole("button", { name: "Save and recalculate" }).click();
-    await expect(assessment.locator("[data-kpis-saved]")).toHaveAttribute(
-      "data-kpis-saved",
-      "true",
+    const segment = page.locator("[data-benchmark-state]");
+    await expect(segment).toHaveAttribute("data-benchmark-state", "outdated");
+    await expect(segment.locator("[data-outdated]")).toContainText("earlier model");
+    // Nothing of the old row: no peer table, no loss card, no package.
+    await expect(page.locator("[data-peers-card]")).toHaveCount(0);
+    await expect(page.locator("[data-loss-card]")).toHaveCount(0);
+    await expect(page.locator("[data-package-card]")).toHaveCount(0);
+    // The rerun form is the way out of this state: running the research again is the only thing
+    // that replaces the row, since no recompute runs on deploy (AC-18). It carries its own country
+    // select, prefilled from the company, so the rerun confirms the country rather than assuming it.
+    await expect(page.locator("#rerun-heading")).toContainText(
+      "Correct the details and research again",
     );
-    await expect
-      .poll(async () => {
-        const { count } = await db
-          .from("benchmark_snapshots")
-          .select("id", { count: "exact", head: true })
-          .eq("company_id", companyId);
-        return count ?? 0;
-      }, RUN_TIMEOUT)
-      .toBeGreaterThan(0);
-    await expect
-      .poll(
-        () => page.locator("[data-benchmark-state]").getAttribute("data-benchmark-state"),
-        RUN_TIMEOUT,
-      )
-      .toBe("ready");
-
-    const row = page.locator('[data-position-kpi="accident_rate_per_1000_fte"]');
-    await expect(row).toHaveAttribute("data-peer-shape", "point");
-    await expect(row).toHaveAttribute("data-position", "below_average");
-
-    // No band, and nothing drawn in its place.
-    await expect(row.locator('[data-slot="quartile-band"]')).toHaveCount(0);
-    await expect(row.locator("svg")).toHaveCount(0);
-
-    // One labelled sector figure, and the point row basis sentence.
-    await expect(row.locator("[data-sector-figure]")).toHaveAttribute("data-sector-figure", "48.9");
-    await expect(row.getByText("One figure for the whole sector, not a range.")).toBeVisible();
-
-    // The words the spec forbids on a point row, in the rendered text of the row itself.
-    const text = ((await row.textContent()) ?? "").toLowerCase();
-    expect(text).not.toMatch(/quarter|quartile|median|p25|p75/);
-
+    await expect(page.locator("#rerun-country")).toBeVisible();
     await expectNoAxeViolations(page);
   } finally {
-    await serviceClient().from("email_deliveries").delete().eq("recipient_email", email);
     await deleteAccount(email);
   }
 });

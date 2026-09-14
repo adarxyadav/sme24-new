@@ -174,12 +174,12 @@ A second research task finds up to eight named companies in the client's sector 
 **Done when:** a client in any country sees, per rate, the named peers the run found with their source links and its rank among them, the estimated loss and the saving in its own currency, three expert cards and the recommended package, in that order; a company with no LTIFR sees the peers and a prompt for its figure; a peer search failure never costs the client's own figures; old snapshots show a rerun prompt; and nothing in the tree reads the four dropped tables.
 spec [0022](../specs/0022-ai-peer-benchmark/index.md) · code in `src/trigger/research-peers.ts`, `src/features/benchmark/` (`loss.ts`, `model.ts`, `snapshot.ts`, `ui/`), `src/lib/research/`, `src/lib/countries.ts`, `supabase/schemas/29_research_peers.sql`
 - [x] Design it (spec): `/architect peer benchmark from the research run`
-- [ ] Build it: `/develop peer benchmark from the research run`
+- [x] Build it: `/develop peer benchmark from the research run`
   - [x] Rails: the world catalogue, the migration (currency, the country on three forms, `research_peers` with pgTAP, expert countries, the photo policy, the snapshot columns, the four tables dropped), the seed code deleted, the catalogue trims (AC-1, AC-2, AC-4, AC-9, AC-19, AC-25)
   - [x] The peer task: `createPeerRun` on both providers, `research-peers` with its own budget and failure hook, units in code, `peer-validation@1` with the self drop, the rung, the insert, the trigger hand off (AC-3, AC-5 to AC-8, AC-10, AC-11)
   - [x] The model: `loss.ts`, `benchmark-model@7` with the peers, loss and recommendation blocks, the task loading the run's peers, the raw version and `outdated`, the email copy, the table tests (AC-12 to AC-18)
   - [x] The page: peers, loss, experts and package in order, `expert_suggestions` with its pgTAP file and the seeded experts, both catalogs (AC-20 to AC-24, AC-26, AC-27)
-  - [ ] Proof and docs: the e2e thread through the worker with axe, `docs/benchmark.md` rewritten, `docs/research.md` amended, the hosted spike on the runbook (AC-28, AC-29)
+  - [x] Proof and docs: the e2e thread through the worker with axe, `docs/benchmark.md` rewritten, `docs/research.md` amended, the hosted spike on the runbook (AC-28, AC-29)
 - [ ] Verify it: `/check verify peer benchmark from the research run`
 - [ ] Test it: `/test peer benchmark from the research run`
 - [ ] Review it (fresh model): `/check review peer benchmark from the research run`

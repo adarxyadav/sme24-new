@@ -1,5 +1,12 @@
 # Peer benchmark: what is wrong, what is missing, what to do
 
+> **Historical, 14 Sep 2026.** This document reviews the curated model (`benchmark-model@5` and
+> earlier): the seed CSVs, the sector quartiles, the named peer library and the launch gate. Spec
+> [0022](specs/0022-ai-peer-benchmark/index.md) removed all of it — the peers now come from the
+> research run and the loss from the owner's table. Keep this file for why those readings were made
+> and which sources were confirmed unreadable, which is work worth not repeating; do not act on its
+> plan. `docs/benchmark.md` is the current runbook.
+
 A working document, not a spec. Written 12 Sep 2026 from a review of `docs/benchmark.md`,
 the seed CSVs, `src/features/benchmark/model.ts`, the feature 9 / 16 / 27 reviews, and a
 verification pass over the public statistical sources the seed names.
