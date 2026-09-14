@@ -333,24 +333,47 @@ export function ExpertProfiles() {
                   announce "Sector, manufacturing" and the glyph is never the only carrier of
                   meaning, which is what rule 3 and the icon rule both ask (docs/design.md).
                 */}
-                <div className="flex items-start gap-2 text-copy-14">
-                  <dt className="sr-only">{t("sectorLabel")}</dt>
-                  <Factory
-                    aria-hidden="true"
-                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                  />
-                  <dd className="min-w-0 text-pretty">
-                    {catalogue(`industries.${profile.industry}`)}
-                  </dd>
-                </div>
+                {/*
+                  Sector and canton share a row (owner, 2026-09-14). They wrap to two rows rather
+                  than splitting the width in half: a 50/50 grid gives each about 14 characters at
+                  three across, where "Verarbeitendes Gewerbe" turned and "Baugewerbe" did not, so
+                  the German cards came out at three different heights. Wrapping, each field takes
+                  the width its own words need and a pair too long for one row drops the canton
+                  under the sector in every card at that width rather than in some.
 
-                <div className="flex items-start gap-2 text-copy-14">
-                  <dt className="sr-only">{t("cantonLabel")}</dt>
-                  <MapPin
-                    aria-hidden="true"
-                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                  />
-                  <dd className="min-w-0 text-pretty">{catalogue(`regions.${profile.region}`)}</dd>
+                  `gap-x-4` is wider than the `gap-2` inside a field, so the eye reads two fields
+                  on one row rather than four things in a line.
+
+                  Whether the pair turns depends on both values: at three across in German
+                  "Verarbeitendes Gewerbe · Basel-Stadt" wraps where the same sector with "Zürich"
+                  does not, so two cards in a row of three grow by a line at that one width.
+                  Reserving a second row for every card fixes it and costs 31px of empty space in
+                  all six at every other width -- and does not even square the row, because the
+                  standards tags wrap at the same breakpoint anyway. Left to wrap: 1024px is the
+                  one width where this grid is not square, and it is square everywhere else.
+                */}
+                <div className="flex flex-wrap gap-x-4 gap-y-2.5 text-copy-14">
+                  <div className="flex items-start gap-2">
+                    <dt className="sr-only">{t("sectorLabel")}</dt>
+                    <Factory
+                      aria-hidden="true"
+                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    />
+                    <dd className="min-w-0 text-pretty">
+                      {catalogue(`industries.${profile.industry}`)}
+                    </dd>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <dt className="sr-only">{t("cantonLabel")}</dt>
+                    <MapPin
+                      aria-hidden="true"
+                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    />
+                    <dd className="min-w-0 text-pretty">
+                      {catalogue(`regions.${profile.region}`)}
+                    </dd>
+                  </div>
                 </div>
 
                 <div className="flex items-start gap-2">
