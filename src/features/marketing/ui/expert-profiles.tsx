@@ -365,7 +365,16 @@ export function ExpertProfiles() {
                     given them (owner, 2026-09-14): the discipline line directly above starts at
                     the block's own left edge, so the pair reads as one group against that edge
                     rather than as a row that lost its icon. */}
-                <div className="flex flex-col items-start gap-1.5">
+                {/*
+                  The pair gets its own room, above and below (owner, 2026-09-14). Its two lines
+                  sit 6px apart, which is right -- the discipline and its tags are one group -- but
+                  the `dl`'s uniform 10px left that group only 4px more separation from the rows
+                  either side than its own halves have from each other, so the block read as five
+                  evenly spaced lines rather than three fields of which one is a pair. `my-1.5`
+                  takes the outer gaps to 16px against the inner 6px, which is the same proximity
+                  step the sector and canton fields use on their own row.
+                */}
+                <div className="my-1.5 flex flex-col items-start gap-1.5">
                   {/*
                     The discipline heads the standards rather than sitting above the hairline
                     (owner, 2026-09-14). What someone does and what they work to are one claim --
