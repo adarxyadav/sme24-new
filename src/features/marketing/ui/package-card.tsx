@@ -299,7 +299,15 @@ export function PackageCard({ entry, variant = "full", className }: PackageCardP
       </div>
 
       {full ? (
-        <div className="flex flex-col gap-6 border-t pt-7">
+        /*
+          `mt-7` above the rule, matching the `pt-7` below it. The block above ends in the call to
+          action, whose own row is `self-end`: it is pushed to the bottom of its track so the four
+          buttons stay level across cards of different heights, which left the button's lower edge
+          sitting on the rule with nothing between them -- worst on the partner card, where the
+          outline variant's own hairline met the divider as a doubled line. The rule separates the
+          offer from the contents, so it stays; it just needs the same air on both sides.
+        */
+        <div className="mt-7 flex flex-col gap-6 border-t pt-7">
           {/*
             The included points read as a checked list rather than as filled pills: a pill is a
             status in this design system, and these are contents. One point per line also lets a
