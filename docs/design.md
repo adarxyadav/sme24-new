@@ -210,12 +210,14 @@ Under it, outside the ruled field, sits the hero object: `HeroResearch` (`src/fe
 
 The tier of every section that exists today. A new section joins this table.
 
+Pricing is the one page with no closing call to action (owner decision of 2026-09-14). Every other page ends on the jet anchor, which is what gives a page the same weight at its close that it opened with. Pricing is the page where the action is the content: four cards each carrying their own call to action, above a comparison table and an FAQ that exist to answer the question those cards raise. A fifth ask under the FAQ repeated on one page what the cards already offer four times.
+
 | Page | Sections in order |
 |---|---|
 | Landing | anchor hero on the page ground, centred, with the hero object under it · minor worked figure beside the cost iceberg (the walkthrough photograph until 2026-09-12) · **major steps** · major packages · major experts · major trust, centred rather than split · minor FAQ · anchor jet closing |
 | How it works | anchor opener · **major steps** · major split of labour · minor timing · anchor jet closing |
 | Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
-| Pricing | anchor opener, centred · **major packages, openerless** · minor compare · minor FAQ · anchor jet closing |
+| Pricing | anchor opener, centred · **major packages, openerless** · minor compare · minor FAQ (no closing) |
 | About | anchor opener · major story · **major ruled campaign grid** · minor how we work · anchor jet closing |
 | Contact | anchor opener · major facts and form · anchor jet closing |
 

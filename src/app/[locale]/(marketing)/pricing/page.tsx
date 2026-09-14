@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Button } from "@/components/ui/button";
 import { pricingJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { sortedPackages } from "@/features/marketing/packages";
-import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { Faq } from "@/features/marketing/ui/faq";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { PackagesCompare } from "@/features/marketing/ui/packages-compare";
 import { PackagesGrid } from "@/features/marketing/ui/packages-grid";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { absoluteUrl } from "@/i18n/metadata";
-import { Link } from "@/i18n/navigation";
 import { resolveLocale } from "@/i18n/routing";
 
 const FAQ = ["vat", "afterPayment", "date", "cancellation"] as const;
@@ -25,9 +22,10 @@ export async function generateMetadata({
 }
 
 /**
- * The pricing page (spec 0009, AC-6): the four packages from the catalog with their prices, what
- * every package includes, a short FAQ and the closing call to action; the `ItemList` structured
- * data lists the four products with their CHF offers. Prerendered in both languages.
+ * The pricing page (spec 0009, AC-6): the four packages from the catalog with their prices, a
+ * comparison table across them and a short FAQ; the `ItemList` structured data lists the four
+ * products with their CHF offers. It is the one marketing page with no closing call to action
+ * (owner decision of 2026-09-14): the cards carry their own. Prerendered in both languages.
  */
 export default async function PricingPage({ params }: PageProps<"/[locale]/pricing">) {
   const { locale } = await params;
@@ -148,12 +146,6 @@ export default async function PricingPage({ params }: PageProps<"/[locale]/prici
           />
         </div>
       </section>
-
-      <ClosingCta title={t("closing.title")}>
-        <Button asChild size="lg">
-          <Link href="/sign-up">{t("closing.cta")}</Link>
-        </Button>
-      </ClosingCta>
     </>
   );
 }
