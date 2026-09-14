@@ -15,14 +15,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  CAPACITIES,
-  type Capacity,
-  cantonCounts,
   filterRegister,
+  LEVELS,
+  type Level,
+  locationCounts,
   NO_FILTERS,
   REGISTER,
   type RegisterFilters,
-  type Status,
+  type StoredLevel,
 } from "@/features/marketing/register";
 
 /** How many rows render before the reader asks for more: enough to fill a screen, cheap to paint. */
@@ -32,7 +32,7 @@ const PAGE_SIZE = 50;
 const URL_DEBOUNCE_MS = 300;
 
 /** The query parameter that carries each filter, so the names are written once and read once. */
-const PARAM = { query: "query", canton: "canton", capacity: "capacity" } as const;
+const PARAM = { query: "query", location: "location", level: "level" } as const;
 
 /**
  * The shared classes of the two native selects. `bg-background text-foreground` is explicit rather
@@ -43,9 +43,9 @@ const PARAM = { query: "query", canton: "canton", capacity: "capacity" } as cons
 const SELECT_CLASS =
   "h-10 w-full rounded-lg border border-input bg-background px-2.5 text-foreground text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 [&>option]:bg-background [&>option]:text-foreground";
 
-/** The canton codes the register actually publishes, so a bogus `?canton=` in a link is dropped. */
-const CANTON_CODES: ReadonlySet<string> = new Set(
-  cantonCounts(REGISTER).map((entry) => entry.canton),
+/** The locations the directory actually publishes, so a bogus `?location=` in a link is dropped. */
+const LOCATION_NAMES: ReadonlySet<string> = new Set(
+  locationCounts(REGISTER).map((entry) => entry.location),
 );
 
 /**
@@ -55,55 +55,64 @@ const CANTON_CODES: ReadonlySet<string> = new Set(
  */
 export function filtersFromSearch(search: string): RegisterFilters {
   const params = new URLSearchParams(search);
-  const canton = params.get(PARAM.canton) ?? "";
-  const capacity = params.get(PARAM.capacity) ?? "";
+  const location = params.get(PARAM.location) ?? "";
+  const level = params.get(PARAM.level) ?? "";
   return {
     query: params.get(PARAM.query) ?? "",
-    canton: CANTON_CODES.has(canton) ? canton : "",
-    capacity: (CAPACITIES as readonly string[]).includes(capacity) ? capacity : "",
+    location: LOCATION_NAMES.has(location) ? location : "",
+    level: (LEVELS as readonly string[]).includes(level) ? level : "",
   };
 }
 
 /**
  * The query string a filter set deep links to, empty filters omitted entirely so an unfiltered
- * view stays a bare URL rather than `?query=&canton=`. Leading `?` included, or "" for none. Pure.
+ * view stays a bare URL rather than `?query=&location=`. Leading `?` included, or "" for none. Pure.
  */
 export function searchFromFilters(filters: RegisterFilters): string {
   const params = new URLSearchParams();
   if (filters.query.trim() !== "") params.set(PARAM.query, filters.query.trim());
-  if (filters.canton !== "") params.set(PARAM.canton, filters.canton);
-  if (filters.capacity !== "") params.set(PARAM.capacity, filters.capacity);
+  if (filters.location !== "") params.set(PARAM.location, filters.location);
+  if (filters.level !== "") params.set(PARAM.level, filters.level);
   const search = params.toString();
   return search === "" ? "" : `?${search}`;
 }
 
-/** The badge variant that carries each capacity, so the colour never stands alone. */
-const CAPACITY_VARIANT: Readonly<
-  Record<Capacity, "success" | "warning" | "outline" | "secondary">
-> = {
-  v: "success",
-  t: "warning",
-  n: "outline",
-  u: "secondary",
-};
-
-/** The badge variant of a continuing-education status. */
-const STATUS_VARIANT: Readonly<Record<Status, "success" | "warning" | "outline" | "secondary">> = {
-  A: "success",
-  T: "warning",
-  N: "outline",
-  E: "secondary",
-  U: "secondary",
+/** The badge variant that carries each competency level, so the colour never stands alone. */
+const LEVEL_VARIANT: Readonly<Record<Level, "success" | "secondary">> = {
+  sme: "success",
+  practitioner: "secondary",
 };
 
 /**
- * The searchable register (spec 0009 follow-up, expert directory): a name and town search, a
- * canton filter and a capacity filter over the published register, with the matches in a table
- * that grows fifty rows at a time. The rows are imported rather than passed as props on purpose:
- * a prop would be serialized into the hydration payload as well as the markup, shipping all 1,929
- * of them twice, while the import puts them in one cacheable chunk. Filtering is then a pure
- * function over an array already in memory, so there is no request per keystroke, and
- * `useDeferredValue` keeps typing responsive while the rows re-filter.
+ * One competency cell. An entry whose source records no level renders an em dash rather than an
+ * empty cell: the SGAS half of the directory has no PSM or MOC rating at all, and a blank cell
+ * reads as missing data where a dash reads as not applicable. The dash carries an `sr-only` word
+ * so the column is not announced as silence.
+ */
+function LevelCell({ level, absent }: { readonly level: StoredLevel; readonly absent: string }) {
+  if (level === "") {
+    return (
+      <TableCell className="text-muted-foreground">
+        <span aria-hidden="true">—</span>
+        <span className="sr-only">{absent}</span>
+      </TableCell>
+    );
+  }
+  return (
+    <TableCell>
+      <Badge variant={LEVEL_VARIANT[level]}>{level === "sme" ? "SME" : "Practitioner"}</Badge>
+    </TableCell>
+  );
+}
+
+/**
+ * The searchable directory (spec 0009 follow-up): a name and location search, a location filter
+ * and a competency filter over the published entries, with the matches in a table that grows
+ * fifty rows at a time. The rows are imported rather than passed as props on purpose: a prop
+ * would be serialized into the hydration payload as well as the markup, shipping all of them
+ * twice, while the import puts them in one cacheable chunk. Filtering is then a pure function
+ * over an array already in memory, so there is no request per keystroke, and `useDeferredValue`
+ * keeps typing responsive while the rows re-filter.
  *
  * The three filters are mirrored into the query string so a narrowed view is shareable, and that
  * mirror is one way and browser only: the state is read from `window.location` after mount and
@@ -115,13 +124,13 @@ const STATUS_VARIANT: Readonly<Record<Status, "success" | "warning" | "outline" 
 export function RegisterDirectory() {
   const t = useTranslations("marketing.directory");
   const searchId = useId();
-  const cantonId = useId();
-  const capacityId = useId();
-  const cantons = useMemo(() => cantonCounts(REGISTER), []);
+  const locationId = useId();
+  const levelId = useId();
+  const locations = useMemo(() => locationCounts(REGISTER), []);
   const [filters, setFilters] = useState<RegisterFilters>(NO_FILTERS);
   const [shown, setShown] = useState(PAGE_SIZE);
   // The count is formatted with a grouping separator whose character differs between the Node
-  // build and the browser's ICU (`1'929` against `1’929`), which fails hydration and leaves the
+  // build and the browser's ICU (`2'075` against `2’075`), which fails hydration and leaves the
   // whole component inert. It carries nothing before the first interaction, so it is rendered
   // after mount only, where server and client can no longer disagree.
   const [mounted, setMounted] = useState(false);
@@ -152,7 +161,7 @@ export function RegisterDirectory() {
 
   const matches = useMemo(() => filterRegister(REGISTER, deferred), [deferred]);
   const visible = matches.slice(0, shown);
-  const active = deferred.query !== "" || deferred.canton !== "" || deferred.capacity !== "";
+  const active = deferred.query !== "" || deferred.location !== "" || deferred.level !== "";
 
   const update = useCallback((next: Partial<RegisterFilters>) => {
     setFilters((current) => ({ ...current, ...next }));
@@ -175,40 +184,38 @@ export function RegisterDirectory() {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor={cantonId}>{t("canton.label")}</Label>
+          <Label htmlFor={locationId}>{t("location.label")}</Label>
           {/* A native select: one control, no popover bundle, and the same keyboard behaviour on every device. */}
           <select
-            id={cantonId}
+            id={locationId}
             className={SELECT_CLASS}
-            value={filters.canton}
-            onChange={(event) => update({ canton: event.target.value })}
+            value={filters.location}
+            onChange={(event) => update({ location: event.target.value })}
           >
-            <option value="">{t("canton.all")}</option>
-            {cantons.map((entry) => (
-              <option key={entry.canton} value={entry.canton}>
+            <option value="">{t("location.all")}</option>
+            {locations.map((entry) => (
+              <option key={entry.location} value={entry.location}>
                 {/*
                   Plain digits, not a formatted number: the grouping separator differs between the
                   Node build and the browser's ICU, and a mismatch here would fail hydration the
-                  way the count paragraph did. No canton reaches four digits, so nothing is lost.
+                  way the count paragraph did. No location reaches four digits, so nothing is lost.
                 */}
-                {`${entry.canton} (${entry.count})`}
+                {`${entry.location} (${entry.count})`}
               </option>
             ))}
           </select>
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor={capacityId}>{t("capacity.label")}</Label>
+          <Label htmlFor={levelId}>{t("level.label")}</Label>
           <select
-            id={capacityId}
+            id={levelId}
             className={SELECT_CLASS}
-            value={filters.capacity}
-            onChange={(event) => update({ capacity: event.target.value })}
+            value={filters.level}
+            onChange={(event) => update({ level: event.target.value })}
           >
-            <option value="">{t("capacity.all")}</option>
-            <option value="v">{t("capacity.v")}</option>
-            <option value="t">{t("capacity.t")}</option>
-            <option value="n">{t("capacity.n")}</option>
-            <option value="u">{t("capacity.u")}</option>
+            <option value="">{t("level.all")}</option>
+            <option value="sme">{t("level.sme")}</option>
+            <option value="practitioner">{t("level.practitioner")}</option>
           </select>
         </div>
         {active ? (
@@ -224,7 +231,7 @@ export function RegisterDirectory() {
         above needs. A region that appears rather than changes is announced unreliably.
       */}
       <p aria-live="polite" className="min-h-5 text-muted-foreground text-sm">
-        {mounted ? t("count", { shown: visible.length, total: matches.length }) : "\u00a0"}
+        {mounted ? t("count", { shown: visible.length, total: matches.length }) : " "}
       </p>
 
       {matches.length === 0 ? (
@@ -236,25 +243,25 @@ export function RegisterDirectory() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("columns.name")}</TableHead>
-                  <TableHead>{t("columns.place")}</TableHead>
-                  <TableHead>{t("columns.canton")}</TableHead>
-                  <TableHead>{t("columns.capacity")}</TableHead>
-                  <TableHead>{t("columns.training")}</TableHead>
+                  <TableHead>{t("columns.location")}</TableHead>
+                  <TableHead>{t("columns.psm")}</TableHead>
+                  <TableHead>{t("columns.moc")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {visible.map((entry) => (
+                {visible.map((entry, index) => (
                   <TableRow
-                    key={`${entry[0]}-${entry[1]}-${entry[2]}`}
+                    // biome-ignore lint/suspicious/noArrayIndexKey: two rows can be byte identical now that names are given names only -- two people called Andreas in Switzerland carry the same four values -- so no key derived from the content is unique. The rows are a stable prefix slice of one sorted array with no insertion, reordering or per row state, so the index is the identity.
+                    key={`${entry[0]}-${entry[1]}-${index}`}
                     // Rows below the fold are laid out but not painted until they scroll near, and
                     // the intrinsic size keeps the scrollbar honest while they are skipped. Fifty
                     // rows grow to hundreds as the reader asks for more, so this is worth having.
                     className="[content-visibility:auto] [contain-intrinsic-size:auto_2.5rem]"
                   >
                     {/*
-                      The cell default is `whitespace-nowrap`, which a long double barrelled name
-                      or an unhyphenated town would turn into a table wider than the viewport.
-                      These two columns wrap instead and are capped, so the three short columns
+                      The cell default is `whitespace-nowrap`, which a long location like
+                      "Australia / New Zealand" would turn into a table wider than the viewport.
+                      These two columns wrap instead and are capped, so the two badge columns
                       after them keep their place.
                     */}
                     <TableCell className="max-w-[18rem] break-words font-medium whitespace-normal">
@@ -263,17 +270,8 @@ export function RegisterDirectory() {
                     <TableCell className="max-w-[14rem] break-words whitespace-normal text-muted-foreground">
                       {entry[1] === "" ? t("notGiven") : entry[1]}
                     </TableCell>
-                    <TableCell className="tabular-nums" data-numeric>
-                      {entry[2] === "" ? t("notGiven") : entry[2]}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={CAPACITY_VARIANT[entry[4]]}>
-                        {t(`capacity.${entry[4]}`)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={STATUS_VARIANT[entry[6]]}>{t(`status.${entry[6]}`)}</Badge>
-                    </TableCell>
+                    <LevelCell level={entry[2]} absent={t("level.none")} />
+                    <LevelCell level={entry[3]} absent={t("level.none")} />
                   </TableRow>
                 ))}
               </TableBody>

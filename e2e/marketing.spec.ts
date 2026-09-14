@@ -283,15 +283,20 @@ test("the expert directory filters the register in the browser without a request
       fetched.push(request.url());
     }
   });
-  await page.getByLabel("Canton").selectOption("UR");
+  await page.getByLabel("Location").selectOption("Japan");
   // `useDeferredValue` re-renders the rows in a later pass, so the count is awaited rather than
-  // read straight after the select. Uri is the smallest canton in the register.
+  // read straight after the select. Japan carries three entries, so every match fits one page.
   await expect(table.locator("tbody tr")).toHaveCount(3);
   expect(fetched).toHaveLength(0);
 
-  // No contact detail reaches the page: the register's address, phone and email columns are dropped.
+  // No contact detail reaches the page: the source columns for address, phone and email are
+  // dropped in the build, and so is every surname -- a name cell carrying whitespace would mean a
+  // full name survived (`givenNameOf` in scripts/build-register.mts).
   await expect(table.getByRole("link")).toHaveCount(0);
   expect(await table.textContent()).not.toMatch(/@|\+41/);
+  for (const name of await table.locator("tbody tr td:first-child").allTextContents()) {
+    expect(name.trim()).not.toMatch(/\s/);
+  }
 });
 
 test("the expert network page links into the directory in both languages (directory)", async ({

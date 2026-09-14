@@ -36,27 +36,41 @@ describe("RegisterDirectory", () => {
     ).toBeInTheDocument();
   });
 
-  it("offers every canton with its count, and every capacity", () => {
+  it("offers every location with its count, and both competency levels", () => {
     renderDirectory();
-    const canton = screen.getByLabelText(en.marketing.directory.canton.label);
-    expect(within(canton).getAllByRole("option").length).toBeGreaterThan(20);
-    const capacity = screen.getByLabelText(en.marketing.directory.capacity.label);
-    expect(within(capacity).getAllByRole("option")).toHaveLength(5);
+    const location = screen.getByLabelText(en.marketing.directory.location.label);
+    expect(within(location).getAllByRole("option").length).toBeGreaterThan(20);
+    const level = screen.getByLabelText(en.marketing.directory.level.label);
+    // Every level, plus the "every level" option that clears the filter.
+    expect(within(level).getAllByRole("option")).toHaveLength(3);
   });
 
-  it("narrows the table to one canton and back", async () => {
+  it("narrows the table to one location and back", async () => {
     const user = userEvent.setup();
     renderDirectory();
-    const canton = screen.getByLabelText(en.marketing.directory.canton.label);
-    await user.selectOptions(canton, "UR");
-    // Uri is the smallest canton in the register, so every match fits on the first page.
+    const location = screen.getByLabelText(en.marketing.directory.location.label);
+    await user.selectOptions(location, "Japan");
+    // Japan carries a handful of entries, so every match fits on the first page.
     const rows = bodyRows();
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.length).toBeLessThan(50);
-    for (const row of rows) expect(within(row).getByText("UR")).toBeInTheDocument();
+    for (const row of rows) expect(within(row).getByText("Japan")).toBeInTheDocument();
 
-    await user.selectOptions(canton, "");
+    await user.selectOptions(location, "");
     expect(bodyRows()).toHaveLength(50);
+  });
+
+  it("narrows to the entries rated at a level in either competency", async () => {
+    const user = userEvent.setup();
+    renderDirectory();
+    const level = screen.getByLabelText(en.marketing.directory.level.label);
+    await user.selectOptions(level, "sme");
+    const rows = bodyRows();
+    expect(rows.length).toBeGreaterThan(0);
+    // Every row shows the SME badge in at least one of the two competency columns.
+    for (const row of rows) {
+      expect(within(row).getAllByText("SME").length).toBeGreaterThan(0);
+    }
   });
 
   it("searches the name and the town", async () => {
