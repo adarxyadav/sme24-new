@@ -6,7 +6,7 @@ import type {
   RegionCode,
   StandardCode,
 } from "@/features/experts/catalogue";
-import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
+import { initials } from "@/features/experts/ui/expert-avatar";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 
 /**
@@ -120,105 +120,81 @@ export function ExpertProfiles() {
           placement the landing band settled on. It has to stay somewhere -- these are invented
           people on a public page.
         */}
-        <p className="-mt-6 max-w-prose text-muted-foreground text-sm">{t("note")}</p>
+        <p className="-mt-6 max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
         <ul
           aria-label={t("listLabel")}
           className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-3"
         >
           {PROFILES.map((profile) => (
-            <li key={profile.key} className="flex flex-col gap-6 bg-background px-6 py-8">
-              {/*
-                Identity sits at the top at label scale, deliberately quieter than the figure below
-                it. These are examples, so the name is the least informative thing on the card --
-                what a reader is actually weighing is the experience, the discipline and the
-                sector. A real profile swaps the initials for a photo and nothing else moves.
-              */}
-              <div className="flex items-center gap-3">
-                <ExpertAvatar
-                  fullName={t(`${profile.key}.name`)}
-                  photoUrl={null}
-                  className="size-9"
-                />
-                <div className="flex min-w-0 flex-col">
-                  <p className="truncate text-label-14">{t(`${profile.key}.name`)}</p>
-                  {/* Sector and canton on one line: together they answer "would this person know
-                      my plant", which is one thought rather than two facts. */}
-                  <p className="truncate text-label-13 text-muted-foreground">
-                    {catalogue(`industries.${profile.industry}`)} ·{" "}
-                    {catalogue(`regions.${profile.region}`)}
+            <li key={profile.key} className="flex min-w-0 flex-col bg-background p-6">
+              <div className="flex items-start gap-4">
+                {/* Examples use initials; a portrait would imply a real member. Set solid in the
+                    foreground colour rather than as type inside a hairline box: the box read as an
+                    empty form field, and this is the one mark of ink on an otherwise white card --
+                    the single place it spends any weight. `aria-hidden` because the initials only
+                    restate the name beside them. */}
+                <div
+                  aria-hidden="true"
+                  className="flex size-14 shrink-0 items-center justify-center bg-foreground text-background text-label-20"
+                >
+                  {initials(t(`${profile.key}.name`))}
+                </div>
+                <div className="min-w-0">
+                  <h3 className="break-words text-heading-20">{t(`${profile.key}.name`)}</h3>
+                  <p className="mt-1 text-pretty text-copy-14 text-muted-foreground">
+                    {t(`${profile.key}.role`)}
                   </p>
                 </div>
               </div>
 
-              {/*
-                The years lead the card. The page's whole argument is "fifteen years, minimum", so
-                the figure is what a reader scans this grid for, and it was previously set at body
-                size inside a run-on sentence ("22 years, ASA specialist") under an EXPERIENCE
-                label that carried more visual weight than it did. Split out at heading scale with
-                `data-numeric`, it becomes the card's entry point and the role beneath it reads as
-                the qualifier it is.
-              */}
-              <div className="flex flex-col gap-1">
-                <p data-numeric className="text-heading-32">
-                  {t(`${profile.key}.years`)}
-                </p>
-                <p className="text-copy-14 text-muted-foreground">{t(`${profile.key}.role`)}</p>
-              </div>
-
-              {/*
-                The competency: what this person is brought in to do, and the line a client chooses
-                on. It sits directly under the figure because together they are the claim -- this
-                many years, of this -- and above the hairline because everything below is
-                reference.
-              */}
-              {/* `mb-auto` pushes the slack above the foot rather than below the competency, so
-                  the rule lands on one line across all six cards however many lines the standards
-                  below it run to. Without it the foot floated directly after the claim and the
-                  hairline sat at a different height in every card, which across a grid built from
-                  hairlines reads as misalignment. */}
-              <p className="mb-auto text-heading-16">
+              <p className="mt-6 text-balance text-heading-24">
                 {catalogue(`competencies.${profile.competency}`)}
               </p>
+              <p className="mt-2 text-pretty text-copy-13 text-muted-foreground">
+                {catalogue(`industries.${profile.industry}`)}
+                <span aria-hidden="true"> · </span>
+                <span className="sr-only">, </span>
+                {catalogue(`regions.${profile.region}`)}
+              </p>
+
+              {/* Experience stays legible at reading size, outside the decorative monogram. */}
+              <dl className="mt-6 flex items-baseline justify-between gap-4 border-t pt-4">
+                <dt className="text-copy-13 text-muted-foreground">{t("experienceLabel")}</dt>
+                <dd data-numeric className="text-label-18">
+                  {t(`${profile.key}.years`)}
+                </dd>
+              </dl>
 
               {/*
-                The foot: the same hairline the grid is built from, separating the claim above from
-                the reference below. Standards keep their label because a list of certifications
-                needs naming; experience and languages lost theirs, because "22 years" and
-                "German · English" already say what they are and three identical caps eyebrows per
-                card made the grid read as eighteen repetitions of one form row.
+                The standards, one per line behind a hairline each, so the rules separate one entry
+                from the next rather than dividing blocks of copy: the structure carries the
+                information, and a reader can count what this person works to at a glance. The
+                visible label goes because a list of standard names under a discipline announces
+                itself; `sr-only` keeps it for anyone who cannot see that.
+
+                These are areas of practice, not verified certifications (owner, 2026-09-14), which
+                is why the heading above them says "works to" rather than naming them credentials.
               */}
-              <dl className="flex flex-col gap-3 border-t pt-5 text-copy-13">
-                <div className="flex flex-col gap-1">
-                  <dt className="eyebrow text-muted-foreground">{t("standardsLabel")}</dt>
-                  {/* The standards as their catalogue labels, so a card cannot name one the
-                      product does not carry. Not mono, though a standard number looks like an
-                      identifier: the catalogue labels are full descriptive names ("ISO 45001
-                      (occupational health and safety)"), so at the mono scale two of them wrapped
-                      to two lines and became the heaviest thing on the card. */}
-                  {/* Two lines reserved whether the text fills them or not. The catalogue labels
-                      are full descriptive names of uneven length, so this line runs to one line in
-                      some cards and two in others; left to flow, the foot's hairline landed 20px
-                      higher on the short ones and the rules did not line up across a row. A
-                      `min-h` of two lines is the cheapest fix that keeps every card's rule on one
-                      level without truncating a standard's name. */}
-                  <dd className="min-h-[2lh] text-pretty text-muted-foreground">
-                    {profile.standards
-                      .map((standard) => catalogue(`standards.${standard}`))
-                      .join(" · ")}
-                  </dd>
-                </div>
-                {/* Languages carry no label: the values name themselves, and a site visit happens
-                    in the language of the floor, which is why the catalogue holds four while the
-                    app serves two. `sr-only` keeps the pair valid and the meaning announced. */}
-                <div className="flex flex-col gap-1">
-                  <dt className="sr-only">{t("languagesLabel")}</dt>
-                  <dd className="text-pretty text-muted-foreground">
-                    {profile.languages
-                      .map((language) => catalogue(`languages.${language}`))
-                      .join(" · ")}
-                  </dd>
-                </div>
-              </dl>
+              <ul className="mt-5 flex flex-col">
+                <li className="sr-only">{t("standardsLabel")}</li>
+                {profile.standards.map((standard) => (
+                  <li
+                    key={standard}
+                    className="border-t py-2 text-pretty text-copy-14 last:border-b"
+                  >
+                    {catalogue(`standards.${standard}`)}
+                  </li>
+                ))}
+              </ul>
+
+              {/* Languages close the card in its quietest type, pinned to the foot so six cards end
+                  on one line. A site visit happens in the language of the floor, which is why the
+                  catalogue carries four while the app serves two -- but it is the last thing anyone
+                  checks, so it is an aside rather than a labelled field. */}
+              <p className="mt-auto pt-5 text-pretty text-copy-13 text-muted-foreground">
+                <span className="sr-only">{t("languagesLabel")}: </span>
+                {profile.languages.map((language) => catalogue(`languages.${language}`)).join(", ")}
+              </p>
             </li>
           ))}
         </ul>

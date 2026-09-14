@@ -232,30 +232,31 @@
       "profiles": {
         "eyebrow": "The network",
         "title": "Who turns up. Six examples.",
-        "lead": "Every expert is matched to your sector, your canton and the standard you are judged against. These are profiles in the shape a real one takes.",
+        "lead": "Every expert is matched to your sector, your canton and the work in front of you. These are profiles in the shape a real one takes.",
         "note": "Example profiles, in the shape a real one takes. The network is being onboarded now.",
         "listLabel": "Example expert profiles",
-        "standardsLabel": "Standards",
+        "experienceLabel": "Experience",
+        "standardsLabel": "Works to",
         "languagesLabel": "Works in",
         "manufacturing": {
           "name": "M. Muster",
           "years": "22 years",
-          "role": "ASA specialist, manufacturing"
+          "role": "ASA specialist"
         },
         "construction": {
           "name": "A. Beispiel",
           "years": "18 years",
-          "role": "Site safety lead, construction"
+          "role": "Site safety lead"
         },
         "chemical": {
           "name": "R. Muster",
           "years": "25 years",
-          "role": "EHS director, chemical processing"
+          "role": "EHS director"
         },
         "energy": {
           "name": "C. Beispiel",
           "years": "19 years",
-          "role": "Plant operations, energy supply"
+          "role": "Plant operations"
         },
         "logistics": {
           "name": "L. Muster",
@@ -265,7 +266,7 @@
         "food": {
           "name": "S. Beispiel",
           "years": "21 years",
-          "role": "Quality and hygiene, food production"
+          "role": "Quality and hygiene"
         }
       },
       "matching": {

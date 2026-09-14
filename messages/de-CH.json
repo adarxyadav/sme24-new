@@ -232,15 +232,16 @@
       "profiles": {
         "eyebrow": "Das Netzwerk",
         "title": "Wer vorbeikommt. Sechs Beispiele.",
-        "lead": "Jede Fachperson wird auf Ihre Branche, Ihren Kanton und die Norm abgestimmt, an der Sie gemessen werden. Das sind Profile in der Form, die ein echtes Profil hat.",
+        "lead": "Jede Fachperson wird auf Ihre Branche, Ihren Kanton und die anstehende Arbeit abgestimmt. Das sind Profile in der Form, die ein echtes Profil hat.",
         "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
         "listLabel": "Beispielprofile von Fachpersonen",
-        "standardsLabel": "Normen",
+        "experienceLabel": "Erfahrung",
+        "standardsLabel": "Arbeitet nach",
         "languagesLabel": "Arbeitssprachen",
         "manufacturing": {
           "name": "M. Muster",
           "years": "22 Jahre",
-          "role": "ASA-Spezialist, Fertigung"
+          "role": "ASA-Spezialist"
         },
         "construction": {
           "name": "A. Beispiel",
@@ -250,12 +251,12 @@
         "chemical": {
           "name": "R. Muster",
           "years": "25 Jahre",
-          "role": "EHS-Leitung, Chemie"
+          "role": "EHS-Leitung"
         },
         "energy": {
           "name": "C. Beispiel",
           "years": "19 Jahre",
-          "role": "Anlagenbetrieb, Energieversorgung"
+          "role": "Anlagenbetrieb"
         },
         "logistics": {
           "name": "L. Muster",
@@ -265,7 +266,7 @@
         "food": {
           "name": "S. Beispiel",
           "years": "21 Jahre",
-          "role": "Qualität und Hygiene, Lebensmittel"
+          "role": "Qualität und Hygiene"
         }
       },
       "matching": {
