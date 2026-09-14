@@ -293,7 +293,17 @@ export function ExpertProfiles() {
                 one long list: each pair is its own group, which is how a screen reader announces
                 "Sector, manufacturing" instead of running the four together.
               */}
-              <dl className="mt-auto flex flex-col gap-2.5 border-t pt-4">
+              {/*
+                The `dl` wraps rather than stacking, and every `dt`/`dd` pair is a direct child of
+                it in its own `div`. That nesting is load bearing: a `dl` may group a pair in a
+                `div`, but the pair has to be that `div`'s own child, and an extra wrapper around
+                two of them -- which is how sector and canton first shared a row -- puts the items
+                a level too deep and axe fails the card on WCAG 1.3.1 ("Description list item does
+                not have a `dl` parent element"). So the row is made here, on the list itself:
+                `w-full` on the three full width pairs forces the break, and the two that share a
+                line are simply the two that do not carry it.
+              */}
+              <dl className="mt-auto flex flex-wrap gap-x-5 gap-y-2.5 border-t pt-4">
                 {/*
                   An icon in place of the caps label (owner, 2026-09-14). Each field was a label
                   over its value, two lines of which one was a heading the reader does not need
@@ -330,28 +340,24 @@ export function ExpertProfiles() {
                   standards tags wrap at the same breakpoint anyway. Left to wrap: 1024px is the
                   one width where this grid is not square, and it is square everywhere else.
                 */}
-                <div className="flex flex-wrap gap-x-5 gap-y-2.5 text-copy-14">
-                  <div className="flex items-start gap-2">
-                    <dt className="sr-only">{t("sectorLabel")}</dt>
-                    <Factory
-                      aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                    />
-                    <dd className="min-w-0 text-pretty">
-                      {catalogue(`industries.${profile.industry}`)}
-                    </dd>
-                  </div>
+                <div className="flex items-start gap-2 text-copy-14">
+                  <dt className="sr-only">{t("sectorLabel")}</dt>
+                  <Factory
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <dd className="min-w-0 text-pretty">
+                    {catalogue(`industries.${profile.industry}`)}
+                  </dd>
+                </div>
 
-                  <div className="flex items-start gap-2">
-                    <dt className="sr-only">{t("cantonLabel")}</dt>
-                    <MapPin
-                      aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                    />
-                    <dd className="min-w-0 text-pretty">
-                      {catalogue(`regions.${profile.region}`)}
-                    </dd>
-                  </div>
+                <div className="flex items-start gap-2 text-copy-14">
+                  <dt className="sr-only">{t("cantonLabel")}</dt>
+                  <MapPin
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <dd className="min-w-0 text-pretty">{catalogue(`regions.${profile.region}`)}</dd>
                 </div>
 
                 {/* No icon on this row, unlike the three around it (owner, 2026-09-14). The other
@@ -374,7 +380,7 @@ export function ExpertProfiles() {
                   takes the outer gaps to 16px against the inner 6px, which is the same proximity
                   step the sector and canton fields use on their own row.
                 */}
-                <div className="my-1.5 flex flex-col items-start gap-1.5">
+                <div className="my-1.5 flex w-full flex-col items-start gap-1.5">
                   {/*
                     The discipline heads the standards rather than sitting above the hairline
                     (owner, 2026-09-14). What someone does and what they work to are one claim --
@@ -427,7 +433,7 @@ export function ExpertProfiles() {
                 {/* A site visit happens in the language of the floor, which is why the catalogue
                     carries four while the app serves two. It is the last thing anyone checks, so
                     it closes the block. */}
-                <div className="flex items-start gap-2 text-copy-14">
+                <div className="flex w-full items-start gap-2 text-copy-14">
                   <dt className="sr-only">{t("languagesLabel")}</dt>
                   <Languages
                     aria-hidden="true"

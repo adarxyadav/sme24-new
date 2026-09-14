@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { COMPETENCY_CODES, type CompetencyCode } from "@/features/experts/catalogue";
+import { cn } from "@/lib/utils";
 
 /** The query parameter the active competency mirrors into, written once and read once. */
 const PARAM = "competency";
@@ -40,8 +40,14 @@ export type ExpertProfilesFilterProps = {
 
 /**
  * The competency filter above the example profiles (docs/design.md, marketing section vocabulary).
- * `Tabs` rather than a row of buttons: Radix gives the tablist its roving tabindex, arrow key
- * navigation and `aria-selected` for free, which is the part a hand rolled row gets wrong.
+ * A group of `aria-pressed` toggle buttons, not `Tabs`. Radix's tablist was the first shape here,
+ * for its roving tabindex and arrow keys, but a `role="tab"` carries an `aria-controls` pointing at
+ * the `TabsContent` it opens, and this filter has no panel to open: the grid it narrows is a server
+ * rendered sibling that must stay outside any client component. Radix therefore emitted
+ * `aria-controls` for panels that were never rendered, which axe fails as `aria-valid-attr-value`
+ * and which is a real defect -- a screen reader is told each tab opens a region that does not
+ * exist. A pressed button says what this actually is: a control that changes what the page shows,
+ * with no panel of its own.
  *
  * It filters by writing the active competency to `data-competency` on the grid and letting CSS in
  * `ExpertProfiles` hide the cards that do not match, rather than by rendering the list itself.
@@ -106,26 +112,52 @@ export function ExpertProfilesFilter({
 
   if (!mounted) return null;
 
+  const options: readonly (readonly [FilterValue, string])[] = [
+    [ALL, allLabel],
+    ...COMPETENCY_CODES.map((code) => [code, competencyLabels[code]] as const),
+  ];
+
   return (
-    <Tabs className="mb-8" value={value} onValueChange={(next) => setValue(next as FilterValue)}>
-      {/*
-        The list scrolls rather than wraps below `sm`: four chips at the German labels' width turn
-        into two ragged rows on a phone, and a row that scrolls reads as one control where two
-        rows read as two. `-mx-4 px-4` lets it bleed to the page gutter so the last chip is
-        visibly cut rather than ending flush, which is what tells a reader there is more.
-      */}
-      <TabsList
-        aria-label={label}
-        aria-controls={controls}
-        className="-mx-4 w-auto max-w-[calc(100%+2rem)] justify-start overflow-x-auto px-4 sm:mx-0 sm:max-w-full sm:px-0"
-      >
-        <TabsTrigger value={ALL}>{allLabel}</TabsTrigger>
-        {COMPETENCY_CODES.map((code) => (
-          <TabsTrigger key={code} value={code}>
-            {competencyLabels[code]}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+    /*
+      The group scrolls rather than wraps below `sm`: four chips at the German labels' width turn
+      into two ragged rows on a phone, and a row that scrolls reads as one control where two rows
+      read as two. `-mx-4 px-4` lets it bleed to the page gutter so the last chip is visibly cut
+      rather than ending flush, which is what tells a reader there is more.
+
+      A `fieldset` with an `sr-only` `legend`, not a `div` with `role="group"`: the semantic element
+      carries the grouping natively, which is what Biome's `useSemanticElements` asks for and what a
+      screen reader announces without any ARIA. Not `toolbar`, which would promise arrow key
+      navigation between the controls; these are plain buttons and Tab reaches each one, which is
+      the behaviour a group announces.
+
+      `min-w-0` because a `fieldset` has a `min-width: min-content` default that a plain `div` does
+      not, and without it the flex row refuses to scroll and pushes the card grid wide instead.
+    */
+    <fieldset className="-mx-4 mb-8 flex min-w-0 max-w-[calc(100%+2rem)] items-center gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:max-w-full sm:px-0">
+      <legend className="sr-only">{label}</legend>
+      {options.map(([option, optionLabel]) => {
+        const active = option === value;
+        return (
+          <button
+            key={option}
+            type="button"
+            // The state a pressed toggle carries. `aria-controls` names the grid this narrows,
+            // which is a region that genuinely exists -- unlike the panel Radix's tablist implied.
+            aria-pressed={active}
+            aria-controls={controls}
+            onClick={() => setValue(option)}
+            className={cn(
+              "shrink-0 whitespace-nowrap rounded-full border px-3 py-1.5 text-copy-13 transition-colors",
+              "focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              active
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+            )}
+          >
+            {optionLabel}
+          </button>
+        );
+      })}
+    </fieldset>
   );
 }

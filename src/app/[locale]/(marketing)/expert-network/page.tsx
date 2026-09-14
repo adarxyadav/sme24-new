@@ -173,14 +173,6 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
         </section>
       </RuledField>
 
-      {/*
-        The example profiles sit after the vetting ladder: the page has said what "senior" has to
-        mean and how someone is vetted in, so the reader's next question is who that produces. Put
-        before the ladder they would be six strangers; after it they are the output of an argument
-        the reader has just been walked through.
-      */}
-      <ExpertProfiles />
-
       <section aria-labelledby="matching-heading coverage-heading">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-2">
           <div className="flex flex-col gap-4">
