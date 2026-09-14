@@ -231,6 +231,10 @@
         }
       },
       "profiles": {
+        "filter": {
+          "all": "Alle",
+          "label": "Nach Disziplin filtern"
+        },
         "title": "Wer vorbeikommt. Sechs Beispiele.",
         "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
         "listLabel": "Beispielprofile von Fachpersonen",

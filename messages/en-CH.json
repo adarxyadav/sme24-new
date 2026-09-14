@@ -231,6 +231,10 @@
         }
       },
       "profiles": {
+        "filter": {
+          "all": "All",
+          "label": "Filter by discipline"
+        },
         "title": "Who turns up. Six examples.",
         "note": "Example profiles, in the shape a real one takes. The network is being onboarded now.",
         "listLabel": "Example expert profiles",

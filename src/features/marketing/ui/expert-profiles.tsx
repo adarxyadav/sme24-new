@@ -1,14 +1,19 @@
 import { Briefcase, Languages, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
-import type {
-  CompetencyCode,
-  ExpertLanguageCode,
-  IndustryCode,
-  RegionCode,
-  StandardCode,
+import {
+  COMPETENCY_CODES,
+  type CompetencyCode,
+  type ExpertLanguageCode,
+  type IndustryCode,
+  type RegionCode,
+  type StandardCode,
 } from "@/features/experts/catalogue";
 import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
+import { ExpertProfilesFilter } from "@/features/marketing/ui/expert-profiles-filter";
+
+/** The grid the filter points at and its rules target. One id, written once and read once. */
+const GRID_ID = "expert-profiles-grid";
 
 /**
  * The six example profiles. Every coded field is a real code from `EXPERT_CATALOGUE`, so the
@@ -18,10 +23,12 @@ import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
  * than strings.
  *
  * Nobody here is real. The names follow the `M. Muster` / `A. Beispiel` convention the landing
- * band and the hero's example company already use, and the note under the heading says so: a
- * placeholder that does not announce itself is a claim about people who have not been hired, on a
- * public page. When ops onboard real experts this section reads from `expert_profiles` instead --
- * the card shape is already the profile shape, so that swap is a query, not a redesign.
+ * band and the hero's example company already use. The visible line that said so was removed on
+ * 2026-09-14 (owner decision), so the only disclosure left is `sr-only` -- see the KNOWN GAP note
+ * in the markup below, and restore the line before launch: a placeholder that does not announce
+ * itself is a claim about people who have not been hired, on a public page. When ops onboard real
+ * experts this section reads from `expert_profiles` instead -- the card shape is already the
+ * profile shape, so that swap is a query, not a redesign.
  *
  * Six rather than the landing band's three: this is the page the reader came to for the network,
  * so the grid has to show range (four sectors, four cantons, three competencies, all four working
@@ -106,7 +113,7 @@ function standardName(label: string): string {
  * the page opens with -- "Senior people. No juniors." -- is answered by the people it is about
  * before the standard and the vetting ladder explain how such a person is found. It needs no
  * visible heading of its own, only the `sr-only` one that names the landmark and keeps a level
- * above the cards' `h3`: the hero above it and the disclosure note below name what the cards are.
+ * above the cards' `h3`: the hero directly above names what the cards are.
  *
  * The card is built from the design system rather than from the usual directory pattern: flat with
  * a hairline and no shadow, square cornered, in the `gap-px border bg-border` grid the standard and
@@ -114,9 +121,14 @@ function standardName(label: string): string {
  * ordered by what a client actually decides on -- who, what they do, where, what they carry --
  * rather than by what a profile database happens to hold.
  *
- * Server component; adds no client JavaScript. There is deliberately no filter row: these routes
- * are statically prerendered and never read `searchParams` (src/features/marketing/AGENTS.md), and
- * the real filterable list is the register at `/expert-network/directory`.
+ * Server component. The one client island is `ExpertProfilesFilter` above the grid (owner decision
+ * of 2026-09-14, which reversed the "deliberately no filter row" this band shipped with): it sets
+ * `data-competency` on the grid and the rules below hide what does not match, so the six cards stay
+ * server rendered and the band still works with JavaScript off. These routes are statically
+ * prerendered and never read `searchParams` (src/features/marketing/AGENTS.md), so the filter
+ * mirrors itself into the query string with `replaceState` instead, the shape `RegisterDirectory`
+ * uses on the sibling page. The real filterable list is still the register at
+ * `/expert-network/directory`; this one narrows six examples.
  */
 export function ExpertProfiles() {
   const t = useTranslations("marketing.expertNetwork.profiles");
@@ -124,14 +136,14 @@ export function ExpertProfiles() {
 
   return (
     <section aria-labelledby="profiles-heading">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-16 sm:px-6 md:py-28">
+      <div className="mx-auto flex max-w-6xl flex-col px-4 py-16 sm:px-6 md:py-28">
         {/*
           The band carries no visible opener (owner decision of 2026-09-14), the third case on the
           site after the landing page's worked figure and the pricing packages. It had a major one
-          -- eyebrow, "Who turns up. Six examples." and a lead -- until then. What it announced the
-          hero above already says and the disclosure note below repeats: these are example experts.
-          The heading stays as `sr-only`, so the landmark keeps its name and the cards keep an `h2`
-          above their `h3`.
+          -- eyebrow, "Who turns up. Six examples." and a lead -- until then, above six cards that
+          each already name a person, a discipline and a canton under a hero that has just claimed
+          exactly what they show. The heading stays as `sr-only`, so the landmark keeps its name
+          and the cards keep an `h2` above their `h3`.
 
           The band keeps both its tier's paddings, unlike the pricing packages, which dropped their
           top one so the cards would clear the anchor above. That does not transfer here even though
@@ -143,13 +155,19 @@ export function ExpertProfiles() {
           {t("title")}
         </h2>
         {/*
-          The disclosure sits once above the grid rather than as a badge on each of the six cards:
-          it is read before the cards rather than repeated six times inside them, which is the same
-          placement the landing band settled on. It has to stay somewhere -- these are invented
-          people on a public page. With the opener gone it is the first thing the band shows, so it
-          loses the negative margin that pulled it up against the lead.
+          KNOWN GAP (owner decision of 2026-09-14): the visible disclosure is gone. It read
+          "Example profiles, in the shape a real one takes. The network is being onboarded now."
+          and sat here, above the grid.
+
+          What is left is `sr-only`: this band's heading ("Who turns up. Six examples.") and the
+          list's own `aria-label`. So a screen reader is still told these are examples and a
+          sighted reader is not -- six invented people (`M. Muster`, `A. Beispiel`) are shown with
+          years, cantons and standards and nothing on the page says they are illustrations.
+
+          The `note` key stays in both catalogs, unused, so restoring the line is one JSX element
+          rather than a copy round trip. Put it back before launch, or when real experts replace
+          `PROFILES`, whichever comes first.
         */}
-        <p className="max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
         {/*
           Separate cards rather than the `gap-px border bg-border` hairline grid the standard and
           vetting bands above use. That technique fuses its cells into one ruled block, which is
@@ -158,13 +176,57 @@ export function ExpertProfiles() {
           weighs on its own, and fused into a table they read as rows of a directory. This band is
           deliberately the one on the page that does not use the shared grid.
         */}
+        {/*
+          The filter sits above the grid as a control over the cards rather than one more thing
+          stacked in the band, so it carries the air an opener would have had. The spacing rides on
+          the control itself and not a wrapper: it renders nothing until it is interactive, and a
+          `div` holding the margin would leave an empty band above the grid without JavaScript.
+        */}
+        <ExpertProfilesFilter
+          controls={GRID_ID}
+          label={t("filter.label")}
+          allLabel={t("filter.all")}
+          // Resolved here rather than in the island: the labels are `experts.catalogue` strings,
+          // and that namespace does not reach the browser (spec 0004, AC-6). Written out rather
+          // than folded from `COMPETENCY_CODES`, because `Object.fromEntries` widens the keys to
+          // `string` and the record's type is the thing keeping this in step with the catalogue:
+          // a fourth competency should fail to compile here, not ship a chip with no label.
+          competencyLabels={{
+            compliance: catalogue("competencies.compliance"),
+            management_system: catalogue("competencies.management_system"),
+            safety_culture: catalogue("competencies.safety_culture"),
+          }}
+        />
+        {/*
+          The filter is a client island above a server rendered grid, not a client list. It writes
+          the chosen competency to `data-competency` on this `ul`, and the rules below hide the
+          cards that do not carry it. All six therefore stay in the prerendered HTML: a visitor
+          without JavaScript gets the whole grid and no filter rather than an empty band, and a
+          crawler indexes six profiles. Nothing is hidden until the filter mounts and writes an
+          attribute, so the server's markup and the first client paint agree.
+
+          One rule per competency rather than one clever selector: CSS cannot express "hide the
+          cards whose value differs from the parent's", and three explicit pairs are legible where
+          a `:not()` chain would not be. `COMPETENCY_CODES` drives them, so a fourth competency
+          adds its rule automatically.
+        */}
+        <style>
+          {COMPETENCY_CODES.map(
+            (code) =>
+              `#${GRID_ID}[data-competency="${code}"]>li:not([data-competency="${code}"]){display:none}`,
+          ).join("")}
+        </style>
         <ul
+          id={GRID_ID}
           aria-label={t("listLabel")}
           className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3"
         >
           {PROFILES.map((profile) => (
             <li
               key={profile.key}
+              // What the filter above matches on. It is the card's own competency code rather than
+              // its label, so the rules never depend on a translated string.
+              data-competency={profile.competency}
               // The `Card` treatment rather than the primitive itself: this is an `li`, and the
               // component renders its own `div`. Same ring hairline and flat ground, so a card
               // here and a card in the signed in areas are the same object.
