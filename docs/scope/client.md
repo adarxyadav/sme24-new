@@ -180,7 +180,7 @@ spec [0022](../specs/0022-ai-peer-benchmark/index.md) · code in `src/trigger/re
   - [x] The model: `loss.ts`, `benchmark-model@7` with the peers, loss and recommendation blocks, the task loading the run's peers, the raw version and `outdated`, the email copy, the table tests (AC-12 to AC-18)
   - [x] The page: peers, loss, experts and package in order, `expert_suggestions` with its pgTAP file and the seeded experts, both catalogs (AC-20 to AC-24, AC-26, AC-27)
   - [x] Proof and docs: the e2e thread through the worker with axe, `docs/benchmark.md` rewritten, `docs/research.md` amended, the hosted spike on the runbook (AC-28, AC-29)
-- [ ] Verify it: `/check verify peer benchmark from the research run`
-- [ ] Test it: `/test peer benchmark from the research run`
+- [x] Verify it: `/check verify peer benchmark from the research run`
+- [x] Test it: `/test peer benchmark from the research run`
 - [ ] Review it (fresh model): `/check review peer benchmark from the research run`
 - [ ] Document it: `/document peer benchmark from the research run`

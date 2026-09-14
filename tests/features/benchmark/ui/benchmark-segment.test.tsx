@@ -208,6 +208,49 @@ describe("the peer table (spec 0022, AC-20)", () => {
     await renderSegment({ snapshot: parsedSnapshot({}, { peers: null }) });
     expect(screen.getByText(b.peers.empty)).toBeInTheDocument();
   });
+
+  /**
+   * The failure case of the spec's critical scenarios (AC-7, AC-10, AC-14): the peer search failed
+   * or found nothing, so the run carries no peers, but the client's own figures were never at risk.
+   * The page must still price them. This is the invariant the task boundary exists to protect, so
+   * it is asserted on the page, where a client would see it break.
+   */
+  it("still prices the client's own loss when the peer search brought nothing back", async () => {
+    const { container } = await renderSegment({
+      snapshot: parsedSnapshot(
+        {},
+        {
+          peers: null,
+          // No peers means no comparison, so every peer derived figure goes null while the
+          // client's own loss and its counts stand untouched.
+          loss: {
+            ltis: 5.4,
+            recordables: 3.6,
+            trifrMissing: false,
+            fatalities: 0,
+            loss: 365_715,
+            atMedian: null,
+            atBest: null,
+            savingAtMedian: null,
+            savingAtBest: null,
+          },
+        },
+      ),
+    });
+    expect(screen.getByText(b.peers.empty)).toBeInTheDocument();
+    expect(container.querySelector("[data-loss-headline]")?.textContent).toBe(
+      `${money(365_715)} a year`,
+    );
+    // The counts behind the figure survive too: they come from the client's own rates (AC-14).
+    expect(screen.getByText("5.4 lost time injuries")).toBeInTheDocument();
+    // Nothing offers a saving the page cannot compute.
+    const savings = [...container.querySelectorAll("[data-loss-card] li")].map(
+      (item) => item.textContent ?? "",
+    );
+    expect(savings.some((text) => /less at the/.test(text))).toBe(false);
+    // A package is still recommended: the standing rule always answers (AC-15).
+    expect(container.querySelector("[data-package-card]")).toBeInTheDocument();
+  });
 });
 
 describe("the estimated loss (spec 0022, AC-21)", () => {

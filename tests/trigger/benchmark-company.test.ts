@@ -63,9 +63,24 @@ function fakeSupabase() {
 
 function builder(table: string) {
   const filters: Filter[] = [];
+  // `in`, `order` and `limit` are honoured rather than ignored: the peer run ladder of AC-17 picks
+  // the newest `succeeded` run that has peer rows out of an ordered, limited list, so a fake that
+  // dropped the ordering would pass whatever the task did.
+  const inFilters: Array<[column: string, values: readonly unknown[]]> = [];
+  const orders: Array<[column: string, ascending: boolean]> = [];
+  let limit: number | null = null;
   let op = "select";
   let inserted: Row[] = [];
   const rows = () => (state.tables[table] ??= []);
+  const compare = (a: Row, b: Row) => {
+    for (const [column, ascending] of orders) {
+      const left = a[column] ?? "";
+      const right = b[column] ?? "";
+      if (left === right) continue;
+      return (left < right ? -1 : 1) * (ascending ? 1 : -1);
+    }
+    return 0;
+  };
   const execute = () => {
     const failure = state.failing[table];
     if (failure) return { data: null, error: failure };
@@ -78,8 +93,11 @@ function builder(table: string) {
       rows().push(...stored);
       return { data: stored, error: null };
     }
-    const found = rows().filter((row) => filters.every(([column, value]) => row[column] === value));
-    return { data: found, error: null };
+    const found = rows()
+      .filter((row) => filters.every(([column, value]) => row[column] === value))
+      .filter((row) => inFilters.every(([column, values]) => values.includes(row[column])))
+      .sort(compare);
+    return { data: limit === null ? found : found.slice(0, limit), error: null };
   };
   const chain = {
     select: () => chain,
@@ -96,10 +114,19 @@ function builder(table: string) {
       filters.push([column, value]);
       return chain;
     },
-    in: () => chain,
+    in: (column: string, values: readonly unknown[]) => {
+      inFilters.push([column, values]);
+      return chain;
+    },
     not: () => chain,
-    order: () => chain,
-    limit: () => chain,
+    order: (column: string, options?: { ascending?: boolean }) => {
+      orders.push([column, options?.ascending ?? true]);
+      return chain;
+    },
+    limit: (count: number) => {
+      limit = count;
+      return chain;
+    },
     maybeSingle: async () => {
       const result = execute();
       return { data: (result.data as Row[] | null)?.[0] ?? null, error: result.error };
@@ -420,6 +447,175 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       "client_edit",
       "recompute",
     ]);
+  });
+
+  /**
+   * The peer run ladder (AC-17). A `research` trigger compares against the run it names; a
+   * `client_edit` or `recompute` has no run of its own and climbs: the latest `succeeded` run that
+   * holds a peer row, else the latest `succeeded` run, which then contributes none. The middle rung
+   * is the one that matters in practice, because a client who reruns after a peer search came back
+   * empty must keep comparing against the peers the earlier run did find.
+   */
+  describe("which run's peers a snapshot compares against (AC-17)", () => {
+    const NEWER_RUN = "0d000000-0000-4000-8000-000000000002";
+
+    /** A second, newer `succeeded` run, by default holding no peer row of its own. */
+    function seedNewerRun(
+      summaryPeers: Row | null = { status: "ok", found: 0, rung: null, thin: true },
+    ) {
+      state.tables.research_runs?.push({
+        id: NEWER_RUN,
+        company_id: COMPANY,
+        organization_id: ORG,
+        status: "succeeded",
+        finished_at: "2026-09-14T11:00:00.000Z",
+        created_at: "2026-09-14T10:00:00.000Z",
+        summary: { version: 1, step: "done", peers: summaryPeers },
+      });
+    }
+
+    /** The `peerRunId` the task logged for the snapshot it just wrote. */
+    async function peerRunIdOf(run: () => Promise<unknown>) {
+      const stdout = vi.spyOn(console, "log").mockImplementation(() => {});
+      try {
+        await run();
+        return stdout.mock.calls
+          .map(([line]) => {
+            try {
+              return JSON.parse(String(line)) as Record<string, unknown>;
+            } catch {
+              return null;
+            }
+          })
+          .find((entry) => entry?.msg === "benchmark computed");
+      } finally {
+        stdout.mockRestore();
+      }
+    }
+
+    it("prefers the newest succeeded run that has peers over a newer one that has none", async () => {
+      seedComputation();
+      seedNewerRun();
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      // The newer run exists and succeeded, but wrote no peer row, so the older run's six rows are
+      // what the client keeps seeing rather than an empty comparison.
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6, rung: "country" });
+    });
+
+    it("takes the newest run once that one has peers of its own", async () => {
+      seedComputation();
+      seedNewerRun({ status: "ok", found: 1, rung: "region", thin: true });
+      state.tables.research_peers?.push({
+        company_id: COMPANY,
+        organization_id: ORG,
+        research_run_id: NEWER_RUN,
+        peer_name: "Delta NV",
+        peer_country: "NL",
+        headcount: 3_000,
+        kpi_key: "ltifr",
+        period_year: 2025,
+        value: "1.5",
+        source_url: "https://example.org/newer",
+        confidence: "0.8",
+        rung: "region",
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      expect(computed).toMatchObject({ peerRunId: NEWER_RUN, peerRows: 1, rung: "region" });
+    });
+
+    it("falls back to the latest succeeded run and compares against nothing when no run has peers", async () => {
+      seedComputation();
+      state.tables.research_peers = [];
+      seedNewerRun();
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      // The newest run is still named, so the snapshot records what it compared against, but the
+      // peers block is null and the savings with it (AC-13, AC-14). The snapshot is still written:
+      // a client with no peers anywhere keeps a readable page rather than an empty state.
+      expect(computed).toMatchObject({ peerRunId: NEWER_RUN, peerRows: 0, rung: null });
+      expect(state.tables.benchmark_snapshots?.[0]).toMatchObject({
+        saving_at_median: null,
+        kpis_compared: 0,
+      });
+    });
+
+    it("compares against the run the research trigger names, even when a newer one has peers", async () => {
+      seedComputation();
+      seedNewerRun({ status: "ok", found: 1, rung: "region", thin: true });
+      state.tables.research_peers?.push({
+        company_id: COMPANY,
+        organization_id: ORG,
+        research_run_id: NEWER_RUN,
+        peer_name: "Delta NV",
+        peer_country: "NL",
+        headcount: 3_000,
+        kpi_key: "ltifr",
+        period_year: 2025,
+        value: "1.5",
+        source_url: "https://example.org/newer",
+        confidence: "0.8",
+        rung: "region",
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() =>
+        task.run({ companyId: COMPANY, triggerKind: "research", researchRunId: RUN }, { ctx }),
+      );
+      // A research trigger never climbs: the snapshot belongs to the run that triggered it, so a
+      // run finishing alongside it can never change what that snapshot compared against.
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6 });
+    });
+
+    it("never takes another company's run or another organization's peer rows", async () => {
+      seedComputation();
+      state.tables.research_runs?.push({
+        id: "0d000000-0000-4000-8000-00000000000f",
+        company_id: OTHER_COMPANY,
+        organization_id: ORG,
+        status: "succeeded",
+        finished_at: "2026-09-14T23:00:00.000Z",
+        created_at: "2026-09-14T22:00:00.000Z",
+        summary: { version: 1, step: "done", peers: { status: "ok", found: 9, rung: "world" } },
+      });
+      state.tables.research_peers?.push({
+        company_id: COMPANY,
+        organization_id: OTHER_ORG,
+        research_run_id: RUN,
+        peer_name: "Leaked SA",
+        peer_country: "CH",
+        headcount: 5_000,
+        kpi_key: "ltifr",
+        period_year: 2024,
+        value: "0.1",
+        source_url: "https://example.org/leak",
+        confidence: "0.9",
+        rung: "country",
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      // The other company's newer run is filtered out by company id, and the row planted under
+      // another organization never reaches the model: still the six own rows.
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6 });
+      const stored = state.tables.benchmark_snapshots?.[0] as Row;
+      expect(JSON.stringify(stored.peers)).not.toContain("Leaked SA");
+    });
+
+    it("ignores a run that did not succeed, however recent", async () => {
+      seedComputation();
+      state.tables.research_runs?.push({
+        id: NEWER_RUN,
+        company_id: COMPANY,
+        organization_id: ORG,
+        status: "failed",
+        finished_at: "2026-09-14T23:00:00.000Z",
+        created_at: "2026-09-14T22:00:00.000Z",
+        summary: { version: 1, step: "done", peers: null },
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6 });
+    });
   });
 
   it("stores a snapshot with no loss when the company has no KPI rows", async () => {

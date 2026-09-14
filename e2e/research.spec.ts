@@ -7,7 +7,8 @@ import { mailAvailable, uniqueEmail } from "./mail";
 /**
  * The company lookup and research thread on the fixture provider (spec 0007, AC-3, AC-7, AC-8,
  * AC-12): a fresh client signs in, sees the lookup form with the organization name prefilled,
- * starts the research and watches the run go queued → running. With `TRIGGER_DEV_RUNNING=1`
+ * picks the country (required with no default since spec 0022, AC-1), starts the research and
+ * watches the run go queued → running. With `TRIGGER_DEV_RUNNING=1`
  * (`pnpm trigger:dev` up next to the local stack) the run finishes on the canned result: the
  * table shows eight KPIs for three years with the fixture values, an `empty` name shows the
  * info alert and the rerun form, a `fail` name shows the failed alert; axe runs on every state.
@@ -43,6 +44,18 @@ async function runStatus(page: Page) {
   return page.locator("[data-run-status]").first().getAttribute("data-run-status");
 }
 
+/**
+ * Picks the country and submits the lookup form. Since spec 0022 (AC-1) the country is a required
+ * select with no default, so a run that never picks one is refused and nothing is queued. The
+ * lookup form's own select is addressed by id: a page that also offers the rerun form carries a
+ * second select with the same label, which makes a label lookup ambiguous.
+ */
+async function startResearch(page: Page, country = "Switzerland") {
+  await page.locator("#company-country").click();
+  await page.getByRole("option", { name: country, exact: true }).click();
+  await page.getByRole("button", { name: "Start research" }).click();
+}
+
 test("a client starts the research from the prefilled form and the run is queued", async ({
   page,
 }) => {
@@ -56,7 +69,7 @@ test("a client starts the research from the prefilled form and the run is queued
     await expectNoAxeViolations(page);
 
     await page.getByLabel("Website (optional)").fill("Example.ch/reports?x=1");
-    await page.getByRole("button", { name: "Start research" }).click();
+    await startResearch(page);
 
     await expect(page.getByRole("heading", { level: 1, name: "Lookup Fixture AG" })).toBeVisible({
       timeout: 20_000,
@@ -115,7 +128,7 @@ test("an empty result shows the alert and the rerun form, and the rerun starts a
   const email = uniqueEmail("research-empty");
   try {
     await signInFresh(page, email, "Empty Fixture AG");
-    await page.getByRole("button", { name: "Start research" }).click();
+    await startResearch(page);
     await expect(page.locator("[data-run-status]").first()).toBeVisible({ timeout: 20_000 });
     await expect.poll(() => runStatus(page), RUN_TIMEOUT).toBe("empty");
     await expect(page.getByText("No public disclosures found")).toBeVisible();
@@ -149,7 +162,7 @@ test("a provider failure shows the failed alert with its message and the rerun f
   const email = uniqueEmail("research-fail");
   try {
     await signInFresh(page, email, "Fail Fixture AG");
-    await page.getByRole("button", { name: "Start research" }).click();
+    await startResearch(page);
     await expect(page.locator("[data-run-status]").first()).toBeVisible({ timeout: 20_000 });
     await expect.poll(() => runStatus(page), RUN_TIMEOUT).toBe("failed");
     await expect(page.getByText("The research failed")).toBeVisible();

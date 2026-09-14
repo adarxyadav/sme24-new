@@ -1,7 +1,7 @@
 # 0022. Peer benchmark from the research run, priced by the loss table
 
 **Date**: 2026-09-14
-**Status**: In Progress
+**Status**: Accepted
 
 > Supersedes specs 0008, 0012, 0016, 0020 and 0021 in full and amends spec 0007 (the country becomes an input of the run, and a second task finds the peers). Owner decisions of 14 Sep 2026, taken in one sitting; the cross check of the same day reshaped the peer search into its own task and cut two controls (see Follow-up). Amended the same day after the owner's preview: peers carry their own total estimated loss, and the peer section is one merged table with both ranks in one sentence. One decision is still owed: the chart (D-chart under Follow-up); nothing in the build waits for it.
 
