@@ -1,9 +1,9 @@
--- directory_search and directory_countries (spec 0018, AC-4): the mask rules on invented rows,
+-- directory_search, directory_countries and directory_size (spec 0018, AC-4): the mask rules on invented rows,
 -- the keyset order and cursor, the page depth cap, the three filters, the validation refusals,
 -- and that raw values appear only for an unlocked row (the caller paid) or for ops.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(23);
+select plan(24);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`). A hand run `pnpm directory:import`
 -- against the local stack leaves tens of thousands of rows behind, which sort ahead of the
@@ -130,6 +130,10 @@ select results_eq(
   $$ select country, contacts from public.directory_countries() $$,
   $$ values ('AT', 1::bigint), ('CH', 2::bigint), ('DE', 2::bigint) $$,
   'directory_countries lists the codes present with a count each');
+select results_eq(
+  $$ select companies, contacts from public.directory_size() $$,
+  $$ values (3::bigint, 5::bigint) $$,
+  'directory_size counts every company and contact, not only the ones carrying a country');
 
 -- ─── Another expert does not inherit the first one's unlock ─────────────────────────────────
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000002', 'expert');

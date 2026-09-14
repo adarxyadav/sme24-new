@@ -182,7 +182,7 @@ select is_empty(
 select results_eq(
   $$ select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = 'public' and p.prosecdef order by 1 $$,
-  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('directory_countries'::name), ('directory_credit_balance'::name), ('directory_ops_summary'::name), ('directory_remove_contact'::name), ('directory_reveal'::name), ('directory_search'::name), ('directory_unlocked_contacts'::name), ('expert_suggestions'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
+  $$ values ('accept_terms'::name), ('add_organization_member'::name), ('assigned_organization_contacts'::name), ('create_organization'::name), ('directory_countries'::name), ('directory_credit_balance'::name), ('directory_ops_summary'::name), ('directory_remove_contact'::name), ('directory_reveal'::name), ('directory_search'::name), ('directory_size'::name), ('directory_unlocked_contacts'::name), ('expert_suggestions'::name), ('handle_new_user'::name), ('issue_invoice'::name), ('next_order_reference'::name), ('set_expert_photo'::name), ('set_expert_status'::name), ('settle_order'::name) $$,
   'the only security definer functions in public are the recorded entry points');
 -- The directory functions (spec 0018) are the only read path an expert has into the directory
 -- tables, so they carry the same anon revoke as every other public function; the declarative diff

@@ -6,6 +6,7 @@ import { DIRECTORY_PAGE_SIZE } from "@/features/directory/catalogue";
 import {
   getCreditBalance,
   getDirectoryOpsSummary,
+  getDirectorySize,
   getDirectoryTotals,
   listUnlockedContacts,
   searchDirectory,
@@ -343,5 +344,23 @@ describe("the balance and the ops reads (AC-5, AC-15)", () => {
     counts.error = { code: "42501", message: "permission denied" };
 
     await expect(getDirectoryTotals(client)).rejects.toThrow();
+  });
+
+  it("reads the directory size, the two bigints arriving as strings over the wire", async () => {
+    rpc.mockResolvedValue({ data: [{ companies: "40412", contacts: "79168" }], error: null });
+
+    expect(await getDirectorySize(client)).toEqual({ companies: 40412, contacts: 79168 });
+  });
+
+  it("reads an empty size result as two zeroes rather than NaN", async () => {
+    rpc.mockResolvedValue({ data: [], error: null });
+
+    expect(await getDirectorySize(client)).toEqual({ companies: 0, contacts: 0 });
+  });
+
+  it("throws when the size cannot be read, rather than showing an empty directory", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "SM403", message: "refused" } });
+
+    await expect(getDirectorySize(client)).rejects.toThrow();
   });
 });
