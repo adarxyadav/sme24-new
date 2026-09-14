@@ -4,13 +4,7 @@ import { getFormatter, getMessages, getTranslations, setRequestLocale } from "ne
 import { Button } from "@/components/ui/button";
 import { collectionPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
-import {
-  atLevel,
-  EXTRACTED_ON,
-  locationCounts,
-  REGISTER,
-  REGISTER_SOURCE,
-} from "@/features/marketing/register";
+import { atLevel, locationCounts, REGISTER } from "@/features/marketing/register";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { RegisterDirectory } from "@/features/marketing/ui/register-directory";
@@ -164,21 +158,26 @@ export default async function DirectoryPage({
           <NextIntlClientProvider messages={clientMessages(messages, ["marketing"])}>
             <RegisterDirectory />
           </NextIntlClientProvider>
-          <p className="max-w-prose text-muted-foreground text-sm">
-            {t.rich("source", {
-              date: format.dateTime(new Date(EXTRACTED_ON), "dateLong"),
-              link: (chunks) => (
-                <a
-                  href={REGISTER_SOURCE}
-                  rel="noreferrer"
-                  target="_blank"
-                  className="underline underline-offset-4"
-                >
-                  {chunks}
-                </a>
-              ),
-            })}
-          </p>
+          {/*
+            The source line sat here until 2026-09-14 (owner decision). It credited the SGAS
+            register with a link and the extract date, and said the entries are self-declared and
+            re-vetted before anyone joins the network. Removing it leaves the page with no visible
+            attribution for the register it republishes, no date on the snapshot and no accuracy
+            disclaimer -- the three things it carried. `marketing.directory.source` stays in both
+            catalogs with its `<link>` and `{date}` placeholders intact, and `EXTRACTED_ON` and
+            `REGISTER_SOURCE` are still exported from `register.ts`, so restoring it is this one
+            element and its two imports. The exact markup:
+
+              <p className="max-w-prose text-muted-foreground text-sm">
+                {t.rich("source", {
+                  date: format.dateTime(new Date(EXTRACTED_ON), "dateLong"),
+                  link: (chunks) => (
+                    <a href={REGISTER_SOURCE} rel="noreferrer" target="_blank"
+                       className="underline underline-offset-4">{chunks}</a>
+                  ),
+                })}
+              </p>
+          */}
         </div>
       </section>
 
