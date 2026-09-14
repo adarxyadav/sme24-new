@@ -191,7 +191,7 @@ describe("the state of the linked assessments (spec 0019, AC-10)", () => {
     );
     expect(lines.map((line) => line.textContent)).toEqual([
       "Compliance assessment: Not started",
-      "ISO 45001 gap assessment: Not started",
+      "ISO 45001 assessment: Not started",
     ]);
   });
 
@@ -228,7 +228,7 @@ describe("the state of the linked assessments (spec 0019, AC-10)", () => {
       .filter((item) => item.hasAttribute("data-assessment-state"));
     expect(lines.map((line) => line.textContent)).toEqual([
       `Compliance assessment: In progress since ${format.dateTime(new Date("2026-10-14T09:00:00.000Z"), "dateShort")}`,
-      `ISO 45001 gap assessment: Submitted on ${format.dateTime(new Date("2026-10-15T15:00:00.000Z"), "dateShort")}`,
+      `ISO 45001 assessment: Submitted on ${format.dateTime(new Date("2026-10-15T15:00:00.000Z"), "dateShort")}`,
     ]);
     // Only a state and a date ever reach the client: no score, no rating, no note.
     expect(screen.queryByText(/%/)).not.toBeInTheDocument();
