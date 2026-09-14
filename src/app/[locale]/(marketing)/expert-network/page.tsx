@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { RuledField } from "@/components/brand/ruled-field";
 import { Statement } from "@/components/brand/statement";
 import { Button } from "@/components/ui/button";
 import { collectionPageJsonLd } from "@/features/marketing/json-ld";
@@ -178,36 +177,47 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
         </div>
       </section>
 
-      {/* The page's one ruled ground: vetting is the section that turns the argument. */}
-      <RuledField>
-        <section aria-labelledby="vetting-heading">
-          <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
-            <SectionHeader
-              tier="major"
-              id="vetting-heading"
-              eyebrow={t("vetting.eyebrow")}
-              title={t("vetting.title")}
-            />
-            <ol className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-4">
-              {VETTING.map((step, index) => (
-                <li key={step} className="flex flex-col gap-4 bg-background px-6 py-8">
-                  <span className="font-mono text-muted-foreground text-xs tabular-nums">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <Statement
-                    as="h3"
-                    text={t(`vetting.steps.${step}.title`)}
-                    className="font-semibold text-xl tracking-headline"
-                  />
-                  <p className="max-w-prose text-muted-foreground text-sm">
-                    {t(`vetting.steps.${step}.body`)}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-      </RuledField>
+      {/*
+        The vetting ladder sits on the page ground. It carried the ruled field -- this page's one
+        ruled section -- until 2026-09-14, when the owner asked for the background rules off.
+
+        The landing page made the same move on 2026-09-10 for its steps rail, and the reasoning
+        transfers: off the hero the field runs at the full border token, and behind a band whose
+        own content is a four cell hairline grid the vertical rules read as a second grid competing
+        with the one that carries the sequence. What the ruled ground is for -- marking the one
+        section per page that turns the argument -- the numbered ladder already does on its own.
+
+        The expert network therefore has no ruled section now, the way the landing page has none.
+        `RuledField` itself is untouched and still serves the two page heroes, the closing call to
+        action and the gallery.
+      */}
+      <section aria-labelledby="vetting-heading">
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
+          <SectionHeader
+            tier="major"
+            id="vetting-heading"
+            eyebrow={t("vetting.eyebrow")}
+            title={t("vetting.title")}
+          />
+          <ol className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-4">
+            {VETTING.map((step, index) => (
+              <li key={step} className="flex flex-col gap-4 bg-background px-6 py-8">
+                <span className="font-mono text-muted-foreground text-xs tabular-nums">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <Statement
+                  as="h3"
+                  text={t(`vetting.steps.${step}.title`)}
+                  className="font-semibold text-xl tracking-headline"
+                />
+                <p className="max-w-prose text-muted-foreground text-sm">
+                  {t(`vetting.steps.${step}.body`)}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
       {/*
         The matching and coverage band stood here until 2026-09-14 and is gone entirely (owner
