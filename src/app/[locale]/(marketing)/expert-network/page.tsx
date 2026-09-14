@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { collectionPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
+import { CornerBrackets } from "@/features/marketing/ui/corner-brackets";
 import { ExpertProfiles } from "@/features/marketing/ui/expert-profiles";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
@@ -141,20 +142,39 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
             lead={t("standard.intro")}
             className="flex flex-col gap-3 lg:grid-cols-none lg:gap-3 **:data-[slot=lead]:self-start"
           />
-          <ul className="grid gap-px border bg-border sm:grid-cols-2">
-            {STANDARD.map((item) => (
-              <li key={item} className="flex flex-col gap-3 bg-background px-6 py-8">
-                <Statement
-                  as="h3"
-                  text={t(`standard.items.${item}.title`)}
-                  className="font-semibold text-xl tracking-headline"
-                />
-                <p className="max-w-prose text-muted-foreground text-sm">
-                  {t(`standard.items.${item}.body`)}
-                </p>
-              </li>
-            ))}
-          </ul>
+          {/*
+            The four corner brackets the landing page's trust band already wears: the block stays
+            framed by its own hairline and is marked out only at its corners. `CornerBrackets`
+            rather than four spans of this page's own, so the offsets live in one place and the two
+            bands cannot drift apart -- the primitive already carries the `top-0 left-0` fix for the
+            fractional pixel that split a corner into two parallel hairlines.
+
+            It goes on this band and not the vetting ladder below it. The brackets mark the block a
+            reader should weigh as one object, and the four cells here are the four halves of a
+            single claim -- "nobody joins without all four". The ladder is a sequence on the ruled
+            ground, which is already the page's one marked out section; bracketing both would spend
+            the device twice on one page and neither would signify.
+
+            The wrapper is `relative` and the `ul` keeps its own `border`: the brackets are
+            absolutely positioned against that box and sit over the hairline it draws.
+          */}
+          <div className="relative">
+            <CornerBrackets />
+            <ul className="grid gap-px border bg-border sm:grid-cols-2">
+              {STANDARD.map((item) => (
+                <li key={item} className="flex flex-col gap-3 bg-background px-6 py-8">
+                  <Statement
+                    as="h3"
+                    text={t(`standard.items.${item}.title`)}
+                    className="font-semibold text-xl tracking-headline"
+                  />
+                  <p className="max-w-prose text-muted-foreground text-sm">
+                    {t(`standard.items.${item}.body`)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </section>
 
