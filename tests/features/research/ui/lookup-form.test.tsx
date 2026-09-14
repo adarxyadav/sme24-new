@@ -8,28 +8,22 @@ import { COMPANY_ID, deferred, en, pickCountry, RUN_ID, renderWithIntl } from ".
 /**
  * The lookup form (spec 0007, AC-3, AC-9): the name is prefilled from the organization, the
  * website is optional and normalised before the action sees it, the inline rules explain a short
- * name or a bad website next to their field, a success or `company_exists` refreshes the page so
- * the server renders the dashboard, an action error is announced inline, and the button is busy
- * while the action runs. The server action and the router are the boundaries.
+ * name or a bad website next to their field, a success or `company_exists` either refreshes the
+ * page or goes to that company's own page (`redirectToCompany`), an action error is announced
+ * inline, and the button is busy while the action runs. The server action and the router are the
+ * boundaries.
  */
 type Result = ResearchActionResult<RequestResearchData>;
 
 const boundary = vi.hoisted(() => ({
   requestResearch: vi.fn<(previous: Result | null, input: unknown) => Promise<Result>>(),
   refresh: vi.fn(),
+  push: vi.fn(),
 }));
 
 vi.mock("@/features/research/actions", () => ({ requestResearch: boundary.requestResearch }));
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    refresh: boundary.refresh,
-    prefetch: vi.fn(),
-  }),
-  useParams: () => ({ locale: "en-CH" }),
-  usePathname: () => "/en/app",
-  useSearchParams: () => new URLSearchParams(),
+vi.mock("@/i18n/navigation", () => ({
+  useRouter: () => ({ push: boundary.push, refresh: boundary.refresh }),
 }));
 
 const labels = en.research.lookup;
@@ -137,6 +131,39 @@ describe("LookupForm (AC-3)", () => {
     await user.click(screen.getByRole("button", { name: labels.submit }));
     await waitFor(() => expect(boundary.refresh).toHaveBeenCalledTimes(1));
     expect(await screen.findByRole("alert")).toHaveTextContent(en.research.errors.company_exists);
+  });
+
+  it("goes to the new company's own page with redirectToCompany, instead of refreshing", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<LookupForm organizationName="" redirectToCompany />, "en-CH");
+    await user.type(screen.getByRole("textbox", { name: labels.name }), "Muster AG");
+    await pickCountry(user, labels.country, "CH");
+    await user.click(screen.getByRole("button", { name: labels.submit }));
+    await waitFor(() =>
+      expect(boundary.push).toHaveBeenCalledWith({
+        pathname: "/app/companies/[companyId]",
+        params: { companyId: COMPANY_ID },
+      }),
+    );
+    expect(boundary.refresh).not.toHaveBeenCalled();
+  });
+
+  it("goes to the company a double submit created first, so company_exists still lands somewhere", async () => {
+    boundary.requestResearch.mockResolvedValue({
+      ok: false,
+      error: "company_exists",
+      companyId: COMPANY_ID,
+    });
+    const user = userEvent.setup();
+    renderWithIntl(<LookupForm organizationName="Muster AG" redirectToCompany />, "en-CH");
+    await pickCountry(user, labels.country, "CH");
+    await user.click(screen.getByRole("button", { name: labels.submit }));
+    await waitFor(() =>
+      expect(boundary.push).toHaveBeenCalledWith({
+        pathname: "/app/companies/[companyId]",
+        params: { companyId: COMPANY_ID },
+      }),
+    );
   });
 
   it.each(["run_in_progress", "quota_exceeded", "unexpected", "forbidden"] as const)(

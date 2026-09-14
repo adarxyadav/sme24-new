@@ -1,26 +1,34 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { CountrySelect } from "@/components/country-select";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { requestResearch } from "@/features/research/actions";
+import { type ResearchActionResult, requestResearch } from "@/features/research/actions";
 import { type LookupInput, type LookupValues, lookupSchema } from "@/features/research/schema";
+import { useFormAction } from "@/hooks/use-form-action";
+import { useRouter } from "@/i18n/navigation";
 import { issueMessage, zodLocaleError } from "@/lib/validation";
 import { ResearchErrorAlert } from "./research-error-alert";
-import { useResearchAction } from "./use-research-action";
 
 /**
  * The lookup form (spec 0007, AC-3): the company name prefilled from the organization and an
- * optional website. A success (or `company_exists`) refreshes the page so the server renders the
- * dashboard with the run in `queued`. Browser.
+ * optional website. On a success (or `company_exists`, which names the company that won a double
+ * submit) it goes to that company's own page, where the queued run renders; `redirectToCompany`
+ * false keeps the old behaviour of refreshing in place, which is what the dashboard's own empty
+ * state wants. Browser.
  */
-export function LookupForm({ organizationName }: { readonly organizationName: string }) {
+export function LookupForm({
+  organizationName,
+  redirectToCompany = false,
+}: {
+  readonly organizationName: string;
+  /** Navigate to the new company's page instead of refreshing this one. */
+  readonly redirectToCompany?: boolean;
+}) {
   const t = useTranslations("research.lookup");
   const v = useTranslations("research.validation");
   const locale = useLocale();
@@ -31,23 +39,35 @@ export function LookupForm({ organizationName }: { readonly organizationName: st
     // accident (spec 0022, AC-1).
     defaultValues: { name: organizationName, country: undefined, website: "", locale },
   });
-  const action = useResearchAction<{ companyId: string; runId: string }, LookupValues>(
-    requestResearch,
-  );
+  const action = useFormAction<
+    ResearchActionResult<{ companyId: string; runId: string }>,
+    LookupValues & { locale: string }
+  >(requestResearch);
   const { errors } = form.formState;
   const result = action.result;
 
-  useEffect(() => {
-    if (result?.ok || result?.error === "company_exists") router.refresh();
-  }, [result, router]);
+  // In the handler that awaited this one dispatch, never an effect watching `result`:
+  // `useActionState` holds its last value for the life of the component, so an effect would
+  // navigate again on every later render.
+  const onSubmit = form.handleSubmit(async (values) => {
+    const outcome = await action.submit({ ...values, locale });
+    // `company_exists` names the company a double submit created first, so both answers point at
+    // a real company to open.
+    const companyId = outcome.ok
+      ? outcome.data.companyId
+      : outcome.error === "company_exists"
+        ? outcome.companyId
+        : null;
+    if (!companyId) return;
+    if (redirectToCompany) {
+      router.push({ pathname: "/app/companies/[companyId]", params: { companyId } });
+      return;
+    }
+    router.refresh();
+  });
 
   return (
-    <form
-      noValidate
-      onSubmit={form.handleSubmit((values) => action.submit({ ...values, locale }))}
-      className="flex flex-col gap-6"
-      aria-busy={action.pending}
-    >
+    <form noValidate onSubmit={onSubmit} className="flex flex-col gap-6" aria-busy={action.pending}>
       <ResearchErrorAlert result={result} />
       <FieldGroup>
         <Field data-invalid={errors.name ? true : undefined}>

@@ -48,6 +48,7 @@
     "label": "Navigation",
     "app": {
       "overview": "Übersicht",
+      "companies": "Firmen",
       "orders": "Bestellungen"
     },
     "expert": {
@@ -1866,6 +1867,26 @@
       "countryRequired": "Wählen Sie das Land, in dem das Unternehmen registriert ist.",
       "websiteInvalid": "Bitte geben Sie eine gültige Website ein, zum Beispiel example.ch."
     }
+  },
+  "clientCompanies": {
+    "title": "Firmen",
+    "description": "Alle von Ihnen analysierten Firmen. Öffnen Sie eine, um Recherche und Benchmark zu sehen.",
+    "newAnalysis": "Neue Analyse",
+    "emptyTitle": "Noch keine Firmen",
+    "emptyBody": "Starten Sie eine neue Analyse und wir recherchieren die Sicherheitsbilanz der Firma für Sie.",
+    "columns": {
+      "name": "Firma",
+      "location": "Standort",
+      "employees": "Mitarbeitende",
+      "research": "Recherche",
+      "created": "Hinzugefügt"
+    },
+    "none": "—",
+    "noRun": "Nicht gestartet",
+    "newTitle": "Neue Analyse",
+    "newDescription": "Nennen Sie die Firma, die analysiert werden soll. Wir recherchieren sie und erstellen ihren Benchmark.",
+    "backToCompanies": "Alle Firmen",
+    "formDescription": "Nennen Sie den Firmennamen und das Land der Registrierung. Eine Website hilft, die richtigen Berichte zu finden."
   },
   "benchmark": {
     "heading": "Benchmark und Potenzial",
