@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BenchmarkActionResult, UpdateCompanyFactsData } from "@/features/benchmark/actions";
 import { FactsForm } from "@/features/benchmark/ui/facts-form";
 import { de, en, renderWithIntl } from "../../emails/ui/helpers";
+import { pickCountry } from "../../research/ui/helpers";
 import { COMPANY_ID } from "./helpers";
 
 /**
@@ -12,8 +13,8 @@ import { COMPANY_ID } from "./helpers";
  * an untouched form explains that nothing changed, a bad headcount is explained next to its
  * field, a success announces the recalculation and refreshes the page, a trigger failure
  * announces the fallback, and an action error is announced inline. The server action and the
- * router are the boundaries. The division picker is a Radix select, which jsdom cannot open, so
- * the selected division is asserted on the closed trigger.
+ * router are the boundaries. The division picker's selected value is asserted on the closed
+ * trigger; the country select is opened, which the Radix shims in `tests/setup.ts` allow.
  */
 type Result = BenchmarkActionResult<UpdateCompanyFactsData>;
 
@@ -38,7 +39,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 const labels = en.benchmark.facts;
-const company = { id: COMPANY_ID, industryCode: "23.61", employeesCount: 420 };
+const company = { id: COMPANY_ID, industryCode: "23.61", employeesCount: 420, country: "CH" };
 
 beforeEach(() => {
   boundary.updateCompanyFacts.mockResolvedValue({
@@ -61,13 +62,32 @@ describe("FactsForm (AC-11)", () => {
 
   it("shows the placeholder and an empty headcount for a company without facts", () => {
     renderWithIntl(
-      <FactsForm company={{ id: COMPANY_ID, industryCode: null, employeesCount: null }} />,
+      <FactsForm
+        company={{ id: COMPANY_ID, industryCode: null, employeesCount: null, country: "CH" }}
+      />,
       "en-CH",
     );
     expect(screen.getByRole("combobox", { name: labels.industry })).toHaveTextContent(
       labels.industryPlaceholder,
     );
     expect(screen.getByRole("spinbutton", { name: labels.employees })).toHaveValue(null);
+  });
+
+  it("prefills the country from the company and sends it only when it changed (spec 0022, AC-1)", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<FactsForm company={company} />, "en-CH");
+    const country = screen.getByRole("combobox", { name: labels.country });
+    expect(country).toHaveTextContent("Switzerland");
+
+    await pickCountry(user, labels.country, "DE");
+    await user.click(screen.getByRole("button", { name: labels.submit }));
+    await waitFor(() => expect(boundary.updateCompanyFacts).toHaveBeenCalledTimes(1));
+    // The currency is not on the form: the action derives it from the country.
+    expect(boundary.updateCompanyFacts.mock.calls[0]?.[1]).toMatchObject({
+      country: "DE",
+      industryCode: undefined,
+      employeesCount: undefined,
+    });
   });
 
   it("sends only the changed headcount, never the untouched division, then announces and refreshes", async () => {
@@ -82,6 +102,7 @@ describe("FactsForm (AC-11)", () => {
       companyId: COMPANY_ID,
       industryCode: undefined,
       employeesCount: 512,
+      country: undefined,
       locale: "en-CH",
     });
     expect(await screen.findByRole("status")).toHaveTextContent(labels.saved);
@@ -98,6 +119,7 @@ describe("FactsForm (AC-11)", () => {
       companyId: COMPANY_ID,
       industryCode: undefined,
       employeesCount: undefined,
+      country: undefined,
       locale: "en-CH",
     });
     expect(await screen.findByRole("alert")).toHaveTextContent(en.benchmark.errors.validation);

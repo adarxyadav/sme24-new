@@ -207,54 +207,9 @@ export type Database = {
         }
         Relationships: []
       }
-      benchmark_assumptions: {
-        Row: {
-          created_at: string
-          effective_from: string
-          is_assumption: boolean
-          key: string
-          label: Json
-          note: Json | null
-          provisional: boolean
-          source_name: string
-          source_url: string | null
-          unit: string
-          updated_at: string
-          value: number
-        }
-        Insert: {
-          created_at?: string
-          effective_from: string
-          is_assumption?: boolean
-          key: string
-          label: Json
-          note?: Json | null
-          provisional?: boolean
-          source_name: string
-          source_url?: string | null
-          unit: string
-          updated_at?: string
-          value: number
-        }
-        Update: {
-          created_at?: string
-          effective_from?: string
-          is_assumption?: boolean
-          key?: string
-          label?: Json
-          note?: Json | null
-          provisional?: boolean
-          source_name?: string
-          source_url?: string | null
-          unit?: string
-          updated_at?: string
-          value?: number
-        }
-        Relationships: []
-      }
       benchmark_snapshots: {
         Row: {
-          assumptions: Json
+          assumptions: Json | null
           company_id: string
           confidence: number | null
           cost: Json | null
@@ -262,24 +217,27 @@ export type Database = {
           cost_high_chf: number | null
           cost_low_chf: number | null
           created_at: string
+          currency: string | null
           derived: Json | null
-          gaps: Json
+          gaps: Json | null
           id: string
           inputs: Json
           kpis_compared: number
+          loss_amount: number | null
           model_version: string
           organization_id: string
           peer_provisional: boolean
           peers: Json | null
           research_run_id: string | null
-          results: Json
+          results: Json | null
+          saving_at_median: number | null
           saving_median_chf: number | null
           saving_top_chf: number | null
           trigger_kind: string
           updated_at: string
         }
         Insert: {
-          assumptions: Json
+          assumptions?: Json | null
           company_id: string
           confidence?: number | null
           cost?: Json | null
@@ -287,24 +245,27 @@ export type Database = {
           cost_high_chf?: number | null
           cost_low_chf?: number | null
           created_at?: string
+          currency?: string | null
           derived?: Json | null
-          gaps: Json
+          gaps?: Json | null
           id?: string
           inputs: Json
           kpis_compared: number
+          loss_amount?: number | null
           model_version: string
           organization_id: string
           peer_provisional: boolean
           peers?: Json | null
           research_run_id?: string | null
-          results: Json
+          results?: Json | null
+          saving_at_median?: number | null
           saving_median_chf?: number | null
           saving_top_chf?: number | null
           trigger_kind: string
           updated_at?: string
         }
         Update: {
-          assumptions?: Json
+          assumptions?: Json | null
           company_id?: string
           confidence?: number | null
           cost?: Json | null
@@ -312,17 +273,20 @@ export type Database = {
           cost_high_chf?: number | null
           cost_low_chf?: number | null
           created_at?: string
+          currency?: string | null
           derived?: Json | null
-          gaps?: Json
+          gaps?: Json | null
           id?: string
           inputs?: Json
           kpis_compared?: number
+          loss_amount?: number | null
           model_version?: string
           organization_id?: string
           peer_provisional?: boolean
           peers?: Json | null
           research_run_id?: string | null
-          results?: Json
+          results?: Json | null
+          saving_at_median?: number | null
           saving_median_chf?: number | null
           saving_top_chf?: number | null
           trigger_kind?: string
@@ -352,77 +316,6 @@ export type Database = {
           },
         ]
       }
-      benchmarks: {
-        Row: {
-          basis: Json | null
-          created_at: string
-          id: string
-          industry_section: string
-          is_assumption: boolean
-          kpi_key: string
-          median: number
-          p25: number
-          p75: number
-          period_year: number
-          provisional: boolean
-          sample_size: number | null
-          size_band: string
-          source_key: string | null
-          source_name: string
-          source_note: Json | null
-          source_url: string | null
-          updated_at: string
-        }
-        Insert: {
-          basis?: Json | null
-          created_at?: string
-          id?: string
-          industry_section: string
-          is_assumption?: boolean
-          kpi_key: string
-          median: number
-          p25: number
-          p75: number
-          period_year: number
-          provisional?: boolean
-          sample_size?: number | null
-          size_band: string
-          source_key?: string | null
-          source_name: string
-          source_note?: Json | null
-          source_url?: string | null
-          updated_at?: string
-        }
-        Update: {
-          basis?: Json | null
-          created_at?: string
-          id?: string
-          industry_section?: string
-          is_assumption?: boolean
-          kpi_key?: string
-          median?: number
-          p25?: number
-          p75?: number
-          period_year?: number
-          provisional?: boolean
-          sample_size?: number | null
-          size_band?: string
-          source_key?: string | null
-          source_name?: string
-          source_note?: Json | null
-          source_url?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "benchmarks_kpi_key_fkey"
-            columns: ["kpi_key"]
-            isOneToOne: false
-            referencedRelation: "kpi_definitions"
-            referencedColumns: ["key"]
-          },
-        ]
-      }
       companies: {
         Row: {
           archived_at: string | null
@@ -430,6 +323,7 @@ export type Database = {
           country: string
           created_at: string
           created_by: string | null
+          currency: string
           employees_count: number | null
           id: string
           industry_code: string | null
@@ -446,6 +340,7 @@ export type Database = {
           country?: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           employees_count?: number | null
           id?: string
           industry_code?: string | null
@@ -462,6 +357,7 @@ export type Database = {
           country?: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           employees_count?: number | null
           id?: string
           industry_code?: string | null
@@ -1316,6 +1212,7 @@ export type Database = {
           available_from: string | null
           bio: string | null
           competencies: string[]
+          countries: string[]
           created_at: string
           deactivated_at: string | null
           email: string
@@ -1340,6 +1237,7 @@ export type Database = {
           available_from?: string | null
           bio?: string | null
           competencies?: string[]
+          countries?: string[]
           created_at?: string
           deactivated_at?: string | null
           email: string
@@ -1364,6 +1262,7 @@ export type Database = {
           available_from?: string | null
           bio?: string | null
           competencies?: string[]
+          countries?: string[]
           created_at?: string
           deactivated_at?: string | null
           email?: string
@@ -1993,108 +1892,6 @@ export type Database = {
         }
         Relationships: []
       }
-      peer_companies: {
-        Row: {
-          country: string
-          created_at: string
-          headcount: number
-          headcount_year: number
-          industry_section: string
-          key: string
-          name: string
-          note: Json | null
-          report_url: string
-          updated_at: string
-        }
-        Insert: {
-          country: string
-          created_at?: string
-          headcount: number
-          headcount_year: number
-          industry_section: string
-          key: string
-          name: string
-          note?: Json | null
-          report_url: string
-          updated_at?: string
-        }
-        Update: {
-          country?: string
-          created_at?: string
-          headcount?: number
-          headcount_year?: number
-          industry_section?: string
-          key?: string
-          name?: string
-          note?: Json | null
-          report_url?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      peer_figures: {
-        Row: {
-          basis: string
-          created_at: string
-          id: string
-          kpi_key: string
-          peer_key: string
-          period_year: number
-          source_url: string
-          unit_as_published: string
-          updated_at: string
-          value: number
-          value_as_published: number
-          verified_at: string | null
-          verified_by: string | null
-        }
-        Insert: {
-          basis: string
-          created_at?: string
-          id?: string
-          kpi_key: string
-          peer_key: string
-          period_year: number
-          source_url: string
-          unit_as_published: string
-          updated_at?: string
-          value: number
-          value_as_published: number
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Update: {
-          basis?: string
-          created_at?: string
-          id?: string
-          kpi_key?: string
-          peer_key?: string
-          period_year?: number
-          source_url?: string
-          unit_as_published?: string
-          updated_at?: string
-          value?: number
-          value_as_published?: number
-          verified_at?: string | null
-          verified_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "peer_figures_kpi_key_fkey"
-            columns: ["kpi_key"]
-            isOneToOne: false
-            referencedRelation: "kpi_definitions"
-            referencedColumns: ["key"]
-          },
-          {
-            foreignKeyName: "peer_figures_peer_key_fkey"
-            columns: ["peer_key"]
-            isOneToOne: false
-            referencedRelation: "peer_companies"
-            referencedColumns: ["key"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           created_at: string
@@ -2241,6 +2038,107 @@ export type Database = {
         }
         Relationships: []
       }
+      research_peers: {
+        Row: {
+          basis: string | null
+          company_id: string
+          confidence: number
+          created_at: string
+          headcount: number | null
+          headcount_year: number | null
+          id: string
+          industry_section: string
+          kpi_key: string
+          organization_id: string
+          peer_country: string
+          peer_name: string
+          peer_website: string | null
+          period_year: number
+          research_run_id: string
+          rung: string
+          source_title: string | null
+          source_url: string
+          unit_as_published: string
+          value: number
+          value_as_published: number
+        }
+        Insert: {
+          basis?: string | null
+          company_id: string
+          confidence: number
+          created_at?: string
+          headcount?: number | null
+          headcount_year?: number | null
+          id?: string
+          industry_section: string
+          kpi_key: string
+          organization_id: string
+          peer_country: string
+          peer_name: string
+          peer_website?: string | null
+          period_year: number
+          research_run_id: string
+          rung: string
+          source_title?: string | null
+          source_url: string
+          unit_as_published: string
+          value: number
+          value_as_published: number
+        }
+        Update: {
+          basis?: string | null
+          company_id?: string
+          confidence?: number
+          created_at?: string
+          headcount?: number | null
+          headcount_year?: number | null
+          id?: string
+          industry_section?: string
+          kpi_key?: string
+          organization_id?: string
+          peer_country?: string
+          peer_name?: string
+          peer_website?: string | null
+          period_year?: number
+          research_run_id?: string
+          rung?: string
+          source_title?: string | null
+          source_url?: string
+          unit_as_published?: string
+          value?: number
+          value_as_published?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "research_peers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_peers_kpi_key_fkey"
+            columns: ["kpi_key"]
+            isOneToOne: false
+            referencedRelation: "kpi_definitions"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "research_peers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "research_peers_research_run_id_fkey"
+            columns: ["research_run_id"]
+            isOneToOne: false
+            referencedRelation: "research_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       research_runs: {
         Row: {
           company_id: string
@@ -2250,6 +2148,7 @@ export type Database = {
           finished_at: string | null
           id: string
           organization_id: string
+          peer_provider_run_id: string | null
           provider_run_id: string | null
           requested_by: string | null
           started_at: string | null
@@ -2266,6 +2165,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           organization_id: string
+          peer_provider_run_id?: string | null
           provider_run_id?: string | null
           requested_by?: string | null
           started_at?: string | null
@@ -2282,6 +2182,7 @@ export type Database = {
           finished_at?: string | null
           id?: string
           organization_id?: string
+          peer_provider_run_id?: string | null
           provider_run_id?: string | null
           requested_by?: string | null
           started_at?: string | null
@@ -2646,6 +2547,19 @@ export type Database = {
           unlocked_at: string
         }[]
       }
+      expert_suggestions: {
+        Args: { country: string; region_countries: string[]; section: string }
+        Returns: {
+          availability: string
+          countries: string[]
+          expert_id: string
+          full_name: string
+          headline: string
+          industries: string[]
+          languages: string[]
+          photo_path: string
+        }[]
+      }
       issue_invoice: {
         Args: {
           due_days?: number
@@ -2671,6 +2585,7 @@ export type Database = {
           available_from: string | null
           bio: string | null
           competencies: string[]
+          countries: string[]
           created_at: string
           deactivated_at: string | null
           email: string
@@ -2704,6 +2619,7 @@ export type Database = {
           available_from: string | null
           bio: string | null
           competencies: string[]
+          countries: string[]
           created_at: string
           deactivated_at: string | null
           email: string

@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { COUNTRY_CODES } from "@/lib/countries";
 
 /**
- * The research feature's boundary schemas (spec 0007, AC-3, AC-8): the lookup form, the rerun
- * form and the website rule. The same schemas type the forms. Pure, runs anywhere.
+ * The research feature's boundary schemas (spec 0007, AC-3, AC-8; spec 0022, AC-1): the lookup
+ * form, the rerun form, the country and the website rule. The same schemas type the forms. Pure,
+ * runs anywhere.
  */
 
 /**
@@ -47,9 +49,17 @@ const websiteField = z
     return normalised;
   });
 
-/** The lookup form on `/app`: the company name (prefilled from the organization) and an optional website. */
+/**
+ * The country of the assessed company (spec 0022, AC-1), required on every form that creates or
+ * reruns one: the peer ladder, the expert ladder and the currency all read it, so a company never
+ * defaults to `CH` again.
+ */
+const countryField = z.enum(COUNTRY_CODES, { error: "countryRequired" });
+
+/** The lookup form on `/app`: the company name (prefilled from the organization), the country and an optional website. */
 export const lookupSchema = z.object({
   name: nameField,
+  country: countryField,
   website: websiteField,
   locale: z.string().optional(),
 });
@@ -60,6 +70,7 @@ export type LookupValues = z.output<typeof lookupSchema>;
 export const rerunSchema = z.object({
   companyId: z.uuid(),
   name: nameField,
+  country: countryField,
   legalName: z
     .string()
     .trim()

@@ -1,7 +1,7 @@
 # 0021. Named published peers
 
 **Date**: 2026-09-13
-**Status**: In Progress
+**Status**: Superseded by [0022](../0022-ai-peer-benchmark/index.md)
 
 ## Summary
 

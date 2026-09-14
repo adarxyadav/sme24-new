@@ -48,6 +48,7 @@
     "label": "Navigation",
     "app": {
       "overview": "Overview",
+      "companies": "Companies",
       "orders": "Orders"
     },
     "expert": {
@@ -1402,9 +1403,8 @@
       "bandBelow": "Band, value below the median",
       "bandOutside": "Band, value beyond p75",
       "bandLabel": "Example: your value {value} against the peer quartiles.",
-      "card": "Opportunity card",
-      "pointComparison": "Point comparison",
-      "peerStanding": "Peer Standing card (spec 0021), invented example"
+      "peerTable": "Peer table, three row shapes",
+      "lossCard": "Estimated loss card"
     },
     "marketing": {
       "packages": "Package card: fixed price and price on request",
@@ -1469,14 +1469,12 @@
       "preview": "Your safety figures are compared with your peers. See where you stand and what it costs.",
       "greeting": "Hello {firstName}",
       "greetingNeutral": "Hello",
-      "intro": "We compared the safety figures of {companyName} with companies like yours: {kpisCompared, plural, =0 {no KPI could be compared yet} =1 {1 KPI compared} other {# KPIs compared}}.",
-      "cost": "Workplace incidents cost you about {cost} per year.",
-      "saving": "Reaching the peer median would save about {saving} per year.",
-      "noCost": "We could not estimate the annual cost yet. Add your headcount in the client area and we recalculate at once.",
-      "nextStep": "The client area shows your position per KPI, the priority gaps and how every number is calculated.",
+      "intro": "We compared the safety figures of {companyName} with published figures from other companies: {peersCompared, plural, =0 {no peer found yet} =1 {1 peer found} other {# peers found}}.",
+      "saving": "At your peer group's median that would be about {saving} less.",
+      "nextStep": "The client area shows the peer table, your estimated yearly cost and the package that fits.",
       "button": "See the benchmark",
-      "range": "Workplace incidents cost you about {low} to {high} per year.",
-      "working": "Our working estimate within that range is {cost}."
+      "loss": "Workplace incidents cost you about {loss} per year.",
+      "noLoss": "We could not estimate the yearly cost yet. Enter your headcount and your LTIFR in the client area and we will recalculate straight away."
     },
     "enquiry_received": {
       "subject": "Your enquiry has reached SME24",
@@ -1741,6 +1739,11 @@
       "title": "Research your company",
       "description": "The name comes from your organization. A website helps us find the right reports.",
       "name": "Company name",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countryEurope": "Europe",
+      "countryRest": "Rest of the world",
+      "countryHint": "Where the company is registered. It sets which peers and experts we look for.",
       "website": "Website (optional)",
       "websiteHint": "For example example.ch",
       "submit": "Start research",
@@ -1829,6 +1832,11 @@
       "title": "Correct the details and research again",
       "description": "Your details take precedence over the research.",
       "name": "Company name",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countryEurope": "Europe",
+      "countryRest": "Rest of the world",
+      "countryHint": "Where the company is registered. It sets which peers and experts we look for.",
       "legalName": "Legal name (optional)",
       "website": "Website (optional)",
       "submit": "Research again",
@@ -1856,15 +1864,37 @@
       "nameShort": "The company name needs at least 2 characters.",
       "nameLong": "The company name can have at most 200 characters.",
       "legalNameLong": "The legal name can have at most 200 characters.",
+      "countryRequired": "Select the country the company is registered in.",
       "websiteInvalid": "Please enter a valid website, for example example.ch."
     }
+  },
+  "clientCompanies": {
+    "title": "Companies",
+    "description": "Every company you have analysed. Open one to see its research and benchmark.",
+    "newAnalysis": "New analysis",
+    "emptyTitle": "No companies yet",
+    "emptyBody": "Start a new analysis and we will research the company's safety record for you.",
+    "columns": {
+      "name": "Company",
+      "location": "Location",
+      "employees": "Employees",
+      "research": "Research",
+      "created": "Added"
+    },
+    "none": "—",
+    "noRun": "Not started",
+    "newTitle": "New analysis",
+    "newDescription": "Name the company you want analysed. We research it and build its benchmark.",
+    "backToCompanies": "All companies",
+    "formDescription": "Give the company name and where it is registered. A website helps us find the right reports."
   },
   "benchmark": {
     "heading": "Benchmark and opportunity",
     "state": {
       "calculating": "We are calculating your benchmark. This takes a moment.",
       "unavailable": "The benchmark is not available yet. We will show it as soon as it is computed.",
-      "noData": "Not enough data to compare yet. We need at least one KPI with peer data."
+      "noData": "Not enough data to compare yet. Enter your headcount and your LTIFR and we will recalculate straight away.",
+      "outdated": "This benchmark comes from an earlier model. Run the research again and we will recalculate it against the current peer group."
     },
     "provisionalNote": "Some cost assumptions are still being verified.",
     "card": {
@@ -1938,31 +1968,12 @@
       }
     },
     "peers": {
-      "kpi": {
-        "ltifr": "an LTIFR",
-        "trifr": "a TRIFR",
-        "lost_days_per_incident": "lost days per incident",
-        "iso_45001_certified": "an ISO 45001 status"
-      },
-      "rank": {
-        "ranked": "of {count} companies in {industry} {scope} that publish {kpi}",
-        "unranked": "{count} companies in {industry} {scope} publish {kpi}",
-        "gap": "{gap} behind {name}, the best published peer",
-        "leading": "Ahead of every published peer; {name} is the closest",
-        "ordinal": "{rank, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}"
-      },
+      "heading": "Published peers",
+      "badge": "{count, plural, =1 {1 peer} other {# peers}} {scope}",
       "rung": {
         "country": "in {country}",
         "region": "in {region}",
-        "europe": "in Europe",
-        "world": "worldwide",
-        "sentence": {
-          "country": "All published peers are from {country}.",
-          "region": "Fewer than three companies in {country} publish {kpi}, so the comparison widened to {region}.",
-          "europe": "Fewer than three companies in {country} publish {kpi}, so the comparison widened to Europe.",
-          "world": "Fewer than three companies in Europe publish {kpi}, so the comparison widened to the whole world."
-        },
-        "larger": "Published peers are larger companies that report their figures; each row links to the page it was read from."
+        "world": "worldwide"
       },
       "region": {
         "dach": "the DACH region",
@@ -1970,32 +1981,81 @@
         "benelux": "the Benelux",
         "british_isles": "the British Isles",
         "southern": "southern Europe",
-        "central_eastern": "central and eastern Europe"
+        "central_eastern": "central and eastern Europe",
+        "north_america": "North America",
+        "latin_america": "Latin America",
+        "middle_east_africa": "the Middle East and Africa",
+        "asia_pacific": "the Asia Pacific region"
       },
-      "srStrip": "Your value {value} against {count} published peers {scope}, from {best} to {worst}.",
-      "srStripNoValue": "{count} published peers {scope}, from {best} to {worst}; you have no value yet.",
+      "rank": {
+        "both": "You rank {ltifrRank} of {ltifrOf} on LTIFR and {trifrRank} of {trifrOf} on TRIFR among published peers in {industry} {scope}.",
+        "ltifr": "You rank {ltifrRank} of {ltifrOf} on LTIFR among published peers in {industry} {scope}.",
+        "trifr": "You rank {trifrRank} of {trifrOf} on TRIFR among published peers in {industry} {scope}.",
+        "none": "Your own figures are not in the ranking yet: enter an LTIFR or a TRIFR in Your figures.",
+        "thin": "We found only {count, plural, =1 {1 published peer} other {# published peers}} for your sector."
+      },
       "table": {
-        "caption": "Published peers for {kpi}",
+        "caption": "Published peers in {industry} {scope}, with your own figures in place",
         "company": "Company",
         "country": "Country",
-        "basis": "Counts",
         "year": "Year",
-        "saving": "If you matched them, a year",
-        "you": "you",
-        "alreadyAhead": "already ahead",
-        "noSaving": "not priced",
-        "employees": "employees only",
-        "employees_and_contractors": "incl. contractors",
-        "headcount": "{n} employees, {year}",
-        "asPublished": "{value} per 200 000 hours as published",
-        "sourceLink": "{name}, source page"
+        "ltifr": "LTIFR",
+        "trifr": "TRIFR",
+        "loss": "Estimated loss a year",
+        "source": "Source",
+        "you": "Your figures",
+        "yourCompany": "Your company",
+        "headcount": "{n} employees",
+        "noHeadcount": "No headcount published",
+        "sourceLink": "{name}, source page",
+        "none": "—"
       },
-      "iso": {
-        "share": "{certified} of {count} published peers in your industry are certified.",
-        "youYes": "You are certified.",
-        "youNo": "You are not."
+      "footnote": "The research found these companies in public reports. Each estimated loss uses the same formula as yours, applied to that company's published headcount and rates, in your currency: it is a total, so it grows with company size. Rates are per million hours worked; figures published per 200 000 hours or per 100 workers are converted.",
+      "empty": "The research found no published peer for your sector yet."
+    },
+    "loss": {
+      "heading": "Your estimated loss",
+      "headline": "{amount} a year",
+      "description": "What workplace incidents cost you a year at your own figures.",
+      "savingAtMedian": "{amount} less at the peer median",
+      "savingAtBest": "{amount} less at the best peer",
+      "noSaving": "You are already at or below the peer figures.",
+      "counts": {
+        "heading": "The counts behind it",
+        "ltis": "{count} lost time injuries",
+        "recordables": "{count} further recordable injuries",
+        "fatalities": "{count, plural, =1 {1 fatality} other {# fatalities}}",
+        "calculated": "Calculated",
+        "trifrMissing": "No TRIFR published, so no further recordable injuries are counted."
       },
-      "none": "No published peer yet"
+      "empty": {
+        "title": "Enter your LTIFR in Your figures to see your estimated loss",
+        "link": "Go to Your figures"
+      }
+    },
+    "experts": {
+      "heading": "Experts for your sector",
+      "description": "Our ops team assigns your expert once you have bought a package.",
+      "empty": "We have no expert for your sector on file yet. Buy a package and we will find one.",
+      "availability": "Availability: {value}",
+      "countries": "Countries",
+      "languages": "Languages",
+      "sectors": "Sectors",
+      "unnamed": "Expert"
+    },
+    "package": {
+      "heading": "The package we recommend",
+      "reason": {
+        "fatality": "A fatality was reported. That outranks every other figure, and this is the package that puts someone beside you all year.",
+        "large_saving": "The saving at the peer median is large enough that continuous support pays for itself.",
+        "no_figures": "You have no lost time rate yet, so nothing can be priced. This package establishes the system that produces the figures.",
+        "both_worse": "You are behind the peer median on both rates, so start with the full check.",
+        "one_worse": "You are behind the peer median on one rate, so start with the system.",
+        "both_better": "You are ahead of the peer median on both rates. What is left to gain is in the culture."
+      },
+      "buy": "Buy {name}",
+      "enquire": "Ask about {name}",
+      "others": "See all packages and prices"
     },
     "noga": {
       "sections": {
@@ -2124,6 +2184,11 @@
       "industry": "Industry",
       "industryHint": "The NOGA division your company is classified under.",
       "industryPlaceholder": "Choose a division",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countryEurope": "Europe",
+      "countryRest": "Rest of the world",
+      "countryHint": "Where the company is registered. It sets the peers, the experts and the currency.",
       "employees": "Headcount",
       "employeesHint": "Employees, counted as full time jobs.",
       "submit": "Save and recalculate",
@@ -2133,7 +2198,8 @@
       "validation": {
         "industryInvalid": "Choose a division from the list.",
         "employeesInvalid": "Enter a whole number from 1 to 1 000 000.",
-        "nothingToSave": "Change the division or the headcount before saving."
+        "countryRequired": "Select the country the company is registered in.",
+        "nothingToSave": "Change the division, the country or the headcount before saving."
       }
     },
     "errors": {

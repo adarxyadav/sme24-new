@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { KPI_KEYS } from "@/features/research/catalogue";
-import { companyFactsSchema } from "@/features/research/summary";
+import { type CompanyFacts, companyFactsSchemaFor } from "@/features/research/summary";
 
 /**
  * What Claude returns for one research result (spec 0007, AC-5): at most 24 checked values (the
@@ -37,14 +37,18 @@ export const researchValidationSchema = z.object({
 });
 export type ResearchValidation = z.infer<typeof researchValidationSchema>;
 
-/** The facts Claude returned that pass `companyFactsSchema`, the rest dropped one by one. Pure. */
-export function acceptedFacts(facts: ResearchValidation["companyFacts"]) {
-  const candidate = Object.fromEntries(
-    Object.entries(facts).filter(([, value]) => value !== null && value !== ""),
+/**
+ * The facts Claude returned that pass the country's rules, the rest dropped one by one (spec
+ * 0022, AC-3): the register identifier is held to the Swiss shape only when the company's country
+ * is `CH`, and a canton is kept only there. Pure.
+ */
+export function acceptedFacts(facts: ResearchValidation["companyFacts"], country: string) {
+  const schema = companyFactsSchemaFor(country);
+  const shape: Readonly<Record<string, unknown>> = schema.shape;
+  const candidate = Object.entries(facts).filter(
+    ([key, value]) => value !== null && value !== "" && key in shape,
   );
   return Object.fromEntries(
-    Object.entries(candidate).filter(
-      ([key, value]) => companyFactsSchema.safeParse({ [key]: value }).success,
-    ),
-  ) as z.infer<typeof companyFactsSchema>;
+    candidate.filter(([key, value]) => schema.safeParse({ [key]: value }).success),
+  ) as CompanyFacts;
 }

@@ -1,5 +1,13 @@
 import Parallel, { APIConnectionError, APIError } from "parallel-web";
 import {
+  buildPeerObjective,
+  PEER_LIMIT,
+  type PeerOutputSchema,
+  type PeerSearchInput,
+  type PeerSearchResult,
+  peerSearchResultSchema,
+} from "./peer-schema";
+import {
   type BasisConfidence,
   type ProviderBasis,
   type ProviderInput,
@@ -38,12 +46,30 @@ const CONFIDENCE_LEVELS: readonly BasisConfidence[] = ["low", "medium", "high"];
 /** The task input Parallel sees: public company data and the research objective, nothing else (AC-13). Pure. */
 export function buildParallelInput(input: ProviderInput): Record<string, string> {
   return {
+    // Nothing here names a country: the company's own country is a field below, and the
+    // register is whichever one that country keeps (spec 0022, AC-3).
     objective:
-      "Research the company's published occupational health and safety figures (sustainability, ESG, annual and safety reports, press releases, certification registers) for the latest three reporting years, and its registered company facts.",
+      "Research the company's published occupational health and safety figures (sustainability, ESG, annual and safety reports, press releases, certification registers) for the latest three reporting years, and its registered company facts as held by the commercial register of the company's country.",
     company_name: input.name,
     legal_name: input.legalName ?? "",
     website: input.website ?? "",
     country: input.country,
+  };
+}
+
+/**
+ * The task input of a peer run (spec 0022, AC-6): the objective plus the ladder as plain fields,
+ * so the preference order is stated twice and the provider can cite it. Pure.
+ */
+export function buildParallelPeerInput(input: PeerSearchInput): Record<string, string> {
+  return {
+    objective: buildPeerObjective(input),
+    company_name: input.companyName,
+    industry_section: `${input.section} (${input.sectionName})`,
+    country: input.country,
+    region_countries: input.regionCountries.join(", "),
+    target_peers: String(input.targetPeers),
+    minimum_peers: String(input.minimumPeers),
   };
 }
 
@@ -132,5 +158,39 @@ export function createParallelProvider(apiKey: string): ResearchProvider {
         processor: "core",
       };
     },
+    createPeerRun: async (input: PeerSearchInput, schema: PeerOutputSchema) => {
+      const run = await guard(() =>
+        client.taskRun.create({
+          input: buildParallelPeerInput(input),
+          processor: PARALLEL_PROCESSOR,
+          task_spec: { output_schema: { type: "json", json_schema: schema } },
+        }),
+      );
+      return { providerRunId: run.run_id };
+    },
+    getPeerResult: async (providerRunId: string): Promise<PeerSearchResult> => {
+      const result = await guard(() => client.taskRun.result(providerRunId, { timeout: 30 }));
+      if (result.output.type !== "json") {
+        throw new ProviderRejectedError("parallel returned a text output for a json schema", null);
+      }
+      return parsePeerContent(result.output.content);
+    },
   };
+}
+
+/**
+ * The peer answer read through the Zod schema, a peer the provider malformed dropped rather than
+ * failing the run: eight peers are worth more than the one that did not parse (AC-6). A content
+ * without a `peers` array at all is a rejection. Pure.
+ */
+export function parsePeerContent(content: unknown): PeerSearchResult {
+  const raw = (content as { peers?: unknown } | null)?.peers;
+  if (!Array.isArray(raw)) {
+    throw new ProviderRejectedError("parallel returned no peers array for a peer run", null);
+  }
+  const peers = raw.flatMap((entry) => {
+    const parsed = peerSearchResultSchema.shape.peers.element.safeParse(entry);
+    return parsed.success ? [parsed.data] : [];
+  });
+  return peerSearchResultSchema.parse({ peers: peers.slice(0, PEER_LIMIT) });
 }

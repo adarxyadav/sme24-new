@@ -4,12 +4,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { CountrySelect } from "@/components/country-select";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { rerunResearch } from "@/features/research/actions";
 import { type RerunInput, type RerunValues, rerunSchema } from "@/features/research/schema";
+import { isCountryCode } from "@/lib/countries";
 import { issueMessage, zodLocaleError } from "@/lib/validation";
 import { ResearchErrorAlert } from "./research-error-alert";
 import { useResearchAction } from "./use-research-action";
@@ -20,6 +22,7 @@ export type RerunFormProps = {
     readonly name: string;
     readonly legalName: string | null;
     readonly website: string | null;
+    readonly country: string;
   };
   /** Why the button is disabled: a run still open, the quota used up, or nothing. */
   readonly blocked: "open" | "quota" | null;
@@ -40,6 +43,9 @@ export function RerunForm({ company, blocked }: RerunFormProps) {
     defaultValues: {
       companyId: company.id,
       name: company.name,
+      // Prefilled from the row and required, so the country is confirmed on every rerun rather
+      // than carried over unseen (spec 0022, AC-1).
+      country: isCountryCode(company.country) ? company.country : undefined,
       legalName: company.legalName ?? "",
       website: company.website ? company.website.replace(/^https:\/\//, "") : "",
       locale,
@@ -75,6 +81,29 @@ export function RerunForm({ company, blocked }: RerunFormProps) {
           />
           <FieldError id="rerun-name-error">{issueMessage(errors.name?.message, v)}</FieldError>
         </Field>
+        <Controller
+          control={form.control}
+          name="country"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid ? true : undefined}>
+              <FieldLabel htmlFor="rerun-country">{t("country")}</FieldLabel>
+              <CountrySelect
+                id="rerun-country"
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                placeholder={t("countryPlaceholder")}
+                europeLabel={t("countryEurope")}
+                restLabel={t("countryRest")}
+                invalid={fieldState.invalid}
+                describedBy={fieldState.invalid ? "rerun-country-error" : "rerun-country-hint"}
+              />
+              <FieldDescription id="rerun-country-hint">{t("countryHint")}</FieldDescription>
+              <FieldError id="rerun-country-error">
+                {issueMessage(fieldState.error?.message, v)}
+              </FieldError>
+            </Field>
+          )}
+        />
         <Field data-invalid={errors.legalName ? true : undefined}>
           <FieldLabel htmlFor="rerun-legal-name">{t("legalName")}</FieldLabel>
           <Input

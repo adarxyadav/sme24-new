@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { idempotencyKeys, tasks } from "@trigger.dev/sdk";
 import { type Locale, resolveLocale } from "@/i18n/routing";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
+import { currencyOf } from "@/lib/countries";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
@@ -55,8 +56,9 @@ function localeOf(input: unknown): Locale {
 }
 
 /**
- * Saves the industry division and or the headcount (AC-11): a plain update of `industry_code`
- * and `employees_count` through the members update policy (zero rows updated is `not_found`),
+ * Saves the industry division, the headcount and or the country (AC-11, spec 0022 AC-1): a plain
+ * update of `industry_code`, `employees_count`, `country` and the `currency` the country implies,
+ * through the members update policy (zero rows updated is `not_found`),
  * reads `updated_at` back from the same statement, and triggers the benchmark with the
  * `updated_at` key. A trigger failure still answers `ok` with `benchmarkQueued` false and logs.
  * Server action, client member.
@@ -70,11 +72,13 @@ export async function updateCompanyFacts(
   const parsed = parseWith(companyFactsFormSchema, input, localeOf(input));
   if (!parsed.success) return { ok: false, error: "validation" };
   const { supabase, organizationId } = actor;
-  const { companyId, industryCode, employeesCount } = parsed.data;
+  const { companyId, industryCode, employeesCount, country } = parsed.data;
 
   const patch: Database["public"]["Tables"]["companies"]["Update"] = {
     ...(industryCode !== undefined ? { industry_code: industryCode } : {}),
     ...(employeesCount !== undefined ? { employees_count: employeesCount } : {}),
+    // The currency follows the country, here as on the lookup (spec 0022, AC-1).
+    ...(country !== undefined ? { country, currency: currencyOf(country) ?? "CHF" } : {}),
   };
   const { data, error } = await supabase
     .from("companies")
@@ -93,6 +97,7 @@ export async function updateCompanyFacts(
     companyId,
     industryCode: industryCode ?? null,
     employeesCount: employeesCount ?? null,
+    country: country ?? null,
     benchmarkQueued,
   });
   return { ok: true, data: { companyId, benchmarkQueued } };

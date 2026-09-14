@@ -1,7 +1,7 @@
 import { createTranslatorFor } from "@/i18n/standalone";
 import { BenchmarkReadyEmail } from "@/lib/email/templates/benchmark-ready";
 
-/** `pnpm email:dev` preview (spec 0008, AC-7): the English benchmark ready email leading with the cost range (spec 0016, AC-13). */
+/** `pnpm email:dev` preview (spec 0008, AC-7): the English benchmark ready email with the yearly loss in the snapshot's currency (spec 0022, AC-17). */
 export default async function BenchmarkReadyEnPreview() {
   const t = await createTranslatorFor("en-CH");
   return (
@@ -11,11 +11,10 @@ export default async function BenchmarkReadyEnPreview() {
       data={{
         firstName: undefined,
         companyName: "Example Fixture AG",
-        kpisCompared: 5,
-        costChf: 1_961_000,
-        costLowChf: 1_060_000,
-        costHighChf: 2_651_000,
-        savingMedianChf: 522_000,
+        currency: "CHF",
+        peersCompared: 5,
+        lossAmount: 366_000,
+        savingAtMedian: 122_000,
       }}
       href="http://localhost:3000/en/app"
     />

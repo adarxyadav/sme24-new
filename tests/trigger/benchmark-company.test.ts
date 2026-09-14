@@ -63,9 +63,24 @@ function fakeSupabase() {
 
 function builder(table: string) {
   const filters: Filter[] = [];
+  // `in`, `order` and `limit` are honoured rather than ignored: the peer run ladder of AC-17 picks
+  // the newest `succeeded` run that has peer rows out of an ordered, limited list, so a fake that
+  // dropped the ordering would pass whatever the task did.
+  const inFilters: Array<[column: string, values: readonly unknown[]]> = [];
+  const orders: Array<[column: string, ascending: boolean]> = [];
+  let limit: number | null = null;
   let op = "select";
   let inserted: Row[] = [];
   const rows = () => (state.tables[table] ??= []);
+  const compare = (a: Row, b: Row) => {
+    for (const [column, ascending] of orders) {
+      const left = a[column] ?? "";
+      const right = b[column] ?? "";
+      if (left === right) continue;
+      return (left < right ? -1 : 1) * (ascending ? 1 : -1);
+    }
+    return 0;
+  };
   const execute = () => {
     const failure = state.failing[table];
     if (failure) return { data: null, error: failure };
@@ -78,8 +93,11 @@ function builder(table: string) {
       rows().push(...stored);
       return { data: stored, error: null };
     }
-    const found = rows().filter((row) => filters.every(([column, value]) => row[column] === value));
-    return { data: found, error: null };
+    const found = rows()
+      .filter((row) => filters.every(([column, value]) => row[column] === value))
+      .filter((row) => inFilters.every(([column, values]) => values.includes(row[column])))
+      .sort(compare);
+    return { data: limit === null ? found : found.slice(0, limit), error: null };
   };
   const chain = {
     select: () => chain,
@@ -96,10 +114,19 @@ function builder(table: string) {
       filters.push([column, value]);
       return chain;
     },
-    in: () => chain,
+    in: (column: string, values: readonly unknown[]) => {
+      inFilters.push([column, values]);
+      return chain;
+    },
     not: () => chain,
-    order: () => chain,
-    limit: () => chain,
+    order: (column: string, options?: { ascending?: boolean }) => {
+      orders.push([column, options?.ascending ?? true]);
+      return chain;
+    },
+    limit: (count: number) => {
+      limit = count;
+      return chain;
+    },
     maybeSingle: async () => {
       const result = execute();
       return { data: (result.data as Row[] | null)?.[0] ?? null, error: result.error };
@@ -143,6 +170,7 @@ beforeEach(() => {
         employees_count: null,
         industry_code: null,
         country: "CH",
+        currency: "CHF",
         // The creator is the person `benchmark.computed` is captured for (spec 0017, AC-8); a row
         // without one is skipped rather than sent under a placeholder id.
         created_by: CREATOR,
@@ -196,45 +224,29 @@ describe("benchmark-company failures", () => {
   });
 });
 
-/** The stored rows a computation reads (AC-5): the active catalogue, the company's KPIs, the peers and the assumptions. */
+/** The stored rows a computation reads (spec 0022, AC-14, AC-17): the company's KPIs and the peers of one run. */
 function seedComputation() {
-  state.tables.kpi_definitions = [
-    {
-      key: "accident_rate_per_1000_fte",
-      direction: "lower_is_better",
-      sort_order: 10,
-      is_active: true,
-    },
-    { key: "ltifr", direction: "lower_is_better", sort_order: 20, is_active: true },
-    {
-      key: "lost_days_per_incident",
-      direction: "lower_is_better",
-      sort_order: 30,
-      is_active: true,
-    },
-    { key: "retired_kpi", direction: "lower_is_better", sort_order: 40, is_active: false },
-  ];
   state.tables.company_kpi_current = [
     {
-      id: "0f000000-0000-4000-8000-000000000001",
+      id: "0f000000-0000-4000-8000-000000000002",
       company_id: COMPANY,
       organization_id: ORG,
-      kpi_key: "accident_rate_per_1000_fte",
-      value: "68",
+      kpi_key: "ltifr",
+      value: "6",
       period_year: 2025,
       source: "research",
       confidence: "0.9",
       research_run_id: RUN,
     },
     {
-      id: "0f000000-0000-4000-8000-000000000002",
+      id: "0f000000-0000-4000-8000-000000000003",
       company_id: COMPANY,
       organization_id: ORG,
-      kpi_key: "ltifr",
-      value: "2.4",
+      kpi_key: "trifr",
+      value: "10",
       period_year: 2025,
       source: "research",
-      confidence: "0.8",
+      confidence: "0.9",
       research_run_id: RUN,
     },
     // Another company's row must never leak into this computation.
@@ -242,7 +254,7 @@ function seedComputation() {
       id: "0f000000-0000-4000-8000-000000000009",
       company_id: OTHER_COMPANY,
       organization_id: ORG,
-      kpi_key: "lost_days_per_incident",
+      kpi_key: "ltifr",
       value: "40",
       period_year: 2025,
       source: "client",
@@ -250,55 +262,41 @@ function seedComputation() {
       research_run_id: null,
     },
   ];
-  state.tables.benchmarks = [
+  state.tables.research_runs = [
     {
-      id: "0b000000-0000-4000-8000-000000000001",
-      kpi_key: "accident_rate_per_1000_fte",
-      industry_section: "ALL",
-      size_band: "all",
-      period_year: 2022,
-      p25: "25",
-      median: "61.8",
-      p75: "81.2",
-      sample_size: null,
-      provisional: true,
-      is_assumption: false,
-      source_key: null,
-      basis: null,
-    },
-    {
-      id: "0b000000-0000-4000-8000-000000000002",
-      kpi_key: "ltifr",
-      industry_section: "ALL",
-      size_band: "all",
-      period_year: 2022,
-      p25: "1",
-      median: "2",
-      p75: "4",
-      sample_size: 300,
-      provisional: false,
+      id: RUN,
+      company_id: COMPANY,
+      organization_id: ORG,
+      status: "succeeded",
+      finished_at: "2026-09-14T09:00:00.000Z",
+      created_at: "2026-09-14T08:00:00.000Z",
+      summary: {
+        version: 1,
+        step: "done",
+        peers: { status: "ok", found: 3, rung: "country", thin: false },
+      },
     },
   ];
-  state.tables.benchmark_assumptions = [
-    ["hours_per_fte", "1804", "hours per year"],
-    ["direct_cost_per_case_chf", "4811", "CHF per case"],
-    ["cost_per_absence_day_chf", "1100", "CHF per day"],
-    ["lost_days_per_incident_default", "14", "days per case"],
-    ["indirect_multiplier_low", "2", "factor"],
-    ["indirect_multiplier", "3.7", "factor"],
-    ["indirect_multiplier_high", "5", "factor"],
-  ].map(([key, value, unit]) => ({
-    key,
-    value,
-    unit,
-    source_name: "test",
-    source_url: null,
-    note: null,
-    provisional: true,
-    // The three multipliers are declared assumptions in the real seed (spec 0016, AC-2); here the
-    // flag only has to be present, because the loader copies it onto every assumption block.
-    is_assumption: false,
-    effective_from: "2022-12-31",
+  state.tables.research_peers = [
+    ["Alpha AG", "ltifr", 2, 1_000],
+    ["Alpha AG", "trifr", 5, 1_000],
+    ["Beta SA", "ltifr", 4, 2_400],
+    ["Beta SA", "trifr", 9, 2_400],
+    ["Gamma GmbH", "ltifr", 8, 900],
+    ["Gamma GmbH", "trifr", 13, 900],
+  ].map(([peerName, kpiKey, value, headcount]) => ({
+    company_id: COMPANY,
+    organization_id: ORG,
+    research_run_id: RUN,
+    peer_name: peerName,
+    peer_country: "CH",
+    headcount,
+    kpi_key: kpiKey,
+    period_year: 2024,
+    value: String(value),
+    source_url: "https://example.org/report",
+    confidence: "0.8",
+    rung: "country",
   }));
   state.tables.organization_members = [
     { organization_id: ORG, user_id: MEMBER_A },
@@ -336,10 +334,13 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     expect((await emailTrigger()).mock.calls).toHaveLength(0);
   });
 
-  it("stores one row keyed by the loaded company and organization with the version 1 blocks and the scalars", async () => {
+  // The `@7` row: the peers of the run, the loss the owner's table prices and the new scalars, all
+  // keyed by the loaded ids (spec 0022, AC-12 to AC-17).
+  it("stores one row keyed by the loaded company and organization, with the run's peers and the loss", async () => {
     seedComputation();
-    (state.tables.companies?.[0] as Row).employees_count = 420;
+    (state.tables.companies?.[0] as Row).employees_count = 500;
     (state.tables.companies?.[0] as Row).industry_code = "23.61";
+    (state.tables.companies?.[0] as Row).currency = "CHF";
     const task = await loadTask();
     const outcome = await task.run(
       { companyId: COMPANY, triggerKind: "research", researchRunId: RUN },
@@ -353,60 +354,55 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       company_id: COMPANY,
       research_run_id: RUN,
       trigger_kind: "research",
-      model_version: "benchmark-model@5",
-      peer_provisional: true,
+      model_version: "benchmark-model@7",
+      // The two rates the peers published (AC-16).
       kpis_compared: 2,
-      confidence: 0.9,
+      currency: "CHF",
+      peer_provisional: false,
     });
-    expect(stored.cost_chf).toBeGreaterThan(0);
-    expect(stored.cost_low_chf).toBeLessThan(stored.cost_chf as number);
-    expect(stored.cost_high_chf).toBeGreaterThan(stored.cost_chf as number);
+    // 500 FTE at LTIFR 6 and TRIFR 10 is 365 715 (AC-14).
+    expect(Number(stored.loss_amount)).toBeCloseTo(365_715, 6);
+    expect(Number(stored.saving_at_median)).toBeCloseTo(365_715 - 275_467.5, 6);
+    // The CHF named columns and the three block columns belong to `@1` to `@6` (AC-16).
+    for (const column of [
+      "cost_chf",
+      "cost_low_chf",
+      "cost_high_chf",
+      "saving_median_chf",
+      "saving_top_chf",
+      "results",
+      "gaps",
+      "assumptions",
+    ]) {
+      expect(stored[column], column).toBeNull();
+    }
     const inputs = stored.inputs as Row;
     expect(inputs).toMatchObject({
-      fte: 420,
+      fte: 500,
       section: "C",
-      sizeBand: "250+",
       industryCode: "23.61",
+      country: "CH",
+      currency: "CHF",
       companyUpdatedAt: "2026-09-06T10:00:00.000Z",
     });
-    // Only this company's rows, and only catalogue keys, reach the model.
-    expect((inputs.kpis as Row[]).map((kpi) => kpi.key)).toEqual([
-      "accident_rate_per_1000_fte",
-      "ltifr",
+    // Only this company's rows, and only the three loss KPIs, reach the model.
+    expect((inputs.kpis as Row[]).map((kpi) => kpi.key)).toEqual(["ltifr", "trifr"]);
+    // The peers block lists each peer once, best LTIFR first (AC-13).
+    expect(((stored.peers as Row).rows as Row[]).map((row) => row.peerName)).toEqual([
+      "Alpha AG",
+      "Beta SA",
+      "Gamma GmbH",
     ]);
-    expect((stored.results as Row[]).map((result) => result.key)).toEqual([
-      "accident_rate_per_1000_fte",
-      "ltifr",
-    ]);
-    expect((stored.cost as Row).incidentKpi).toBe("accident_rate_per_1000_fte");
-    expect((stored.cost as Row).lostDaysSource).toBe("default");
-    // The cost line took the Suva path, but the derived block derived its lost time count from
-    // LTIFR, so the hours assumption is used after all and the disclosure names it (spec 0012, AC-11).
-    expect((stored.assumptions as Row[]).map((assumption) => assumption.key)).toContain(
-      "hours_per_fte",
-    );
-    // The block survives the task's parse and reaches the row rather than being stripped (AC-15).
-    // The derived block names LTIFR while the cost line took the Suva rate, so the two counts are
-    // deliberately different numbers here; the equality invariant holds only when the keys match.
-    const derived = stored.derived as Row;
-    expect(derived).not.toBeNull();
-    expect((derived.lostTime as Row).fromKey).toBe("ltifr");
-    expect((derived.lostTime as Row).count).toBeGreaterThan(0);
-    expect(derived.fte).toBe(420);
+    // The loss rides in `cost` and the recommendation in `derived` (AC-16).
+    expect((stored.cost as Row).loss).toBeCloseTo(365_715, 6);
+    // LTIFR 6 and TRIFR 10 both sit above the peer medians of 4 and 9 (AC-15).
+    expect(stored.derived).toMatchObject({ packageKey: "compliance", reason: "both_worse" });
   });
 
-  // A missing assumption row gives a null cost with a named cause on the computed step, never NaN
-  // in the row (spec 0016 amendment, AC-20). The LTIFR arm needs `hours_per_fte`, so drop the Suva
-  // rate and the hours row: the model names the key, the task logs it and never stores it.
-  it("logs the missing assumption on the computed step and stores a null cost instead of NaN (amendment AC-20)", async () => {
+  // A company with no headcount has no exposure, so there is no loss to price and the row stores a
+  // null rather than NaN (spec 0022, AC-14). The computed step names what it had.
+  it("stores a null loss without a headcount and logs the run it took its peers from", async () => {
     seedComputation();
-    (state.tables.companies?.[0] as Row).employees_count = 420;
-    state.tables.company_kpi_current = (state.tables.company_kpi_current as Row[]).filter(
-      (row) => row.kpi_key !== "accident_rate_per_1000_fte",
-    );
-    state.tables.benchmark_assumptions = (state.tables.benchmark_assumptions as Row[]).filter(
-      (row) => row.key !== "hours_per_fte",
-    );
     // The structured logger writes one JSON line per step to stdout; read the computed step back.
     const stdout = vi.spyOn(console, "log").mockImplementation(() => {});
     try {
@@ -414,10 +410,9 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
       const outcome = await task.run(payload, { ctx });
       expect(outcome).toMatchObject({ status: "stored" });
       const stored = state.tables.benchmark_snapshots?.[0] as Row;
-      expect(stored.cost_chf).toBeNull();
+      expect(stored.loss_amount).toBeNull();
+      expect(stored.saving_at_median).toBeNull();
       expect(stored.cost).toBeNull();
-      expect(stored.derived).toBeNull();
-      expect(stored).not.toHaveProperty("costSkipped");
       const computed = stdout.mock.calls
         .map(([line]) => {
           try {
@@ -427,9 +422,12 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
           }
         })
         .find((entry) => entry?.msg === "benchmark computed");
+      // A recompute finds the run's peers through the latest succeeded run (AC-17).
       expect(computed).toMatchObject({
-        costChf: null,
-        costSkipped: { reason: "missing_assumption", key: "hours_per_fte" },
+        peerRunId: RUN,
+        peerRows: 6,
+        rung: "country",
+        lossAmount: null,
       });
     } finally {
       stdout.mockRestore();
@@ -451,22 +449,191 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     ]);
   });
 
-  it("stores a snapshot with nothing compared and no cost when the company has no KPI rows", async () => {
+  /**
+   * The peer run ladder (AC-17). A `research` trigger compares against the run it names; a
+   * `client_edit` or `recompute` has no run of its own and climbs: the latest `succeeded` run that
+   * holds a peer row, else the latest `succeeded` run, which then contributes none. The middle rung
+   * is the one that matters in practice, because a client who reruns after a peer search came back
+   * empty must keep comparing against the peers the earlier run did find.
+   */
+  describe("which run's peers a snapshot compares against (AC-17)", () => {
+    const NEWER_RUN = "0d000000-0000-4000-8000-000000000002";
+
+    /** A second, newer `succeeded` run, by default holding no peer row of its own. */
+    function seedNewerRun(
+      summaryPeers: Row | null = { status: "ok", found: 0, rung: null, thin: true },
+    ) {
+      state.tables.research_runs?.push({
+        id: NEWER_RUN,
+        company_id: COMPANY,
+        organization_id: ORG,
+        status: "succeeded",
+        finished_at: "2026-09-14T11:00:00.000Z",
+        created_at: "2026-09-14T10:00:00.000Z",
+        summary: { version: 1, step: "done", peers: summaryPeers },
+      });
+    }
+
+    /** The `peerRunId` the task logged for the snapshot it just wrote. */
+    async function peerRunIdOf(run: () => Promise<unknown>) {
+      const stdout = vi.spyOn(console, "log").mockImplementation(() => {});
+      try {
+        await run();
+        return stdout.mock.calls
+          .map(([line]) => {
+            try {
+              return JSON.parse(String(line)) as Record<string, unknown>;
+            } catch {
+              return null;
+            }
+          })
+          .find((entry) => entry?.msg === "benchmark computed");
+      } finally {
+        stdout.mockRestore();
+      }
+    }
+
+    it("prefers the newest succeeded run that has peers over a newer one that has none", async () => {
+      seedComputation();
+      seedNewerRun();
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      // The newer run exists and succeeded, but wrote no peer row, so the older run's six rows are
+      // what the client keeps seeing rather than an empty comparison.
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6, rung: "country" });
+    });
+
+    it("takes the newest run once that one has peers of its own", async () => {
+      seedComputation();
+      seedNewerRun({ status: "ok", found: 1, rung: "region", thin: true });
+      state.tables.research_peers?.push({
+        company_id: COMPANY,
+        organization_id: ORG,
+        research_run_id: NEWER_RUN,
+        peer_name: "Delta NV",
+        peer_country: "NL",
+        headcount: 3_000,
+        kpi_key: "ltifr",
+        period_year: 2025,
+        value: "1.5",
+        source_url: "https://example.org/newer",
+        confidence: "0.8",
+        rung: "region",
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      expect(computed).toMatchObject({ peerRunId: NEWER_RUN, peerRows: 1, rung: "region" });
+    });
+
+    it("falls back to the latest succeeded run and compares against nothing when no run has peers", async () => {
+      seedComputation();
+      state.tables.research_peers = [];
+      seedNewerRun();
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      // The newest run is still named, so the snapshot records what it compared against, but the
+      // peers block is null and the savings with it (AC-13, AC-14). The snapshot is still written:
+      // a client with no peers anywhere keeps a readable page rather than an empty state.
+      expect(computed).toMatchObject({ peerRunId: NEWER_RUN, peerRows: 0, rung: null });
+      expect(state.tables.benchmark_snapshots?.[0]).toMatchObject({
+        saving_at_median: null,
+        kpis_compared: 0,
+      });
+    });
+
+    it("compares against the run the research trigger names, even when a newer one has peers", async () => {
+      seedComputation();
+      seedNewerRun({ status: "ok", found: 1, rung: "region", thin: true });
+      state.tables.research_peers?.push({
+        company_id: COMPANY,
+        organization_id: ORG,
+        research_run_id: NEWER_RUN,
+        peer_name: "Delta NV",
+        peer_country: "NL",
+        headcount: 3_000,
+        kpi_key: "ltifr",
+        period_year: 2025,
+        value: "1.5",
+        source_url: "https://example.org/newer",
+        confidence: "0.8",
+        rung: "region",
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() =>
+        task.run({ companyId: COMPANY, triggerKind: "research", researchRunId: RUN }, { ctx }),
+      );
+      // A research trigger never climbs: the snapshot belongs to the run that triggered it, so a
+      // run finishing alongside it can never change what that snapshot compared against.
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6 });
+    });
+
+    it("never takes another company's run or another organization's peer rows", async () => {
+      seedComputation();
+      state.tables.research_runs?.push({
+        id: "0d000000-0000-4000-8000-00000000000f",
+        company_id: OTHER_COMPANY,
+        organization_id: ORG,
+        status: "succeeded",
+        finished_at: "2026-09-14T23:00:00.000Z",
+        created_at: "2026-09-14T22:00:00.000Z",
+        summary: { version: 1, step: "done", peers: { status: "ok", found: 9, rung: "world" } },
+      });
+      state.tables.research_peers?.push({
+        company_id: COMPANY,
+        organization_id: OTHER_ORG,
+        research_run_id: RUN,
+        peer_name: "Leaked SA",
+        peer_country: "CH",
+        headcount: 5_000,
+        kpi_key: "ltifr",
+        period_year: 2024,
+        value: "0.1",
+        source_url: "https://example.org/leak",
+        confidence: "0.9",
+        rung: "country",
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      // The other company's newer run is filtered out by company id, and the row planted under
+      // another organization never reaches the model: still the six own rows.
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6 });
+      const stored = state.tables.benchmark_snapshots?.[0] as Row;
+      expect(JSON.stringify(stored.peers)).not.toContain("Leaked SA");
+    });
+
+    it("ignores a run that did not succeed, however recent", async () => {
+      seedComputation();
+      state.tables.research_runs?.push({
+        id: NEWER_RUN,
+        company_id: COMPANY,
+        organization_id: ORG,
+        status: "failed",
+        finished_at: "2026-09-14T23:00:00.000Z",
+        created_at: "2026-09-14T22:00:00.000Z",
+        summary: { version: 1, step: "done", peers: null },
+      });
+      const task = await loadTask();
+      const computed = await peerRunIdOf(() => task.run(payload, { ctx }));
+      expect(computed).toMatchObject({ peerRunId: RUN, peerRows: 6 });
+    });
+  });
+
+  it("stores a snapshot with no loss when the company has no KPI rows", async () => {
     seedComputation();
     state.tables.company_kpi_current = [];
+    state.tables.research_peers = [];
     const task = await loadTask();
     const outcome = await task.run(payload, { ctx });
     expect(outcome).toMatchObject({ status: "stored" });
     expect(state.tables.benchmark_snapshots?.[0]).toMatchObject({
       kpis_compared: 0,
-      cost_chf: null,
+      loss_amount: null,
+      saving_at_median: null,
       confidence: null,
-      results: [],
-      gaps: [],
+      peers: null,
       cost: null,
-      assumptions: [],
-      // No rate and no headcount, so no derived block reaches the row either (spec 0012, AC-7).
-      derived: null,
+      // No LTIFR at all: the standing recommends the safety management system (AC-15).
+      derived: { packageKey: "sms", reason: "no_figures" },
     });
   });
 
@@ -477,7 +644,7 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
   // the same way, and that an unknown version fails loudly instead of writing partial blocks.
   it("parses against the schema its own MODEL_VERSION names, not a hardcoded one (AC-15)", async () => {
     seedComputation();
-    (state.tables.companies?.[0] as Row).employees_count = 420;
+    (state.tables.companies?.[0] as Row).employees_count = 500;
     const task = await loadTask();
     await task.run(payload, { ctx });
     const { MODEL_VERSION } = await import("@/features/benchmark/catalogue");
@@ -486,24 +653,23 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
     // The row is written under the live version, and that version really is in the map.
     expect(stored.model_version).toBe(MODEL_VERSION);
     expect(SNAPSHOT_SCHEMAS[MODEL_VERSION]).toBeDefined();
-    expect(stored.derived).not.toBeNull();
-    // What the task wrote round trips through the reader, so the write and read schemas agree.
+    // What the task wrote round trips through the reader, so the write and read schemas agree,
+    // including the two columns `@7` borrows for `loss` and `recommendation` (AC-16).
     const parsed = parseSnapshotBlocks({
       model_version: stored.model_version as string,
       inputs: stored.inputs,
-      results: stored.results,
-      gaps: stored.gaps,
+      peers: stored.peers,
       cost: stored.cost,
-      assumptions: stored.assumptions,
       derived: stored.derived,
     });
     expect(parsed.error).toBeNull();
-    expect(parsed.blocks?.derived).toEqual(stored.derived);
+    expect(parsed.blocks?.loss?.loss).toBeCloseTo(365_715, 6);
+    expect(parsed.blocks?.recommendation).toEqual(stored.derived);
   });
 
   it("refuses to write rather than storing partial blocks when the version has no schema", async () => {
     seedComputation();
-    (state.tables.companies?.[0] as Row).employees_count = 420;
+    (state.tables.companies?.[0] as Row).employees_count = 500;
     const task = await loadTask();
     const { MODEL_VERSION } = await import("@/features/benchmark/catalogue");
     const { SNAPSHOT_SCHEMAS } = await import("@/features/benchmark/snapshot");
@@ -522,14 +688,16 @@ describe("benchmark-company computes and stores a snapshot (AC-5)", () => {
 });
 
 describe("the benchmark ready email (AC-7)", () => {
-  it("queues one email per member of the organization on the first snapshot, with rounded money and a stable key", async () => {
+  // The money the email leads with is rounded by the same function the card uses (spec 0016, AC-13;
+  // spec 0022, AC-14) and carries the snapshot's currency (AC-17).
+  it("queues one email per member of the organization on the first snapshot, with a stable key", async () => {
     seedComputation();
-    (state.tables.companies?.[0] as Row).employees_count = 420;
+    (state.tables.companies?.[0] as Row).employees_count = 500;
+    (state.tables.companies?.[0] as Row).currency = "CHF";
     const task = await loadTask();
     const outcome = await task.run(payload, { ctx });
     const trigger = await emailTrigger();
     expect(trigger).toHaveBeenCalledTimes(2);
-    const stored = state.tables.benchmark_snapshots?.[0] as Row;
     for (const [index, userId] of [MEMBER_A, MEMBER_B].entries()) {
       const [sendPayload, options] = trigger.mock.calls[index] as unknown as [Row, Row];
       expect(sendPayload).toEqual({
@@ -537,29 +705,17 @@ describe("the benchmark ready email (AC-7)", () => {
         template: "benchmark_ready",
         data: {
           companyName: "Muster AG",
-          kpisCompared: 2,
-          costChf: expect.any(Number),
-          savingMedianChf: expect.any(Number),
-          // The range the email leads with, rounded outward by the same function the card uses
-          // (spec 0016, AC-13).
-          costLowChf: expect.any(Number),
-          costHighChf: expect.any(Number),
+          currency: "CHF",
+          peersCompared: 3,
+          // 365 715 and 90 247.5 rounded to the nearest 1 000 (AC-14).
+          lossAmount: 366_000,
+          savingAtMedian: 90_000,
         },
         recipient: { userId },
         sourceEvent: "benchmark.snapshot_created",
         organizationId: ORG,
         idempotencyKey: `benchmark-ready/${COMPANY}/${userId}`,
       });
-      expect((sendPayload.data as Row).costChf).not.toBe(stored.cost_chf);
-      expect(((sendPayload.data as Row).costChf as number) % 100).toBe(0);
-      // The band contains the computed ends, so the email can never show a narrower range than
-      // the arithmetic (spec 0016, AC-9, AC-13).
-      const low = (sendPayload.data as Row).costLowChf as number;
-      const high = (sendPayload.data as Row).costHighChf as number;
-      expect(low).toBeLessThanOrEqual(Number(stored.cost_low_chf));
-      expect(high).toBeGreaterThanOrEqual(Number(stored.cost_high_chf));
-      expect(low).toBeLessThanOrEqual((sendPayload.data as Row).costChf as number);
-      expect(high).toBeGreaterThanOrEqual((sendPayload.data as Row).costChf as number);
       expect(options).toEqual({
         idempotencyKey: `benchmark-ready/${COMPANY}/${userId}`,
         idempotencyKeyTTL: "30d",
@@ -568,13 +724,17 @@ describe("the benchmark ready email (AC-7)", () => {
     expect(outcome).toMatchObject({ first: true });
   });
 
-  it("leaves the money out of the email when no cost was computed", async () => {
+  it("leaves the money out of the email when no loss could be computed", async () => {
     seedComputation();
     const task = await loadTask();
     await task.run(payload, { ctx });
     const trigger = await emailTrigger();
     const [sendPayload] = trigger.mock.calls[0] as unknown as [Row];
-    expect(sendPayload.data).toEqual({ companyName: "Muster AG", kpisCompared: 2 });
+    expect(sendPayload.data).toEqual({
+      companyName: "Muster AG",
+      currency: "CHF",
+      peersCompared: 3,
+    });
   });
 
   it("sends nothing for a second snapshot of the same company", async () => {

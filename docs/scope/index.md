@@ -43,17 +43,18 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 26 | Production environment & go live | Slice 4 | planned |
 | 27 | Derived injury counts | Slice 2 | done |
 | 28 | Contact directory | Slice 9 | done |
-| 29 | Client country as a benchmark input | Slice 10 | in-progress |
-| 30 | Named published peers | Slice 10 | in-progress |
+| 29 | Client country as a benchmark input | Slice 10 | superseded |
+| 30 | Named published peers | Slice 10 | superseded |
 | 31 | EU VAT & multi currency at checkout | Slice 10 | planned |
-| 32 | Peer bubble chart | Slice 10 | in-progress |
+| 32 | Peer bubble chart | Slice 10 | superseded |
+| 33 | Peer benchmark from the research run | Slice 11 | in-progress |
 
 ## Epics
 
 Build order is the `#` above. Each epic file holds its features grouped by phase.
 
 - [Foundations](foundations.md) · 1 to 5 · 5 of 5 done · everything the slices stand on: stack, tooling, data model, design system, two languages.
-- [Client funnel](client.md) · 6 to 10, 22, 23, 27, 29, 30, 32 · 5 of 11 done · sign in, company lookup, AI research, benchmark and the opportunity in the client's currency, plus later team and notification strands and the Europe rows (named published peers first, the client's country as a benchmark input, the peer bubble chart).
+- [Client funnel](client.md) · 6 to 10, 22, 23, 27, 29, 30, 32, 33 · 5 of 12 done · sign in, company lookup, AI research, benchmark and the estimated loss in the client's currency, plus later team and notification strands; the Europe rows 29, 30 and 32 were superseded on 14 Sep 2026 by the global peer benchmark from the research run (33).
 - [Commerce & ops](commerce.md) · 11, 12, 24, 28, 31 · 3 of 5 done · fixed price checkout (Swiss VAT first, EU VAT and other currencies in Slice 10), the ops admin, ops metrics, the contact directory sold to the expert network.
 - [Launch](launch.md) · 13 to 15, 25, 25b, 25c, 26 · 3 of 7 done · marketing site, legal and consent, analytics and monitoring, the peer data and what the model may claim about it, the refreshed peer values from UVG 2026 and Eurostat, the seller facts, the production environment. Release 1 ships after this.
 - [Assessment & gap report](assessment.md) · 16 to 18 · 2 of 3 done · experts, the three structured assessments, the generated gap report.

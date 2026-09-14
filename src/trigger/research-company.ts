@@ -2,14 +2,7 @@ import "./instrumentation";
 
 import * as Sentry from "@sentry/node";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  AbortTaskRunError,
-  idempotencyKeys,
-  queue,
-  schemaTask,
-  tasks,
-  wait,
-} from "@trigger.dev/sdk";
+import { AbortTaskRunError, idempotencyKeys, schemaTask, tasks, wait } from "@trigger.dev/sdk";
 import { z } from "zod";
 import { localeForUser } from "@/features/localization/queries";
 import { KPI_KEYS, type KpiKey, type RUN_STEPS } from "@/features/research/catalogue";
@@ -40,6 +33,8 @@ import { queryError } from "@/lib/supabase/query-error";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { benchmarkCompanyTask } from "./benchmark-company";
 import { raiseAlertFromTask } from "./ops-alert";
+import { researchQueue } from "./queues";
+import type { researchPeersTask } from "./research-peers";
 
 type Service = SupabaseClient<Database>;
 type RunRow = Tables<"research_runs">;
@@ -69,9 +64,6 @@ const POLL_SECONDS = 15;
 const BUDGET_MS = 20 * 60 * 1000;
 /** Postgres: unique violation. */
 const UNIQUE_VIOLATION = "23505";
-
-/** The research queue: five runs at a time across the project (AC-4). */
-export const researchQueue = queue({ name: "research", concurrencyLimit: 5 });
 
 export const researchCompanyPayloadSchema = z.object({ runId: z.uuid() });
 
@@ -139,7 +131,8 @@ export const researchCompanyTask = schemaTask({
             website: company.website,
             country: company.country,
           },
-          buildOutputSchema(),
+          // The canton is only asked of a Swiss company (spec 0022, AC-3).
+          buildOutputSchema(company.country),
         ),
       );
       providerRunId = created.providerRunId;
@@ -256,7 +249,11 @@ export const researchCompanyTask = schemaTask({
       provider: env.RESEARCH_PROVIDER,
       durationMs: Date.now() - startedAtMs,
     });
-    if (status === "succeeded") await triggerBenchmark(ids, ctx.run.id);
+    // The peer search runs as its own task after this terminal write (spec 0022, AC-5) and triggers
+    // the benchmark itself when it is done, whatever its outcome. Only when it cannot be queued at
+    // all does this task trigger the benchmark, so the loss still computes (AC-5).
+    const queuedPeers = await triggerPeerSearch(ids, ctx.run.id);
+    if (!queuedPeers) await triggerBenchmark(ids, ctx.run.id);
     return { status };
   },
   onFailure: async ({ payload, error, ctx }) => {
@@ -355,6 +352,32 @@ async function captureResearchFinished(
       ...ids,
       reason: error instanceof Error ? error.message : String(error),
     });
+  }
+}
+
+/**
+ * Queues the peer search right after the terminal write (spec 0022, AC-5), under the key
+ * `peers/<runId>` so a retried terminal write queues one search. Answers whether it was queued: a
+ * failure is logged and reported, never changes the run's status, and leaves the caller to trigger
+ * the benchmark itself so the loss still computes.
+ */
+async function triggerPeerSearch(ids: RunIds, triggerRunId: string): Promise<boolean> {
+  try {
+    const idempotencyKey = await idempotencyKeys.create(`peers/${ids.runId}`, { scope: "global" });
+    const handle = await tasks.trigger<typeof researchPeersTask>(
+      "research-peers",
+      { runId: ids.runId },
+      { idempotencyKey, idempotencyKeyTTL: "24h" },
+    );
+    log.info("peer search queued after the research run", { ...ids, peerRunId: handle.id });
+    return true;
+  } catch (error) {
+    log.error("peer search trigger failed after the research run", {
+      ...ids,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+    reportToSentry(error, ids, triggerRunId);
+    return false;
   }
 }
 

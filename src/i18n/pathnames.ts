@@ -28,6 +28,14 @@ export const PATHNAMES = {
   "/forbidden": "/forbidden",
   "/app": "/app",
   "/app/onboarding": "/app/onboarding",
+  "/app/companies": { "de-CH": "/app/firmen", "en-CH": "/app/companies" },
+  // Ahead of the `[companyId]` template: a literal segment wins over the parameter, so `new` is
+  // the form and never reads as a company id.
+  "/app/companies/new": { "de-CH": "/app/firmen/neu", "en-CH": "/app/companies/new" },
+  "/app/companies/[companyId]": {
+    "de-CH": "/app/firmen/[companyId]",
+    "en-CH": "/app/companies/[companyId]",
+  },
   "/app/checkout": { "de-CH": "/app/kasse", "en-CH": "/app/checkout" },
   "/app/orders": { "de-CH": "/app/bestellungen", "en-CH": "/app/orders" },
   "/app/orders/[id]": { "de-CH": "/app/bestellungen/[id]", "en-CH": "/app/orders/[id]" },

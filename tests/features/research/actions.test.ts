@@ -122,10 +122,16 @@ const COMPANY = "0c000000-0000-4000-8000-00000000000a";
 const client = { sub: USER, app_metadata: { role: "client", organization_id: ORG } };
 const AT = new Date("2026-09-06T10:00:00Z");
 
-const lookup = { name: " Muster AG ", website: "Muster.ch/reports", locale: "de-CH" };
+const lookup = {
+  name: " Muster AG ",
+  country: "CH",
+  website: "Muster.ch/reports",
+  locale: "de-CH",
+};
 const rerun = {
   companyId: COMPANY,
   name: "Muster Holding",
+  country: "CH",
   legalName: "",
   website: "www.muster.ch",
   locale: "en-CH",
@@ -197,6 +203,7 @@ describe("requestResearch (AC-3)", () => {
       name: "Muster AG",
       website: "https://muster.ch",
       country: "CH",
+      currency: "CHF",
       created_by: USER,
     });
     expect(calls("research_runs", "insert")[0]?.payload).toEqual({
@@ -223,37 +230,32 @@ describe("requestResearch (AC-3)", () => {
     expect(calls("research_runs", "update")[0]?.filters).toEqual([["id", "eq", "research_runs-2"]]);
   });
 
-  it("looks for the organization's non archived company before inserting", async () => {
-    await requestResearch(null, lookup);
-    expect(calls("companies", "select")[0]?.filters).toEqual([
-      ["organization_id", "eq", ORG],
-      ["archived_at", "is", null],
-    ]);
-  });
-
-  it("answers company_exists with the id when the organization already has a company, and inserts nothing", async () => {
-    seedCompany();
+  it("inserts a second company and starts its run: one organization may hold several", async () => {
+    // The company that exists already carries a different name, so it is another company and not
+    // a double submit; nothing about it may stop this one.
+    boundary.tables.companies = [
+      { id: COMPANY, organization_id: ORG, name: "Andere AG", archived_at: null },
+    ];
     await expect(requestResearch(null, lookup)).resolves.toEqual({
-      ok: false,
-      error: "company_exists",
-      companyId: COMPANY,
+      ok: true,
+      data: { companyId: "companies-1", runId: "research_runs-2" },
     });
-    expect(calls("companies", "insert")).toEqual([]);
-    expect(calls("research_runs", "insert")).toEqual([]);
-    expect(boundary.trigger).not.toHaveBeenCalled();
+    expect(calls("companies", "insert")[0]?.payload).toMatchObject({
+      organization_id: ORG,
+      name: "Muster AG",
+    });
+    expect(calls("research_runs", "insert")[0]?.payload).toMatchObject({
+      company_id: "companies-1",
+    });
+    expect(boundary.trigger).toHaveBeenCalledTimes(1);
   });
 
-  it("archives its own company and answers company_exists when another submit won the race", async () => {
-    // The check passes (no company yet), then a concurrent submit lands one before this insert:
-    // `onSelect` runs after the first companies select, so the racer sorts ahead of ours.
-    const raced = { id: COMPANY, organization_id: ORG, name: "Muster AG", archived_at: null };
-    boundary.onSelect = (table) => {
-      if (table !== "companies") return;
-      boundary.onSelect = null;
-      const rows = boundary.tables.companies ?? [];
-      rows.unshift(raced);
-      boundary.tables.companies = rows;
-    };
+  it("keeps a company of the same name that a second submit landed first, and archives its own", async () => {
+    // Both submits now insert (there is no check to pass any more), so the reconciliation is the
+    // only thing standing between a double click and two runs spent on one company. The racer is
+    // seeded rather than injected on a select: it sorts ahead of ours, which is what the settle
+    // read finds, and it carries the same name or it would be another company entirely.
+    seedCompany();
     const result = await requestResearch(null, lookup);
 
     expect(result).toEqual({ ok: false, error: "company_exists", companyId: COMPANY });
@@ -263,15 +265,41 @@ describe("requestResearch (AC-3)", () => {
     expect(ours?.archived_at).toBe(AT.toISOString());
   });
 
+  it("settles against the same name only, so a differently named racer never archives this one", async () => {
+    const settle = () => calls("companies", "select").at(-1);
+    await requestResearch(null, lookup);
+    expect(settle()?.filters).toEqual([
+      ["organization_id", "eq", ORG],
+      ["name", "eq", "Muster AG"],
+      ["archived_at", "is", null],
+    ]);
+  });
+
   it("stores no website when none was typed", async () => {
-    await requestResearch(null, { name: "Muster AG", website: "", locale: "en-CH" });
+    await requestResearch(null, { name: "Muster AG", country: "CH", website: "", locale: "en-CH" });
     expect(calls("companies", "insert")[0]?.payload).toMatchObject({ website: null });
+  });
+
+  it("sets the currency from the selected country, never a CHF default (spec 0022, AC-1)", async () => {
+    await requestResearch(null, { ...lookup, country: "JP" });
+    expect(calls("companies", "insert")[0]?.payload).toMatchObject({
+      country: "JP",
+      currency: "JPY",
+    });
+  });
+
+  it("rejects a country outside the catalogue before touching the database (AC-1)", async () => {
+    await expect(requestResearch(null, { ...lookup, country: "ZZ" })).resolves.toEqual({
+      ok: false,
+      error: "validation",
+    });
+    expect(calls("companies", "insert")).toEqual([]);
   });
 
   it.each([
     ["a name of one character", { name: "A", website: "" }],
     ["a name over 200 characters", { name: "x".repeat(201), website: "" }],
-    ["a website that is not a host", { name: "Muster AG", website: "??" }],
+    ["a website that is not a host", { name: "Muster AG", country: "CH", website: "??" }],
     ["no input at all", null],
   ])("rejects %s as validation before touching the database", async (_, input) => {
     await expect(requestResearch(null, input)).resolves.toEqual({
@@ -388,6 +416,8 @@ describe("rerunResearch (AC-8, AC-14)", () => {
       name: "Muster Holding",
       legal_name: null,
       website: "https://www.muster.ch",
+      country: "CH",
+      currency: "CHF",
     });
     expect(update?.filters).toEqual([
       ["id", "eq", COMPANY],
@@ -412,6 +442,15 @@ describe("rerunResearch (AC-8, AC-14)", () => {
     await rerunResearch(null, { ...rerun, legalName: " Muster Holding AG " });
     expect(calls("companies", "update")[0]?.payload).toMatchObject({
       legal_name: "Muster Holding AG",
+    });
+  });
+
+  it("writes the country the client picked with the currency it implies (spec 0022, AC-1)", async () => {
+    seedCompany();
+    await rerunResearch(null, { ...rerun, country: "DE" });
+    expect(calls("companies", "update")[0]?.payload).toMatchObject({
+      country: "DE",
+      currency: "EUR",
     });
   });
 

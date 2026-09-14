@@ -35,6 +35,7 @@ export type NavItem = {
 export const AREA_NAV: Record<Area, readonly NavItem[]> = {
   app: [
     { href: "/app", labelKey: "app.overview", icon: LayoutDashboardIcon },
+    { href: "/app/companies", labelKey: "app.companies", icon: Building2Icon },
     { href: "/app/orders", labelKey: "app.orders", icon: ReceiptIcon },
   ],
   expert: [

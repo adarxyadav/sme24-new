@@ -3,6 +3,8 @@
 **Date**: 2026-09-06
 **Status**: Accepted
 
+> Amended by [0022](../0022-ai-peer-benchmark/index.md) on 2026-09-14: the country is an input of the run (no `CH` constant, no Swiss wording in the prompt or the schema), the Suva only KPI leaves the catalogue, and the run starts a second provider run that finds named peers and writes `research_peers`. The rest of this spec stands.
+
 ## Summary
 
 A client types their company name (and, if they have it, the website) on the dashboard, and a background job researches the company's public disclosures, extracts eight safety KPIs (key performance indicators such as the lost time injury rate) for the latest three reporting years, and stores each value with the web sources it came from. Parallel (a web research API that returns structured answers with citations) does the research inside a Trigger.dev task (a durable background job), and Claude checks every value against its cited excerpt before anything is saved. The dashboard follows the run live, shows the KPIs with their sources when it finishes, and gives the client a plain next step when nothing was found or the run failed. It is the core thread of the product; feature 9 adds the peer benchmark on top of the same rows.

@@ -1,17 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
-  ASSUMPTION_KEYS,
   BENCHMARK_WAIT_MS,
-  COST_LINKED_KPIS,
   MODEL_VERSION,
   NOGA_DIVISIONS,
   NOGA_SECTIONS,
-  SIZE_BANDS,
+  SECTION_NAMES_EN,
+  sectionNameEn,
   sectionOfDivision,
-  sizeBandOf,
 } from "@/features/benchmark/catalogue";
-import { PEER_SHAPES, POSITIONS } from "@/features/benchmark/snapshot";
-import { KPI_KEYS } from "@/features/research/catalogue";
 import de from "../../../messages/de-CH.json";
 import en from "../../../messages/en-CH.json";
 
@@ -67,141 +63,26 @@ describe("the benchmark catalogue (spec 0008, AC-3)", () => {
         expect(divisions[division], division).toBeTruthy();
       }
       expect(Object.keys(divisions)).toHaveLength(88);
-      for (const band of SIZE_BANDS) {
-        expect((messages.benchmark.sizeBands as Record<string, string>)[band], band).toBeTruthy();
-      }
     }
   });
 
-  it("puts a headcount in its size band at the boundaries", () => {
-    expect(sizeBandOf(null)).toBe("all");
-    expect(sizeBandOf(undefined)).toBe("all");
-    expect(sizeBandOf(0)).toBe("all");
-    expect(sizeBandOf(1)).toBe("1-49");
-    expect(sizeBandOf(49)).toBe("1-49");
-    expect(sizeBandOf(50)).toBe("50-249");
-    expect(sizeBandOf(249)).toBe("50-249");
-    expect(sizeBandOf(250)).toBe("250+");
-    expect(sizeBandOf(100_000)).toBe("250+");
-  });
-
-  it("names the cost linked KPIs, the seven assumption keys, the model version and the wait", () => {
-    expect(COST_LINKED_KPIS).toEqual([
-      "accident_rate_per_1000_fte",
-      "ltifr",
-      "lost_days_per_incident",
-    ]);
-    for (const key of COST_LINKED_KPIS) expect(KPI_KEYS).toContain(key);
-    expect(ASSUMPTION_KEYS).toEqual([
-      "hours_per_fte",
-      "direct_cost_per_case_chf",
-      "cost_per_absence_day_chf",
-      "lost_days_per_incident_default",
-      "indirect_multiplier_low",
-      "indirect_multiplier",
-      "indirect_multiplier_high",
-    ]);
-    expect(MODEL_VERSION).toBe("benchmark-model@5");
+  it("names the model version and the wait", () => {
+    // Spec 0022 (AC-12): `@7` is the peers of one research run and the owner's loss table, and the
+    // earlier schemas are gone, so a stored row of any of them reads as outdated (AC-18).
+    expect(MODEL_VERSION).toBe("benchmark-model@7");
     expect(BENCHMARK_WAIT_MS).toBe(120_000);
   });
 
-  // The band label is looked up at render time as `positions.band.<stored value>`, so a missing
-  // key fails in the browser rather than at build: the two average positions of spec 0016 must
-  // not be able to ship without their labels (AC-13b).
-  it("labels every position in both catalogs (spec 0016, AC-13b)", () => {
-    for (const messages of [de, en]) {
-      const bands = messages.benchmark.positions.band as Record<string, string>;
-      for (const position of POSITIONS) {
-        expect(bands[position], position).toBeTruthy();
-      }
-      // No stale label outlives its position value either.
-      expect(Object.keys(bands).sort()).toEqual([...POSITIONS].sort());
+  // The peer search objective runs in a task where next-intl is not available, so the English
+  // section names live in code; the client facing labels stay in the catalogs and the two must say
+  // the same thing (spec 0022, AC-5).
+  it("matches the English section names in code with the English catalog", () => {
+    const sections = en.benchmark.noga.sections as Record<string, string>;
+    for (const section of NOGA_SECTIONS) {
+      expect(SECTION_NAMES_EN[section.letter], section.letter).toBe(sections[section.letter]);
+      expect(sectionNameEn(section.letter)).toBe(sections[section.letter]);
     }
-  });
-
-  it("names both peer shapes and the point row wording in both catalogs (spec 0016, AC-6)", () => {
-    expect(PEER_SHAPES).toEqual(["point", "distribution"]);
-    for (const messages of [de, en]) {
-      const positions = messages.benchmark.positions as Record<string, unknown>;
-      for (const key of ["sector", "srSector", "pointBasis", "broadened"]) {
-        expect(positions[key], key).toBeTruthy();
-      }
-    }
-  });
-
-  // AC-6 forbids the words quarter, quartile and median on a point row "in either language", but
-  // the component suite mocks `next-intl/server` with `locale: "en-CH"` hardcoded, so its
-  // `not.toMatch(/quarter|quartile|median/i)` only ever reads English. A translator could put
-  // "Median" or "Viertel" back into a German point row string and the whole suite would stay green.
-  // The rule is a property of the catalogs, so it is asserted here against both.
-  //
-  // Only the keys the point row branch actually renders are in scope: the distribution branch
-  // legitimately says p25/Median/p75 in `quartiles` and `srBand`, so scanning the namespace would
-  // fail on wording that is correct.
-  it("keeps quartile wording out of every point row string, in both catalogs (spec 0016, AC-6)", () => {
-    // The keys `benchmark-segment.tsx` reads on the point path: the sector figure and its screen
-    // reader narration, the basis line, the peer label parts, the two no-peer titles, and the only
-    // two band labels `positionOf` can return for a point row.
-    const POINT_ROW_KEYS = [
-      "title",
-      "sector",
-      "srSector",
-      "pointBasis",
-      "broadened",
-      "peer",
-      "allIndustries",
-      "nearestYear",
-      "sample",
-      "noPeer",
-      "peerStatus.noSourceTitle",
-      "peerStatus.pendingTitle",
-      "band.above_average",
-      "band.below_average",
-      // The fatality peer rows are point rows (amendment AC-26), so the three strings the fatality
-      // branch renders on that path are guarded too (amendment AC-23).
-      "fatalityRate",
-      "fatalityCompared",
-      "fatalityNeedsHeadcount",
-    ] as const;
-    // Both languages, because "quarter" and "median" travel into German as "Viertel" and "Median".
-    const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
-    const read = (source: unknown, path: string): unknown =>
-      path
-        .split(".")
-        .reduce<unknown>((value, key) => (value as Record<string, unknown>)?.[key], source);
-
-    for (const [locale, messages] of [
-      ["de", de],
-      ["en", en],
-    ] as const) {
-      for (const key of POINT_ROW_KEYS) {
-        const text = read(messages.benchmark.positions, key);
-        expect(typeof text, `${locale}: ${key} is missing`).toBe("string");
-        expect(text as string, `${locale}: ${key} carries quartile wording`).not.toMatch(
-          QUARTILE_WORDING,
-        );
-      }
-    }
-  });
-
-  // The guard above is only honest if it would actually fire, and a regex over prose is easy to get
-  // subtly wrong. The distribution strings are the control: they are supposed to name the quartiles,
-  // so the same pattern must match them in both languages.
-  it("uses a pattern that does catch quartile wording where it belongs (spec 0016, AC-6)", () => {
-    const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
-    for (const [locale, messages] of [
-      ["de", de],
-      ["en", en],
-    ] as const) {
-      const positions = messages.benchmark.positions as Record<string, unknown>;
-      const bands = positions.band as Record<string, string>;
-      expect(positions.quartiles as string, `${locale}: quartiles`).toMatch(QUARTILE_WORDING);
-      expect(positions.srBand as string, `${locale}: srBand`).toMatch(QUARTILE_WORDING);
-      // The four distribution bands, which are exactly the positions a point row cannot reach.
-      for (const band of ["top_quarter", "above_median", "below_median", "bottom_quarter"]) {
-        expect(bands[band], `${locale}: band.${band}`).toMatch(QUARTILE_WORDING);
-      }
-    }
+    expect(sectionNameEn("Z")).toBe("Z");
   });
 });
 
@@ -237,11 +118,12 @@ describe("the copy around the distribution rows (spec 0016 amendment, AC-30)", (
   });
 });
 
-// The named peer card (spec 0021, AC-7): the rank, rung and table strings never say quarter,
-// quartile or median in either language; `benchmark.peers.chart.*` (the next slice) is exempt
-// because its sector line is the sector median by name.
-describe("the named peer strings (spec 0021, AC-7)", () => {
-  const QUARTILE_WORDING = /quartil|viertel|median|quarter|p25|p75/i;
+// The four page blocks of `benchmark-model@7` (spec 0022, AC-27): every string the peer table, the
+// loss card, the expert cards and the package card render lives in both catalogs, and the forbidden
+// word test of spec 0021 keeps "verified" out of the peer keys. The research found these companies
+// in public reports and nobody checked them, so no peer string may claim otherwise.
+describe("the page strings of the peer benchmark (spec 0022, AC-27)", () => {
+  const VERIFIED = /verified|verifiziert|geprüft|bestätigt/i;
   const flatten = (value: unknown, prefix = ""): ReadonlyArray<readonly [string, string]> =>
     typeof value === "string"
       ? [[prefix, value]]
@@ -249,49 +131,130 @@ describe("the named peer strings (spec 0021, AC-7)", () => {
           flatten(child, prefix ? `${prefix}.${key}` : key),
         );
 
-  it("keeps quartile wording out of the rank, rung and table keys in both catalogs", () => {
-    for (const [locale, messages] of [
-      ["de", de],
-      ["en", en],
-    ] as const) {
+  const catalogs = [
+    ["de", de],
+    ["en", en],
+  ] as const;
+
+  it("never calls a peer figure verified, in either language", () => {
+    for (const [locale, messages] of catalogs) {
+      const strings = flatten(messages.benchmark.peers, "peers");
+      expect(strings.length, `${locale}: peers has strings`).toBeGreaterThan(0);
+      for (const [key, text] of strings) {
+        expect(text, `${locale}: benchmark.${key} calls a peer figure verified`).not.toMatch(
+          VERIFIED,
+        );
+      }
+    }
+  });
+
+  it("has every key the peer table renders, in both catalogs", () => {
+    for (const [locale, messages] of catalogs) {
       const peers = messages.benchmark.peers as Record<string, unknown>;
-      for (const namespace of ["rank", "rung", "table"]) {
-        const strings = flatten(peers[namespace], namespace);
-        expect(strings.length, `${locale}: ${namespace} has strings`).toBeGreaterThan(0);
-        for (const [key, text] of strings) {
-          expect(text, `${locale}: peers.${key} carries quartile wording`).not.toMatch(
-            QUARTILE_WORDING,
-          );
-        }
+      // The badge, both rank shapes, the thin sentence and the footnote (AC-20).
+      for (const key of ["heading", "badge", "footnote", "empty"]) {
+        expect(peers[key], `${locale}: peers.${key}`).toBeTruthy();
       }
-      // The word "publish" is always in the heading (AC-10), in both shapes.
       const rank = peers.rank as Record<string, string>;
-      expect(rank.ranked).toMatch(/publish|publizieren/);
-      expect(rank.unranked).toMatch(/publish|publizieren/);
-      // Every rung and region has its word, and the no peer text exists.
-      const rung = peers.rung as Record<string, unknown>;
-      for (const key of ["country", "region", "europe", "world"]) {
-        expect(rung[key], `${locale}: rung.${key}`).toBeTruthy();
-        expect(
-          (rung.sentence as Record<string, string>)[key],
-          `${locale}: rung.sentence.${key}`,
-        ).toBeTruthy();
+      for (const key of ["both", "ltifr", "trifr", "none", "thin"]) {
+        expect(rank[key], `${locale}: peers.rank.${key}`).toBeTruthy();
       }
-      for (const region of [
+      // Both ranks appear in the one sentence AC-20 fixes, each with its own `of`.
+      for (const placeholder of ["{ltifrRank}", "{ltifrOf}", "{trifrRank}", "{trifrOf}"]) {
+        expect(rank.both, `${locale}: peers.rank.both misses ${placeholder}`).toContain(
+          placeholder,
+        );
+      }
+      // Every column of the one table, plus the two headcount shapes and the client's own row.
+      const table = peers.table as Record<string, string>;
+      for (const key of [
+        "caption",
+        "company",
+        "country",
+        "year",
+        "ltifr",
+        "trifr",
+        "loss",
+        "source",
+        "you",
+        "yourCompany",
+        "headcount",
+        "noHeadcount",
+        "sourceLink",
+        "none",
+      ]) {
+        expect(table[key], `${locale}: peers.table.${key}`).toBeTruthy();
+      }
+      // The three rungs of the ladder in code (`PEER_RUNGS`), no Europe rung any more.
+      const rung = peers.rung as Record<string, string>;
+      for (const key of ["country", "region", "world"]) {
+        expect(rung[key], `${locale}: peers.rung.${key}`).toBeTruthy();
+      }
+      expect("europe" in rung, `${locale}: peers.rung.europe is gone`).toBe(false);
+      const region = peers.region as Record<string, string>;
+      for (const key of [
         "dach",
         "nordics",
         "benelux",
         "british_isles",
         "southern",
         "central_eastern",
+        "north_america",
+        "latin_america",
+        "middle_east_africa",
+        "asia_pacific",
       ]) {
-        expect(
-          (peers.region as Record<string, string>)[region],
-          `${locale}: region.${region}`,
-        ).toBeTruthy();
+        expect(region[key], `${locale}: peers.region.${key}`).toBeTruthy();
       }
-      expect(peers.none, `${locale}: none`).toBeTruthy();
-      expect(peers.srStrip, `${locale}: srStrip`).toBeTruthy();
+    }
+  });
+
+  it("has every key the loss card renders, and names no price it must not (AC-21)", () => {
+    for (const [locale, messages] of catalogs) {
+      const loss = messages.benchmark.loss as Record<string, unknown>;
+      for (const key of ["heading", "headline", "description", "savingAtMedian", "savingAtBest"]) {
+        expect(loss[key], `${locale}: loss.${key}`).toBeTruthy();
+      }
+      const counts = loss.counts as Record<string, string>;
+      for (const key of ["ltis", "recordables", "fatalities", "calculated"]) {
+        expect(counts[key], `${locale}: loss.counts.${key}`).toBeTruthy();
+      }
+      expect(
+        (loss.empty as Record<string, string>).title,
+        `${locale}: loss.empty.title`,
+      ).toBeTruthy();
+      // The hourly cost, the hours per incident and the fatality price are inputs to one figure,
+      // never quoted back at the client (AC-14, AC-21).
+      for (const [key, text] of flatten(loss, "loss")) {
+        expect(text, `${locale}: benchmark.${key} names a constant of the loss table`).not.toMatch(
+          /769|201|1 ?200 ?000|1'200'000/,
+        );
+      }
+    }
+  });
+
+  it("has every key the expert and package cards render (AC-22, AC-23)", () => {
+    for (const [locale, messages] of catalogs) {
+      const experts = messages.benchmark.experts as Record<string, string>;
+      for (const key of ["heading", "description", "empty", "availability", "unnamed"]) {
+        expect(experts[key], `${locale}: experts.${key}`).toBeTruthy();
+      }
+      const pack = messages.benchmark.package as Record<string, unknown>;
+      for (const key of ["heading", "buy", "enquire", "others"]) {
+        expect(pack[key], `${locale}: package.${key}`).toBeTruthy();
+      }
+      // One sentence per reason the model can return (AC-15).
+      const reason = pack.reason as Record<string, string>;
+      for (const key of [
+        "fatality",
+        "large_saving",
+        "no_figures",
+        "both_worse",
+        "one_worse",
+        "both_better",
+      ]) {
+        expect(reason[key], `${locale}: package.reason.${key}`).toBeTruthy();
+      }
     }
   });
 });

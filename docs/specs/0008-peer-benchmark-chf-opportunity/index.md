@@ -1,7 +1,7 @@
 # 0008. Peer benchmark and CHF opportunity
 
 **Date**: 2026-09-06
-**Status**: Accepted
+**Status**: Superseded by [0022](../0022-ai-peer-benchmark/index.md)
 
 ## Summary
 

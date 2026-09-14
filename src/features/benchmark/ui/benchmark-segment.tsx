@@ -1,7 +1,8 @@
-import { InfoIcon, TriangleAlertIcon } from "lucide-react";
+import { ExternalLinkIcon, InfoIcon } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardAction,
@@ -10,32 +11,37 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { QuartileBand } from "@/components/ui/quartile-band";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type BenchmarkState, isPeerVersion, PEER_KPI_KEYS } from "@/features/benchmark/catalogue";
-import { roundChf, roundChfRange } from "@/features/benchmark/model";
-import type { ParsedSnapshot } from "@/features/benchmark/queries";
-import { peerShapeOf, type SnapshotBlocks, type SnapshotGap } from "@/features/benchmark/snapshot";
 import {
-  confidenceLevel,
-  isKpiKey,
-  KPI_CATALOGUE,
-  type KpiFormat,
-  type KpiKey,
-} from "@/features/research/catalogue";
-import type { KpiDefinitionRow } from "@/features/research/queries";
-import { ConfidenceBadge } from "@/features/research/ui/badges";
-import { localizedText } from "@/features/research/ui/kpi-table";
-import type { LocaleCode } from "@/i18n/routing";
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { type BenchmarkState, sectionOfDivision } from "@/features/benchmark/catalogue";
+import { roundMoney } from "@/features/benchmark/loss";
+import type { ParsedSnapshot } from "@/features/benchmark/queries";
+import type {
+  SnapshotBlocks,
+  SnapshotPeerRow,
+  SnapshotPeers,
+  SnapshotRecommendation,
+} from "@/features/benchmark/snapshot";
+import { checkoutPath } from "@/features/checkout/checkout-path";
+import type { ExpertSuggestion } from "@/features/experts/queries";
+import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
+import { PACKAGES } from "@/features/marketing/packages";
+import { Link } from "@/i18n/navigation";
+import { type LocaleCode, localeFromCode } from "@/i18n/routing";
+import { countryName, regionOf } from "@/lib/countries";
 import { FactsForm, type FactsFormProps } from "./facts-form";
-import { formatKpiValue } from "./format";
-import { PeerStanding } from "./peer-standing";
 
 export type BenchmarkSegmentProps = {
   readonly snapshot: ParsedSnapshot | null;
   readonly state: BenchmarkState;
-  readonly catalogue: readonly KpiDefinitionRow[];
   /** The company facts the form edits (AC-11). */
   readonly company: FactsFormProps["company"];
   readonly locale: LocaleCode;
@@ -47,56 +53,67 @@ export type BenchmarkSegmentProps = {
   readonly readOnly?: boolean;
   /**
    * The "Your figures" card, rendered inside the `noData` state above the facts form (spec 0010).
-   * `noData` means a snapshot compared zero KPIs, so entering a figure by hand is the remedy the
+   * `noData` means a snapshot compared nothing, so entering a figure by hand is the remedy the
    * alert is asking for and the card belongs beside it rather than further down the page. A
    * caller that has no client KPI form to offer — the expert view, which is `readOnly` — passes
    * nothing and the state renders as it did before.
    */
   readonly figuresSlot?: React.ReactNode;
+  /**
+   * The experts to suggest beside the benchmark (spec 0022, AC-22), already chosen and signed by
+   * `loadExpertSuggestions`. The page loads them, not this component: the choice is one database
+   * function and the photos are signed with the caller's own client.
+   */
+  readonly experts?: readonly ExpertSuggestion[];
+  /** The company's own name, shown in place in the peer table on the client's own row (AC-20). */
+  readonly companyName?: string;
 };
 
-type Formatter = Awaited<ReturnType<typeof getFormatter>>;
 type Translator = Awaited<ReturnType<typeof getTranslations<"benchmark">>>;
+type CatalogueTranslator = Awaited<ReturnType<typeof getTranslations<"experts.catalogue">>>;
+type PackagesTranslator = Awaited<ReturnType<typeof getTranslations<"marketing.packages">>>;
+type PricingTranslator = Awaited<ReturnType<typeof getTranslations<"marketing.pricing">>>;
+type Formatter = Awaited<ReturnType<typeof getFormatter>>;
 
-/** How many gaps show before the "show all" disclosure (AC-9). */
-const TOP_GAPS = 3;
-
-/** The peer quartile of a KPI in display form: the certified share for ISO, else the KPI format. Pure. */
-function formatQuartile(
-  key: KpiKey,
-  value: number,
-  format: Formatter,
-  yesNo: { readonly yes: string; readonly no: string },
-): string {
-  if (key === "iso_45001_certified") return format.number(value, "percent");
-  // The fatality peer row is a rate per 100 000 employed persons, never the count's whole number
-  // format (spec 0016 amendment, AC-23); the unit is added by the caller.
-  if (key === "fatalities") return formatKpiValue(value, "decimal2", format, yesNo);
-  return formatKpiValue(value, KPI_CATALOGUE[key].format, format, yesNo);
-}
+/** The client's own figures as a row of the peer table (AC-20), or null without an LTIFR to place it by. */
+type ClientRow = {
+  readonly name: string;
+  readonly headcount: number | null;
+  readonly ltifr: number | null;
+  readonly trifr: number | null;
+  readonly loss: number | null;
+};
 
 /**
- * The benchmark segment of the dashboard (spec 0008, AC-9): the opportunity card, the priority
- * gaps and the per KPI positions read from the newest snapshot, or one of the three waiting
- * states. The `noData` state also carries the caller's `figuresSlot`, so the client KPI form sits
- * beside the alert that asks for a figure. Server component.
+ * The benchmark segment of the dashboard (spec 0008, AC-9; spec 0022, AC-18, AC-20 to AC-24): the
+ * waiting states, the `outdated` sentence for a snapshot written by a model version this code no
+ * longer reads, then on a readable snapshot the four sections in the order AC-20 to AC-23 fix —
+ * the one peer table, the estimated loss, the suggested experts, the recommended package — and the
+ * company facts card last. Nothing from an unreadable row is ever shown. Server component.
  */
 export async function BenchmarkSegment({
   snapshot,
   state,
-  catalogue,
   company,
   locale,
   readOnly = false,
   figuresSlot,
+  experts = [],
+  companyName,
 }: BenchmarkSegmentProps) {
-  const t = await getTranslations("benchmark");
-  const research = await getTranslations("research.table");
-  const format = await getFormatter();
-  const yesNo = { yes: research("yes"), no: research("no") };
-  // The opportunity card carries the facts form itself when it has no cost to show (it names the
-  // missing input beside it), so the standalone card renders only when a cost is on screen.
-  const costShown = Boolean(snapshot?.blocks.cost) && snapshot?.costChf !== null;
+  // Every translator this segment and its sections need, awaited once here: a nested async
+  // component would suspend inside a tree the caller already awaited, so the sections below are
+  // all synchronous and are handed what they read.
+  const [t, catalogue, packages, pricing, format] = await Promise.all([
+    getTranslations("benchmark"),
+    getTranslations("experts.catalogue"),
+    getTranslations("marketing.packages"),
+    getTranslations("marketing.pricing"),
+    getFormatter(),
+  ]);
+  // `ready` is the only state whose blocks are both present and current; every other state renders
+  // its own sentence and nothing of the stored row (AC-18).
+  const blocks = state === "ready" ? snapshot?.blocks : null;
 
   return (
     <section
@@ -114,61 +131,639 @@ export async function BenchmarkSegment({
           <AlertTitle>{t("state.unavailable")}</AlertTitle>
         </Alert>
       ) : null}
+      {state === "outdated" ? (
+        <Alert variant="info" data-outdated>
+          <InfoIcon aria-hidden="true" />
+          <AlertTitle>{t("state.outdated")}</AlertTitle>
+        </Alert>
+      ) : null}
       {state === "noData" ? (
+        <Alert variant="info">
+          <InfoIcon aria-hidden="true" />
+          <AlertTitle>{t("state.noData")}</AlertTitle>
+        </Alert>
+      ) : null}
+      {state === "noData" && !readOnly ? figuresSlot : null}
+
+      {blocks ? (
         <>
-          <Alert variant="info">
-            <InfoIcon aria-hidden="true" />
-            <AlertTitle>{t("state.noData")}</AlertTitle>
-          </Alert>
-          {readOnly ? null : figuresSlot}
-          {readOnly ? null : <FactsCard company={company} t={t} />}
+          <PeersSection
+            blocks={blocks}
+            companyName={companyName ?? t("peers.table.yourCompany")}
+            locale={locale}
+            t={t}
+            format={format}
+          />
+          <LossSection blocks={blocks} t={t} format={format} />
+          {/* The expert suggestions and the package are the client's own next step: an assigned
+              expert reading this page is not being sold a package or shown three colleagues to
+              choose between, so the read only view stops after the loss (spec 0013, AC-11). */}
+          {readOnly ? null : (
+            <>
+              <ExpertsSection experts={experts} t={t} catalogue={catalogue} />
+              <PackageSection
+                recommendation={blocks.recommendation}
+                locale={locale}
+                t={t}
+                packages={packages}
+                pricing={pricing}
+                format={format}
+              />
+            </>
+          )}
         </>
       ) : null}
-      {state === "ready" && snapshot ? (
-        <>
-          {snapshot.peerProvisional ? (
-            <p className="max-w-prose text-muted-foreground text-xs" data-provisional-note>
-              {t("provisionalNote")}
-            </p>
-          ) : null}
-          <OpportunityCard
-            snapshot={snapshot}
-            catalogue={catalogue}
-            locale={locale}
-            t={t}
-            format={format}
-            company={company}
-            readOnly={readOnly}
-          />
-          <GapList
-            snapshot={snapshot}
-            catalogue={catalogue}
-            locale={locale}
-            t={t}
-            format={format}
-            yesNo={yesNo}
-          />
-          <PositionList
-            snapshot={snapshot}
-            catalogue={catalogue}
-            locale={locale}
-            t={t}
-            format={format}
-            yesNo={yesNo}
-          />
-          {readOnly || !costShown ? null : <FactsCard company={company} t={t} />}
-        </>
+
+      {state !== "calculating" && state !== "unavailable" && !readOnly ? (
+        <FactsCard company={company} t={t} />
       ) : null}
     </section>
   );
 }
 
 /**
- * The company facts card (spec 0008, AC-11): the NOGA division and the headcount form under its
- * own title. It stands beside the alert in `noData` and after the positions in `ready` whenever
- * the opportunity card does not already carry the form. Since 2026-09-13 (owner decision) it is
- * the only piece left of the "How this is calculated" disclosure: the formula, the assumptions,
- * the inputs used and the derived rows no longer render for the client. Server component.
+ * An amount in the snapshot's own currency, whole units (AC-14). The named `chfWhole` format is
+ * fixed to francs, so the currency is passed explicitly the way the `benchmark_ready` email does:
+ * a client outside Switzerland is never told its losses in francs.
+ *
+ * Money is stored unrounded and rounded once at display, here, by the same `roundMoney` the task
+ * applies before it hands the figures to the email: a modelled loss printed to the franc would
+ * read as a measurement, and the card and the email would disagree for one snapshot. Pure.
+ */
+function money(value: number, currency: string, format: Formatter): string {
+  return format.number(roundMoney(value), {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
+}
+
+/** A rate as the table prints it: two decimals, or the dash when the company published none. Pure. */
+function rate(value: number | null, format: Formatter, dash: string): string {
+  return value === null
+    ? dash
+    : format.number(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+/**
+ * The rung's name (AC-20): the country by name, the region by its own label, or "worldwide". The
+ * region label is read from the country the run started at, which is the one the ladder widened
+ * from. Pure but for the translator.
+ */
+function scopeOf(peers: SnapshotPeers, country: string, locale: LocaleCode, t: Translator): string {
+  if (peers.rung === "country") {
+    return t("peers.rung.country", { country: countryName(country, locale) });
+  }
+  if (peers.rung === "region") {
+    const region = regionOf(country);
+    return t("peers.rung.region", {
+      region: region ? t(`peers.region.${region}` as "peers.region.dach") : "",
+    });
+  }
+  return t("peers.rung.world");
+}
+
+/**
+ * The peer benchmark, first (AC-20): the badge with the peer count and the rung, one rank sentence
+ * from `peers.rates` (replaced by the thin sentence when the run rested on fewer than three peers),
+ * then one table in the order of `peers.rows` with the client's own row highlighted in place by its
+ * LTIFR, and the one footnote. Never the word verified. Server component.
+ */
+function PeersSection({
+  blocks,
+  companyName,
+  locale,
+  t,
+  format,
+}: {
+  readonly blocks: SnapshotBlocks;
+  readonly companyName: string;
+  readonly locale: LocaleCode;
+  readonly t: Translator;
+  readonly format: Formatter;
+}) {
+  const { peers, inputs, loss } = blocks;
+  if (!peers) {
+    return (
+      <Card data-peers-card>
+        <CardHeader>
+          <CardTitle>
+            <h3>{t("peers.heading")}</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="max-w-prose text-muted-foreground text-sm">{t("peers.empty")}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const scope = scopeOf(peers, inputs.country, locale, t);
+  const section = inputs.section ?? sectionOfDivision(inputs.industryCode);
+  const industry = section ? t(`noga.sections.${section as "C"}`) : "";
+  const clientRate = (key: "ltifr" | "trifr") =>
+    inputs.kpis.find((kpi) => kpi.key === key)?.value ?? null;
+  const clientLtifr = clientRate("ltifr");
+  const clientRow: ClientRow = {
+    name: companyName,
+    headcount: inputs.fte,
+    ltifr: clientLtifr,
+    trifr: clientRate("trifr"),
+    loss: loss?.loss ?? null,
+  };
+  // The client sits among the peers by its own LTIFR, so the table reads as one ranking rather than
+  // a list with the reader appended. Without an LTIFR there is no place to put them and the row is
+  // left out, which is the same condition that empties the rank sentence.
+  const rows: readonly (SnapshotPeerRow | ClientRow)[] =
+    clientLtifr === null
+      ? peers.rows
+      : [
+          ...peers.rows.filter((row) => row.ltifr !== null && row.ltifr < clientLtifr),
+          clientRow,
+          ...peers.rows.filter((row) => row.ltifr === null || row.ltifr >= clientLtifr),
+        ];
+
+  return (
+    <Card data-peers-card>
+      <CardHeader>
+        <CardTitle>
+          <h3>{t("peers.heading")}</h3>
+        </CardTitle>
+        <CardAction>
+          <Badge variant="secondary" data-peer-count={peers.rows.length}>
+            {t("peers.badge", { count: peers.rows.length, scope })}
+          </Badge>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <p className="max-w-prose text-sm" data-rank-sentence>
+          {rankSentence({ peers, industry, scope, t })}
+        </p>
+        <div className="overflow-x-auto rounded-lg border">
+          <Table>
+            <TableCaption className="sr-only">
+              {t("peers.table.caption", { industry, scope })}
+            </TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead scope="col">{t("peers.table.company")}</TableHead>
+                <TableHead scope="col">{t("peers.table.country")}</TableHead>
+                <TableHead scope="col">{t("peers.table.year")}</TableHead>
+                <TableHead scope="col" className="text-right">
+                  {t("peers.table.ltifr")}
+                </TableHead>
+                <TableHead scope="col" className="text-right">
+                  {t("peers.table.trifr")}
+                </TableHead>
+                <TableHead scope="col" className="text-right">
+                  {t("peers.table.loss")}
+                </TableHead>
+                <TableHead scope="col">{t("peers.table.source")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) =>
+                "sourceUrl" in row ? (
+                  <PeerTableRow
+                    key={`peer-${row.peerName}`}
+                    row={row}
+                    currency={inputs.currency}
+                    locale={locale}
+                    t={t}
+                    format={format}
+                  />
+                ) : (
+                  <ClientTableRow
+                    key="client"
+                    row={row}
+                    country={inputs.country}
+                    currency={inputs.currency}
+                    locale={locale}
+                    t={t}
+                    format={format}
+                  />
+                ),
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <p className="max-w-prose text-muted-foreground text-xs" data-peers-footnote>
+          {t("peers.footnote")}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * The one rank sentence (AC-20): both ranks when the client has both rates and the peers published
+ * both, one when only one side stands, the thin sentence in place of all of it when the run rested
+ * on fewer than three peers, and the prompt to enter a figure when the client is in no ranking.
+ * Pure but for the translator.
+ */
+function rankSentence({
+  peers,
+  industry,
+  scope,
+  t,
+}: {
+  readonly peers: SnapshotPeers;
+  readonly industry: string;
+  readonly scope: string;
+  readonly t: Translator;
+}): string {
+  if (peers.thin) return t("peers.rank.thin", { count: peers.rows.length });
+  const ltifr = peers.rates.ltifr;
+  const trifr = peers.rates.trifr;
+  // A rate the client does not publish has a null rank and is left out of the sentence (AC-20).
+  const hasLtifr = ltifr?.rank != null;
+  const hasTrifr = trifr?.rank != null;
+  const values = {
+    industry,
+    scope,
+    ltifrRank: ltifr?.rank ?? 0,
+    ltifrOf: ltifr?.of ?? 0,
+    trifrRank: trifr?.rank ?? 0,
+    trifrOf: trifr?.of ?? 0,
+  };
+  if (hasLtifr && hasTrifr) return t("peers.rank.both", values);
+  if (hasLtifr) return t("peers.rank.ltifr", values);
+  if (hasTrifr) return t("peers.rank.trifr", values);
+  return t("peers.rank.none");
+}
+
+/** One published peer in the table (AC-20), its source link opening the page in a new tab. */
+function PeerTableRow({
+  row,
+  currency,
+  locale,
+  t,
+  format,
+}: {
+  readonly row: SnapshotPeerRow;
+  readonly currency: string;
+  readonly locale: LocaleCode;
+  readonly t: Translator;
+  readonly format: Formatter;
+}) {
+  const dash = t("peers.table.none");
+  return (
+    <TableRow data-peer={row.peerName}>
+      <TableCell className="min-w-48 max-w-xs align-top whitespace-normal">
+        <div className="flex flex-col gap-0.5">
+          <span className="font-medium">{row.peerName}</span>
+          <span className="text-muted-foreground text-xs">
+            {row.headcount === null
+              ? t("peers.table.noHeadcount")
+              : t("peers.table.headcount", { n: format.number(row.headcount, "integer") })}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell className="align-top">{countryName(row.country, locale)}</TableCell>
+      <TableCell className="align-top tabular-nums" data-numeric>
+        {row.periodYear}
+      </TableCell>
+      <TableCell className="align-top text-right tabular-nums" data-numeric>
+        {rate(row.ltifr, format, dash)}
+      </TableCell>
+      <TableCell className="align-top text-right tabular-nums" data-numeric>
+        {rate(row.trifr, format, dash)}
+      </TableCell>
+      <TableCell className="align-top text-right tabular-nums" data-numeric>
+        {row.estimatedLoss === null ? dash : money(row.estimatedLoss, currency, format)}
+      </TableCell>
+      <TableCell className="align-top">
+        <a
+          href={row.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+        >
+          <span className="sr-only">{t("peers.table.sourceLink", { name: row.peerName })}</span>
+          <span aria-hidden="true">{t("peers.table.source")}</span>
+          <ExternalLinkIcon className="size-3.5 shrink-0" aria-hidden="true" />
+        </a>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+/** The client's own figures, highlighted in place among the peers (AC-20). */
+function ClientTableRow({
+  row,
+  country,
+  currency,
+  locale,
+  t,
+  format,
+}: {
+  readonly row: ClientRow;
+  readonly country: string;
+  readonly currency: string;
+  readonly locale: LocaleCode;
+  readonly t: Translator;
+  readonly format: Formatter;
+}) {
+  const dash = t("peers.table.none");
+  return (
+    <TableRow data-client-row className="bg-muted/60">
+      <TableCell className="min-w-48 max-w-xs align-top whitespace-normal">
+        <div className="flex flex-col gap-0.5">
+          <span className="font-medium">{row.name}</span>
+          <span className="text-muted-foreground text-xs">
+            {row.headcount === null
+              ? t("peers.table.noHeadcount")
+              : t("peers.table.headcount", { n: format.number(row.headcount, "integer") })}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell className="align-top">{countryName(country, locale)}</TableCell>
+      <TableCell className="align-top text-muted-foreground">{dash}</TableCell>
+      <TableCell className="align-top text-right font-medium tabular-nums" data-numeric>
+        {rate(row.ltifr, format, dash)}
+      </TableCell>
+      <TableCell className="align-top text-right font-medium tabular-nums" data-numeric>
+        {rate(row.trifr, format, dash)}
+      </TableCell>
+      <TableCell className="align-top text-right font-medium tabular-nums" data-numeric>
+        {row.loss === null ? dash : money(row.loss, currency, format)}
+      </TableCell>
+      <TableCell className="align-top">
+        <Badge variant="secondary">{t("peers.table.you")}</Badge>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+/**
+ * The estimated loss, second (AC-21): the yearly loss in the client's currency as the headline, the
+ * saving at the peer median and at the best peer, and the counts behind it each with a "Calculated"
+ * badge. The empty state, when the client has no LTIFR, asks for it and links to the figures card.
+ * No line names the hourly cost, the hours per incident or the fatality price. Server component.
+ */
+function LossSection({
+  blocks,
+  t,
+  format,
+}: {
+  readonly blocks: SnapshotBlocks;
+  readonly t: Translator;
+  readonly format: Formatter;
+}) {
+  const { loss, inputs } = blocks;
+  if (!loss) {
+    return (
+      <Card data-loss-card>
+        <CardHeader>
+          <CardTitle>
+            <h3>{t("loss.heading")}</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-start gap-2">
+          <p className="max-w-prose text-sm">{t("loss.empty.title")}</p>
+          <a
+            href="#self-assessment-heading"
+            className="text-primary text-sm underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+          >
+            {t("loss.empty.link")}
+          </a>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const currency = inputs.currency;
+  const savings = [
+    loss.savingAtMedian === null || loss.savingAtMedian <= 0
+      ? null
+      : t("loss.savingAtMedian", { amount: money(loss.savingAtMedian, currency, format) }),
+    loss.savingAtBest === null || loss.savingAtBest <= 0
+      ? null
+      : t("loss.savingAtBest", { amount: money(loss.savingAtBest, currency, format) }),
+  ].filter((line): line is string => line !== null);
+
+  return (
+    <Card data-loss-card>
+      <CardHeader>
+        <CardTitle>
+          <h3>{t("loss.heading")}</h3>
+        </CardTitle>
+        <CardDescription>{t("loss.description")}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <p className="font-semibold text-3xl tabular-nums" data-numeric data-loss-headline>
+          {t("loss.headline", { amount: money(loss.loss, currency, format) })}
+        </p>
+        <ul className="flex flex-col gap-1 text-sm">
+          {savings.length === 0 ? (
+            <li className="text-muted-foreground">{t("loss.noSaving")}</li>
+          ) : (
+            savings.map((line) => <li key={line}>{line}</li>)
+          )}
+        </ul>
+        <div className="flex flex-col gap-2">
+          <h4 className="font-medium text-sm">{t("loss.counts.heading")}</h4>
+          <ul className="flex flex-col gap-2">
+            <CountRow
+              label={t("loss.counts.ltis", { count: format.number(loss.ltis, "oneDecimal") })}
+              badge={t("loss.counts.calculated")}
+            />
+            <CountRow
+              label={t("loss.counts.recordables", {
+                count: format.number(loss.recordables, "oneDecimal"),
+              })}
+              badge={t("loss.counts.calculated")}
+            />
+            <CountRow
+              label={t("loss.counts.fatalities", { count: loss.fatalities })}
+              badge={t("loss.counts.calculated")}
+            />
+          </ul>
+          {loss.trifrMissing ? (
+            <p className="max-w-prose text-muted-foreground text-xs">
+              {t("loss.counts.trifrMissing")}
+            </p>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** One derived count with its "Calculated" badge (AC-21). */
+function CountRow({ label, badge }: { readonly label: string; readonly badge: string }) {
+  return (
+    <li className="flex flex-wrap items-center gap-2 text-sm">
+      <span className="tabular-nums" data-numeric>
+        {label}
+      </span>
+      <Badge variant="outline">{badge}</Badge>
+    </li>
+  );
+}
+
+/**
+ * The suggested experts, third (AC-22): up to three cards with the photo, the name, the headline,
+ * the sectors, countries, languages and availability, under one sentence saying ops assigns the
+ * expert after a package is bought. There is no button (Follow-up); fewer than three show what
+ * there is and zero shows one sentence. Server component.
+ */
+function ExpertsSection({
+  experts,
+  t,
+  catalogue,
+}: {
+  readonly experts: readonly ExpertSuggestion[];
+  readonly t: Translator;
+  readonly catalogue: CatalogueTranslator;
+}) {
+  return (
+    <Card data-experts-card>
+      <CardHeader>
+        <CardTitle>
+          <h3>{t("experts.heading")}</h3>
+        </CardTitle>
+        <CardDescription>{t("experts.description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {experts.length === 0 ? (
+          <p className="max-w-prose text-muted-foreground text-sm">{t("experts.empty")}</p>
+        ) : (
+          <ul className="grid gap-4 md:grid-cols-3">
+            {experts.map((expert) => (
+              <li key={expert.expertId} className="flex flex-col gap-3 rounded-lg border p-4">
+                <ExpertAvatar
+                  fullName={expert.fullName}
+                  photoUrl={expert.photoUrl}
+                  className="size-14 shrink-0"
+                />
+                <div className="flex flex-col gap-0.5">
+                  <h4 className="font-semibold text-sm">
+                    {expert.fullName ?? t("experts.unnamed")}
+                  </h4>
+                  {expert.headline ? (
+                    <p className="text-muted-foreground text-xs">{expert.headline}</p>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {expert.industries.map((code) => (
+                    <Badge key={`i-${code}`} variant="outline">
+                      {catalogue(`industries.${code as "A"}`)}
+                    </Badge>
+                  ))}
+                  {expert.countries.map((code) => (
+                    <Badge key={`c-${code}`} variant="outline">
+                      {code}
+                    </Badge>
+                  ))}
+                  {expert.languages.map((code) => (
+                    <Badge key={`l-${code}`} variant="outline">
+                      {catalogue(`languages.${code as "de"}`)}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  {t("experts.availability", {
+                    value: catalogue(`availability.${expert.availability as "available"}`),
+                  })}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * The recommended package, fourth (AC-23): the package's own marketing copy (short name, full name,
+ * what is included and the price as spec 0011 sells it), the one sentence explaining why the
+ * standing chose it, and the buy button into the existing checkout — the enquiry link instead of a
+ * price for the retainer, which is sold by conversation. The other packages are one link to the
+ * pricing page. Server component.
+ */
+function PackageSection({
+  recommendation,
+  locale,
+  t,
+  packages,
+  pricing,
+  format,
+}: {
+  readonly recommendation: SnapshotRecommendation;
+  readonly locale: LocaleCode;
+  readonly t: Translator;
+  readonly packages: PackagesTranslator;
+  readonly pricing: PricingTranslator;
+  readonly format: Formatter;
+}) {
+  const entry = PACKAGES.find((item) => item.key === recommendation.packageKey);
+  if (!entry) return null;
+  const key = entry.key;
+  const name = packages(`${key}.shortName` as "sms.shortName");
+
+  return (
+    <Card data-package-card data-package={key}>
+      <CardHeader>
+        <CardTitle>
+          <h3>{t("package.heading")}</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1">
+          <h4 className="font-semibold text-xl">{name}</h4>
+          <p className="text-muted-foreground text-sm">{packages(`${key}.name` as "sms.name")}</p>
+        </div>
+        <p className="max-w-prose text-sm" data-package-reason>
+          {t(`package.reason.${recommendation.reason}` as "package.reason.one_worse")}
+        </p>
+        <p className="font-semibold text-2xl tabular-nums" data-numeric data-package-price>
+          {entry.priceChf === null ? (
+            pricing("onDemand")
+          ) : (
+            <>
+              {format.number(entry.priceChf, "chfWhole")}{" "}
+              <span className="font-normal text-muted-foreground text-sm">
+                {pricing("vatNote")}
+              </span>
+            </>
+          )}
+        </p>
+        <ul className="flex flex-col gap-1.5 text-sm">
+          {entry.included.map((point) => (
+            <li key={point} className="text-muted-foreground">
+              {packages(`${key}.included.${point}` as "sms.included.iso")}
+            </li>
+          ))}
+        </ul>
+        <div className="flex flex-wrap items-center gap-4">
+          {entry.priceChf === null ? (
+            <Button asChild>
+              <Link href="/contact">{t("package.enquire", { name })}</Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <a href={checkoutPath(localeFromCode(locale), key)}>{t("package.buy", { name })}</a>
+            </Button>
+          )}
+          <Link
+            href="/pricing"
+            className="text-primary text-sm underline decoration-primary/40 underline-offset-4 hover:decoration-primary"
+          >
+            {t("package.others")}
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * The company facts card (spec 0008, AC-11): the NOGA division, the country and the headcount form
+ * under its own title. Since 2026-09-13 (owner decision) it is the only piece left of the "How this
+ * is calculated" disclosure: the formula, the assumptions and the inputs used no longer render for
+ * the client. Server component.
  */
 function FactsCard({
   company,
@@ -202,528 +797,5 @@ function CalculatingState({ label }: { readonly label: string }) {
         <Skeleton className="h-4 w-60" />
       </CardContent>
     </Card>
-  );
-}
-
-type BlockProps = {
-  readonly snapshot: ParsedSnapshot;
-  readonly catalogue: readonly KpiDefinitionRow[];
-  readonly locale: LocaleCode;
-  readonly t: Translator;
-  readonly format: Formatter;
-};
-
-function kpiName(catalogue: readonly KpiDefinitionRow[], locale: LocaleCode, key: string): string {
-  const definition = catalogue.find((entry) => entry.key === key);
-  return (definition ? localizedText(definition.name, locale) : "") || key;
-}
-
-/**
- * The annual incident cost (spec 0008, AC-9): the title with the confidence spelled out beside
- * it, the outward rounded range (spec 0016, AC-9), one line with the working estimate and the
- * lost time count it is built from (spec 0012, AC-1), then the two savings. Nothing on the page
- * explains the arithmetic since the "How this is calculated" disclosure was cut (owner decision
- * of 2026-09-13). Without a cost the card names the missing input and offers the facts form.
- * Server component.
- */
-function OpportunityCard({
-  snapshot,
-  t,
-  format,
-  company,
-  readOnly,
-}: BlockProps & {
-  readonly company: FactsFormProps["company"];
-  readonly readOnly: boolean;
-}) {
-  const chf = (value: number) => format.number(roundChf(value), "chfWhole");
-  const cost = snapshot.blocks.cost;
-  // Rounded outward, so the displayed band always contains the computed one (spec 0016, AC-9).
-  const range =
-    snapshot.costLowChf !== null && snapshot.costHighChf !== null
-      ? roundChfRange(snapshot.costLowChf, snapshot.costHighChf)
-      : null;
-  // Absent on a stored version 1 row and whenever nothing could be derived; the working estimate
-  // then stands without its injuries clause (spec 0012, AC-7, AC-12).
-  const derived = snapshot.blocks.derived ?? null;
-  const value = (chunks: React.ReactNode) => (
-    <span className="font-medium text-foreground">{chunks}</span>
-  );
-  // A saving of zero is a position, not a broken sum: the company already sits at or below that
-  // peer mark. `null` means the model had no peer reference to measure against at all.
-  const saving = (amount: number | null) =>
-    amount === null ? (
-      t("card.noReference")
-    ) : amount <= 0 ? (
-      <span className="text-foreground">{t("card.atOrBelow")}</span>
-    ) : (
-      t.rich("card.savingValue", {
-        amount: chf(amount),
-        value: (chunks) => <span className="font-medium text-foreground text-lg">{chunks}</span>,
-      })
-    );
-
-  return (
-    <Card data-opportunity-card data-cost={snapshot.costChf ?? ""}>
-      <CardHeader>
-        <CardTitle>{t("card.title")}</CardTitle>
-        {snapshot.confidence !== null ? (
-          <CardAction>
-            <ConfidenceBadge
-              confidence={snapshot.confidence}
-              label={t(`card.confidence.${confidenceLevel(snapshot.confidence)}`)}
-            />
-          </CardAction>
-        ) : null}
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
-        {cost && snapshot.costChf !== null ? (
-          <>
-            {/* The range leads and the point estimate sits beneath it as the working estimate
-                (spec 0016, AC-9): the multiplier behind the single figure is a declared assumption,
-                so the honest headline is the band it sits in. The ends round outward, so the shown
-                band always contains the computed one. */}
-            <div className="flex flex-col gap-1.5">
-              {range ? (
-                <>
-                  <p
-                    className="font-semibold text-3xl tabular-nums"
-                    data-numeric
-                    data-cost-range
-                    data-cost-low={range.low}
-                    data-cost-high={range.high}
-                  >
-                    {t("card.rangeHeadline", {
-                      low: format.number(range.low, "chfWhole"),
-                      high: format.number(range.high, "chfWhole"),
-                    })}
-                  </p>
-                  <p
-                    className="text-muted-foreground text-sm tabular-nums"
-                    data-numeric
-                    data-cost-headline
-                  >
-                    {derived?.lostTime
-                      ? t.rich("card.workingDerived", {
-                          cost: chf(snapshot.costChf),
-                          count: format.number(derived.lostTime.count, "oneDecimal"),
-                          fte: format.number(derived.fte, "integer"),
-                          value,
-                        })
-                      : t.rich("card.working", { cost: chf(snapshot.costChf), value })}
-                  </p>
-                </>
-              ) : (
-                <p className="font-semibold text-3xl tabular-nums" data-numeric data-cost-headline>
-                  {chf(snapshot.costChf)}
-                </p>
-              )}
-            </div>
-            <Separator />
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-0.5">
-                <dt className="text-label-13 text-muted-foreground">{t("card.savingMedian")}</dt>
-                <dd
-                  className="text-muted-foreground text-sm tabular-nums"
-                  data-numeric
-                  data-saving-median
-                >
-                  {saving(snapshot.savingMedianChf)}
-                </dd>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <dt className="text-label-13 text-muted-foreground">{t("card.savingTop")}</dt>
-                <dd
-                  className="text-muted-foreground text-sm tabular-nums"
-                  data-numeric
-                  data-saving-top
-                >
-                  {saving(snapshot.savingTopChf)}
-                </dd>
-              </div>
-            </dl>
-          </>
-        ) : (
-          <>
-            <Alert variant="warning">
-              <TriangleAlertIcon aria-hidden="true" />
-              <AlertTitle>
-                {!snapshot.blocks.inputs.fte
-                  ? t("card.missingHeadcount")
-                  : t("card.missingIncidentRate")}
-              </AlertTitle>
-            </Alert>
-            {readOnly ? null : <FactsForm company={company} />}
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-type ValueProps = BlockProps & { readonly yesNo: { readonly yes: string; readonly no: string } };
-
-function GapItem({
-  gap,
-  snapshot,
-  catalogue,
-  locale,
-  t,
-  format,
-  yesNo,
-}: ValueProps & { readonly gap: SnapshotGap }) {
-  const result = snapshot.blocks.results.find((entry) => entry.key === gap.key);
-  const input = snapshot.blocks.inputs.kpis.find((entry) => entry.key === gap.key);
-  const kind = KPI_CATALOGUE[gap.key].format;
-  return (
-    <li
-      className="flex flex-col gap-3 rounded-lg border p-4"
-      data-gap={gap.key}
-      data-rank={gap.rank}
-    >
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={gap.reason === "fatality" ? "destructive" : "outline"}>
-          {t("gaps.rank", { rank: gap.rank })}
-        </Badge>
-        <span className="font-semibold">{kpiName(catalogue, locale, gap.key)}</span>
-      </div>
-      {gap.reason === "fatality" ? <p className="text-sm">{t("gaps.fatality")}</p> : null}
-      {gap.savingMedianChf !== null ? (
-        <p className="flex flex-col gap-0.5" data-gap-saving>
-          <span className="font-semibold text-2xl tabular-nums tracking-headline" data-numeric>
-            {format.number(roundChf(gap.savingMedianChf), "chfWhole")}
-          </span>{" "}
-          <span className="text-muted-foreground text-xs">{t("gaps.savingLabel")}</span>
-        </p>
-      ) : null}
-      {input && result?.peer ? (
-        <div
-          className="flex flex-wrap gap-x-4 gap-y-1 border-t pt-3 text-sm tabular-nums"
-          data-numeric
-        >
-          <span className="text-muted-foreground">
-            {t("gaps.versus", {
-              value: formatKpiValue(input.value, kind, format, yesNo),
-              median: formatQuartile(gap.key, result.peer.median, format, yesNo),
-            })}
-          </span>
-          {/* A real space: the flex gap paints one but adds no character between the two phrases. */}
-          {gap.gapRelative !== null ? " " : null}
-          {gap.gapRelative !== null ? (
-            <span>
-              {t("gaps.relative", { percent: format.number(gap.gapRelative, "percent") })}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-    </li>
-  );
-}
-
-function GapList(props: ValueProps) {
-  const { snapshot, t } = props;
-  const gaps = snapshot.blocks.gaps;
-  const top = gaps.slice(0, TOP_GAPS);
-  const rest = gaps.slice(TOP_GAPS);
-  return (
-    <section aria-labelledby="gaps-heading" className="flex flex-col gap-3" data-gaps={gaps.length}>
-      <div className="flex flex-col gap-1">
-        <h3 id="gaps-heading" className="font-semibold">
-          {t("gaps.title")}
-        </h3>
-        <p className="max-w-prose text-muted-foreground text-sm">{t("gaps.description")}</p>
-      </div>
-      {gaps.length === 0 ? (
-        <Alert variant="success">
-          <InfoIcon aria-hidden="true" />
-          <AlertTitle>{t("gaps.empty")}</AlertTitle>
-        </Alert>
-      ) : (
-        <>
-          <ol className="grid gap-3 md:grid-cols-3">
-            {top.map((gap) => (
-              <GapItem key={gap.key} gap={gap} {...props} />
-            ))}
-          </ol>
-          {rest.length > 0 ? (
-            <details className="group rounded-lg border">
-              <summary className="cursor-pointer px-4 py-3 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-                {t("gaps.showAll", { count: gaps.length })}
-              </summary>
-              <ol className="grid gap-3 border-t p-4 md:grid-cols-3">
-                {rest.map((gap) => (
-                  <GapItem key={gap.key} gap={gap} {...props} />
-                ))}
-              </ol>
-            </details>
-          ) : null}
-        </>
-      )}
-    </section>
-  );
-}
-
-/**
- * The peer group in words. Names the source's own classification when the row carries one, else
- * the section, band and year as before (spec 0016, AC-6). A row reached on rung 3 or 4 says the
- * group was broadened (AC-6b): the shape can flip on fallback, so a company whose own section has
- * no row must not silently gain a band drawn from the wider `ALL` row. Pure.
- */
-function peerLabel(
-  peer: SnapshotBlocks["results"][number]["peer"] & object,
-  t: Translator,
-): string {
-  const broadened = peer.rung >= 3 && peer.industrySection === "ALL";
-  const section = peer.sourceKey
-    ? peer.sourceKey
-    : broadened
-      ? t("positions.broadened")
-      : peer.industrySection === "ALL"
-        ? t("positions.allIndustries")
-        : t(`noga.sections.${peer.industrySection as "A"}`);
-  const band = t(`sizeBands.${peer.sizeBand}`);
-  const year =
-    peer.yearMatch === "nearest"
-      ? `${peer.periodYear} (${t("positions.nearestYear")})`
-      : String(peer.periodYear);
-  const base = t("positions.peer", { section, band, year });
-  return peer.sampleSize === null
-    ? base
-    : `${base}, ${t("positions.sample", { n: peer.sampleSize })}`;
-}
-
-function PositionRow({
-  definition,
-  result,
-  snapshot,
-  catalogue,
-  locale,
-  t,
-  format,
-  yesNo,
-}: ValueProps & {
-  readonly definition: KpiDefinitionRow;
-  // The blocks' own result type, so a version 3 peer keeps its shape and source columns and a
-  // stored @1 or @2 peer is still accepted without them (spec 0016, AC-12).
-  readonly result: SnapshotBlocks["results"][number] | undefined;
-}) {
-  const name = kpiName(catalogue, locale, definition.key);
-  const input = snapshot.blocks.inputs.kpis.find((entry) => entry.key === definition.key);
-  const key = isKpiKey(definition.key) ? definition.key : null;
-  const kind: KpiFormat = key ? KPI_CATALOGUE[key].format : "decimal2";
-  const value = input ? formatKpiValue(input.value, kind, format, yesNo) : null;
-  const peer = result?.peer ?? null;
-  const quartiles =
-    peer && key
-      ? {
-          p25: formatQuartile(key, peer.p25, format, yesNo),
-          median: formatQuartile(key, peer.median, format, yesNo),
-          p75: formatQuartile(key, peer.p75, format, yesNo),
-        }
-      : null;
-  const bandLabel = result?.position ? t(`positions.band.${result.position}`) : null;
-  // A stored @1 or @2 row carries no shape, so derive it from the values it does carry: the rule
-  // is the same one the model applies (spec 0016, AC-4, AC-12).
-  const shape = peer ? (peer.shape ?? peerShapeOf(peer)) : null;
-  const sectorFigure =
-    peer && key
-      ? key === "fatalities"
-        ? t("positions.fatalityRate", { value: formatQuartile(key, peer.median, format, yesNo) })
-        : formatQuartile(key, peer.median, format, yesNo)
-      : null;
-  // The value the position was judged on when it differs from the stored one: the fatality rate
-  // (spec 0016 amendment, AC-22). Absent on a stored @1 to @3 row.
-  const comparedValue = result?.comparedValue ?? null;
-  const fte = snapshot.blocks.inputs.fte;
-  // A KPI with a named peer block becomes the Peer Standing card in place of its row (spec 0021,
-  // AC-10); every other KPI keeps the row below, including its pending text.
-  const peerBlock = snapshot.blocks.peers.find((block) => block.key === definition.key);
-  if (peerBlock) {
-    return (
-      <li
-        className="flex flex-col gap-3 rounded-lg border p-4"
-        data-position-kpi={definition.key}
-        data-position=""
-        data-peer-shape=""
-      >
-        <div className="flex flex-col gap-0.5">
-          <span className="font-medium">{name}</span>
-          <span className="text-muted-foreground text-xs">{definition.unit}</span>
-          {value !== null ? (
-            <span className="font-medium tabular-nums" data-numeric data-value={input?.value}>
-              {value}
-            </span>
-          ) : (
-            <span className="text-muted-foreground text-sm">{t("positions.noValue")}</span>
-          )}
-        </div>
-        <PeerStanding
-          t={t}
-          format={format}
-          block={peerBlock}
-          clientValue={input?.value ?? null}
-          clientCountry={snapshot.blocks.inputs.country}
-          section={snapshot.blocks.inputs.section}
-          kpiName={name}
-          locale={locale}
-          yesNo={yesNo}
-        />
-      </li>
-    );
-  }
-
-  return (
-    <li
-      className="grid gap-2 rounded-lg border p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
-      data-position-kpi={definition.key}
-      data-position={result?.position ?? ""}
-      data-peer-shape={shape ?? ""}
-    >
-      <div className="flex flex-col gap-0.5">
-        <span className="font-medium">{name}</span>
-        <span className="text-muted-foreground text-xs">{definition.unit}</span>
-        {value !== null ? (
-          <span className="font-medium tabular-nums" data-numeric data-value={input?.value}>
-            {value}
-          </span>
-        ) : (
-          <span className="text-muted-foreground text-sm">{t("positions.noValue")}</span>
-        )}
-      </div>
-      <div className="flex flex-col gap-1">
-        {peer && input && quartiles && bandLabel && sectorFigure ? (
-          shape === "point" ? (
-            // A point row holds one figure repeated as all three quartiles, so it gets no band and
-            // no replacement graphic: one labelled sector figure, and never the words quarter,
-            // quartile or median (spec 0016, AC-6).
-            <>
-              <span className="sr-only">
-                {t("positions.srSector", {
-                  kpi: name,
-                  // A fatality count was judged as a rate, so the narration compares the rate to
-                  // the sector rate rather than a count to a rate (amendment D3, AC-23); the
-                  // count itself is read from the value column.
-                  value:
-                    comparedValue !== null && key === "fatalities"
-                      ? t("positions.fatalityRate", {
-                          value: formatKpiValue(comparedValue, "decimal2", format, yesNo),
-                        })
-                      : (value ?? ""),
-                  band: bandLabel,
-                  sector: sectorFigure,
-                })}
-              </span>
-              <span className="text-sm" aria-hidden="true">
-                {bandLabel}
-              </span>
-              <span
-                className="text-muted-foreground text-xs tabular-nums"
-                data-numeric
-                data-sector-figure={peer.median}
-                aria-hidden="true"
-              >
-                {t("positions.sector", { value: sectorFigure })}
-              </span>
-              {comparedValue !== null && key === "fatalities" ? (
-                <span
-                  className="text-muted-foreground text-xs tabular-nums"
-                  data-numeric
-                  data-compared-value={comparedValue}
-                >
-                  {t("positions.fatalityCompared", {
-                    value: t("positions.fatalityRate", {
-                      value: formatKpiValue(comparedValue, "decimal2", format, yesNo),
-                    }),
-                  })}
-                </span>
-              ) : null}
-              <span className="text-muted-foreground text-xs">{t("positions.pointBasis")}</span>
-              <span className="text-muted-foreground text-xs">{peerLabel(peer, t)}</span>
-            </>
-          ) : (
-            <>
-              {kind !== "yesNo" ? (
-                <QuartileBand
-                  p25={peer.p25}
-                  median={peer.median}
-                  p75={peer.p75}
-                  value={input.value}
-                  label={t("positions.srBand", {
-                    kpi: name,
-                    value: value ?? "",
-                    band: bandLabel,
-                    p25: quartiles.p25,
-                    median: quartiles.median,
-                    p75: quartiles.p75,
-                  })}
-                />
-              ) : null}
-              <span className="text-sm">{bandLabel}</span>
-              <span className="text-muted-foreground text-xs tabular-nums" data-numeric>
-                {t("positions.quartiles", quartiles)}
-              </span>
-              <span className="text-muted-foreground text-xs">{peerLabel(peer, t)}</span>
-            </>
-          )
-        ) : value !== null ? (
-          // A KPI with no peer row says why (spec 0016, AC-8): a `no_source` KPI is one no Swiss
-          // body publishes, so it gets its own sentence rather than the shared "not yet", which
-          // would have the client waiting for data that is never coming.
-          <span className="flex flex-col gap-0.5 text-muted-foreground text-sm" data-no-peer>
-            <span>
-              {key && KPI_CATALOGUE[key].peerStatus === "no_source"
-                ? t("positions.peerStatus.noSourceTitle")
-                : key && KPI_CATALOGUE[key].peerStatus === "pending"
-                  ? t("positions.peerStatus.pendingTitle")
-                  : t("positions.noPeer")}
-            </span>
-            {key &&
-            (PEER_KPI_KEYS as readonly string[]).includes(key) &&
-            isPeerVersion(snapshot.modelVersion) ? (
-              // A `@5` row with no block for this KPI: fewer than three published peers even
-              // worldwide (spec 0021, AC-12).
-              <span className="text-xs" data-no-published-peer>
-                {t("peers.none")}
-              </span>
-            ) : null}
-            {key === "fatalities" && !(fte && fte > 0) ? (
-              // A count cannot become a rate without a headcount, so the model compared nothing
-              // (spec 0016 amendment, D3, AC-23): say what is missing rather than "no peer data".
-              <span className="text-xs" data-fatality-needs-headcount>
-                {t("positions.fatalityNeedsHeadcount")}
-              </span>
-            ) : key ? (
-              <span className="text-xs" data-peer-status={KPI_CATALOGUE[key].peerStatus}>
-                {t(KPI_CATALOGUE[key].peerNote as "positions.noPeer")}
-              </span>
-            ) : null}
-          </span>
-        ) : null}
-      </div>
-    </li>
-  );
-}
-
-function PositionList(props: ValueProps) {
-  const { snapshot, catalogue, t } = props;
-  return (
-    <section aria-labelledby="positions-heading" className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h3 id="positions-heading" className="font-semibold">
-          {t("positions.title")}
-        </h3>
-        <p className="max-w-prose text-muted-foreground text-sm">{t("positions.description")}</p>
-      </div>
-      <ul className="flex flex-col gap-3">
-        {catalogue.map((definition) => (
-          <PositionRow
-            key={definition.key}
-            definition={definition}
-            result={snapshot.blocks.results.find((entry) => entry.key === definition.key)}
-            {...props}
-          />
-        ))}
-      </ul>
-    </section>
   );
 }

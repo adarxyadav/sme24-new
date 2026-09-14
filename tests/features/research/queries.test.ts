@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { getCompanyDashboard, newestYears } from "@/features/research/queries";
+import { getCompanyDashboard, listClientCompanies, newestYears } from "@/features/research/queries";
 
 /**
  * The dashboard query (spec 0007, AC-7, AC-8): the organization's oldest non archived company,
@@ -300,50 +300,52 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     company_id: COMPANY,
     research_run_id: RUN_PASSED,
     trigger_kind: "research",
-    // Deliberately a stored version 1 row: the dashboard read must still parse one (spec 0012, AC-12).
-    model_version: "benchmark-model@1",
-    peer_provisional: true,
+    model_version: "benchmark-model@7",
+    peer_provisional: false,
     kpis_compared: 2,
     confidence: "0.9",
-    cost_chf: "1961340",
-    cost_low_chf: "1060180",
-    cost_high_chf: "2650450",
-    saving_median_chf: "522340",
-    saving_top_chf: "955340",
+    currency: "CHF",
+    loss_amount: "365715",
+    saving_at_median: "90247.5",
+    cost_chf: null,
+    cost_low_chf: null,
+    cost_high_chf: null,
+    saving_median_chf: null,
+    saving_top_chf: null,
     inputs: {
-      fte: 420,
+      fte: 500,
       section: "C",
-      sizeBand: "250+",
       industryCode: "23.61",
+      country: "CH",
+      currency: "CHF",
       companyUpdatedAt: "2026-09-06T09:00:00.000Z",
       kpis: [],
     },
-    results: [],
-    gaps: [],
-    cost: null,
-    assumptions: [],
+    results: null,
+    gaps: null,
+    assumptions: null,
+    peers: null,
+    // `@7` stores the loss in `cost` and the recommendation in `derived` (spec 0022, AC-16).
+    cost: {
+      ltis: 5.4,
+      recordables: 3.6,
+      trifrMissing: false,
+      fatalities: 0,
+      loss: 365715,
+      atMedian: 275467.5,
+      atBest: 144517.5,
+      savingAtMedian: 90247.5,
+      savingAtBest: 221197.5,
+    },
+    derived: { packageKey: "compliance", reason: "both_worse" },
     created_at: "2026-09-06T09:30:00.000Z",
     updated_at: "2026-09-06T09:30:00.000Z",
-  };
-  const assumptionRow = {
-    key: "indirect_multiplier",
-    value: "3.7",
-    unit: "factor",
-    label: { de: "Faktor", en: "Factor" },
-    source_name: "test",
-    source_url: null,
-    note: null,
-    provisional: true,
-    effective_from: "2022-12-31",
-    created_at: "2026-09-06T00:00:00.000Z",
-    updated_at: "2026-09-06T00:00:00.000Z",
   };
 
   it("loads the company's newest snapshot with its numbers parsed and the ready state", async () => {
     const { client, calls } = fakeClient(
       baseAnswers({
         benchmark_snapshots: () => ({ data: [snapshotRow] }),
-        benchmark_assumptions: () => ({ data: [assumptionRow] }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
@@ -352,9 +354,10 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
       id: snapshotRow.id,
       kpisCompared: 2,
       confidence: 0.9,
-      costChf: 1_961_340,
-      savingTopChf: 955_340,
-      blocks: { inputs: { fte: 420, section: "C" } },
+      currency: "CHF",
+      lossAmount: 365_715,
+      savingAtMedian: 90_247.5,
+      blocks: { inputs: { fte: 500, section: "C" } },
     });
     const snapshots = calls.find((call) => call.table === "benchmark_snapshots");
     expect(snapshots?.steps).toEqual([
@@ -367,11 +370,12 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     ]);
   });
 
-  it("reports noData for a snapshot that compared nothing", async () => {
+  it("reports noData for a snapshot with neither a loss nor a peer", async () => {
     const { client } = fakeClient(
       baseAnswers({
-        benchmark_snapshots: () => ({ data: [{ ...snapshotRow, kpis_compared: 0 }] }),
-        benchmark_assumptions: () => ({ data: [assumptionRow] }),
+        benchmark_snapshots: () => ({
+          data: [{ ...snapshotRow, kpis_compared: 0, cost: null, loss_amount: null }],
+        }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
@@ -433,16 +437,140 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     expect(dashboard.benchmarkState).toBe("unavailable");
   });
 
-  it("treats a snapshot of an unknown model version as absent instead of failing the dashboard", async () => {
+  // A row of a version this code no longer reads keeps its raw version and loses its blocks, and
+  // the segment then shows one sentence and the rerun (spec 0022, AC-18).
+  it("reports outdated for a snapshot of a model version it cannot read", async () => {
     const { client } = fakeClient(
       baseAnswers({
         benchmark_snapshots: () => ({
-          data: [{ ...snapshotRow, model_version: "benchmark-model@9" }],
+          data: [{ ...snapshotRow, model_version: "benchmark-model@5" }],
         }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
-    expect(dashboard.benchmark).toBeNull();
-    expect(dashboard.benchmarkState).toBe("unavailable");
+    expect(dashboard.benchmark?.modelVersion).toBe("benchmark-model@5");
+    expect(dashboard.benchmark?.blocks).toBeNull();
+    expect(dashboard.benchmarkState).toBe("outdated");
+  });
+});
+
+/**
+ * Naming a company (one organization may hold several): the named row is read instead of the
+ * earliest, a malformed id never reaches Postgres, and omitting the id keeps the old behaviour.
+ */
+describe("getCompanyDashboard with a company id", () => {
+  const NAMED = "0c000000-0000-4000-8000-00000000000c";
+
+  it("filters by the id instead of ordering for the earliest", async () => {
+    const { client, calls } = fakeClient(
+      baseAnswers({ companies: () => ({ data: [{ ...company, id: NAMED }] }) }),
+    );
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW, NAMED);
+
+    expect(dashboard.company?.id).toBe(NAMED);
+    const steps = calls.find((call) => call.table === "companies")?.steps ?? [];
+    expect(steps).toEqual(expect.arrayContaining([["eq", ["id", NAMED]]]));
+    // The earliest-company ordering is what the id replaces, so it must not also run.
+    expect(steps.some(([method, args]) => method === "order" && args[0] === "created_at")).toBe(
+      false,
+    );
+  });
+
+  it("answers no company for a malformed id without querying at all", async () => {
+    const { client, calls } = fakeClient(baseAnswers());
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW, "not-a-uuid");
+
+    expect(dashboard.company).toBeNull();
+    expect(calls.some((call) => call.table === "companies")).toBe(false);
+  });
+
+  it("still reads the earliest company when no id is named", async () => {
+    const { client, calls } = fakeClient(baseAnswers());
+    const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
+
+    expect(dashboard.company?.id).toBe(COMPANY);
+    const steps = calls.find((call) => call.table === "companies")?.steps ?? [];
+    expect(steps.some(([method, args]) => method === "eq" && args[0] === "id")).toBe(false);
+  });
+});
+
+/**
+ * The companies list (one organization may hold several): every non archived company newest first,
+ * each carrying the status of its newest run, read in two queries rather than one per company.
+ */
+describe("listClientCompanies", () => {
+  const OTHER = "0c000000-0000-4000-8000-00000000000b";
+
+  const companies = [
+    {
+      id: COMPANY,
+      name: "Muster AG",
+      country: "CH",
+      canton: "ZG",
+      employees_count: 120,
+      created_at: "2026-09-05T10:00:00.000Z",
+    },
+    {
+      id: OTHER,
+      name: "Andere AG",
+      country: "DE",
+      canton: null,
+      employees_count: null,
+      created_at: "2026-09-01T10:00:00.000Z",
+    },
+  ];
+
+  it("pairs each company with its newest run and reads the runs in one query", async () => {
+    const { client, calls } = fakeClient({
+      companies: () => ({ data: companies }),
+      research_runs: () => ({
+        data: [
+          { company_id: COMPANY, status: "succeeded", created_at: "2026-09-06T09:00:00.000Z" },
+          { company_id: COMPANY, status: "failed", created_at: "2026-09-04T09:00:00.000Z" },
+        ],
+      }),
+    });
+    const rows = await listClientCompanies(client as never, ORG);
+
+    expect(rows.map((row) => row.id)).toEqual([COMPANY, OTHER]);
+    // The newest run wins, and the older `failed` row of the same company is ignored.
+    expect(rows[0]).toMatchObject({
+      latestRunStatus: "succeeded",
+      canton: "ZG",
+      employeesCount: 120,
+    });
+    // A company nothing has run yet reads as no run, not as a missing row.
+    expect(rows[1]).toMatchObject({
+      latestRunStatus: null,
+      latestRunAt: null,
+      employeesCount: null,
+    });
+    // Two queries in total, however many companies there are.
+    expect(calls.filter((call) => call.table === "research_runs")).toHaveLength(1);
+  });
+
+  it("scopes to the organization's own non archived rows", async () => {
+    const { client, calls } = fakeClient({ companies: () => ({ data: companies }) });
+    await listClientCompanies(client as never, ORG);
+    const steps = calls.find((call) => call.table === "companies")?.steps ?? [];
+    expect(steps).toEqual(
+      expect.arrayContaining([
+        ["eq", ["organization_id", ORG]],
+        ["is", ["archived_at", null]],
+      ]),
+    );
+  });
+
+  it("asks for no runs at all when the organization has no company", async () => {
+    const { client, calls } = fakeClient({ companies: () => ({ data: [] }) });
+    await expect(listClientCompanies(client as never, ORG)).resolves.toEqual([]);
+    expect(calls.some((call) => call.table === "research_runs")).toBe(false);
+  });
+
+  it("throws when the companies read fails", async () => {
+    const { client } = fakeClient({
+      companies: () => ({ error: { message: "boom", code: "42501" } }),
+    });
+    await expect(listClientCompanies(client as never, ORG)).rejects.toThrow();
   });
 });

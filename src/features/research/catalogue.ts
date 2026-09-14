@@ -1,16 +1,20 @@
 /**
- * The KPI catalogue (spec 0007, AC-1): the eight safety KPIs the research pipeline extracts, in
+ * The KPI catalogue (spec 0007, AC-1): the seven safety KPIs the research pipeline extracts, in
  * the sort order of the `kpi_definitions` seed. Names and descriptions live in the database
  * (`kpi_definitions.name[locale]`); this file holds what the code needs: the plausible range, the
  * parse rule, the extraction hint the provider and the validator read, and the display format.
- * A Vitest test asserts these keys equal the seeded ones. Pure data, runs anywhere.
+ *
+ * Spec 0022 (AC-4) dropped `accident_rate_per_1000_fte`: it is a Suva convention no company
+ * outside Switzerland publishes, so a global peer search can never match it. Its
+ * `kpi_definitions` row stays seeded for the `company_kpis` rows already written against it,
+ * which is why the Vitest test asserts every catalogue key exists in the seed rather than
+ * equality. Pure data, runs anywhere.
  */
 export const KPI_KEYS = [
   "ltifr",
   "trifr",
   "fatalities",
   "lost_days_per_incident",
-  "accident_rate_per_1000_fte",
   "absenteeism_rate",
   "near_miss_rate",
   "iso_45001_certified",
@@ -23,21 +27,10 @@ export type ParseRule = "decimal" | "integer" | "boolean";
 /** How the dashboard renders a value (AC-7): two decimals, a whole number, a percentage with one decimal, or yes/no. */
 export type KpiFormat = "decimal2" | "integer" | "percent1" | "yesNo";
 
-/**
- * Whether a Swiss peer source exists for a KPI (spec 0016, AC-7). `sourced` is read from a
- * published table, `pending` is readable but not yet read into the peer set, and `no_source` means
- * no Swiss body publishes it at all, so waiting for it is pointless.
- */
-export type PeerStatus = "sourced" | "pending" | "no_source";
-
 export type KpiDefinition = {
   readonly key: KpiKey;
   /** The unit every stored value is in (the source unit is converted by the validator). */
   readonly unit: string;
-  /** Whether a Swiss peer source exists for this KPI (spec 0016, AC-7). */
-  readonly peerStatus: PeerStatus;
-  /** The `benchmark` message key explaining that status to the client (spec 0016, AC-7, AC-8). */
-  readonly peerNote: string;
   readonly direction: "lower_is_better" | "higher_is_better";
   /** Values outside this range are dropped as `out_of_range` (AC-5). */
   readonly range: readonly [min: number, max: number];
@@ -50,8 +43,6 @@ export type KpiDefinition = {
 export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   ltifr: {
     key: "ltifr",
-    peerStatus: "pending",
-    peerNote: "positions.peerNote.ltifr",
     unit: "per 1 000 000 hours worked",
     direction: "lower_is_better",
     range: [0, 100],
@@ -61,8 +52,6 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   trifr: {
     key: "trifr",
-    peerStatus: "pending",
-    peerNote: "positions.peerNote.trifr",
     unit: "per 1 000 000 hours worked",
     direction: "lower_is_better",
     range: [0, 200],
@@ -74,8 +63,6 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
     key: "fatalities",
     // Eurostat hsw_n2_02, the Swiss fatal accident rate per 100 000 employed persons by NACE
     // section; the model converts the company's count at compare time (spec 0016 amendment, D3).
-    peerStatus: "sourced",
-    peerNote: "positions.peerNote.fatalities",
     unit: "count",
     direction: "lower_is_better",
     range: [0, 1000],
@@ -86,8 +73,6 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   lost_days_per_incident: {
     key: "lost_days_per_incident",
     // Eurostat hsw_n2_04, the median accident's days lost per NACE section (spec 0016 amendment).
-    peerStatus: "sourced",
-    peerNote: "positions.peerNote.lost_days_per_incident",
     unit: "days",
     direction: "lower_is_better",
     range: [0, 365],
@@ -95,22 +80,9 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
     format: "decimal2",
     hint: "Average lost work days per lost time incident (severity rate per incident); not the total lost days.",
   },
-  accident_rate_per_1000_fte: {
-    key: "accident_rate_per_1000_fte",
-    peerStatus: "sourced",
-    peerNote: "positions.peerNote.accident_rate_per_1000_fte",
-    unit: "per 1 000 full time equivalents",
-    direction: "lower_is_better",
-    range: [0, 1000],
-    parse: "decimal",
-    format: "decimal2",
-    hint: "Occupational accidents per 1 000 full time equivalents (Swiss Suva convention 'Unfälle pro 1000 Vollbeschäftigte'); a rate per 100 employees is multiplied by 10.",
-  },
   absenteeism_rate: {
     key: "absenteeism_rate",
     // BFS AVOL table T 03.02.03.02.06, the health related absence rate by section group.
-    peerStatus: "sourced",
-    peerNote: "positions.peerNote.absenteeism_rate",
     unit: "percent",
     direction: "lower_is_better",
     range: [0, 100],
@@ -120,8 +92,6 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   near_miss_rate: {
     key: "near_miss_rate",
-    peerStatus: "no_source",
-    peerNote: "positions.peerNote.near_miss_rate",
     unit: "per 100 employees",
     direction: "higher_is_better",
     range: [0, 1000],
@@ -131,8 +101,6 @@ export const KPI_CATALOGUE: { readonly [K in KpiKey]: KpiDefinition } = {
   },
   iso_45001_certified: {
     key: "iso_45001_certified",
-    peerStatus: "pending",
-    peerNote: "positions.peerNote.iso_45001_certified",
     unit: "yes or no",
     direction: "higher_is_better",
     range: [0, 1],
