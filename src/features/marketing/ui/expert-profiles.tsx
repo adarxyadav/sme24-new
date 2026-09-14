@@ -1,4 +1,4 @@
-import { Factory, Languages, MapPin, ShieldCheck } from "lucide-react";
+import { Factory, Languages, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -381,12 +381,19 @@ export function ExpertProfiles() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
+                {/* No icon on this row, unlike the three around it (owner, 2026-09-14). The other
+                    fields are plain text and need a glyph to be found at a glance; the standards
+                    are outlined badges, which already mark themselves out as a different kind of
+                    thing. A `ShieldCheck` was also the weakest of the four semantically -- these
+                    are areas of practice, not verified certifications (owner, 2026-09-14), and a
+                    shield with a tick says the opposite. The `sr-only` `dt` still names the row.
+
+                    The tags keep the indent the missing glyph would have given them (`size-4` plus
+                    the row's `gap-2`), so all four values share one left edge. Without it the
+                    standards hung 24px left of the sector above and the languages below, and one
+                    row breaking the column was louder than the icon had been. */}
+                <div className="flex items-start ps-6">
                   <dt className="sr-only">{t("standardsLabel")}</dt>
-                  <ShieldCheck
-                    aria-hidden="true"
-                    className="mt-1 size-4 shrink-0 text-muted-foreground"
-                  />
                   <dd className="min-w-0">
                     {/*
                       The tag carries the identifier, not the whole label. A safety manager reads
