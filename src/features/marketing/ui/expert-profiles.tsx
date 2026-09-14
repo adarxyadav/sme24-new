@@ -136,7 +136,7 @@ export function ExpertProfiles() {
 
   return (
     <section aria-labelledby="profiles-heading">
-      <div className="mx-auto flex max-w-6xl flex-col px-4 py-16 sm:px-6 md:py-28">
+      <div className="mx-auto flex max-w-6xl flex-col px-4 pb-16 sm:px-6 md:pb-28">
         {/*
           The band carries no visible opener (owner decision of 2026-09-14), the third case on the
           site after the landing page's worked figure and the pricing packages. It had a major one
@@ -145,11 +145,12 @@ export function ExpertProfiles() {
           exactly what they show. The heading stays as `sr-only`, so the landmark keeps its name
           and the cards keep an `h2` above their `h3`.
 
-          The band keeps both its tier's paddings, unlike the pricing packages, which dropped their
-          top one so the cards would clear the anchor above. That does not transfer here even though
-          the band above is also an anchor: the hero's own control sits at the bottom of it, so the
-          space under it is what separates a button from a grid of cards rather than dead white
-          between a lead and a card.
+          The band drops its top padding and keeps its bottom one, the same way the pricing
+          packages do: the tier's top padding exists to clear the band's own opener, and with no
+          opener there is nothing up there to clear. Kept, it stacked with the hero anchor's
+          `md:py-40` bottom into 272px of white between the hero's button and the first card, which
+          reads as a missing section rather than as room around a control. What separates the
+          button from the grid is the hero's own bottom padding, which is already generous.
         */}
         <h2 id="profiles-heading" className="sr-only">
           {t("title")}
