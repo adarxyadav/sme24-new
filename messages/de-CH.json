@@ -357,8 +357,7 @@
         "capacity": "Kapazität",
         "training": "Fortbildung 2025",
         "location": "Standort",
-        "psm": "Prozesssicherheit",
-        "moc": "Änderungsmanagement"
+        "title": "Titel"
       },
       "count": "{shown, plural, =0 {Keine Einträge} one {# von {total, number} Einträgen} other {# von {total, number} Einträgen}}",
       "more": "Weitere {count, number} anzeigen",
@@ -380,7 +379,7 @@
         "all": "Alle Stufen",
         "sme": "Fachexpertin oder Fachexperte",
         "practitioner": "Praktikerin oder Praktiker",
-        "none": "Nicht bewertet"
+        "specialist": "Sicherheitsfachperson"
       }
     },
     "footer": {

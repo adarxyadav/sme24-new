@@ -357,8 +357,7 @@
         "capacity": "Capacity",
         "training": "Training 2025",
         "location": "Location",
-        "psm": "Process safety",
-        "moc": "Management of change"
+        "title": "Title"
       },
       "count": "{shown, plural, =0 {No entries} one {# of {total, number} entries} other {# of {total, number} entries}}",
       "more": "Show {count, number} more",
@@ -380,7 +379,7 @@
         "all": "Every level",
         "sme": "Subject matter expert",
         "practitioner": "Practitioner",
-        "none": "Not rated"
+        "specialist": "Safety specialist"
       }
     },
     "footer": {
