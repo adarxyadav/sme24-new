@@ -52,10 +52,14 @@ export default async function DirectoryPage({
 
   const cantons = cantonCounts();
   const capacities = capacityCounts();
+  // Three figures, not four: the canton count came off the ledger on 2026-09-14 (owner decision)
+  // ahead of the register carrying data beyond Switzerland, where a count of Swiss cantons stops
+  // describing the pool. The `cantons` list itself still feeds the coverage grid below, and
+  // `marketing.directory.figures.cantons.*` stays in both catalogs so restoring the tile is one
+  // array entry.
   const figures = [
     { key: "total", value: REGISTER.length },
     { key: "available", value: capacities.v },
-    { key: "cantons", value: cantons.length },
     { key: "trained", value: completedIn(6) },
   ] as const;
 
@@ -110,7 +114,14 @@ export default async function DirectoryPage({
             statement and a note that adds a fact instead of restating it, the same shape the
             landing page uses for its proof points.
           */}
-          <dl className="grid divide-y border-t sm:grid-cols-2 sm:divide-x lg:grid-cols-4 lg:divide-y-0">
+          {/*
+            Three columns since the canton tile came off. `sm:grid-cols-2` is deliberately kept
+            below it: three figures over two columns leaves the third spanning the full width of
+            the second row, which reads as a deliberate stack rather than a short row, and the
+            alternative (three narrow columns on a tablet) puts a two line label over a four digit
+            number in 240px.
+          */}
+          <dl className="grid divide-y border-t sm:grid-cols-2 sm:divide-x lg:grid-cols-3 lg:divide-y-0">
             {figures.map((figure) => (
               <div
                 key={figure.key}
