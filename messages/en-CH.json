@@ -186,6 +186,7 @@
       "eyebrow": "Expert network",
       "title": "Senior people. No juniors.",
       "lead": "Every site visit is done by someone who has carried legal responsibility for safety in industry. Not a consultant who read about it.",
+      "cta": "Browse the public register",
       "standard": {
         "title": "What we mean by senior.",
         "intro": "Nobody joins the network without all four.",
@@ -231,19 +232,18 @@
         }
       },
       "profiles": {
-        "eyebrow": "The network",
+        "filter": {
+          "all": "All",
+          "label": "Filter by discipline"
+        },
         "title": "Who turns up. Six examples.",
-        "lead": "Every expert is matched to your sector, your canton and the work in front of you. These are profiles in the shape a real one takes.",
         "note": "Example profiles, in the shape a real one takes. The network is being onboarded now.",
         "listLabel": "Example expert profiles",
+        "sectorLabel": "Sector",
+        "cantonLabel": "Canton",
         "experienceLabel": "Experience",
         "standardsLabel": "Works to",
         "languagesLabel": "Works in",
-        "plain": {
-          "management_system": "Sets up the system that keeps you compliant year after year.",
-          "safety_culture": "Gets people working safely when nobody is watching.",
-          "compliance": "Finds the gaps before an inspector or an accident does."
-        },
         "manufacturing": {
           "name": "M. Muster",
           "years": "22 years",

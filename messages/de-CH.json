@@ -186,6 +186,7 @@
       "eyebrow": "Expertennetzwerk",
       "title": "Senior-Leute. Keine Junioren.",
       "lead": "Jeden Besuch macht jemand, der in der Industrie selbst für Arbeitssicherheit geradestehen musste. Kein Berater, der darüber gelesen hat.",
+      "cta": "Öffentliches Register ansehen",
       "standard": {
         "title": "Was Senior bei uns heisst.",
         "intro": "Ohne alle vier Punkte kommt niemand ins Netzwerk.",
@@ -231,19 +232,18 @@
         }
       },
       "profiles": {
-        "eyebrow": "Das Netzwerk",
+        "filter": {
+          "all": "Alle",
+          "label": "Nach Disziplin filtern"
+        },
         "title": "Wer vorbeikommt. Sechs Beispiele.",
-        "lead": "Jede Fachperson wird auf Ihre Branche, Ihren Kanton und die anstehende Arbeit abgestimmt. Das sind Profile in der Form, die ein echtes Profil hat.",
         "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
         "listLabel": "Beispielprofile von Fachpersonen",
+        "sectorLabel": "Branche",
+        "cantonLabel": "Kanton",
         "experienceLabel": "Erfahrung",
         "standardsLabel": "Arbeitet nach",
         "languagesLabel": "Arbeitssprachen",
-        "plain": {
-          "management_system": "Baut das System auf, das Sie Jahr für Jahr rechtskonform hält.",
-          "safety_culture": "Sorgt dafür, dass sicher gearbeitet wird, auch wenn niemand hinschaut.",
-          "compliance": "Findet die Lücken, bevor eine Inspektion oder ein Unfall sie findet."
-        },
         "manufacturing": {
           "name": "M. Muster",
           "years": "22 Jahre",
