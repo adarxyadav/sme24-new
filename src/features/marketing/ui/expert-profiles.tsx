@@ -1,3 +1,4 @@
+import { Briefcase, Languages, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import type {
@@ -184,11 +185,25 @@ export function ExpertProfiles() {
               <p className="mt-6 text-balance text-brand-accent text-heading-20">
                 {catalogue(`competencies.${profile.competency}`)}
               </p>
-              <p className="mt-1.5 text-pretty text-copy-13 text-muted-foreground">
-                {catalogue(`industries.${profile.industry}`)}
-                <span aria-hidden="true"> · </span>
-                <span className="sr-only">, </span>
-                {catalogue(`regions.${profile.region}`)}
+              {/*
+                Icons on the three reference fields only, never on the name or the discipline:
+                those two are the card's claim and an icon beside them would compete with the
+                accent already marking it. These three are facts a reader scans for, where a glyph
+                is how you find the line rather than decoration on it.
+
+                `size-4`, `aria-hidden` and `text-muted-foreground`, the shape `TrustSection`
+                already uses (docs/design.md: decorative icons are `aria-hidden`). Every one sits
+                beside its own words, so nothing here is carried by the glyph alone -- strip the
+                icons and the card still reads, which is the same test the accent passes.
+              */}
+              <p className="mt-1.5 flex items-center gap-1.5 text-pretty text-copy-13 text-muted-foreground">
+                <MapPin aria-hidden="true" className="size-4 shrink-0" />
+                <span>
+                  {catalogue(`industries.${profile.industry}`)}
+                  <span aria-hidden="true"> · </span>
+                  <span className="sr-only">, </span>
+                  {catalogue(`regions.${profile.region}`)}
+                </span>
               </p>
 
               {/*
@@ -198,7 +213,10 @@ export function ExpertProfiles() {
                 heading with a caption rather than one row of a datasheet.
               */}
               <dl className="mt-5 flex items-baseline justify-between gap-4 border-t pt-4 text-copy-14">
-                <dt className="text-muted-foreground">{t("experienceLabel")}</dt>
+                <dt className="flex items-center gap-1.5 text-muted-foreground">
+                  <Briefcase aria-hidden="true" className="size-4 shrink-0" />
+                  {t("experienceLabel")}
+                </dt>
                 <dd data-numeric className="font-medium tabular-nums">
                   {t(`${profile.key}.years`)}
                 </dd>
@@ -235,7 +253,8 @@ export function ExpertProfiles() {
                   on one line. A site visit happens in the language of the floor, which is why the
                   catalogue carries four while the app serves two -- but it is the last thing anyone
                   checks, so it is an aside rather than a labelled field. */}
-              <p className="mt-auto pt-5 text-pretty text-copy-13 text-muted-foreground">
+              <p className="mt-auto flex items-center gap-1.5 pt-5 text-pretty text-copy-13 text-muted-foreground">
+                <Languages aria-hidden="true" className="size-4 shrink-0" />
                 <span className="sr-only">{t("languagesLabel")}: </span>
                 {profile.languages.map((language) => catalogue(`languages.${language}`)).join(", ")}
               </p>
