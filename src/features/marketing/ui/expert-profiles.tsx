@@ -276,33 +276,6 @@ export function ExpertProfiles() {
               </div>
 
               {/*
-                The discipline drops from `heading-24` to `heading-20`: at 24 it outweighed the
-                name above it, so the card had two competing headlines and read top heavy. At 20 it
-                sits level with the name, which is right -- who and what they do are one claim.
-
-                It carries `--brand-accent`, the site's one decorative hue. Rule 3 admits the
-                accent in a single role, the section eyebrow, and this band's eyebrow already
-                spends it; using it again here would be a second role on one page. What keeps that
-                from happening is that the accent is not decorating the card -- it marks the one
-                field a client actually picks on, the same job the eyebrow does for a section, and
-                it never appears without the discipline's own words beside it. Colour is not the
-                carrier: remove it and the line still reads.
-              */}
-              {/*
-                The claim, alone: the one field a client picks on, in `--brand-accent` (rule 3's
-                single decorative role). The sector and canton used to sit under it as one row
-                behind a `MapPin`, on the reading that discipline, sector and canton are one
-                sentence about fit. Two things were wrong with that (owner, 2026-09-14): the pin
-                is a location glyph and a sector is not a location, so the icon mislabelled half
-                of what it sat beside; and both are the same kind of fact as the three in the
-                block below, which did not exist when that row was written. They are labelled
-                fields there now, and the middot and its `sr-only` comma go with the row.
-              */}
-              <p className="text-balance font-medium text-brand-accent text-copy-14">
-                {catalogue(`competencies.${profile.competency}`)}
-              </p>
-
-              {/*
                 The specification: four labelled fields under one hairline, the shape the earlier
                 card had and the current one lost. It holds what a reader compares across cards --
                 sector, canton, standards, languages -- while who the person is (the name and the
@@ -388,12 +361,34 @@ export function ExpertProfiles() {
                     are areas of practice, not verified certifications (owner, 2026-09-14), and a
                     shield with a tick says the opposite. The `sr-only` `dt` still names the row.
 
-                    The tags keep the indent the missing glyph would have given them (`size-4` plus
-                    the row's `gap-2`), so all four values share one left edge. Without it the
-                    standards hung 24px left of the sector above and the languages below, and one
-                    row breaking the column was louder than the icon had been. */}
-                <div className="flex items-start ps-6">
-                  <dt className="sr-only">{t("standardsLabel")}</dt>
+                    The tags sit flush left rather than keeping the indent the glyph would have
+                    given them (owner, 2026-09-14): the discipline line directly above starts at
+                    the block's own left edge, so the pair reads as one group against that edge
+                    rather than as a row that lost its icon. */}
+                <div className="flex flex-col items-start gap-1.5">
+                  {/*
+                    The discipline heads the standards rather than sitting above the hairline
+                    (owner, 2026-09-14). What someone does and what they work to are one claim --
+                    "Management system" over ISO 45001 and EKAS 6508 reads as a discipline and its
+                    evidence, where the line above the rule read as a second headline under the
+                    name and left the tags unheaded once the shield went.
+
+                    It is the row's visible `dt` rather than a paragraph above one, because that is
+                    what it now is: the term these tags qualify. So the pair announces "Management
+                    system, ISO 45001..." and the field needs no `sr-only` label of its own -- the
+                    `standardsLabel` key stays in both catalogs for the landing band, which still
+                    uses it.
+
+                    It carries `--brand-accent`, the site's one decorative hue. Rule 3 admits the
+                    accent in a single role and this band's eyebrow already spends it; what keeps
+                    this from being a second role is that the accent is not decorating the card --
+                    it marks the one field a client actually picks on, the same job the eyebrow
+                    does for a section. Colour is not the carrier: remove it and the line still
+                    reads.
+                  */}
+                  <dt className="text-balance font-medium text-brand-accent text-copy-14">
+                    {catalogue(`competencies.${profile.competency}`)}
+                  </dt>
                   <dd className="min-w-0">
                     {/*
                       The tag carries the identifier, not the whole label. A safety manager reads
