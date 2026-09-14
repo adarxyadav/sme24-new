@@ -153,14 +153,12 @@ export function PeerChart({ points, yDomain, labels }: PeerChartProps) {
   // Above the bubble by default, below it when the bubble sits in the upper half of the plot, so
   // the box never spills over the heading.
   const tooltipBelow = shown !== null && shown.cy < (plotTop + plotBottom) / 2;
-  // Enter and Space toggle the tooltip on the focused bubble (its one action), Escape closes it.
-  const onKeyDown = (key: string) => (event: KeyboardEvent<SVGGElement>) => {
+  // Escape closes the figures on the focused bubble. Enter and Space need no handler: the bubble
+  // is a real button, so both already fire its click, which toggles the same state.
+  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === "Escape") setActive(null);
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      setActive((current) => (current === key ? null : key));
-    }
   };
+  const onClick = (key: string) => () => setActive((current) => (current === key ? null : key));
   const axisText = "fill-muted-foreground text-label-12";
 
   return (
@@ -170,13 +168,13 @@ export function PeerChart({ points, yDomain, labels }: PeerChartProps) {
       data-peer-chart="drawn"
       data-points={points.length}
     >
-      {/* `group`, not `img`: an `img` makes its children presentational, so axe refuses the
-          focusable bubbles inside it (nested-interactive); the group carries the same label. */}
-      {/* biome-ignore lint/a11y/useSemanticElements: an SVG has no fieldset; the role names the drawing */}
+      {/* `img`: the drawing holds no interactive element of its own any more (the buttons sit
+          over it), so it is one picture with one name, and the figures are carried in words by
+          the buttons' labels and the `sr-only` table. */}
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="block h-auto w-full overflow-visible"
-        role="group"
+        role="img"
         aria-label={labels.chart}
       >
         <title>{labels.chart}</title>
@@ -251,35 +249,13 @@ export function PeerChart({ points, yDomain, labels }: PeerChartProps) {
         <text x={plotRight} y={height - 6} textAnchor="end" className={axisText}>
           {labels.xAxis}
         </text>
-        {/* The bubbles: a focusable button each (its action shows the figures), named whole for
-            the screen reader, with a visible ring on focus. The surface ring under every bubble
-            keeps two overlapping marks apart. */}
+        {/* The bubbles themselves are decoration: the interactive layer is the HTML buttons
+            below, so nothing in here takes focus or carries a name. */}
         {drawOrder.map((point) => {
           const isFocused = focused === point.key;
           const isActive = active === point.key;
           return (
-            // biome-ignore lint/a11y/useSemanticElements: an SVG has no button element; the group is the bubble
-            <g
-              key={point.key}
-              tabIndex={0}
-              role="button"
-              aria-label={[point.name, ...point.lines].join(". ")}
-              aria-pressed={isActive}
-              className="cursor-default outline-none"
-              data-bubble={point.key}
-              data-client={point.isClient ? "" : undefined}
-              onPointerEnter={() => setActive(point.key)}
-              onPointerLeave={() => setActive(focused)}
-              onFocus={() => {
-                setFocused(point.key);
-                setActive(point.key);
-              }}
-              onBlur={() => {
-                setFocused(null);
-                setActive(null);
-              }}
-              onKeyDown={onKeyDown(point.key)}
-            >
+            <g key={point.key} data-bubble-mark={point.key}>
               {isFocused || isActive ? (
                 <circle
                   cx={point.cx}
@@ -314,6 +290,42 @@ export function PeerChart({ points, yDomain, labels }: PeerChartProps) {
           );
         })}
       </svg>
+      {/* The interactive layer: one real HTML button per bubble, placed over its mark. An SVG
+          `<g tabIndex={0} role="button">` looks right in the accessibility tree and takes focus
+          programmatically, but Chromium leaves SVG children out of the sequential tab order, so
+          those bubbles could not be reached by the Tab key at all — verified in a real browser,
+          where tabbing into the chart skipped every bubble and landed back in the nav. jsdom
+          dispatches focus events on anything, so a unit test cannot see this; only a browser can.
+          A button is round, transparent and sized to its bubble, so the drawing is unchanged. */}
+      {placed.map((point) => (
+        <button
+          key={point.key}
+          type="button"
+          aria-label={[point.name, ...point.lines].join(". ")}
+          aria-pressed={active === point.key}
+          className="absolute cursor-default rounded-full focus-visible:outline-none"
+          style={{
+            left: `${((point.cx - point.r) / width) * 100}%`,
+            top: `${((point.cy - point.r) / height) * 100}%`,
+            width: `${((point.r * 2) / width) * 100}%`,
+            height: `${((point.r * 2) / height) * 100}%`,
+          }}
+          data-bubble={point.key}
+          data-client={point.isClient ? "" : undefined}
+          onPointerEnter={() => setActive(point.key)}
+          onPointerLeave={() => setActive(focused)}
+          onFocus={() => {
+            setFocused(point.key);
+            setActive(point.key);
+          }}
+          onBlur={() => {
+            setFocused(null);
+            setActive(null);
+          }}
+          onClick={onClick(point.key)}
+          onKeyDown={onKeyDown}
+        />
+      ))}
       {/* The tooltip on hover and on focus: the same lines the bubble's own name carries, so it is
           hidden from assistive technology rather than read twice; the surface of the tooltip
           primitive, with its arrow held at the bubble while the box stays inside the drawing. */}

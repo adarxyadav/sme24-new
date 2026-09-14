@@ -77,9 +77,12 @@ describe("the peer chart (spec 0022, the D-chart)", () => {
 
   it("sizes each bubble by that company's own estimated loss and draws the client as an outline", async () => {
     const { container } = await renderSegment();
+    // The circles are the drawing (`[data-bubble-mark]`); `[data-bubble]` is the button over it.
     const radius = (key: string) =>
       Number(
-        container.querySelector(`[data-bubble="${key}"] circle:last-of-type`)?.getAttribute("r"),
+        container
+          .querySelector(`[data-bubble-mark="${key}"] circle:last-of-type`)
+          ?.getAttribute("r"),
       );
     // Beta's 1 100 000 is four times Alpha's 275 000, so its bubble is twice as wide: the money is
     // the area, not the radius.
@@ -87,7 +90,7 @@ describe("the peer chart (spec 0022, the D-chart)", () => {
     // Gamma published no headcount, so it has no loss to price and falls to the floor.
     expect(radius("peer-Gamma GmbH")).toBe(BUBBLE_RADIUS_MIN);
     // The client has no published loss to size a bubble by, so it is an unfilled outline.
-    const client = container.querySelector('[data-bubble="client"] circle:last-of-type');
+    const client = container.querySelector('[data-bubble-mark="client"] circle:last-of-type');
     expect(client).toHaveAttribute("fill", "none");
     expect(client).toHaveAttribute("stroke", "var(--chart-1)");
     expect(radius("client")).toBe(BUBBLE_RADIUS_MIN);
@@ -158,9 +161,21 @@ describe("the peer chart (spec 0022, the D-chart)", () => {
     );
   });
 
+  it("makes every bubble a real button, so the Tab key reaches it", async () => {
+    const { container } = await renderSegment();
+    // Not a decorative detail: an SVG `<g tabIndex={0} role="button">` takes focus
+    // programmatically and reads correctly, but Chromium leaves SVG children out of the
+    // sequential tab order, so those bubbles could not be tabbed to at all. jsdom focuses
+    // anything, so this assertion is the only unit level guard against that regression.
+    for (const bubble of container.querySelectorAll("[data-bubble]")) {
+      expect(bubble.tagName).toBe("BUTTON");
+      expect(bubble).toHaveAttribute("type", "button");
+    }
+  });
+
   it("shows the figures on focus and closes them on Escape", async () => {
     const { container } = await renderSegment();
-    const beta = container.querySelector('[data-bubble="peer-Beta SA"]') as SVGGElement;
+    const beta = container.querySelector('[data-bubble="peer-Beta SA"]') as HTMLButtonElement;
     expect(container.querySelector("[data-chart-tooltip]")).not.toBeInTheDocument();
     fireEvent.focus(beta);
     const tooltip = container.querySelector('[data-chart-tooltip="peer-Beta SA"]');

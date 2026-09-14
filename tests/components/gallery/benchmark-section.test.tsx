@@ -48,10 +48,9 @@ describe("BenchmarkSection (AC-14)", () => {
     const { container } = renderWithIntl(<BenchmarkSection />, "en-CH");
     expect(screen.getByText(labels.peerChart)).toBeInTheDocument();
     expect(container.querySelector("[data-peer-chart]")).toHaveAttribute("data-points", "5");
-    expect(container.querySelector('[data-bubble="client"] circle:last-of-type')).toHaveAttribute(
-      "fill",
-      "none",
-    );
+    expect(
+      container.querySelector('[data-bubble-mark="client"] circle:last-of-type'),
+    ).toHaveAttribute("fill", "none");
   });
 
   it("shows the loss card's headline and its three counts, each Calculated", () => {
