@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { collectionPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import {
-  cantonCounts,
-  capacityCounts,
-  completedIn,
+  atLevel,
   EXTRACTED_ON,
+  locationCounts,
   REGISTER,
   REGISTER_SOURCE,
 } from "@/features/marketing/register";
@@ -30,12 +29,15 @@ export async function generateMetadata({
 }
 
 /**
- * The expert directory (spec 0009 follow-up): the public SGAS register of occupational safety
- * specialists as proof of the pool behind the network, opened by the counts, then the coverage
- * per canton, then the searchable register itself. The register ships in the prerendered HTML,
- * so the page stays static in both languages and the filtering runs in the browser with no
- * request. It lists no contact details by design: matching is ours to do, and the register's
- * addresses and phone numbers are not ours to republish. `CollectionPage` structured data.
+ * The expert directory (spec 0009 follow-up): the specialists behind the network as proof of the
+ * depth of the pool, opened by the counts and then the searchable table itself. Two sources are
+ * published as one list -- the public SGAS register of Swiss occupational safety specialists and
+ * the PSM/MOC list of globally distributed specialists -- so the SGAS half carries no competency
+ * level and the table renders a dash there rather than a blank. The list ships in the prerendered
+ * HTML, so the page stays static in both languages and the filtering runs in the browser with no
+ * request. It lists no contact details and no surnames by design: matching is ours to do, the
+ * register's addresses and phone numbers are not ours to republish, and a given name is as much
+ * as a reader needs to see that the pool is deep. `CollectionPage` structured data.
  */
 export default async function DirectoryPage({
   params,
@@ -50,17 +52,16 @@ export default async function DirectoryPage({
     getMessages(),
   ]);
 
-  const cantons = cantonCounts();
-  const capacities = capacityCounts();
-  // Three figures, not four: the canton count came off the ledger on 2026-09-14 (owner decision)
-  // ahead of the register carrying data beyond Switzerland, where a count of Swiss cantons stops
-  // describing the pool. The `cantons` list itself still feeds the coverage grid below, and
-  // `marketing.directory.figures.cantons.*` stays in both catalogs so restoring the tile is one
-  // array entry.
+  // Three figures describing a pool that is no longer Swiss (owner decision of 2026-09-14): how
+  // many specialists there are, how many countries they sit in, and how many carry a Subject
+  // Matter Expert rating in either competency. The canton count and the capacity and training
+  // figures went with the Swiss-only shape; `marketing.directory.figures.cantons.*` and the
+  // capacity and training keys stay in both catalogs so any of them is one array entry to restore.
+  const locations = locationCounts();
   const figures = [
     { key: "total", value: REGISTER.length },
-    { key: "available", value: capacities.v },
-    { key: "trained", value: completedIn(6) },
+    { key: "countries", value: locations.length },
+    { key: "experts", value: atLevel("sme") },
   ] as const;
 
   return (
@@ -142,30 +143,14 @@ export default async function DirectoryPage({
         </div>
       </section>
 
-      <section aria-labelledby="coverage-heading">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
-          <SectionHeader
-            tier="major"
-            id="coverage-heading"
-            eyebrow={t("coverage.eyebrow")}
-            title={t("coverage.title")}
-            lead={t("coverage.lead")}
-          />
-          <ul className="grid gap-px border bg-border sm:grid-cols-3 lg:grid-cols-6">
-            {cantons.map((entry) => (
-              <li
-                key={entry.canton}
-                className="flex flex-col gap-1 bg-background px-6 py-5 text-center"
-              >
-                <span className="font-semibold text-xl tracking-headline">{entry.canton}</span>
-                <span className="text-muted-foreground text-sm tabular-nums" data-numeric>
-                  {format.number(entry.count)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      {/*
+        The canton coverage band was here until 2026-09-14 (owner decision). It listed all 21
+        Swiss cantons with a count each, which described the pool while the pool was the SGAS
+        register; with specialists across 28 countries in the same table, a grid of Swiss cantons
+        is one country's detail given a band of its own. What it did -- let a reader see depth per
+        region before reading any name -- the location filter on the table now does for every
+        country. The `marketing.directory.coverage.*` keys stay in both catalogs.
+      */}
 
       <section aria-labelledby="register-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">

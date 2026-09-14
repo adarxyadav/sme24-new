@@ -1,93 +1,92 @@
 import raw from "./register.json";
 
 /**
- * The public expert register (spec 0009 follow-up, expert directory): the SGAS ASA register of
- * occupational safety specialists, reduced to what a prospective client needs to judge the depth
- * of the pool. `scripts/build-register.mts` writes `register.json` from the raw extract and drops
- * every direct contact detail, so nothing here can leak an address, a phone number or a private
- * email address. Pure data and pure functions; the page reads them on the server and the filter
- * component reads the same shapes in the browser.
+ * The public expert directory (spec 0009 follow-up): the SGAS ASA register of Swiss occupational
+ * safety specialists together with the PSM/MOC list of globally distributed specialists, reduced
+ * to what a prospective client needs to judge the depth of the pool. `scripts/build-register.mts`
+ * writes `register.json` from both sources and drops every direct contact detail and every
+ * surname, so nothing here can leak an address, a phone number, a private email address or a
+ * person's full name. Pure data and pure functions; the page reads them on the server and the
+ * filter component reads the same shapes in the browser.
  */
 
-/** The declared capacity of a registered specialist: available, partly, not, or not stated. */
-export const CAPACITIES = ["v", "t", "n", "u"] as const;
-export type Capacity = (typeof CAPACITIES)[number];
-
-/** The continuing-education status of one year, as the register records it. */
-export const STATUSES = ["A", "T", "N", "E", "U"] as const;
-export type Status = (typeof STATUSES)[number];
+/** A competency level, or "" for a specialist whose source does not record one. */
+export const LEVELS = ["practitioner", "sme"] as const;
+export type Level = (typeof LEVELS)[number];
+/** The stored level, which may be absent. */
+export type StoredLevel = Level | "";
 
 /** One published entry, in the column order `register.json` stores. */
 export type RegisterEntry = readonly [
   name: string,
-  place: string,
-  canton: string,
-  country: string,
-  capacity: Capacity,
-  year2026: Status,
-  year2025: Status,
-  year2024: Status,
+  location: string,
+  psm: StoredLevel,
+  moc: StoredLevel,
 ];
 
-/** The date the register was read, shown as the provenance line. */
+/** The date the SGAS register was read, shown as the provenance line. */
 export const EXTRACTED_ON = "2026-08-31";
 
-/** Where the register is published, cited beside every count. */
+/** Where the SGAS register is published, cited beside every count. */
 export const REGISTER_SOURCE = "https://www.sgas.ch/de/sgasregister";
 
 /** Every published entry, sorted by name. */
 export const REGISTER = raw as unknown as readonly RegisterEntry[];
 
-/** The 26 cantons in the order the coverage table lists them: by count, resolved by the data. */
-export type CantonCount = { readonly canton: string; readonly count: number };
+/** One location and how many specialists sit in it. */
+export type LocationCount = { readonly location: string; readonly count: number };
 
 /**
- * How many entries sit in each canton, most first, with the entries whose place carries no Swiss
- * postcode excluded. The page renders this as the coverage table, so a reader sees the depth per
- * region before any name. Pure.
+ * How many entries sit in each location, most first, with entries carrying no location excluded.
+ * The filter offers these, so a reader can narrow to a country before reading any name. Pure.
  */
-export function cantonCounts(entries: readonly RegisterEntry[] = REGISTER): readonly CantonCount[] {
+export function locationCounts(
+  entries: readonly RegisterEntry[] = REGISTER,
+): readonly LocationCount[] {
   const counts = new Map<string, number>();
   for (const entry of entries) {
-    if (entry[2] === "") continue;
-    counts.set(entry[2], (counts.get(entry[2]) ?? 0) + 1);
+    if (entry[1] === "") continue;
+    counts.set(entry[1], (counts.get(entry[1]) ?? 0) + 1);
   }
   return [...counts]
-    .map(([canton, count]) => ({ canton, count }))
-    .toSorted((left, right) => right.count - left.count || left.canton.localeCompare(right.canton));
+    .map(([location, count]) => ({ location, count }))
+    .toSorted(
+      (left, right) => right.count - left.count || left.location.localeCompare(right.location),
+    );
 }
 
-/** How many entries declare each capacity, in the fixed order of `CAPACITIES`. Pure. */
-export function capacityCounts(
-  entries: readonly RegisterEntry[] = REGISTER,
-): Readonly<Record<Capacity, number>> {
-  const counts: Record<Capacity, number> = { v: 0, t: 0, n: 0, u: 0 };
-  for (const entry of entries) counts[entry[4]] += 1;
-  return counts;
+/**
+ * How many entries carry a competency level at all, which is what separates the PSM/MOC half of
+ * the directory from the SGAS half. Pure.
+ */
+export function ratedCount(entries: readonly RegisterEntry[] = REGISTER): number {
+  return entries.filter((entry) => entry[2] !== "" || entry[3] !== "").length;
 }
 
-/** How many entries completed their continuing education in the given year column. Pure. */
-export function completedIn(year: 5 | 6 | 7, entries: readonly RegisterEntry[] = REGISTER): number {
-  return entries.filter((entry) => entry[year] === "A").length;
+/** How many entries hold the given level in either competency. Pure. */
+export function atLevel(level: Level, entries: readonly RegisterEntry[] = REGISTER): number {
+  return entries.filter((entry) => entry[2] === level || entry[3] === level).length;
 }
 
 /** The filters the directory applies, all optional and all independent. */
 export type RegisterFilters = {
-  /** A case insensitive substring of the name or the town. */
+  /** A case insensitive substring of the name or the location. */
   readonly query: string;
-  /** A canton code, or "" for every canton. */
-  readonly canton: string;
-  /** A capacity letter, or "" for every capacity. */
-  readonly capacity: string;
+  /** A location, or "" for every location. */
+  readonly location: string;
+  /** A competency level held in either PSM or MOC, or "" for every level. */
+  readonly level: string;
 };
 
 /** The empty filter set: what the page renders before anyone types. */
-export const NO_FILTERS: RegisterFilters = { query: "", canton: "", capacity: "" };
+export const NO_FILTERS: RegisterFilters = { query: "", location: "", level: "" };
 
 /**
  * The entries a filter set selects, in the register's own order. The query matches the name and
- * the town, which is what someone checking "is there anyone near us" actually types. Pure, and
- * fast enough on 1,929 rows to run on every keystroke without a worker or an index.
+ * the location, which is what someone checking "is there anyone near us" actually types. The
+ * level matches either competency, so filtering to Subject Matter Expert answers "who is senior
+ * in something" rather than forcing a choice of discipline first. Pure, and fast enough on the
+ * full list to run on every keystroke without a worker or an index.
  */
 export function filterRegister(
   entries: readonly RegisterEntry[],
@@ -95,8 +94,10 @@ export function filterRegister(
 ): readonly RegisterEntry[] {
   const query = filters.query.trim().toLowerCase();
   return entries.filter((entry) => {
-    if (filters.canton !== "" && entry[2] !== filters.canton) return false;
-    if (filters.capacity !== "" && entry[4] !== filters.capacity) return false;
+    if (filters.location !== "" && entry[1] !== filters.location) return false;
+    if (filters.level !== "" && entry[2] !== filters.level && entry[3] !== filters.level) {
+      return false;
+    }
     if (query === "") return true;
     return entry[0].toLowerCase().includes(query) || entry[1].toLowerCase().includes(query);
   });

@@ -283,7 +283,7 @@
     "directory": {
       "meta": {
         "title": "Expertenverzeichnis",
-        "description": "Das öffentliche SGAS-Register der Arbeitssicherheits-Spezialisten in der Schweiz: wie viele es gibt, wo sie sitzen und wer Kapazität hat."
+        "description": "Die Fachleute hinter dem SME24-Netzwerk: das öffentliche SGAS-Register der Schweizer Arbeitssicherheitsspezialistinnen und -spezialisten zusammen mit unseren weltweit verteilten Fachleuten für Prozesssicherheit und Änderungsmanagement."
       },
       "og": {
         "statement": "Das ganze Register. Offen."
@@ -307,6 +307,14 @@
         "trained": {
           "label": "Fortbildung 2025",
           "note": "Haben die Fortbildungspflicht für das Jahr vollständig erfüllt."
+        },
+        "countries": {
+          "label": "Länder",
+          "note": "Wo eine Fachperson sitzt, von der Schweiz bis Singapur."
+        },
+        "experts": {
+          "label": "Fachexpertinnen und Fachexperten",
+          "note": "Auf Seniorstufe bewertet in Prozesssicherheit oder Änderungsmanagement."
         }
       },
       "coverage": {
@@ -317,11 +325,11 @@
       "register": {
         "eyebrow": "Register",
         "title": "Suchen Sie selbst.",
-        "lead": "Name und Ort, Kanton, angegebene Kapazität und der Fortbildungsstand 2025. Kontaktdaten zeigen wir nicht: die Zuteilung machen wir, und die Adressen im Register sind nicht unsere, sie zu verbreiten."
+        "lead": "Vorname, Standort und die Stufe in Prozesssicherheit und Änderungsmanagement. Wir zeigen keine Nachnamen und keine Kontaktdaten: Die Zuteilung ist unsere Aufgabe, und die Angaben im Register sind nicht unsere, um sie erneut zu veröffentlichen."
       },
       "search": {
         "label": "Suche",
-        "placeholder": "Name oder Ort, z. B. Meier oder Zürich…"
+        "placeholder": "Name oder Standort, z. B. Anna oder Singapur…"
       },
       "canton": {
         "label": "Kanton",
@@ -347,18 +355,32 @@
         "place": "Ort",
         "canton": "Kanton",
         "capacity": "Kapazität",
-        "training": "Fortbildung 2025"
+        "training": "Fortbildung 2025",
+        "location": "Standort",
+        "psm": "Prozesssicherheit",
+        "moc": "Änderungsmanagement"
       },
       "count": "{shown, plural, =0 {Keine Einträge} one {# von {total, number} Einträgen} other {# von {total, number} Einträgen}}",
       "more": "Weitere {count, number} anzeigen",
       "empty": "Keine Einträge mit diesen Filtern.",
       "notGiven": "Keine Angabe",
       "clear": "Filter zurücksetzen",
-      "source": "Quelle: <link>SGAS-Register</link>, ausgelesen am {date}. Die Einträge stammen von den Spezialisten selbst; SME24 prüft sie bei der Aufnahme ins eigene Netzwerk erneut.",
+      "source": "Quellen: das <link>SGAS-Register</link>, gelesen am {date}, und unser eigenes Verzeichnis der Fachleute für Prozesssicherheit und Änderungsmanagement. Die Angaben stammen von den Eingetragenen selbst; SME24 prüft sie erneut, bevor jemand in unser eigenes Netzwerk aufgenommen wird.",
       "closing": {
         "title": "Wir suchen den passenden für Sie.",
         "lead": "Sie wählen nicht aus dem Verzeichnis. Wir teilen den Experten zu, dessen Branche, Normen und Anfahrt zu Ihrer Firma passen.",
         "cta": "Sehen, was Ihr Risiko kostet"
+      },
+      "location": {
+        "label": "Standort",
+        "all": "Alle Standorte"
+      },
+      "level": {
+        "label": "Stufe",
+        "all": "Alle Stufen",
+        "sme": "Fachexpertin oder Fachexperte",
+        "practitioner": "Praktikerin oder Praktiker",
+        "none": "Nicht bewertet"
       }
     },
     "footer": {

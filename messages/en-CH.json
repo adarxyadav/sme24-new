@@ -283,7 +283,7 @@
     "directory": {
       "meta": {
         "title": "Expert directory",
-        "description": "The public SGAS register of occupational safety specialists in Switzerland: how many there are, where they sit and who has capacity."
+        "description": "The specialists behind the SME24 network: the public SGAS register of Swiss occupational safety specialists together with our globally distributed process safety and management of change experts."
       },
       "og": {
         "statement": "The whole register. Open."
@@ -307,6 +307,14 @@
         "trained": {
           "label": "Trained 2025",
           "note": "Completed the year’s continuing education requirement in full."
+        },
+        "countries": {
+          "label": "Countries",
+          "note": "Wherever a specialist is based, from Switzerland to Singapore."
+        },
+        "experts": {
+          "label": "Subject matter experts",
+          "note": "Rated at the senior level in process safety or management of change."
         }
       },
       "coverage": {
@@ -317,11 +325,11 @@
       "register": {
         "eyebrow": "Register",
         "title": "Search it yourself.",
-        "lead": "Name and town, canton, stated capacity and the 2025 training status. We show no contact details: the matching is ours to do, and the addresses in the register are not ours to republish."
+        "lead": "Given name, location and the competency level in process safety and management of change. We show no surnames and no contact details: the matching is ours to do, and the details in the register are not ours to republish."
       },
       "search": {
         "label": "Search",
-        "placeholder": "Name or town, e.g. Meier or Zürich…"
+        "placeholder": "Name or location, e.g. Anna or Singapore…"
       },
       "canton": {
         "label": "Canton",
@@ -347,18 +355,32 @@
         "place": "Town",
         "canton": "Canton",
         "capacity": "Capacity",
-        "training": "Training 2025"
+        "training": "Training 2025",
+        "location": "Location",
+        "psm": "Process safety",
+        "moc": "Management of change"
       },
       "count": "{shown, plural, =0 {No entries} one {# of {total, number} entries} other {# of {total, number} entries}}",
       "more": "Show {count, number} more",
       "empty": "No entries match these filters.",
       "notGiven": "Not given",
       "clear": "Clear filters",
-      "source": "Source: the <link>SGAS register</link>, read on {date}. Entries are self-declared; SME24 vets them again before anyone joins our own network.",
+      "source": "Sources: the <link>SGAS register</link>, read on {date}, and our own record of process safety and management of change specialists. Entries are self-declared; SME24 vets them again before anyone joins our own network.",
       "closing": {
         "title": "We find the right one for you.",
         "lead": "You do not pick from the directory. We assign the expert whose sector, standards and travel fit your company.",
         "cta": "See what your risk costs"
+      },
+      "location": {
+        "label": "Location",
+        "all": "Every location"
+      },
+      "level": {
+        "label": "Level",
+        "all": "Every level",
+        "sme": "Subject matter expert",
+        "practitioner": "Practitioner",
+        "none": "Not rated"
       }
     },
     "footer": {
