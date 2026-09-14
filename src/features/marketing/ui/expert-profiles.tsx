@@ -156,24 +156,23 @@ export function ExpertProfiles() {
           {t("title")}
         </h2>
         {/*
-          The visible disclosure, restored 2026-09-14 after one day off the page. It was dropped
-          with the band's opener on the reading that the `sr-only` heading and the list's
-          `aria-label` still carried it, which is true for assistive tech and false for everyone
-          else: six invented people (`M. Muster`, `A. Beispiel`) were shown with years, cantons and
-          standards, and nothing a sighted reader could see said they were illustrations. A
-          placeholder that does not announce itself is a claim about people who have not been
-          hired, on a public page, so this line is not decoration that the openerless rule may take
-          with the opener.
+          KNOWN GAP, reopened 2026-09-14 (owner decision): the visible disclosure is off the page
+          again. It read "Example profiles, in the shape a real one takes. The network is being
+          onboarded now." and sat here, above the filter.
 
-          It is not the opener coming back. An opener says what the band is and would put the
-          heading the hero already carries back above the cards; this says what the cards are not,
-          which nothing else on the page does. `text-copy-14` in the muted token, above the filter,
-          so it reads as a note on the grid rather than as a lead into it.
+          What is left is `sr-only`: this band's heading ("Who turns up. Six examples.") and the
+          list's `aria-label`. So a screen reader is told these are examples and a sighted reader
+          is not -- six invented people (`M. Muster`, `A. Beispiel`) are shown with years, cantons,
+          standards and working languages, and nothing on the page says they are illustrations.
+          That is a claim about people who have not been hired, on a public page, and it is the
+          same gap `docs/design.md` recorded as owed back before launch.
 
-          It goes when real experts replace `PROFILES`, not before -- at which point the `note` key
-          leaves both catalogs with it.
+          The `note` key stays in both catalogs, unused, so restoring the line is one JSX element:
+
+            <p className="mb-6 max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
+
+          Put it back before launch, or when real experts replace `PROFILES`, whichever is first.
         */}
-        <p className="mb-6 max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
         {/*
           Separate cards rather than the `gap-px border bg-border` hairline grid the standard and
           vetting bands above use. That technique fuses its cells into one ruled block, which is
