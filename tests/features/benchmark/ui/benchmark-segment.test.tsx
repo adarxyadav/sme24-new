@@ -153,10 +153,12 @@ describe("the peer table (spec 0022, AC-20)", () => {
     );
   });
 
-  it("puts the client's own row in place by its LTIFR, with the figures badge", async () => {
+  it("puts the client's own row in place by its TRIFR, with the figures badge", async () => {
     const { container } = await renderSegment({ companyName: "Musterfirma AG" });
-    const rows = [...container.querySelectorAll("tbody tr")];
-    // LTIFR 6 sits between Beta SA (4) and Gamma GmbH (8).
+    // Scoped to the peer table: the chart's own `sr-only` table has rows too, and they are not
+    // this ordering.
+    const rows = [...(container.querySelectorAll("table:not([data-chart-table]) tbody tr") ?? [])];
+    // TRIFR 10 sits between Beta SA (9) and Gamma GmbH (13).
     expect(
       rows.map((row) =>
         row.hasAttribute("data-client-row") ? "client" : row.getAttribute("data-peer"),

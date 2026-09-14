@@ -34,10 +34,24 @@ describe("BenchmarkSection (AC-14)", () => {
   it("shows the peer table with a published row, a row without a headcount and the client's own", () => {
     const { container } = renderWithIntl(<BenchmarkSection />, "en-CH");
     expect(screen.getByText(labels.peerTable)).toBeInTheDocument();
-    expect(container.querySelectorAll("tbody tr")).toHaveLength(3);
+    // Scoped past the chart example's own `sr-only` table, which has a row per bubble.
+    expect(container.querySelectorAll("table:not([data-chart-table]) tbody tr")).toHaveLength(3);
     expect(screen.getByText(b.peers.table.noHeadcount)).toBeInTheDocument();
-    expect(screen.getByText(b.peers.table.you)).toBeInTheDocument();
+    // The table's badge word is also the chart legend's, so it is found on the table itself.
+    expect(
+      container.querySelector('table:not([data-chart-table]) [data-slot="badge"]'),
+    ).toHaveTextContent(b.peers.table.you);
     expect(screen.getByText(b.peers.footnote)).toBeInTheDocument();
+  });
+
+  it("draws the peer chart with a bubble per company and the client as an outline", () => {
+    const { container } = renderWithIntl(<BenchmarkSection />, "en-CH");
+    expect(screen.getByText(labels.peerChart)).toBeInTheDocument();
+    expect(container.querySelector("[data-peer-chart]")).toHaveAttribute("data-points", "5");
+    expect(container.querySelector('[data-bubble="client"] circle:last-of-type')).toHaveAttribute(
+      "fill",
+      "none",
+    );
   });
 
   it("shows the loss card's headline and its three counts, each Calculated", () => {

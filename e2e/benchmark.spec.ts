@@ -202,16 +202,29 @@ test.describe("through the local worker", () => {
       await expect(rankSentence).toContainText(`of ${PEER_COUNT + 1} on LTIFR`);
       await expect(rankSentence).toContainText(`of ${COUNTRY_PEER_TRIFR.length + 1} on TRIFR`);
 
-      // One table: the five peers plus the client's own row, highlighted in place by its LTIFR.
+      // One table: the five peers plus the client's own row, highlighted in place by its TRIFR,
+      // the same ranking the chart above it draws.
       await expect(peersCard.locator("[data-peer]")).toHaveCount(PEER_COUNT);
       const clientRow = peersCard.locator("[data-client-row]");
       await expect(clientRow).toHaveCount(1);
       await expect(clientRow).toContainText("Benchmark Fixture AG");
       await expect(clientRow).toContainText("Your figures");
       await expect(clientRow).toContainText(`${FTE} employees`);
-      // Its LTIFR of 2.4 is below every peer's, so the client sorts to the top of the table: the
+      // Its TRIFR of 6.1 is below every peer's, so the client sorts to the top of the table: the
       // row is placed among the peers by its own rate rather than appended to them (AC-20).
-      await expect(peersCard.locator("tbody tr").first()).toHaveAttribute("data-client-row");
+      await expect(
+        peersCard.locator("table:not([data-chart-table]) tbody tr").first(),
+      ).toHaveAttribute("data-client-row");
+
+      // The chart above the table draws the same ranking (spec 0022, the D-chart): a bubble per
+      // company that published a TRIFR, the client among them as an unfilled outline.
+      const chart = peersCard.locator("[data-peer-chart]");
+      await expect(chart).toBeVisible();
+      await expect(chart).toHaveAttribute("data-points", String(COUNTRY_PEER_TRIFR.length + 1));
+      await expect(chart.locator('[data-bubble="client"] circle').last()).toHaveAttribute(
+        "fill",
+        "none",
+      );
 
       // Every peer row carries a headcount, a year, a converted rate and a source link that opens
       // the page in a new tab. The fixture's per 200 000 hours 0.9 is the conversion of AC-8: it
