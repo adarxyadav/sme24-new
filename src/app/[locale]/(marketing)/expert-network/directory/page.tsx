@@ -72,10 +72,30 @@ export default async function DirectoryPage({
 
       <section>
         <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-24 sm:px-6 md:py-40">
+          {/*
+            The expert network opener's composition, left aligned (owner decision of 2026-09-14):
+            the accent pill and the flowed heading, without the centring. This page is a register
+            -- a ledger of figures over a filterable table, every one of them left edged -- so a
+            centred plate would be the one block on it not sitting on that edge. The pill and the
+            flow carry over because they are about the opener's own shape rather than its axis, and
+            the sibling page a reader arrives from wears both.
+
+            The heading flows for the reason the reference does: "The whole register. Open." is
+            short enough to set on one line, and broken per sentence it put the round "O" of
+            "Open." under the flat stem of "The", which reads as a ragged left edge even though the
+            two lines start at exactly the same x. Flowed, there is no second line to disagree.
+            Measured at 1440: 866.8px in English, 903.5px in German, inside the flowed cap of
+            1024px and the band's own 1104px. Re-measure both catalogs if this copy changes.
+
+            No control here, unlike the reference: that opener's button points at this page, and
+            this page is already the register.
+          */}
           <SectionHeader
             tier="anchor"
             as="h1"
             eyebrow={t("eyebrow")}
+            eyebrowVariant="pill"
+            layout="flow"
             title={t("title")}
             lead={t("lead")}
           />

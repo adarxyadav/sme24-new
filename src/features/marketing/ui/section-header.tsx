@@ -33,6 +33,20 @@ export type SectionHeaderProps = {
    * fold and would otherwise answer it with a bare line further down.
    */
   readonly eyebrowVariant?: "line" | "pill";
+  /**
+   * Runs a left aligned anchor's sentences on as prose instead of breaking at every one, and
+   * widens the measure to hold them. Anchors only, opt in, and `line` stays the default so every
+   * existing opener keeps the campaign shape. Flowing was reachable only from the emphasis shape
+   * and the centred anchor until now; a left aligned opener whose title is short enough to set on
+   * one line wants it for the same reason those do, without taking the centring with it.
+   *
+   * The cap moves with it, for the reason the centred anchor's does: `max-w-4xl` (896px) is a
+   * measure for two short lines, and a title flowed onto one overflows it in the longer catalog
+   * before the shorter one notices. `max-w-5xl` (1024px) is the same step the centred anchor
+   * settled on and clears both. A title too long for one line still wraps here -- the cap is a
+   * ceiling, not a promise -- so check both catalogs when the copy changes.
+   */
+  readonly layout?: "line" | "flow";
   /** `h1` on the page opener, `h2` everywhere else. */
   readonly as?: "h1" | "h2";
   /**
@@ -62,12 +76,21 @@ export function SectionHeader({
   lead,
   emphasis,
   eyebrowVariant = "line",
+  layout = "line",
   as = "h2",
   align = "left",
   id,
   className,
 }: SectionHeaderProps) {
   const centred = align === "center" && tier === "anchor" && !emphasis;
+  // Opt in, and only where the shape makes sense: an anchor that is neither centred (which flows
+  // already) nor the emphasis heading (which owns its own layout). A major or minor passing it is
+  // ignored rather than silently restyled -- their headings are short by tier, not by copy.
+  const flowed = layout === "flow" && tier === "anchor" && !centred && !emphasis;
+  // A centred anchor wears the pill by definition (a bare caps line has no left edge to sit on
+  // there); a left aligned one opts in. One flag so the badge and the column's `items-start` can
+  // never disagree about which shape is rendering.
+  const pill = centred || eyebrowVariant === "pill";
   const heading = (
     <Statement
       as={as}
@@ -75,8 +98,9 @@ export function SectionHeader({
       text={title}
       // The emphasis heading runs on as prose rather than breaking at every sentence: its whole
       // point is that the claim and its answer read as one paragraph of display type. A centred
-      // anchor flows for a different reason -- see the measure note below.
-      layout={emphasis || centred ? "flow" : "line"}
+      // anchor flows for a different reason -- see the measure note below -- and a left aligned
+      // anchor may opt in through `layout` for that same reason without the centring.
+      layout={emphasis || centred || flowed ? "flow" : "line"}
       leadSentences={emphasis?.leadSentences}
       className={cn(
         // The page opener carries the ceiling weight (600), so the one h1 on a marketing page
@@ -95,6 +119,14 @@ export function SectionHeader({
           catalogs, so the cap has to be a width neither language fights.
         */
         centred && "mx-auto max-w-5xl",
+        /*
+          The same widening without the centring. It sits after the tier's own `max-w-4xl` because
+          `cn` is tailwind-merge and the later width wins; measured at 1440 with the display-lg
+          opener, the directory title flows to 866.8px in English and 903.5px in German, so the
+          896px cap clears one catalog and wraps the other with its closing sentence alone on a
+          line. 1024px holds both with room, and the band itself is 1104px wide.
+        */
+        flowed && "max-w-5xl",
         tier === "major" && "text-display-sm md:text-display",
         tier === "minor" && "font-semibold text-2xl tracking-headline md:text-display-sm",
         // A measure the two tone heading needs and the split major does not: the heading is the
@@ -187,16 +219,31 @@ export function SectionHeader({
     `max-w-prose` needs `mx-auto` for the same reason the heading's cap does.
   */
   return (
-    <div className={cn("flex flex-col gap-6", centred && "items-center text-center", className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-6",
+        centred && "items-center text-center",
+        // A pill on a left aligned anchor needs the column to stop stretching it, the way the
+        // major's does. Centred anchors get this from `items-center`, and a bare caps line is a
+        // block that fills the width either way, so only this combination was unhandled.
+        !centred && pill && "items-start",
+        className,
+      )}
+    >
       {/*
         The centred anchor takes the accent pill (owner decision of 2026-09-14) rather than the
         bare caps line every left aligned opener uses. Centred, a bare caps line has no left edge
         to sit on and reads as a stray word floating above the heading; the pill gives it an
         object's shape, which is what the reference and the gallery's Accents row both show. It is
         the same pill the emphasis shape uses, so the site has one and not two.
+
+        A left aligned anchor may take it too, through `eyebrowVariant` -- the opt in the major
+        tier already carries, for the page that wears the pill above the fold and would otherwise
+        answer it with a second eyebrow shape further down. `line` stays the default, so every
+        existing left aligned opener keeps its bare caps line.
       */}
       {eyebrow ? (
-        centred ? (
+        pill ? (
           <Badge variant="brand-accent" className={EYEBROW_PILL}>
             {eyebrow}
           </Badge>
