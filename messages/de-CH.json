@@ -514,7 +514,7 @@
           },
           "price": {
             "question": "Was kostet ein Paket?",
-            "answer": "Ab CHF 2 000 exklusive MwSt. Drei Pakete, jedes zu einem Fixpreis, vereinbart vor dem ersten Besuch, und ein Umsetzungspartner auf Anfrage. Der Preis auf der Seite ist der Preis, den Sie zahlen. Zeigt der Besuch, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere Paket."
+            "answer": "Ab CHF 2 000 exklusive MwSt. Drei Pakete, jedes zu einem Fixpreis, vereinbart vor dem ersten Besuch, und ein Transformationspartner auf Anfrage. Der Preis auf der Seite ist der Preis, den Sie zahlen. Zeigt der Besuch, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere Paket."
           }
         }
       },
@@ -529,7 +529,7 @@
     "pricing": {
       "meta": {
         "title": "Preise",
-        "description": "Drei EHS-Snapshots zum Fixpreis in CHF und ein Umsetzungspartner auf Anfrage. Jedes Paket enthält einen Senior-Experten und einen schriftlichen Bericht."
+        "description": "Drei EHS-Snapshots zum Fixpreis in CHF und ein Transformationspartner auf Anfrage. Jedes Paket enthält einen Senior-Experten und einen schriftlichen Bericht."
       },
       "og": {
         "statement": "Fixpreis. Keine Überraschungen."
@@ -782,7 +782,7 @@
         "outcome": "Ihre Kulturstufe, bewertet"
       },
       "retainer": {
-        "name": "EHS-Umsetzungspartner",
+        "name": "EHS-Transformationspartner",
         "shortName": "Partner",
         "promise": "Risiken beheben lassen",
         "bestFor": "Resultate liefern",

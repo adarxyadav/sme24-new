@@ -514,7 +514,7 @@
           },
           "price": {
             "question": "What does a package cost?",
-            "answer": "From CHF 2 000 excluding VAT. Three packages, each at one fixed price agreed before the first visit, and an implementation partner on demand. The price on the page is the price you pay. If the visit shows you need less than you thought, take the smaller package."
+            "answer": "From CHF 2 000 excluding VAT. Three packages, each at one fixed price agreed before the first visit, and a transformation partner on demand. The price on the page is the price you pay. If the visit shows you need less than you thought, take the smaller package."
           }
         }
       },
@@ -529,7 +529,7 @@
     "pricing": {
       "meta": {
         "title": "Pricing",
-        "description": "Three EHS snapshots at a fixed price in CHF and an implementation partner on demand. Every package includes a senior expert and a written report."
+        "description": "Three EHS snapshots at a fixed price in CHF and a transformation partner on demand. Every package includes a senior expert and a written report."
       },
       "og": {
         "statement": "Fixed price. No surprises."
@@ -782,7 +782,7 @@
         "outcome": "Your culture level, rated"
       },
       "retainer": {
-        "name": "EHS Implementation Partner",
+        "name": "EHS Transformation Partner",
         "shortName": "Partner",
         "promise": "Get the risks fixed",
         "bestFor": "deliver results",
