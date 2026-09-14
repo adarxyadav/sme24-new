@@ -341,8 +341,13 @@ export function ExpertProfiles() {
                   the width its own words need and a pair too long for one row drops the canton
                   under the sector in every card at that width rather than in some.
 
-                  `gap-x-4` is wider than the `gap-2` inside a field, so the eye reads two fields
-                  on one row rather than four things in a line.
+                  The gap between the two fields has to beat the gap inside one, or the row reads
+                  as four evenly spaced things rather than two pairs. `gap-x-4` against the fields'
+                  own `gap-2` was only 2:1 and the icons' own side bearing narrowed it further, so
+                  "Manufacturing" and the pin beside it sat about as far apart as the pin and
+                  "Zurich". `gap-x-5` (20px) is 2.5:1, which reads as a grouping. `gap-x-6` reads
+                  slightly better still and costs more than it buys: at 24px the German pair no
+                  longer fits at two across, so one card in six turned and took its row with it.
 
                   Whether the pair turns depends on both values: at three across in German
                   "Verarbeitendes Gewerbe · Basel-Stadt" wraps where the same sector with "Zürich"
@@ -352,7 +357,7 @@ export function ExpertProfiles() {
                   standards tags wrap at the same breakpoint anyway. Left to wrap: 1024px is the
                   one width where this grid is not square, and it is square everywhere else.
                 */}
-                <div className="flex flex-wrap gap-x-4 gap-y-2.5 text-copy-14">
+                <div className="flex flex-wrap gap-x-5 gap-y-2.5 text-copy-14">
                   <div className="flex items-start gap-2">
                     <dt className="sr-only">{t("sectorLabel")}</dt>
                     <Factory
