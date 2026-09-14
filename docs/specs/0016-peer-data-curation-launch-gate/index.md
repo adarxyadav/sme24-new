@@ -1,7 +1,7 @@
 # 0016. Peer data curation and model honesty
 
 **Date**: 2026-09-11
-**Status**: Accepted
+**Status**: Superseded by [0022](../0022-ai-peer-benchmark/index.md)
 
 ## Summary
 

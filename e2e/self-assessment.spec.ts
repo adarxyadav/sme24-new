@@ -30,7 +30,6 @@ const strings = en.selfAssessment;
 const table = en.research.table;
 const LTIFR = "LTIFR (lost time injury frequency rate)";
 const TRIFR = "TRIFR (total recordable injury frequency rate)";
-const ACCIDENT_RATE = "Accident rate per 1 000 FTE";
 
 test.skip(localOnly, "needs the local stack: Mailpit and the Supabase secret key");
 test.describe.configure({ timeout: 300_000 });
@@ -83,6 +82,9 @@ test("a client prefills from research, saves and corrects figures, sees them in 
       value: 3.1,
       confidence: 0.5,
     });
+    // Spec 0022 (AC-4) dropped this KPI from the catalogue but kept its `kpi_definitions` seed row
+    // so rows written before the change still read. Seeding one here proves an old row survives:
+    // the card renders, and the hint below no longer names the retired rate.
     await seedCompanyKpi({
       ...seed,
       kpiKey: "accident_rate_per_1000_fte",
@@ -146,6 +148,13 @@ test("a client prefills from research, saves and corrects figures, sees them in 
     // A correction of a research value (AC-5, AC-8): the client badge replaces the confidence.
     await ltifr.fill("2,9");
     await section.getByRole("button", { name: strings.submit }).click();
+    // Wait for this save to land before reading the table, the way the TRIFR save above does.
+    // Without it the clear further down can fire while the write is still in flight, and then
+    // there is no client LTIFR row to clear and no Clear button to press.
+    await expect(form.locator("[data-kpis-saved]")).toHaveText(strings.saved);
+    await expect(
+      section.getByRole("button", { name: strings.clear.replace("{kpi}", LTIFR) }),
+    ).toBeVisible();
     await expect(cell(page, "ltifr", 2024)).toContainText("2.90");
     await expect(cell(page, "ltifr", 2024).locator('[data-source="client"]')).toBeVisible();
     await expect(cell(page, "ltifr", 2024).locator("[data-confidence]")).toHaveCount(0);
@@ -212,7 +221,9 @@ test("a client prefills from research, saves and corrects figures, sees them in 
     const hint = section.locator("[data-older-year-hint]");
     await expect(hint).toContainText(strings.olderYearIntro);
     await expect(hint).toContainText(TRIFR);
-    await expect(hint).toContainText(ACCIDENT_RATE);
+    // Spec 0022 (AC-4) took the Suva only accident rate out of the catalogue, so the hint names
+    // the remaining rates and never that one again.
+    await expect(hint).not.toContainText("Accident rate");
     await expect(hint).toContainText("2024");
     await screenshot(page, "older-year");
     await expectNoAxeViolations(page);

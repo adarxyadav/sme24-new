@@ -1,8 +1,9 @@
 import { KPI_LIST, YEARS_PER_RUN } from "@/features/research/catalogue";
+import { COUNTRIES, regionCountriesOf, regionOf } from "@/lib/countries";
 import { FACT_FIELDS, kpiField, YEAR_SLOTS } from "./output-schema";
+import type { PeerCompany, PeerSearchInput, PeerSearchResult } from "./peer-schema";
 import type {
   ProviderBasis,
-  ProviderInput,
   ProviderResult,
   ProviderRunStatus,
   ResearchProvider,
@@ -49,7 +50,8 @@ export const FIXTURE_SOURCES = [
     title: "Health and safety policy",
   },
   { url: "https://www.example.ch/about/certifications", title: "Certifications" },
-  { url: "https://www.zefix.ch/en/search/entity/list", title: "Zefix commercial register" },
+  // A neutral register title, not one country's registry (spec 0022, AC-3).
+  { url: "https://www.example.ch/register/entity", title: "Commercial register" },
 ] as const;
 
 export const FIXTURE_FACTS = {
@@ -147,9 +149,130 @@ function sourceAt(index: number): (typeof FIXTURE_SOURCES)[number] {
   return FIXTURE_SOURCES[index % FIXTURE_SOURCES.length] ?? FIXTURE_SOURCES[0];
 }
 
-const encode = (input: ProviderInput) => Buffer.from(input.name, "utf8").toString("base64url");
+/**
+ * The eight fixture peers (spec 0022, AC-11) as shares of the ladder: the first five sit in the
+ * client's own country, the next two elsewhere in its region and the last one outside it, so a
+ * fixture run has three or more usable rates in the country and lands on the country rung. Each
+ * carries a printed value and a unit; three units appear, so the code conversion of AC-8 is
+ * exercised on every fixture run (a `per_200k_hours` 0.9 becomes 4.5 per million).
+ */
+const FIXTURE_PEER_SHAPES = [
+  {
+    rung: "country",
+    ltifr: [3.1, "per_million_hours"],
+    trifr: [7.4, "per_million_hours"],
+    headcount: 610,
+  },
+  {
+    rung: "country",
+    ltifr: [0.9, "per_200k_hours"],
+    trifr: [2.2, "per_200k_hours"],
+    headcount: 1480,
+  },
+  {
+    rung: "country",
+    ltifr: [5.6, "per_million_hours"],
+    trifr: [11.8, "per_million_hours"],
+    headcount: 320,
+  },
+  {
+    rung: "country",
+    ltifr: [1.4, "per_100_workers"],
+    trifr: [2.6, "per_100_workers"],
+    headcount: 240,
+  },
+  { rung: "country", ltifr: [4.2, "per_million_hours"], trifr: null, headcount: 900 },
+  {
+    rung: "region",
+    ltifr: [2.0, "per_million_hours"],
+    trifr: [6.8, "per_million_hours"],
+    headcount: 2100,
+  },
+  {
+    rung: "region",
+    ltifr: [7.3, "per_million_hours"],
+    trifr: [15.1, "per_million_hours"],
+    headcount: 150,
+  },
+  {
+    rung: "world",
+    ltifr: [1.1, "per_200k_hours"],
+    trifr: [3.0, "per_200k_hours"],
+    headcount: 5400,
+  },
+] as const;
+
+/** The peer's reporting year: the latest the client fixture reports, so the years line up. Pure. */
+export function fixturePeerYear(now = new Date()): number {
+  return (fixtureYears(now)[0] ?? now.getUTCFullYear() - 1) as number;
+}
+
+/** True when the company name asks for the thin peer outcome (AC-11). Pure. */
+export function fixtureWantsThinPeers(name: string): boolean {
+  return /thinpeers/i.test(name);
+}
+
+/**
+ * A country for a fixture peer on the given rung: the client's own for `country`, the next member
+ * of its region for `region`, and a code outside the region for `world`. Pure.
+ */
+export function fixturePeerCountry(
+  country: string,
+  rung: "country" | "region" | "world",
+  index: number,
+): string {
+  if (rung === "country") return country;
+  const region = regionOf(country);
+  if (rung === "region") {
+    const others = regionCountriesOf(country).filter((code) => code !== country);
+    return others[index % Math.max(others.length, 1)] ?? country;
+  }
+  const outside = COUNTRIES.find((entry) => entry.region !== region);
+  return outside?.code ?? country;
+}
+
+/** The fixture peers for one search input (AC-11). Pure. */
+export function fixturePeers(input: PeerSearchInput, now = new Date()): readonly PeerCompany[] {
+  const year = fixturePeerYear(now);
+  const shapes = fixtureWantsThinPeers(input.companyName)
+    ? // A thin run keeps two peers and both sit outside the region, so the rung falls to `world`
+      // and `thin` is true (AC-11).
+      FIXTURE_PEER_SHAPES.slice(6, 8).map((shape) => ({ ...shape, rung: "world" as const }))
+    : FIXTURE_PEER_SHAPES;
+  let regionIndex = 0;
+  return shapes.map((shape, index) => {
+    const rung = shape.rung;
+    const country = fixturePeerCountry(input.country, rung, rung === "region" ? regionIndex++ : 0);
+    const slug = `peer-${index + 1}`;
+    const rate = (printed: readonly [number, string] | null) =>
+      printed === null
+        ? null
+        : {
+            value: printed[0],
+            unit: printed[1],
+            periodYear: year,
+            sourceUrl: `https://www.example.com/${slug}/sustainability-report`,
+            sourceTitle: "Sustainability report",
+            basis: "employees" as const,
+          };
+    return {
+      name: `Fixture Peer ${index + 1} ${country}`,
+      website: `https://www.example.com/${slug}`,
+      country,
+      headcount: shape.headcount,
+      headcountYear: year,
+      ltifr: rate(shape.ltifr),
+      trifr: rate(shape.trifr),
+    };
+  });
+}
+
+const encode = (name: string) => Buffer.from(name, "utf8").toString("base64url");
 const decode = (providerRunId: string) =>
   Buffer.from(providerRunId.slice(FIXTURE_RUN_PREFIX.length), "base64url").toString("utf8");
+
+/** The peer run id carries the input, so `getPeerResult` answers without any state. */
+const PEER_RUN_PREFIX = `${FIXTURE_RUN_PREFIX}peers_`;
 
 /** Creates the fixture provider; `sleep` is injectable so tests skip the two second pauses. */
 export function createFixtureProvider(
@@ -161,7 +284,7 @@ export function createFixtureProvider(
       if (fixtureWantsFailure(input.name)) {
         throw new ProviderUnavailableError("fixture: the provider is unavailable", 503);
       }
-      return { providerRunId: `${FIXTURE_RUN_PREFIX}${encode(input)}` };
+      return { providerRunId: `${FIXTURE_RUN_PREFIX}${encode(input.name)}` };
     },
     getRun: async (providerRunId): Promise<{ status: ProviderRunStatus }> => {
       await sleep(FIXTURE_STEP_MS);
@@ -173,6 +296,25 @@ export function createFixtureProvider(
     getResult: async (providerRunId) => {
       const name = decode(providerRunId);
       return fixtureWantsEmpty(name) ? fixtureEmptyResult() : fixtureResult(fixtureYears());
+    },
+    createPeerRun: async (input: PeerSearchInput) => {
+      await sleep(FIXTURE_STEP_MS);
+      // `empty` and `fail` behave as they do for the client run: no peers at all, and a retryable
+      // failure respectively (AC-11).
+      if (fixtureWantsFailure(input.companyName)) {
+        throw new ProviderUnavailableError("fixture: the provider is unavailable", 503);
+      }
+      return { providerRunId: `${PEER_RUN_PREFIX}${encode(JSON.stringify(input))}` };
+    },
+    getPeerResult: async (providerRunId): Promise<PeerSearchResult> => {
+      if (!providerRunId.startsWith(PEER_RUN_PREFIX)) {
+        throw new ProviderRejectedError("fixture: unknown peer run", 404);
+      }
+      const input = JSON.parse(
+        Buffer.from(providerRunId.slice(PEER_RUN_PREFIX.length), "base64url").toString("utf8"),
+      ) as PeerSearchInput;
+      if (fixtureWantsEmpty(input.companyName)) return { peers: [] };
+      return { peers: [...fixturePeers(input)] };
     },
   };
 }

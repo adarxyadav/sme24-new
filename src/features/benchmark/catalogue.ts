@@ -1,4 +1,4 @@
-import { CONFIDENCE_HIGH, CONFIDENCE_MEDIUM, type KpiKey } from "../research/catalogue.ts";
+import { CONFIDENCE_HIGH, CONFIDENCE_MEDIUM } from "../research/catalogue.ts";
 
 /**
  * The benchmark catalogue (spec 0008, AC-3): the NOGA 2008 sections and divisions, the Swiss SME
@@ -61,72 +61,50 @@ export function sectionOfDivision(code: string | null | undefined): string | nul
   return section?.letter ?? null;
 }
 
-/** The Swiss SME size bands as the Federal Statistical Office uses them, plus `all`. */
-export const SIZE_BANDS = ["1-49", "50-249", "250+", "all"] as const;
-export type SizeBand = (typeof SIZE_BANDS)[number];
+/**
+ * The English name of every section, for the one caller that cannot read a message catalogue: the
+ * peer search objective the `research-peers` task sends the provider (spec 0022, AC-5) runs in a
+ * task, where next-intl is not available and the provider reads English either way. The client
+ * facing labels stay in `benchmark.noga.sections.*` in both catalogs; these must match the English
+ * ones, which `tests/features/benchmark/catalogue.test.ts` checks. Pure data.
+ */
+export const SECTION_NAMES_EN: Readonly<Record<string, string>> = {
+  A: "Agriculture, forestry and fishing",
+  B: "Mining and quarrying",
+  C: "Manufacturing",
+  D: "Electricity, gas, steam and air conditioning supply",
+  E: "Water supply, sewerage, waste management",
+  F: "Construction",
+  G: "Wholesale and retail trade, repair of motor vehicles",
+  H: "Transportation and storage",
+  I: "Accommodation and food service activities",
+  J: "Information and communication",
+  K: "Financial and insurance activities",
+  L: "Real estate activities",
+  M: "Professional, scientific and technical activities",
+  N: "Administrative and support service activities",
+  O: "Public administration and defence, compulsory social security",
+  P: "Education",
+  Q: "Human health and social work activities",
+  R: "Arts, entertainment and recreation",
+  S: "Other service activities",
+  T: "Activities of households as employers",
+  U: "Activities of extraterritorial organisations and bodies",
+};
 
-/** The size band of a headcount: `all` for `null` or 0 (no headcount known). Pure. */
-export function sizeBandOf(employees: number | null | undefined): SizeBand {
-  if (!employees || employees <= 0) return "all";
-  if (employees <= 49) return "1-49";
-  if (employees <= 249) return "50-249";
-  return "250+";
+/** The English name of a section letter, the letter itself when it is not one of the 21. Pure. */
+export function sectionNameEn(letter: string): string {
+  return SECTION_NAMES_EN[letter] ?? letter;
 }
-
-/** The KPIs whose gap carries a CHF saving in the ranking (spec 0008, AC-18 rule 6). */
-export const COST_LINKED_KPIS: readonly KpiKey[] = [
-  "accident_rate_per_1000_fte",
-  "ltifr",
-  "lost_days_per_incident",
-];
-
-/** The four KPIs a named peer may publish (spec 0021, AC-2); the library holds no other. */
-export const PEER_KPI_KEYS = [
-  "ltifr",
-  "trifr",
-  "lost_days_per_incident",
-  "iso_45001_certified",
-] as const;
-export type PeerKpiKey = (typeof PEER_KPI_KEYS)[number];
-
-/** How many report years back a published figure still counts (spec 0021, AC-6): the current year minus three. */
-export const PEER_YEARS_BACK = 3;
-
-/** The fewest named peers a KPI needs before a rung counts (spec 0021, AC-6). */
-export const PEER_MINIMUM = 3;
-
-/** The most peers the chart slice draws, chosen nearest in headcount (spec 0021, AC-9). */
-export const PEER_CHART_LIMIT = 6;
-
-/** The four rungs of the geography ladder, in the order climbed (spec 0021, AC-6). */
-export const GEO_RUNGS = ["country", "region", "europe", "world"] as const;
-export type GeoRung = (typeof GEO_RUNGS)[number];
-
-/** The seven stored constants of the cost model, in the order the disclosure lists them. */
-export const ASSUMPTION_KEYS = [
-  "hours_per_fte",
-  "direct_cost_per_case_chf",
-  "cost_per_absence_day_chf",
-  "lost_days_per_incident_default",
-  "indirect_multiplier_low",
-  "indirect_multiplier",
-  "indirect_multiplier_high",
-] as const;
-export type AssumptionKey = (typeof ASSUMPTION_KEYS)[number];
 
 /**
- * Names the rule set and snapshot schema; bumped by hand when a formula or rule changes. `@4`
- * (spec 0016 amendment of 2026-09-12): a peer reference of 0 prices to zero incidents, fatalities
- * compare as a rate per 100 000 employed persons, and a missing assumption gives a null cost.
- * `@5` (spec 0021): the named published peer blocks and `inputs.country`; no formula changes.
+ * Names the rule set and snapshot schema; bumped by hand when a formula or rule changes. `@7`
+ * (spec 0022, AC-12): the peers of one research run replace the curated sector rows, the owner's
+ * loss table replaces the cost model and its seven stored assumptions, and the body is `inputs`,
+ * `peers`, `loss` and `recommendation`. The `@1` to `@6` schemas were deleted with the model they
+ * described, so a stored row of any earlier version is `outdated` rather than readable (AC-18).
  */
-export const MODEL_VERSION = "benchmark-model@5";
-
-/** True for a model version that carries the named peer blocks (`@5` and later, spec 0021). Pure. */
-export function isPeerVersion(modelVersion: string): boolean {
-  const match = /^benchmark-model@(\d+)$/.exec(modelVersion);
-  return match !== null && Number(match[1]) >= 5;
-}
+export const MODEL_VERSION = "benchmark-model@7";
 
 /** How long the dashboard shows "calculating" after a trigger moment before it says "not available yet" (AC-9). */
 export const BENCHMARK_WAIT_MS = 120_000;
@@ -138,6 +116,16 @@ export const BENCHMARK_CONFIDENCE = { high: CONFIDENCE_HIGH, medium: CONFIDENCE_
 export const TRIGGER_KINDS = ["research", "client_edit", "recompute"] as const;
 export type TriggerKind = (typeof TRIGGER_KINDS)[number];
 
-/** The four dashboard states derived from the newest snapshot (spec 0008, AC-9). */
-export const BENCHMARK_STATES = ["ready", "calculating", "unavailable", "noData"] as const;
+/**
+ * The five dashboard states derived from the newest snapshot (spec 0008, AC-9; spec 0022, AC-18).
+ * `outdated` is the newest snapshot being of a model version this code no longer reads: nothing
+ * from the stored row is rendered and the segment offers the rerun instead.
+ */
+export const BENCHMARK_STATES = [
+  "ready",
+  "calculating",
+  "unavailable",
+  "noData",
+  "outdated",
+] as const;
 export type BenchmarkState = (typeof BENCHMARK_STATES)[number];

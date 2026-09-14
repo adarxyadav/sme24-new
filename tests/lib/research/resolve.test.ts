@@ -33,9 +33,9 @@ function candidate(overrides: Partial<Candidate> & { field: string }): Candidate
 }
 
 describe("candidates from a provider result (AC-5, AC-6)", () => {
-  it("builds the flat output schema from the catalogue: reporting years, 24 KPI fields, 7 facts", () => {
-    const schema = buildOutputSchema();
-    expect(schema.required).toHaveLength(1 + 8 * 3 + 7);
+  it("builds the flat output schema from the catalogue: reporting years, 21 KPI fields, 7 facts", () => {
+    const schema = buildOutputSchema("CH");
+    expect(schema.required).toHaveLength(1 + 7 * 3 + 7);
     expect(schema.properties.ltifr_latest?.description).toContain("Lost time injury");
     expect(schema.additionalProperties).toBe(false);
   });
@@ -47,10 +47,10 @@ describe("candidates from a provider result (AC-5, AC-6)", () => {
     expect(parseReportingYears("not found")).toEqual([]);
   });
 
-  it("turns the fixture result into 24 candidates with values, years and sources", () => {
+  it("turns the fixture result into 21 candidates with values, years and sources", () => {
     const years = fixtureYears(new Date("2026-06-01T00:00:00Z"));
     const candidates = extractCandidates(fixtureResult(years), RETRIEVED);
-    expect(candidates).toHaveLength(24);
+    expect(candidates).toHaveLength(21);
     const first = candidates[0];
     expect(first).toMatchObject({
       key: "ltifr",

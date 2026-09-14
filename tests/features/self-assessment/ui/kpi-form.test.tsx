@@ -73,7 +73,7 @@ function kpiRow(overrides: Partial<KpiRow> & Pick<KpiRow, "id" | "kpiKey">): Kpi
 const rows: readonly KpiRow[] = [
   kpiRow({ id: "r1", kpiKey: "ltifr", value: 2.4 }),
   kpiRow({ id: "r2", kpiKey: "ltifr", periodYear: 2023, value: 3.1 }),
-  kpiRow({ id: "r3", kpiKey: "accident_rate_per_1000_fte", value: 68 }),
+  kpiRow({ id: "r3", kpiKey: "absenteeism_rate", value: 3.8 }),
   kpiRow({ id: "r4", kpiKey: "iso_45001_certified", value: 1 }),
   kpiRow({ id: "c1", kpiKey: "trifr", value: 6.1, source: "client" }),
 ];
@@ -177,7 +177,7 @@ describe("KpiForm (AC-3, AC-7)", () => {
     expect(input.locale).toBe("en-CH");
     expect(input.values.ltifr).toBe(2.9);
     expect(input.values.trifr).toBeUndefined();
-    expect(input.values.accident_rate_per_1000_fte).toBeUndefined();
+    expect(input.values.absenteeism_rate).toBeUndefined();
     expect(input.values.iso_45001_certified).toBeUndefined();
     expect(await screen.findByRole("status")).toHaveTextContent(strings.saved);
     await waitFor(() => expect(boundary.refresh).toHaveBeenCalled());
@@ -260,7 +260,7 @@ describe("KpiForm (AC-3, AC-7)", () => {
     expect(screen.queryByRole("button", { name: clearName("trifr") })).toBeNull();
     const hint = document.querySelector("[data-older-year-hint]") as HTMLElement;
     expect(hint).toHaveTextContent(strings.olderYearIntro);
-    expect(hint).toHaveTextContent("accident_rate_per_1000_fte (en)");
+    expect(hint).toHaveTextContent("absenteeism_rate (en)");
     expect(hint).toHaveTextContent("trifr (en)");
     expect(hint).toHaveTextContent("2024");
     expect(within(hint).queryByText("ltifr (en)")).toBeNull();

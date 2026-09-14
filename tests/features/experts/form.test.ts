@@ -29,6 +29,7 @@ function profile(overrides: Partial<ExpertProfile> = {}): ExpertProfile {
     standards: ["iso_45001"],
     languages: ["de", "en"],
     regions: ["ZH", "AG"],
+    countries: ["CH"],
     availability: "available",
     available_from: "2026-12-01",
     availability_note: "From December",

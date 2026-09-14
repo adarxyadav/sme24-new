@@ -37,6 +37,7 @@ const company = {
   name: "Muster AG",
   legalName: null,
   website: "https://www.muster.ch",
+  country: "CH",
 };
 
 beforeEach(() => {
@@ -63,6 +64,7 @@ describe("RerunForm (AC-8)", () => {
     expect(boundary.rerunResearch.mock.calls[0]?.[1]).toEqual({
       companyId: COMPANY_ID,
       name: "Muster Holding",
+      country: "CH",
       legalName: null,
       website: "https://www.muster.ch",
       locale: "en-CH",

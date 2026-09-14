@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { COUNTRY_CODES } from "@/lib/countries";
 import { NOGA_DIVISIONS } from "./catalogue";
 
 /**
- * The benchmark feature's boundary schemas (spec 0008, AC-11): the company facts form. The same
- * schema types the form. Pure, runs anywhere.
+ * The benchmark feature's boundary schemas (spec 0008, AC-11; spec 0022, AC-1): the company facts
+ * form. The same schema types the form. Pure, runs anywhere.
  */
 
 /** The largest headcount the form accepts (AC-11). */
@@ -37,18 +38,32 @@ const employeesField = z
     return parsed;
   });
 
-/** The facts form (AC-11): the NOGA division, the headcount, at least one of the two, plus the company id. */
+/**
+ * The country on the facts form (spec 0022, AC-1): required and prefilled from the row, so a
+ * client who saves the card confirms the country rather than leaving an old default in place.
+ * Absent from the payload when it did not change, like the other two fields.
+ */
+const countryField = z.enum(COUNTRY_CODES, { error: "countryRequired" }).optional();
+
+/**
+ * The facts form (AC-11, spec 0022 AC-1): the NOGA division, the headcount, the country, at least
+ * one of the three, plus the company id.
+ */
 export const companyFactsFormSchema = z
   .object({
     companyId: z.uuid(),
     industryCode: industryCodeField,
     employeesCount: employeesField,
+    country: countryField,
     locale: z.string().optional(),
   })
-  .refine((values) => values.industryCode !== undefined || values.employeesCount !== undefined, {
-    message: "nothingToSave",
-    path: ["employeesCount"],
-  });
+  .refine(
+    (values) =>
+      values.industryCode !== undefined ||
+      values.employeesCount !== undefined ||
+      values.country !== undefined,
+    { message: "nothingToSave", path: ["employeesCount"] },
+  );
 export type CompanyFactsInput = z.input<typeof companyFactsFormSchema>;
 export type CompanyFactsValues = z.output<typeof companyFactsFormSchema>;
 

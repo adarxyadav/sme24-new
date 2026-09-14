@@ -4,15 +4,20 @@
 -- exactly the transitions of spec 0013, from exactly the callers allowed to make them.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(43);
+select plan(44);
 
 -- The suite assumes a database freshly reset (`pnpm db:reset`): it inserts fixtures with fixed
 -- keys and counts rows globally. Fail with a clear message rather than a bad plan when a probe
--- left rows behind. The seeded expert@example.com row is expected and skipped by id.
+-- left rows behind. The seeded rows are expected and skipped by id: expert@example.com, and the
+-- three suggestion experts spec 0022 (AC-28) seeds for the benchmark page.
 do $$
 begin
   if exists (select 1 from public.expert_profiles
-             where expert_id <> '22222222-2222-4222-8222-222222222222') then
+             where expert_id not in (
+               '22222222-2222-4222-8222-222222222222',
+               '55555555-5555-4555-8555-555555555551',
+               '55555555-5555-4555-8555-555555555552',
+               '55555555-5555-4555-8555-555555555553')) then
     raise exception 'this database holds expert profiles beyond the seed; run `pnpm db:reset` before the tests';
   end if;
 end $$;
@@ -105,9 +110,22 @@ select throws_ok(
   $$ select count(*) from public.expert_profiles $$,
   '42501', null, 'an anonymous visitor is refused the table outright');
 
+-- Ops read every row, which is the whole table: the two fixtures above plus whatever the seed
+-- holds (spec 0022, AC-28 added three more). Counted against the superuser's own count rather
+-- than a literal, so seeding another expert never has to be paid for here.
+-- Held in a session setting rather than a temporary table, which the `authenticated` role may not
+-- read.
+select pg_temp.as_postgres();
+select set_config('tests.expert_rows', (select count(*)::text from public.expert_profiles), true);
+
 select pg_temp.impersonate('c0000000-0000-4000-8000-000000000001', 'ops');
-select is((select count(*) from public.expert_profiles), 3::bigint,
-  'ops read every row: the two fixtures and the seeded expert');
+select is(
+  (select count(*) from public.expert_profiles),
+  current_setting('tests.expert_rows')::bigint,
+  'ops read every row of the table, the fixtures and the seeded experts alike');
+-- And that count is more than the ops caller's own rows, or the assertion above proves nothing.
+select cmp_ok(current_setting('tests.expert_rows')::bigint, '>', 2::bigint,
+  'the table holds more than the two fixtures, so reading it all is a real permission');
 
 -- The granted columns ------------------------------------------------------------------------
 select pg_temp.impersonate('e0000000-0000-4000-8000-000000000001', 'expert');

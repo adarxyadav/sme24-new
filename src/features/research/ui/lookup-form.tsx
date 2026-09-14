@@ -4,7 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { CountrySelect } from "@/components/country-select";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,9 @@ export function LookupForm({ organizationName }: { readonly organizationName: st
   const router = useRouter();
   const form = useForm<LookupInput, unknown, LookupValues>({
     resolver: zodResolver(lookupSchema, { error: zodLocaleError(locale) }),
-    defaultValues: { name: organizationName, website: "", locale },
+    // No country default: the client picks one, so a company is never created as CH by
+    // accident (spec 0022, AC-1).
+    defaultValues: { name: organizationName, country: undefined, website: "", locale },
   });
   const action = useResearchAction<{ companyId: string; runId: string }, LookupValues>(
     requestResearch,
@@ -58,6 +61,29 @@ export function LookupForm({ organizationName }: { readonly organizationName: st
           />
           <FieldError id="company-name-error">{issueMessage(errors.name?.message, v)}</FieldError>
         </Field>
+        <Controller
+          control={form.control}
+          name="country"
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid ? true : undefined}>
+              <FieldLabel htmlFor="company-country">{t("country")}</FieldLabel>
+              <CountrySelect
+                id="company-country"
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                placeholder={t("countryPlaceholder")}
+                europeLabel={t("countryEurope")}
+                restLabel={t("countryRest")}
+                invalid={fieldState.invalid}
+                describedBy={fieldState.invalid ? "company-country-error" : "company-country-hint"}
+              />
+              <FieldDescription id="company-country-hint">{t("countryHint")}</FieldDescription>
+              <FieldError id="company-country-error">
+                {issueMessage(fieldState.error?.message, v)}
+              </FieldError>
+            </Field>
+          )}
+        />
         <Field data-invalid={errors.website ? true : undefined}>
           <FieldLabel htmlFor="company-website">{t("website")}</FieldLabel>
           <Input

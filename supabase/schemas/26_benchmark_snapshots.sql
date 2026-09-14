@@ -20,11 +20,14 @@ create table public.benchmark_snapshots (
   cost_high_chf numeric null,
   saving_median_chf numeric null,
   saving_top_chf numeric null,
+  currency text null check (currency ~ '^[A-Z]{3}$'),
+  loss_amount numeric null,
+  saving_at_median numeric null,
   inputs jsonb not null,
-  results jsonb not null,
-  gaps jsonb not null,
+  results jsonb null,
+  gaps jsonb null,
   cost jsonb null,
-  assumptions jsonb not null,
+  assumptions jsonb null,
   derived jsonb null,
   peers jsonb null,
   created_at timestamptz not null default now(),
@@ -34,7 +37,13 @@ create table public.benchmark_snapshots (
 comment on table public.benchmark_snapshots is 'An immutable benchmark result per company (spec 0008): scalars for the card, blocks with the inputs, peer rows and assumptions used.';
 comment on column public.benchmark_snapshots.model_version is 'The rule set and block schema that produced the row (benchmark-model@N); the reader picks the schema by it.';
 comment on column public.benchmark_snapshots.derived is 'Display only counts computed from the stored rates and headcount (spec 0012); null on a benchmark-model@1 row and whenever no count could be derived.';
-comment on column public.benchmark_snapshots.peers is 'The named published peer blocks per KPI (spec 0021): rank, best, gap and the copied peer rows with the client''s own saving at each; null on a row older than benchmark-model@5.';
+comment on column public.benchmark_snapshots.peers is 'The peers the run found (spec 0022): the rung, the kept rows and the rank per rate; null when no peer was kept. On a @5 or @6 row this is the old named library block instead.';
+comment on column public.benchmark_snapshots.currency is 'The snapshot''s currency (spec 0022), copied from companies.currency; null on a row older than benchmark-model@7, which was always CHF.';
+comment on column public.benchmark_snapshots.loss_amount is 'The client''s estimated yearly loss in `currency` (spec 0022, AC-14); null on a row older than benchmark-model@7 and whenever the loss could not be computed.';
+comment on column public.benchmark_snapshots.saving_at_median is 'The saving at the peer median in `currency` (spec 0022, AC-14); null on a row older than benchmark-model@7 and whenever no peer rate was compared.';
+comment on column public.benchmark_snapshots.results is 'The per KPI positions of benchmark-model@1 to @6; null from @7 on, which carries `peers` and `loss` instead.';
+comment on column public.benchmark_snapshots.gaps is 'The ranked gaps of benchmark-model@1 to @6; null from @7 on.';
+comment on column public.benchmark_snapshots.assumptions is 'The curated assumption rows benchmark-model@1 to @6 used; null from @7 on, whose constants live in src/features/benchmark/loss.ts.';
 comment on column public.benchmark_snapshots.updated_at is 'Present for the tenant table contract; no app path updates a snapshot.';
 
 create index benchmark_snapshots_organization_id_created_at_idx on public.benchmark_snapshots (organization_id, created_at desc);

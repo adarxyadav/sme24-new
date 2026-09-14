@@ -1,12 +1,14 @@
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { BenchmarkSection } from "@/components/gallery/benchmark-section";
 import { en, renderWithIntl } from "../../features/emails/ui/helpers";
 
 /**
- * The benchmark gallery section (spec 0008, AC-14): three quartile bands each with a screen
- * reader sentence and a static opportunity card in the `chfWhole` format, so axe scans every
- * primitive on `/admin/design`.
+ * The benchmark gallery section (spec 0008, AC-14; spec 0022, AC-20, AC-21): three quartile bands
+ * each with a screen reader sentence, the one merged peer table in its three row shapes, and the
+ * loss card's headline with its derived counts, so axe scans each of them on `/admin/design`. The
+ * opportunity card, the point comparison and the Peer Standing card went with the cost model and
+ * the curated library (spec 0022, AC-12).
  */
 const labels = en.gallery.benchmark;
 const b = en.benchmark;
@@ -29,26 +31,18 @@ describe("BenchmarkSection (AC-14)", () => {
     expect(screen.getByText(labels.bandOutside)).toBeInTheDocument();
   });
 
-  it("renders the opportunity card with the spelled out confidence, the range, the working estimate and both saving shapes", () => {
-    renderWithIntl(<BenchmarkSection />, "en-CH");
-    expect(screen.getByText(b.card.title)).toBeInTheDocument();
-    expect(screen.getByText(b.card.confidence.medium)).toBeInTheDocument();
-    expect(screen.getByText(/^CHF\s?1.060.000 to CHF\s?2.651.000$/)).toBeInTheDocument();
-    // The amounts sit in their own span, so the sentence is read from the enclosing element.
-    expect(screen.getByText(/CHF\s?1.961.000/).closest("p")).toHaveTextContent(
-      /^Working estimate CHF\s?1.961.000 a year, from about 1.8 lost time injuries across 420 employees\.$/,
-    );
-    expect(screen.getByText(b.card.savingMedian)).toBeInTheDocument();
-    expect(screen.getByText(/CHF\s?522.000/).closest("dd")).toHaveTextContent(
-      /^CHF\s?522.000 a year$/,
-    );
-    expect(screen.getByText(b.card.savingTop)).toBeInTheDocument();
-    expect(screen.getByText(b.card.atOrBelow)).toBeInTheDocument();
+  it("shows the peer table with a published row, a row without a headcount and the client's own", () => {
+    const { container } = renderWithIntl(<BenchmarkSection />, "en-CH");
+    expect(screen.getByText(labels.peerTable)).toBeInTheDocument();
+    expect(container.querySelectorAll("tbody tr")).toHaveLength(3);
+    expect(screen.getByText(b.peers.table.noHeadcount)).toBeInTheDocument();
+    expect(screen.getByText(b.peers.table.you)).toBeInTheDocument();
+    expect(screen.getByText(b.peers.footnote)).toBeInTheDocument();
   });
 
-  it("labels each example so the gallery reads as a list of named blocks", () => {
+  it("shows the loss card's headline and its three counts, each Calculated", () => {
     renderWithIntl(<BenchmarkSection />, "en-CH");
-    const card = screen.getByText(labels.card);
-    expect(within(card.parentElement as HTMLElement).getByText(b.card.title)).toBeInTheDocument();
+    expect(screen.getByText(labels.lossCard)).toBeInTheDocument();
+    expect(screen.getAllByText(b.loss.counts.calculated)).toHaveLength(3);
   });
 });

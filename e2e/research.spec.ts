@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Page, test } from "@playwright/test";
+import { KPI_LIST } from "../src/features/research/catalogue";
 import { FIXTURE_SOURCES, FIXTURE_VALUES, fixtureYears } from "../src/lib/research/fixture";
 import { createConfirmedClient, dbAvailable, deleteAccount, serviceClient } from "./db";
 import { mailAvailable, uniqueEmail } from "./mail";
@@ -7,9 +8,10 @@ import { mailAvailable, uniqueEmail } from "./mail";
 /**
  * The company lookup and research thread on the fixture provider (spec 0007, AC-3, AC-7, AC-8,
  * AC-12): a fresh client signs in, sees the lookup form with the organization name prefilled,
- * starts the research and watches the run go queued → running. With `TRIGGER_DEV_RUNNING=1`
+ * picks the country (required with no default since spec 0022, AC-1), starts the research and
+ * watches the run go queued → running. With `TRIGGER_DEV_RUNNING=1`
  * (`pnpm trigger:dev` up next to the local stack) the run finishes on the canned result: the
- * table shows eight KPIs for three years with the fixture values, an `empty` name shows the
+ * table shows every catalogue KPI for three years with the fixture values, an `empty` name shows the
  * info alert and the rerun form, a `fail` name shows the failed alert; axe runs on every state.
  * Without the worker only the queued state is asserted; the whole file skips on a deployment.
  */
@@ -20,6 +22,11 @@ const PASSWORD = "korrekt-pferd-batterie";
 // seconds locally with the gateway key), so a run waits well past the default test timeout.
 const RUN_TIMEOUT = { timeout: 120_000, intervals: [1_000, 2_000] };
 const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
+// What a full fixture run finds: one value per catalogue KPI. Spec 0022 (AC-4) took the Suva only
+// accident rate out of the catalogue but deliberately kept its `kpi_definitions` seed row, so the
+// page reads "7 of 8": `found` counts the catalogue, `total` counts the table. Derived rather than
+// typed out, so the next catalogue change moves this with it instead of going stale.
+const FIXTURE_COVERAGE = String(KPI_LIST.length);
 
 test.skip(localOnly, "needs the local stack: Mailpit and the Supabase secret key");
 test.describe.configure({ timeout: 300_000 });
@@ -43,6 +50,18 @@ async function runStatus(page: Page) {
   return page.locator("[data-run-status]").first().getAttribute("data-run-status");
 }
 
+/**
+ * Picks the country and submits the lookup form. Since spec 0022 (AC-1) the country is a required
+ * select with no default, so a run that never picks one is refused and nothing is queued. The
+ * lookup form's own select is addressed by id: a page that also offers the rerun form carries a
+ * second select with the same label, which makes a label lookup ambiguous.
+ */
+async function startResearch(page: Page, country = "Switzerland") {
+  await page.locator("#company-country").click();
+  await page.getByRole("option", { name: country, exact: true }).click();
+  await page.getByRole("button", { name: "Start research" }).click();
+}
+
 test("a client starts the research from the prefilled form and the run is queued", async ({
   page,
 }) => {
@@ -56,7 +75,7 @@ test("a client starts the research from the prefilled form and the run is queued
     await expectNoAxeViolations(page);
 
     await page.getByLabel("Website (optional)").fill("Example.ch/reports?x=1");
-    await page.getByRole("button", { name: "Start research" }).click();
+    await startResearch(page);
 
     await expect(page.getByRole("heading", { level: 1, name: "Lookup Fixture AG" })).toBeVisible({
       timeout: 20_000,
@@ -77,7 +96,10 @@ test("a client starts the research from the prefilled form and the run is queued
     test.skip(!workerRunning, "set TRIGGER_DEV_RUNNING=1 while `pnpm trigger:dev` runs");
     await expect.poll(() => runStatus(page), RUN_TIMEOUT).toBe("succeeded");
     await expect(page.getByRole("heading", { level: 2, name: "Safety KPIs" })).toBeVisible();
-    await expect(page.locator("[data-coverage]")).toHaveAttribute("data-coverage", "8");
+    await expect(page.locator("[data-coverage]")).toHaveAttribute(
+      "data-coverage",
+      FIXTURE_COVERAGE,
+    );
     const years = fixtureYears();
     for (const year of years) {
       await expect(page.getByRole("columnheader", { name: String(year) })).toBeVisible();
@@ -115,7 +137,7 @@ test("an empty result shows the alert and the rerun form, and the rerun starts a
   const email = uniqueEmail("research-empty");
   try {
     await signInFresh(page, email, "Empty Fixture AG");
-    await page.getByRole("button", { name: "Start research" }).click();
+    await startResearch(page);
     await expect(page.locator("[data-run-status]").first()).toBeVisible({ timeout: 20_000 });
     await expect.poll(() => runStatus(page), RUN_TIMEOUT).toBe("empty");
     await expect(page.getByText("No public disclosures found")).toBeVisible();
@@ -135,7 +157,10 @@ test("an empty result shows the alert and the rerun form, and the rerun starts a
     );
     await expect(page.getByText("3 of 5 runs left today")).toBeVisible();
     await expect.poll(() => runStatus(page), RUN_TIMEOUT).toBe("succeeded");
-    await expect(page.locator("[data-coverage]")).toHaveAttribute("data-coverage", "8");
+    await expect(page.locator("[data-coverage]")).toHaveAttribute(
+      "data-coverage",
+      FIXTURE_COVERAGE,
+    );
     await expectNoAxeViolations(page);
   } finally {
     await deleteAccount(email);
@@ -149,7 +174,7 @@ test("a provider failure shows the failed alert with its message and the rerun f
   const email = uniqueEmail("research-fail");
   try {
     await signInFresh(page, email, "Fail Fixture AG");
-    await page.getByRole("button", { name: "Start research" }).click();
+    await startResearch(page);
     await expect(page.locator("[data-run-status]").first()).toBeVisible({ timeout: 20_000 });
     await expect.poll(() => runStatus(page), RUN_TIMEOUT).toBe("failed");
     await expect(page.getByText("The research failed")).toBeVisible();

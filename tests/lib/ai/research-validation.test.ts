@@ -69,13 +69,16 @@ describe("researchValidationSchema (AC-5)", () => {
 describe("acceptedFacts (AC-6)", () => {
   it("keeps every fact that passes its rule and drops nulls and blanks", () => {
     expect(
-      acceptedFacts({
-        legalName: "Muster Holding AG",
-        uid: "CHE-123.456.789",
-        industryCode: "23",
-        employeesCount: 0,
-        canton: "ZH",
-      }),
+      acceptedFacts(
+        {
+          legalName: "Muster Holding AG",
+          uid: "CHE-123.456.789",
+          industryCode: "23",
+          employeesCount: 0,
+          canton: "ZH",
+        },
+        "CH",
+      ),
     ).toEqual({
       legalName: "Muster Holding AG",
       uid: "CHE-123.456.789",
@@ -83,32 +86,45 @@ describe("acceptedFacts (AC-6)", () => {
       employeesCount: 0,
       canton: "ZH",
     });
-    expect(acceptedFacts({ ...facts, legalName: "" })).toEqual({});
+    expect(acceptedFacts({ ...facts, legalName: "" }, "CH")).toEqual({});
   });
 
   it("drops each failing fact on its own: a malformed UID, a bad NOGA code, a negative headcount, a wrong canton, an overlong name", () => {
     expect(
-      acceptedFacts({
-        legalName: "x".repeat(201),
-        uid: "CHE123456789",
-        industryCode: "23.6",
-        employeesCount: -5,
-        canton: "Zürich",
-      }),
+      acceptedFacts(
+        {
+          legalName: "x".repeat(201),
+          uid: "CHE123456789",
+          industryCode: "23.6",
+          employeesCount: -5,
+          canton: "Zürich",
+        },
+        "CH",
+      ),
     ).toEqual({});
-    expect(acceptedFacts({ ...facts, uid: "CHE-123.456.789", canton: "zh" })).toEqual({
+    expect(acceptedFacts({ ...facts, uid: "CHE-123.456.789", canton: "zh" }, "CH")).toEqual({
       uid: "CHE-123.456.789",
     });
+  });
+
+  it("holds the register identifier to the CHE shape only in CH, and keeps no canton elsewhere (spec 0022, AC-3)", () => {
+    // A German register number is kept as printed, where the Swiss rule would have dropped it.
+    expect(acceptedFacts({ ...facts, uid: "HRB 12345 B" }, "DE")).toEqual({ uid: "HRB 12345 B" });
+    expect(acceptedFacts({ ...facts, uid: "HRB 12345 B" }, "CH")).toEqual({});
+    // The canton is a Swiss field: outside CH it is not part of the shape at all, so even a
+    // valid looking code is dropped rather than written onto the company.
+    expect(acceptedFacts({ ...facts, canton: "ZH" }, "DE")).toEqual({});
+    expect(acceptedFacts({ ...facts, canton: "ZH" }, "CH")).toEqual({ canton: "ZH" });
   });
 });
 
 describe("the prompts (AC-5, AC-13)", () => {
   it("pins the prompt version that lands in the summary", () => {
-    expect(PROMPT_VERSION).toBe("research-validation@1");
+    expect(PROMPT_VERSION).toBe("research-validation@2");
   });
 
   it("puts every catalogue key with its unit, range and hint into the system prompt, plus the rules", () => {
-    const system = researchValidationSystemPrompt();
+    const system = researchValidationSystemPrompt("CH");
     for (const kpi of KPI_LIST) {
       expect(system).toContain(
         `- ${kpi.key}: unit "${kpi.unit}", plausible range ${kpi.range[0]} to ${kpi.range[1]}`,
@@ -117,6 +133,28 @@ describe("the prompts (AC-5, AC-13)", () => {
     }
     expect(system).toContain("Never invent a value.");
     expect(system).toContain("multiplying by 5");
+  });
+
+  it("names no country of its own, and asks for the CHE shape and a canton only in CH (spec 0022, AC-3)", () => {
+    const swiss = researchValidationSystemPrompt("CH");
+    expect(swiss).toContain("CHE-123.456.789");
+    expect(swiss).toContain("the canton as its two letter code");
+
+    const german = researchValidationSystemPrompt("DE");
+    expect(german).toContain("the national commercial register identifier as printed");
+    expect(german).not.toContain("CHE-123.456.789");
+    expect(german).not.toContain("canton");
+    // The job sentence is about a company, not a Swiss one, whatever the country. Only the
+    // prompt's own lines are checked: the catalogue block is quoted from `KPI_LIST`, and the one
+    // hint that still says "Swiss" belongs to `accident_rate_per_1000_fte`, which AC-4 removes.
+    const ownLines = (system: string) =>
+      system
+        .split("\n")
+        .filter((line) => !line.startsWith("- ") || line.startsWith("- companyFacts"));
+    for (const system of [swiss, german]) {
+      expect(system).toContain("extracted for a company");
+      expect(ownLines(system).join("\n")).not.toMatch(/Swiss|Switzerland|Zefix/i);
+    }
   });
 
   it("lists the company, the found facts and each candidate with numbered citations, flattening line breaks", () => {

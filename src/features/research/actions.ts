@@ -6,6 +6,7 @@ import { idempotencyKeys, tasks } from "@trigger.dev/sdk";
 import { LOCALE_CODE, type Locale, resolveLocale } from "@/i18n/routing";
 import { captureServerEvent } from "@/lib/analytics/server";
 import { organizationIdFromClaims, roleFromClaims } from "@/lib/auth/roles";
+import { currencyOf } from "@/lib/countries";
 import { serverEnv } from "@/lib/env";
 import { log } from "@/lib/logger";
 import { createActionClient } from "@/lib/supabase/action";
@@ -36,8 +37,11 @@ export type ResearchActionResult<Data> =
 export type RequestResearchData = { companyId: string; runId: string };
 export type RerunResearchData = { runId: string };
 
-/** Only Swiss companies are in scope (spec 0001), so the country is a constant. */
-const COUNTRY = "CH";
+/**
+ * The column default, used only where the catalogue somehow has no currency for a parsed code;
+ * the schema's `z.enum` means that cannot happen from a form (spec 0022, AC-1).
+ */
+const DEFAULT_CURRENCY = "CHF";
 /** How long the global key blocks a second trigger of the same run. */
 const IDEMPOTENCY_TTL = "24h";
 
@@ -65,8 +69,9 @@ function localeOf(input: unknown): Locale {
 
 /**
  * Starts the first research (AC-3): answers `company_exists` with the id when the organization
- * already has a non archived company, else inserts the company (`name`, `website`, `country`
- * `CH`, `created_by`) and its queued run, triggers the task and stores the run id. Two concurrent
+ * already has a non archived company, else inserts the company (`name`, `website`, the selected
+ * `country` with the currency it implies, `created_by`) and its queued run, triggers the task and
+ * stores the run id (spec 0022, AC-1). Two concurrent
  * submits can both pass the check, so the insert is reconciled against the earliest company
  * afterwards and the loser is archived before it can start a run. Server action, client member.
  */
@@ -99,7 +104,9 @@ export async function requestResearch(
       organization_id: organizationId,
       name: parsed.data.name,
       website: parsed.data.website,
-      country: COUNTRY,
+      country: parsed.data.country,
+      // The currency follows the country and is never chosen separately (spec 0022, AC-1).
+      currency: currencyOf(parsed.data.country) ?? DEFAULT_CURRENCY,
       created_by: userId,
     })
     .select("id")
@@ -128,9 +135,11 @@ export async function requestResearch(
 }
 
 /**
- * Edits the company and runs the research again (AC-8): a plain update of `name`, `legal_name`
- * and `website` through the members update policy (the client's values always win over
- * research; zero rows updated is `not_found`), then the next run exactly as `requestResearch`.
+ * Edits the company and runs the research again (AC-8): a plain update of `name`, `legal_name`,
+ * `website` and the country with the currency it implies, through the members update policy (the
+ * client's values always win over research; zero rows updated is `not_found`), then the next run
+ * exactly as `requestResearch`. The country is required, so an old company never reruns as `CH`
+ * by default (spec 0022, AC-1); the peers a previous run stored keep the rung that run wrote.
  * Server action, client member.
  */
 export async function rerunResearch(
@@ -149,6 +158,8 @@ export async function rerunResearch(
       name: parsed.data.name,
       legal_name: parsed.data.legalName,
       website: parsed.data.website,
+      country: parsed.data.country,
+      currency: currencyOf(parsed.data.country) ?? DEFAULT_CURRENCY,
     })
     .eq("id", parsed.data.companyId)
     .eq("organization_id", organizationId)

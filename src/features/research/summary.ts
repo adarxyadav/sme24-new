@@ -46,13 +46,32 @@ export const CANTON_CODES = [
   "ZH",
 ] as const;
 
+/**
+ * The facts a run may write onto the company, as a function of the company's country (spec 0022,
+ * AC-3). The register identifier is only forced into the Swiss `CHE-123.456.789` shape when the
+ * country is `CH`; elsewhere it is whatever the national register prints, kept as a short string.
+ * The canton is Swiss by definition, so a company outside CH never carries one. Pure.
+ */
+export function companyFactsSchemaFor(country: string) {
+  const swiss = country === "CH";
+  const uid = z.string().trim().min(1).max(40);
+  return z.object({
+    legalName: z.string().trim().min(1).max(200).optional(),
+    uid: (swiss ? uid.regex(/^CHE-\d{3}\.\d{3}\.\d{3}$/) : uid).optional(),
+    industryCode: z
+      .string()
+      .trim()
+      .regex(/^\d{2}(?:\.\d{2})?$/)
+      .optional(),
+    employeesCount: z.number().int().min(0).optional(),
+    ...(swiss ? { canton: z.enum(CANTON_CODES).optional() } : {}),
+  });
+}
+
+/** The stored shape of `summary.companyFacts`: every field a run may have written, all optional. */
 export const companyFactsSchema = z.object({
   legalName: z.string().trim().min(1).max(200).optional(),
-  uid: z
-    .string()
-    .trim()
-    .regex(/^CHE-\d{3}\.\d{3}\.\d{3}$/)
-    .optional(),
+  uid: z.string().trim().min(1).max(40).optional(),
   industryCode: z
     .string()
     .trim()
@@ -78,6 +97,44 @@ export const droppedValueSchema = z.object({
 });
 export type DroppedValue = z.infer<typeof droppedValueSchema>;
 
+/** Why a peer the provider returned was not kept (spec 0022, AC-8). */
+export const PEER_DROP_REASONS = ["self", "unsupported"] as const;
+export type PeerDropReason = (typeof PEER_DROP_REASONS)[number];
+
+/** The four outcomes the peer task reports through `summary.peers.status` (spec 0022, AC-7). */
+export const PEER_STATUSES = ["ok", "skipped", "failed", "timeout"] as const;
+export type PeerStatus = (typeof PEER_STATUSES)[number];
+
+/** The three rungs of the geography ladder the peer task settles on (spec 0022, AC-7). */
+export const PEER_RUNGS = ["country", "region", "world"] as const;
+export type PeerRung = (typeof PEER_RUNGS)[number];
+
+export const droppedPeerSchema = z.object({
+  name: z.string().max(200),
+  reason: z.enum(PEER_DROP_REASONS),
+});
+export type DroppedPeer = z.infer<typeof droppedPeerSchema>;
+
+/**
+ * What the `research-peers` task reports on the run it ran for (spec 0022, AC-7, AC-8). It is the
+ * task's only channel: the run's `status` and `error_code` stay the client task's alone, so a peer
+ * failure shows here and nowhere else. `found` counts the kept peers, `rung` is null when none were
+ * kept, and `thin` says the comparison rests on fewer than three peers.
+ */
+export const peersSummarySchema = z.object({
+  status: z.enum(PEER_STATUSES),
+  found: z.number().int().min(0),
+  rung: z.enum(PEER_RUNGS).nullable(),
+  thin: z.boolean(),
+  dropped: z.array(droppedPeerSchema).max(50).optional(),
+  validation: z.enum(["passed", "skipped"]).optional(),
+  promptVersion: z.string().optional(),
+  durationMs: z.number().int().min(0).optional(),
+  /** The short safe sentence naming the cause when `status` is `failed` or `timeout`. */
+  reason: z.string().max(300).optional(),
+});
+export type PeersSummary = z.infer<typeof peersSummarySchema>;
+
 export const researchSummarySchema = z.object({
   version: z.literal(1),
   step: z.enum(RUN_STEPS),
@@ -92,6 +149,8 @@ export const researchSummarySchema = z.object({
   dropped: z.array(droppedValueSchema).optional(),
   validation: z.enum(["passed", "skipped"]).optional(),
   promptVersion: z.string().optional(),
+  /** Written by the `research-peers` task after the run's terminal write (spec 0022, AC-7). */
+  peers: peersSummarySchema.optional(),
   durations: z
     .object({
       searchMs: z.number().int().min(0),

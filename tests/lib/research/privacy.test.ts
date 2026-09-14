@@ -59,7 +59,7 @@ describe("data leaving the platform (AC-13)", () => {
     const prompt = researchValidationPrompt(companyOnly(), candidates, {
       legal_name: "Muster Holding AG",
     });
-    const system = researchValidationSystemPrompt();
+    const system = researchValidationSystemPrompt("CH");
     expect(prompt).toContain("Company: Muster AG");
     expect(system).toContain("ltifr");
     for (const secret of SECRETS) {

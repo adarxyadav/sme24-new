@@ -103,13 +103,14 @@ export default async function ExpertClientPage({ params }: Props) {
           <BenchmarkSegment
             snapshot={dashboard.benchmark}
             state={dashboard.benchmarkState}
-            catalogue={dashboard.catalogue}
             company={{
               id: company?.id ?? "",
               industryCode: company?.industry_code ?? null,
               employeesCount: company?.employees_count ?? null,
+              country: company?.country ?? "CH",
             }}
             locale={localeCode}
+            companyName={company?.name ?? ""}
             // The facts belong to the client; an expert reads them and calls if they are wrong.
             readOnly
           />

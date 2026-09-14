@@ -4,6 +4,8 @@
  * second provider is a file in this folder. Task only. Pure types plus two error classes.
  */
 
+import type { PeerOutputSchema, PeerSearchInput, PeerSearchResult } from "./peer-schema";
+
 export type ProviderInput = {
   readonly name: string;
   readonly legalName: string | null;
@@ -56,6 +58,16 @@ export type ResearchProvider = {
   ) => Promise<{ providerRunId: string }>;
   readonly getRun: (providerRunId: string) => Promise<{ status: ProviderRunStatus }>;
   readonly getResult: (providerRunId: string) => Promise<ProviderResult>;
+  /**
+   * The peer search of spec 0022 (AC-6): a second run on the same provider, asking for up to
+   * eight companies of the client's section rather than facts about one company. Polled through
+   * the same `getRun`; its answer is read through `getPeerResult`.
+   */
+  readonly createPeerRun: (
+    input: PeerSearchInput,
+    schema: PeerOutputSchema,
+  ) => Promise<{ providerRunId: string }>;
+  readonly getPeerResult: (providerRunId: string) => Promise<PeerSearchResult>;
 };
 
 /** A 4xx other than 429 on creating the run, or a run the provider reports as failed: not retried (AC-10). */

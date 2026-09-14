@@ -42,6 +42,13 @@ create table public.expert_profiles (
       'NW', 'OW', 'SG', 'SH', 'SO', 'SZ', 'TG', 'TI', 'UR', 'VD', 'VS', 'ZG', 'ZH'
     ]
   ),
+  -- The countries the expert works in, ISO 3166 alpha 2 (spec 0022, AC-25). The catalogue is the
+  -- whole world (src/lib/countries.ts), far too large for a `<@` list like the ones above, so the
+  -- check is on the shape alone and Zod checks membership on the form. Empty means "no country
+  -- named", which the suggestion ladder treats as the world rung.
+  countries text[] not null default '{}' check (
+    array_to_string(countries, ',') ~ '^([A-Z]{2}(,[A-Z]{2})*)?$'
+  ),
   availability text not null default 'available' check (
     availability in ('available', 'limited', 'unavailable')
   ),
@@ -64,6 +71,7 @@ comment on table public.expert_profiles is 'One row per expert account (spec 001
 comment on column public.expert_profiles.email is 'Copied from the invite so the ops list is one query. Not kept in step with auth.users automatically.';
 comment on column public.expert_profiles.status is 'invited → active → inactive. Written only by public.set_expert_status.';
 comment on column public.expert_profiles.photo_path is 'Object path in the private expert-photos bucket. Written only by public.set_expert_photo.';
+comment on column public.expert_profiles.countries is 'ISO 3166 alpha 2 codes the expert works in (spec 0022). Shape checked here, membership by Zod on the form.';
 
 create index expert_profiles_status_idx on public.expert_profiles (status);
 create index expert_profiles_invited_at_idx on public.expert_profiles (invited_at desc);
@@ -71,6 +79,7 @@ create index expert_profiles_invited_at_idx on public.expert_profiles (invited_a
 create index expert_profiles_competencies_idx on public.expert_profiles using gin (competencies);
 create index expert_profiles_industries_idx on public.expert_profiles using gin (industries);
 create index expert_profiles_regions_idx on public.expert_profiles using gin (regions);
+create index expert_profiles_countries_idx on public.expert_profiles using gin (countries);
 create index expert_profiles_languages_idx on public.expert_profiles using gin (languages);
 create index expert_profiles_invited_by_idx on public.expert_profiles (invited_by);
 
@@ -127,6 +136,7 @@ grant update (
   standards,
   languages,
   regions,
+  countries,
   availability,
   available_from,
   availability_note,
@@ -283,6 +293,70 @@ comment on function public.assigned_organization_contacts(uuid) is 'Members of a
 
 revoke execute on function public.assigned_organization_contacts(uuid) from anon, public;
 grant execute on function public.assigned_organization_contacts(uuid) to authenticated;
+
+-- Up to three active experts to suggest beside a benchmark (spec 0022, AC-26). Definer because a
+-- client may not select expert_profiles at all: the return type is the public half of the profile
+-- and carries no email, no ops note and no status, so the function is the whole of what a client
+-- ever learns about an expert who is not assigned to them.
+--
+-- The ladder is one pass rather than three queries: `match_rank` scores each candidate 0 for the
+-- client's own country, 1 for a country of its region, 2 for anywhere, and the order takes the
+-- best rank first. That way a country match always outranks a region match without the caller
+-- having to ask again when a rung comes up short.
+create or replace function public.expert_suggestions(
+  section text,
+  country text,
+  region_countries text[]
+)
+returns table (
+  expert_id uuid,
+  full_name text,
+  headline text,
+  industries text[],
+  countries text[],
+  languages text[],
+  availability text,
+  photo_path text
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    e.expert_id,
+    p.full_name,
+    e.headline,
+    e.industries,
+    e.countries,
+    e.languages,
+    e.availability,
+    e.photo_path
+  from public.expert_profiles e
+  join public.profiles p on p.id = e.expert_id
+  where auth.uid() is not null
+    and e.status = 'active'
+    and section = any (e.industries)
+  order by
+    case
+      when country = any (e.countries) then 0
+      when e.countries && coalesce(region_countries, '{}') then 1
+      else 2
+    end,
+    case e.availability
+      when 'available' then 0
+      when 'limited' then 1
+      else 2
+    end,
+    e.years_experience desc nulls last,
+    e.expert_id
+  limit 3;
+$$;
+
+comment on function public.expert_suggestions(text, text, text[]) is 'Up to three active experts for a section, by the country then region then world ladder (spec 0022, AC-26). The public half of the profile only.';
+
+revoke execute on function public.expert_suggestions(text, text, text[]) from anon, public;
+grant execute on function public.expert_suggestions(text, text, text[]) to authenticated;
 
 create trigger expert_profiles_set_updated_at
   before update on public.expert_profiles

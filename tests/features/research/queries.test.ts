@@ -300,50 +300,52 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     company_id: COMPANY,
     research_run_id: RUN_PASSED,
     trigger_kind: "research",
-    // Deliberately a stored version 1 row: the dashboard read must still parse one (spec 0012, AC-12).
-    model_version: "benchmark-model@1",
-    peer_provisional: true,
+    model_version: "benchmark-model@7",
+    peer_provisional: false,
     kpis_compared: 2,
     confidence: "0.9",
-    cost_chf: "1961340",
-    cost_low_chf: "1060180",
-    cost_high_chf: "2650450",
-    saving_median_chf: "522340",
-    saving_top_chf: "955340",
+    currency: "CHF",
+    loss_amount: "365715",
+    saving_at_median: "90247.5",
+    cost_chf: null,
+    cost_low_chf: null,
+    cost_high_chf: null,
+    saving_median_chf: null,
+    saving_top_chf: null,
     inputs: {
-      fte: 420,
+      fte: 500,
       section: "C",
-      sizeBand: "250+",
       industryCode: "23.61",
+      country: "CH",
+      currency: "CHF",
       companyUpdatedAt: "2026-09-06T09:00:00.000Z",
       kpis: [],
     },
-    results: [],
-    gaps: [],
-    cost: null,
-    assumptions: [],
+    results: null,
+    gaps: null,
+    assumptions: null,
+    peers: null,
+    // `@7` stores the loss in `cost` and the recommendation in `derived` (spec 0022, AC-16).
+    cost: {
+      ltis: 5.4,
+      recordables: 3.6,
+      trifrMissing: false,
+      fatalities: 0,
+      loss: 365715,
+      atMedian: 275467.5,
+      atBest: 144517.5,
+      savingAtMedian: 90247.5,
+      savingAtBest: 221197.5,
+    },
+    derived: { packageKey: "compliance", reason: "both_worse" },
     created_at: "2026-09-06T09:30:00.000Z",
     updated_at: "2026-09-06T09:30:00.000Z",
-  };
-  const assumptionRow = {
-    key: "indirect_multiplier",
-    value: "3.7",
-    unit: "factor",
-    label: { de: "Faktor", en: "Factor" },
-    source_name: "test",
-    source_url: null,
-    note: null,
-    provisional: true,
-    effective_from: "2022-12-31",
-    created_at: "2026-09-06T00:00:00.000Z",
-    updated_at: "2026-09-06T00:00:00.000Z",
   };
 
   it("loads the company's newest snapshot with its numbers parsed and the ready state", async () => {
     const { client, calls } = fakeClient(
       baseAnswers({
         benchmark_snapshots: () => ({ data: [snapshotRow] }),
-        benchmark_assumptions: () => ({ data: [assumptionRow] }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
@@ -352,9 +354,10 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
       id: snapshotRow.id,
       kpisCompared: 2,
       confidence: 0.9,
-      costChf: 1_961_340,
-      savingTopChf: 955_340,
-      blocks: { inputs: { fte: 420, section: "C" } },
+      currency: "CHF",
+      lossAmount: 365_715,
+      savingAtMedian: 90_247.5,
+      blocks: { inputs: { fte: 500, section: "C" } },
     });
     const snapshots = calls.find((call) => call.table === "benchmark_snapshots");
     expect(snapshots?.steps).toEqual([
@@ -367,11 +370,12 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     ]);
   });
 
-  it("reports noData for a snapshot that compared nothing", async () => {
+  it("reports noData for a snapshot with neither a loss nor a peer", async () => {
     const { client } = fakeClient(
       baseAnswers({
-        benchmark_snapshots: () => ({ data: [{ ...snapshotRow, kpis_compared: 0 }] }),
-        benchmark_assumptions: () => ({ data: [assumptionRow] }),
+        benchmark_snapshots: () => ({
+          data: [{ ...snapshotRow, kpis_compared: 0, cost: null, loss_amount: null }],
+        }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
@@ -433,16 +437,19 @@ describe("the benchmark on the dashboard (spec 0008, AC-9)", () => {
     expect(dashboard.benchmarkState).toBe("unavailable");
   });
 
-  it("treats a snapshot of an unknown model version as absent instead of failing the dashboard", async () => {
+  // A row of a version this code no longer reads keeps its raw version and loses its blocks, and
+  // the segment then shows one sentence and the rerun (spec 0022, AC-18).
+  it("reports outdated for a snapshot of a model version it cannot read", async () => {
     const { client } = fakeClient(
       baseAnswers({
         benchmark_snapshots: () => ({
-          data: [{ ...snapshotRow, model_version: "benchmark-model@9" }],
+          data: [{ ...snapshotRow, model_version: "benchmark-model@5" }],
         }),
       }),
     );
     const dashboard = await getCompanyDashboard(client as never, ORG, NOW);
-    expect(dashboard.benchmark).toBeNull();
-    expect(dashboard.benchmarkState).toBe("unavailable");
+    expect(dashboard.benchmark?.modelVersion).toBe("benchmark-model@5");
+    expect(dashboard.benchmark?.blocks).toBeNull();
+    expect(dashboard.benchmarkState).toBe("outdated");
   });
 });

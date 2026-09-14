@@ -2,7 +2,7 @@ import { KPI_LIST } from "@/features/research/catalogue";
 import type { Candidate } from "@/lib/research/candidates";
 
 /** Bumped by hand when the prompt text changes (spec 0007, AC-5); stored in `summary.promptVersion`. */
-export const PROMPT_VERSION = "research-validation@1";
+export const PROMPT_VERSION = "research-validation@2";
 
 /** What the validator may know about the company (AC-13): public company data only. */
 export type PromptCompany = {
@@ -19,14 +19,23 @@ export type PromptFacts = Partial<
   >
 >;
 
-/** The system prompt: the job, the catalogue with ranges, units and hints, the rules. Pure. */
-export function researchValidationSystemPrompt(): string {
+/**
+ * The system prompt: the job, the catalogue with ranges, units and hints, the rules. The company's
+ * country decides the register identifier rule and whether a canton is asked for at all (spec
+ * 0022, AC-3); nothing here names one country otherwise. Pure.
+ */
+export function researchValidationSystemPrompt(country: string): string {
   const catalogue = KPI_LIST.map(
     (kpi) =>
       `- ${kpi.key}: unit "${kpi.unit}", plausible range ${kpi.range[0]} to ${kpi.range[1]}, ${kpi.direction.replaceAll("_", " ")}. ${kpi.hint}`,
   ).join("\n");
+  const swiss = country === "CH";
+  const uidRule = swiss
+    ? "the UID as CHE-123.456.789"
+    : "the national commercial register identifier as printed";
+  const cantonRule = swiss ? ", the canton as its two letter code" : "";
   return [
-    "You check occupational health and safety figures a web research service extracted for a Swiss company.",
+    "You check occupational health and safety figures a web research service extracted for a company.",
     "For every candidate you receive, decide whether the cited excerpts state that value for that reporting year, convert the value to the catalogue unit, and score your confidence from 0 to 1.",
     "",
     "Catalogue:",
@@ -38,7 +47,7 @@ export function researchValidationSystemPrompt(): string {
     "- periodYear is the fiscal or reporting year the excerpt reports; null when the excerpt names none.",
     "- confidence starts from the research service's own level (low 0.3, medium 0.6, high 0.9) and moves with how directly the excerpt states the figure.",
     "- sourceIndexes lists the citation indexes (0 based, in the order given) that support the value.",
-    "- companyFacts: the registered legal name (at most 200 characters), the UID as CHE-123.456.789, the NOGA code as dd or dd.dd, employees as a whole number, the canton as its two letter code; null for anything not stated.",
+    `- companyFacts: the registered legal name (at most 200 characters), ${uidRule}, the NOGA code as dd or dd.dd, employees as a whole number${cantonRule}; null for anything not stated.`,
     "- Return nothing for a KPI and year that has no candidate. Never invent a value.",
   ].join("\n");
 }

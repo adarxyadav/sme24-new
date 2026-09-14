@@ -4,18 +4,28 @@ import { EmailLayout, EmailText } from "./layout";
 import type { TemplateProps } from "./props";
 
 /**
- * The benchmark ready email (spec 0008, AC-7): sent to every member once the company's first
- * snapshot exists. Greets by first name when known, names the company and how many KPIs were
- * compared, states the rounded annual cost and the saving when a cost was computed (the variant
- * without money asks for the headcount instead) and carries one button to the client area.
- * Every string is a message key of `email.benchmark_ready` or `email.layout`.
+ * The benchmark ready email (spec 0008, AC-7; spec 0022, AC-17): sent to every member once the
+ * company's first snapshot exists. Greets by first name when known, names the company and how many
+ * published peers the research found, states the rounded yearly loss and the saving at the peer
+ * median in the snapshot's own currency (the variant without money asks for the figures instead)
+ * and carries one button to the client area. Every string is a message key of
+ * `email.benchmark_ready` or `email.layout`.
+ *
+ * The amount is formatted with the snapshot's currency rather than the `chfWhole` format, so a
+ * client outside Switzerland is never told its losses in francs. Whole units as before: a modelled
+ * figure must not look exact to the rappen.
  */
 export function BenchmarkReadyEmail({ t, locale, data, href }: TemplateProps<BenchmarkReadyData>) {
   const format = createFormatterFor(locale === "de" ? "de-CH" : "en-CH");
   const greeting = data.firstName
     ? t("email.benchmark_ready.greeting", { firstName: data.firstName })
     : t("email.benchmark_ready.greetingNeutral");
-  const chf = (value: number) => format.number(value, "chfWhole");
+  const money = (value: number) =>
+    format.number(value, {
+      style: "currency",
+      currency: data.currency,
+      maximumFractionDigits: 0,
+    });
   return (
     <EmailLayout
       locale={locale}
@@ -32,27 +42,18 @@ export function BenchmarkReadyEmail({ t, locale, data, href }: TemplateProps<Ben
       <EmailText>
         {t("email.benchmark_ready.intro", {
           companyName: data.companyName,
-          kpisCompared: data.kpisCompared,
+          peersCompared: data.peersCompared,
         })}
       </EmailText>
-      {data.costChf !== undefined ? (
+      {data.lossAmount !== undefined ? (
         <EmailText>
-          {/* The range leads and the working estimate follows (spec 0016, AC-13), the same order
-              as the card, so the artifact most likely to be forwarded to a board does not present
-              a precise figure the dashboard has just qualified. Without both ends the single
-              figure stands alone rather than showing half a range. */}
-          {data.costLowChf !== undefined && data.costHighChf !== undefined
-            ? `${t("email.benchmark_ready.range", {
-                low: chf(data.costLowChf),
-                high: chf(data.costHighChf),
-              })} ${t("email.benchmark_ready.working", { cost: chf(data.costChf) })}`
-            : t("email.benchmark_ready.cost", { cost: chf(data.costChf) })}
-          {data.savingMedianChf !== undefined
-            ? ` ${t("email.benchmark_ready.saving", { saving: chf(data.savingMedianChf) })}`
+          {t("email.benchmark_ready.loss", { loss: money(data.lossAmount) })}
+          {data.savingAtMedian !== undefined
+            ? ` ${t("email.benchmark_ready.saving", { saving: money(data.savingAtMedian) })}`
             : ""}
         </EmailText>
       ) : (
-        <EmailText>{t("email.benchmark_ready.noCost")}</EmailText>
+        <EmailText>{t("email.benchmark_ready.noLoss")}</EmailText>
       )}
       <EmailText>{t("email.benchmark_ready.nextStep")}</EmailText>
     </EmailLayout>
