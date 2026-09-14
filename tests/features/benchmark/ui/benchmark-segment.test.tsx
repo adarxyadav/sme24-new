@@ -117,24 +117,28 @@ describe("the outdated state (spec 0022, AC-18)", () => {
 });
 
 describe("the peer table (spec 0022, AC-20)", () => {
-  it("renders the four sections in the order the spec fixes", async () => {
+  it("renders the sections in the order the spec fixes, the chart its own card under the table", async () => {
     const { container } = await renderSegment();
     const cards = [...container.querySelectorAll("[data-peers-card],[data-loss-card]")];
     const order = [...container.querySelectorAll("[data-slot='card']")].flatMap((card) =>
       card.hasAttribute("data-peers-card")
         ? ["peers"]
-        : card.hasAttribute("data-loss-card")
-          ? ["loss"]
-          : card.hasAttribute("data-experts-card")
-            ? ["experts"]
-            : card.hasAttribute("data-package-card")
-              ? ["package"]
-              : card.hasAttribute("data-facts-card")
-                ? ["facts"]
-                : [],
+        : card.hasAttribute("data-chart-card")
+          ? ["chart"]
+          : card.hasAttribute("data-loss-card")
+            ? ["loss"]
+            : card.hasAttribute("data-experts-card")
+              ? ["experts"]
+              : card.hasAttribute("data-package-card")
+                ? ["package"]
+                : card.hasAttribute("data-facts-card")
+                  ? ["facts"]
+                  : [],
     );
     expect(cards).toHaveLength(2);
-    expect(order).toEqual(["peers", "loss", "experts", "package", "facts"]);
+    expect(order).toEqual(["peers", "chart", "loss", "experts", "package", "facts"]);
+    // The chart is its own card, not drawn inside the table's (owner call of 14 Sep 2026).
+    expect(container.querySelector("[data-peers-card] [data-peer-chart]")).not.toBeInTheDocument();
   });
 
   it("badges the peer count with the rung and lists every peer once", async () => {
@@ -153,10 +157,12 @@ describe("the peer table (spec 0022, AC-20)", () => {
     );
   });
 
-  it("puts the client's own row in place by its LTIFR, with the figures badge", async () => {
+  it("puts the client's own row in place by its TRIFR, with the figures badge", async () => {
     const { container } = await renderSegment({ companyName: "Musterfirma AG" });
-    const rows = [...container.querySelectorAll("tbody tr")];
-    // LTIFR 6 sits between Beta SA (4) and Gamma GmbH (8).
+    // Scoped to the peer table: the chart's own `sr-only` table has rows too, and they are not
+    // this ordering.
+    const rows = [...(container.querySelectorAll("table:not([data-chart-table]) tbody tr") ?? [])];
+    // TRIFR 10 sits between Beta SA (9) and Gamma GmbH (13).
     expect(
       rows.map((row) =>
         row.hasAttribute("data-client-row") ? "client" : row.getAttribute("data-peer"),

@@ -1392,6 +1392,7 @@
       "bandOutside": "Band, value beyond p75",
       "bandLabel": "Example: your value {value} against the peer quartiles.",
       "peerTable": "Peer table, three row shapes",
+      "peerChart": "Peer chart, ranked by TRIFR",
       "lossCard": "Estimated loss card"
     },
     "marketing": {
@@ -2000,6 +2001,26 @@
       },
       "footnote": "The research found these companies in public reports. Each estimated loss uses the same formula as yours, applied to that company's published headcount and rates, in your currency: it is a total, so it grows with company size. Rates are per million hours worked; figures published per 200 000 hours or per 100 workers are converted.",
       "empty": "The research found no published peer for your sector yet."
+    },
+    "chart": {
+      "heading": "Where you sit",
+      "title": "Published peers ranked by TRIFR, with each company's estimated yearly loss as the bubble area",
+      "caption": "Ranked by TRIFR, best on the left. Bubble area is that company's own estimated yearly loss. Your own figures are drawn as an outline.",
+      "xAxis": "Rank by TRIFR, best on the left",
+      "yAxis": "TRIFR, per million hours",
+      "legend": {
+        "client": "Your figures",
+        "peer": "Published peer"
+      },
+      "column": {
+        "rank": "Rank"
+      },
+      "tableCaption": "The same ranking as a table: each company's rank, TRIFR and estimated yearly loss.",
+      "tooltip": {
+        "rank": "Rank {rank}",
+        "trifr": "TRIFR {value}",
+        "loss": "Estimated loss {amount}"
+      }
     },
     "loss": {
       "heading": "Your estimated loss",

@@ -12,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { chartDomain, niceTicks, tickDecimals } from "@/features/benchmark/ui/chart-scale";
+import { PeerChart } from "@/features/benchmark/ui/peer-chart";
 
 /** The three shapes of the band: inside the top quarter, below the median, beyond p75. */
 const BANDS = [
@@ -39,6 +41,20 @@ const SAMPLE_COUNTRY = "Switzerland";
 const SAMPLE_COMPANY = "Musterfirma AG";
 
 /**
+ * The chart's points in rank order (spec 0022, the D-chart): four peers whose losses span an order
+ * of magnitude, so the area scale is visible, one of them unpriced, and the client among them. Only
+ * companies with a TRIFR appear, which is why `Gamma GmbH` of the table above is not here. Invented
+ * figures, like the table's.
+ */
+const CHART_ROWS = [
+  { name: "Alpha AG", trifr: 5.1, loss: 275_000, isClient: false },
+  { name: "Beta SA", trifr: 7.4, loss: 1_100_000, isClient: false },
+  { name: SAMPLE_COMPANY, trifr: 10, loss: null, isClient: true },
+  { name: "Delta Holding", trifr: 11.8, loss: 620_000, isClient: false },
+  { name: "Epsilon AG", trifr: 13.2, loss: null, isClient: false },
+] as const;
+
+/**
  * The benchmark primitives on the gallery, so axe scans each of them on every run.
  *
  * The `QuartileBand` in three shapes stays: it is the marketing cost iceberg's own graphic, the one
@@ -59,6 +75,7 @@ export function BenchmarkSection() {
     value === null
       ? b("peers.table.none")
       : format.number(value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const yTicks = niceTicks(chartDomain(CHART_ROWS.map((row) => row.trifr)));
 
   return (
     <div className="flex flex-col gap-12">
@@ -185,6 +202,59 @@ export function BenchmarkSection() {
             </Table>
           </div>
           <p className="max-w-prose text-muted-foreground text-xs">{b("peers.footnote")}</p>
+        </div>
+      </Example>
+
+      {/* The peer chart, the owner's sketch (spec 0022, the D-chart): the rank across, TRIFR up,
+          each company's own estimated loss as the bubble area, the client as an outline. Drawn
+          here so axe scans its focusable bubbles on every run. */}
+      <Example label={t("peerChart")}>
+        <div className="flex w-full flex-col gap-2">
+          <PeerChart
+            points={CHART_ROWS.map((row, index) => {
+              const rank = format.number(index + 1, "integer");
+              const trifr = rate(row.trifr);
+              const loss = row.loss === null ? b("peers.table.none") : money(row.loss);
+              return {
+                key: row.isClient ? "client" : `peer-${row.name}`,
+                isClient: row.isClient,
+                rank: index + 1,
+                trifr: row.trifr,
+                loss: row.loss,
+                name: row.name,
+                lines: [
+                  b("chart.tooltip.rank", { rank }),
+                  b("chart.tooltip.trifr", { value: trifr }),
+                  b("chart.tooltip.loss", { amount: loss }),
+                ],
+                cells: { rank, country: SAMPLE_COUNTRY, trifr, loss },
+              };
+            })}
+            yDomain={chartDomain(CHART_ROWS.map((row) => row.trifr))}
+            labels={{
+              chart: b("chart.title"),
+              tableCaption: b("chart.tableCaption"),
+              xAxis: b("chart.xAxis"),
+              yAxis: b("chart.yAxis"),
+              yTicks: yTicks.map((value) => ({
+                value,
+                label: format.number(value, {
+                  minimumFractionDigits: tickDecimals(yTicks),
+                  maximumFractionDigits: tickDecimals(yTicks),
+                }),
+              })),
+              legendClient: b("chart.legend.client"),
+              legendPeer: b("chart.legend.peer"),
+              columns: {
+                company: b("peers.table.company"),
+                rank: b("chart.column.rank"),
+                country: b("peers.table.country"),
+                trifr: b("peers.table.trifr"),
+                loss: b("peers.table.loss"),
+              },
+            }}
+          />
+          <p className="max-w-prose text-muted-foreground text-xs">{b("chart.caption")}</p>
         </div>
       </Example>
 

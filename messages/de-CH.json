@@ -1392,6 +1392,7 @@
       "bandOutside": "Band, Wert jenseits p75",
       "bandLabel": "Beispiel: Ihr Wert {value} gegen die Quartile der Vergleichsgruppe.",
       "peerTable": "Vergleichstabelle, drei Zeilenformen",
+      "peerChart": "Vergleichsdiagramm, nach TRIFR geordnet",
       "lossCard": "Karte geschätzter Verlust"
     },
     "marketing": {
@@ -2000,6 +2001,26 @@
       },
       "footnote": "Die Recherche hat diese Unternehmen in öffentlichen Berichten gefunden. Jeder geschätzte Verlust folgt derselben Formel wie Ihrer, angewendet auf die publizierte Mitarbeiterzahl und die publizierten Raten des Unternehmens, in Ihrer Währung: Es ist eine Gesamtsumme und wächst deshalb mit der Unternehmensgrösse. Raten gelten pro Million Arbeitsstunden; Angaben pro 200 000 Stunden oder pro 100 Mitarbeitende werden umgerechnet.",
       "empty": "Die Recherche hat noch kein publiziertes Vergleichsunternehmen für Ihre Branche gefunden."
+    },
+    "chart": {
+      "heading": "Ihre Position",
+      "title": "Publizierte Vergleichsunternehmen nach TRIFR, die Blasenfläche ist der geschätzte Jahresverlust des jeweiligen Unternehmens",
+      "caption": "Nach TRIFR geordnet, der beste Wert links. Die Blasenfläche ist der geschätzte Jahresverlust des jeweiligen Unternehmens. Ihre eigenen Zahlen sind als Umriss gezeichnet.",
+      "xAxis": "Rang nach TRIFR, der beste Wert links",
+      "yAxis": "TRIFR, pro Million Stunden",
+      "legend": {
+        "client": "Ihre Zahlen",
+        "peer": "Publiziertes Vergleichsunternehmen"
+      },
+      "column": {
+        "rank": "Rang"
+      },
+      "tableCaption": "Dieselbe Rangfolge als Tabelle: Rang, TRIFR und geschätzter Jahresverlust je Unternehmen.",
+      "tooltip": {
+        "rank": "Rang {rank}",
+        "trifr": "TRIFR {value}",
+        "loss": "Geschätzter Verlust {amount}"
+      }
     },
     "loss": {
       "heading": "Ihr geschätzter Verlust",
