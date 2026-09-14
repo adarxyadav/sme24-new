@@ -331,7 +331,13 @@ export function ExpertProfiles() {
                 `w-full` on the three full width pairs forces the break, and the two that share a
                 line are simply the two that do not carry it.
               */}
-              <dl className="mt-auto flex flex-wrap gap-x-5 gap-y-2.5 border-t pt-4">
+              {/*
+                `pt-6` matches the card's own `gap-6` above the rule, so the divider sits with
+                equal air on both sides (2026-09-14). It was `pt-4`: 24px above the hairline
+                against 16px below it, which made the rule look pushed down toward the block it
+                introduces rather than set between the card's two halves.
+              */}
+              <dl className="mt-auto flex flex-wrap gap-x-5 gap-y-2.5 border-t pt-6">
                 {/*
                   An icon in place of the caps label (owner, 2026-09-14). Each field was a label
                   over its value, two lines of which one was a heading the reader does not need
