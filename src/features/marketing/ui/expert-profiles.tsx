@@ -238,7 +238,23 @@ export function ExpertProfiles() {
               // here and a card in the signed in areas are the same object.
               className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
             >
-              <div className="flex items-center gap-4">
+              {/*
+                Aligned to the top of the type, not the centre of the block (2026-09-14). The
+                seniority line reserves two lines (`min-h-10.5`, 42px) so that one long role cannot
+                make its card taller than the row, but five of the six roles occupy one line, so
+                the block is 74px of which the last 21px are deliberately empty. Centred against
+                that box, the avatar sat about 13px below the middle of the ink a reader actually
+                sees -- the name's cap height started above the circle and the whole head read as
+                two things that had drifted apart.
+
+                `items-start` alone fixes it, and the offset it looked like it would need turns out
+                to be nothing: the 56px circle is taller than the 28px name, so started at the same
+                top it spans the name and most of the first role line on its own. Measured, its
+                centre lands 3px from the centre of the visible ink where centring put it 13px
+                below. Reserved space below stays reserved and no longer drags the circle down with
+                it.
+              */}
+              <div className="flex items-start gap-4">
                 {/* `ExpertAvatar`, the primitive the expert pages and the gallery already use
                     (spec 0013, AC-6), rather than a monogram of this section's own. An earlier
                     pass drew a solid square here for the weight it gave the card; the gallery
