@@ -229,6 +229,51 @@
           }
         }
       },
+      "profiles": {
+        "eyebrow": "Das Netzwerk",
+        "title": "Wer vorbeikommt. Sechs Beispiele.",
+        "lead": "Jede Fachperson wird auf Ihre Branche, Ihren Kanton und die anstehende Arbeit abgestimmt. Das sind Profile in der Form, die ein echtes Profil hat.",
+        "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
+        "listLabel": "Beispielprofile von Fachpersonen",
+        "experienceLabel": "Erfahrung",
+        "standardsLabel": "Arbeitet nach",
+        "languagesLabel": "Arbeitssprachen",
+        "plain": {
+          "management_system": "Baut das System auf, das Sie Jahr für Jahr rechtskonform hält.",
+          "safety_culture": "Sorgt dafür, dass sicher gearbeitet wird, auch wenn niemand hinschaut.",
+          "compliance": "Findet die Lücken, bevor eine Inspektion oder ein Unfall sie findet."
+        },
+        "manufacturing": {
+          "name": "M. Muster",
+          "years": "22 Jahre",
+          "role": "ASA-Spezialist"
+        },
+        "construction": {
+          "name": "A. Beispiel",
+          "years": "18 Jahre",
+          "role": "Sicherheitsleitung Bau"
+        },
+        "chemical": {
+          "name": "R. Muster",
+          "years": "25 Jahre",
+          "role": "EHS-Leitung"
+        },
+        "energy": {
+          "name": "C. Beispiel",
+          "years": "19 Jahre",
+          "role": "Anlagenbetrieb"
+        },
+        "logistics": {
+          "name": "L. Muster",
+          "years": "16 Jahre",
+          "role": "Flotten- und Lagersicherheit"
+        },
+        "food": {
+          "name": "S. Beispiel",
+          "years": "21 Jahre",
+          "role": "Qualität und Hygiene"
+        }
+      },
       "matching": {
         "eyebrow": "Zuteilung",
         "title": "Wie Sie Ihren bekommen.",
@@ -1379,6 +1424,7 @@
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
       "heroResearch": "Hero-Objekt der Startseite: Standbild des Kundenbereichs",
       "registerDirectory": "Expertenverzeichnis",
+      "expertProfiles": "Expertenprofile",
       "costIceberg": "Kosten-Eisberg: der Zahlen-Abschnitt der Startseite",
       "packagesCompare": "Pakete im Vergleich: die Tabelle der Preisseite"
     },

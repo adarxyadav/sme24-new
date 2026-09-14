@@ -229,6 +229,51 @@
           }
         }
       },
+      "profiles": {
+        "eyebrow": "The network",
+        "title": "Who turns up. Six examples.",
+        "lead": "Every expert is matched to your sector, your canton and the work in front of you. These are profiles in the shape a real one takes.",
+        "note": "Example profiles, in the shape a real one takes. The network is being onboarded now.",
+        "listLabel": "Example expert profiles",
+        "experienceLabel": "Experience",
+        "standardsLabel": "Works to",
+        "languagesLabel": "Works in",
+        "plain": {
+          "management_system": "Sets up the system that keeps you compliant year after year.",
+          "safety_culture": "Gets people working safely when nobody is watching.",
+          "compliance": "Finds the gaps before an inspector or an accident does."
+        },
+        "manufacturing": {
+          "name": "M. Muster",
+          "years": "22 years",
+          "role": "ASA specialist"
+        },
+        "construction": {
+          "name": "A. Beispiel",
+          "years": "18 years",
+          "role": "Site safety lead"
+        },
+        "chemical": {
+          "name": "R. Muster",
+          "years": "25 years",
+          "role": "EHS director"
+        },
+        "energy": {
+          "name": "C. Beispiel",
+          "years": "19 years",
+          "role": "Plant operations"
+        },
+        "logistics": {
+          "name": "L. Muster",
+          "years": "16 years",
+          "role": "Fleet and warehouse safety"
+        },
+        "food": {
+          "name": "S. Beispiel",
+          "years": "21 years",
+          "role": "Quality and hygiene"
+        }
+      },
       "matching": {
         "eyebrow": "Matching",
         "title": "How you get yours.",
@@ -1379,6 +1424,7 @@
       "sectionLead": "One fixed price, one senior expert on site, one written report you can act on.",
       "heroResearch": "Landing hero object: the client area still",
       "registerDirectory": "Expert directory",
+      "expertProfiles": "Expert profiles",
       "costIceberg": "Cost iceberg: the landing page's number section",
       "packagesCompare": "Packages compared: the pricing page table"
     },

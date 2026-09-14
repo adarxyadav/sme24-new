@@ -186,9 +186,13 @@ One trap worth remembering if this section ever goes back onto a ruled ground: `
 
 _Owner decision of 2026-09-14, from a reference brought that day._
 
-`SectionHeader` takes `align="center"`, which centres an anchor's whole stack -- eyebrow, heading and lead on one axis rather than one left edge. It is opt in, anchors only, and left stays the default: the site reads left everywhere, which is exactly what lets a centred section mean something. There are two on the site and there should not be a third without a reason: the landing page's trust band and the pricing page's opener.
+`SectionHeader` takes `align="center"`, which centres an anchor's whole stack -- eyebrow, heading and lead on one axis rather than one left edge. It is opt in, anchors only, and left stays the default: the site reads left everywhere, which is exactly what lets a centred section mean something. There are three on the site and there should not be a fourth without a reason: the landing page's trust band, the pricing page's opener and the expert network's opener.
 
 The pricing opener earns it by being the shortest `h1` on any marketing page -- "Fixed price. No surprises." -- over a one line lead. Left aligned, four words of display type left most of a `py-24 md:py-40` band empty to the right; centred, they sit as a plate over the prices below.
+
+The expert network opener earns it the same way and for that reason only (owner decision of 2026-09-14): "Senior people. No juniors." is four words of display type that left the same band empty to the right. What does not transfer is the second half of the pricing argument -- the plate there sits over the prices, and here the band below is "the standard", which opens with a major of its own. The centring is justified by the heading's own length, not by what follows it, and a left aligned major under a centred anchor is the composition this page introduced.
+
+Its lead is the one part the centred defaults do not fit. `max-w-136` was measured against the pricing lead, one sentence of 467px that sits on one line at desktop widths; the expert lead is two sentences (EN 1049px, DE 1128px unwrapped) and at that cap turned twice, stranding a two word orphan on a third line in both catalogs. The call site overrides it to `max-w-2xl` (672px) through the lead's `data-slot`, the widest step that still reads as a plate and the first that holds both languages to two balanced lines (second line 382px of 672 in English, 494px in German). The override is one section's measure, not a change to the tier -- the default stays what pricing needs -- and it is checked in both catalogs, so re-measure if this copy changes.
 
 A centred anchor also flows its heading rather than breaking at every sentence, and caps its lead at `max-w-136` instead of `max-w-prose`. Both follow from the shape: the plate wants a wide short heading over a narrower lead, and `max-w-prose` (~65ch) is wide enough that a wrapping lead turns too far from the centre to read as one block. The cap is a ceiling and not a break point -- the pricing lead is one sentence and sits on one line at desktop widths, wrapping only on a phone.
 
@@ -216,7 +220,7 @@ Pricing is the one page with no closing call to action (owner decision of 2026-0
 |---|---|
 | Landing | anchor hero on the page ground, centred, with the hero object under it · minor worked figure beside the cost iceberg (the walkthrough photograph until 2026-09-12) · **major steps** · major packages · major experts · major trust, centred rather than split · minor FAQ · anchor jet closing |
 | How it works | anchor opener · **major steps** · major split of labour · minor timing · anchor jet closing |
-| Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
+| Expert network | anchor opener, centred · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
 | Pricing | anchor opener, centred · **major packages, openerless** · minor compare · minor FAQ (no closing) |
 | About | anchor opener · major story · **major ruled campaign grid** · minor how we work · anchor jet closing |
 | Contact | anchor opener · major facts and form · anchor jet closing |
