@@ -235,32 +235,37 @@
         "lead": "Jede Fachperson wird auf Ihre Branche, Ihren Kanton und die Norm abgestimmt, an der Sie gemessen werden. Das sind Profile in der Form, die ein echtes Profil hat.",
         "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
         "listLabel": "Beispielprofile von Fachpersonen",
-        "experienceLabel": "Erfahrung",
         "standardsLabel": "Normen",
         "languagesLabel": "Arbeitssprachen",
         "manufacturing": {
           "name": "M. Muster",
-          "experience": "22 Jahre, ASA-Spezialist"
+          "years": "22 Jahre",
+          "role": "ASA-Spezialist, Fertigung"
         },
         "construction": {
           "name": "A. Beispiel",
-          "experience": "18 Jahre, Sicherheitsleitung Bau"
+          "years": "18 Jahre",
+          "role": "Sicherheitsleitung Bau"
         },
         "chemical": {
           "name": "R. Muster",
-          "experience": "25 Jahre, EHS-Leitung"
+          "years": "25 Jahre",
+          "role": "EHS-Leitung, Chemie"
         },
         "energy": {
           "name": "C. Beispiel",
-          "experience": "19 Jahre, Anlagenbetrieb"
+          "years": "19 Jahre",
+          "role": "Anlagenbetrieb, Energieversorgung"
         },
         "logistics": {
           "name": "L. Muster",
-          "experience": "16 Jahre, Flotten- und Lagersicherheit"
+          "years": "16 Jahre",
+          "role": "Flotten- und Lagersicherheit"
         },
         "food": {
           "name": "S. Beispiel",
-          "experience": "21 Jahre, Qualität und Hygiene"
+          "years": "21 Jahre",
+          "role": "Qualität und Hygiene, Lebensmittel"
         }
       },
       "matching": {

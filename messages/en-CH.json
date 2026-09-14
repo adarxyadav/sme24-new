@@ -235,32 +235,37 @@
         "lead": "Every expert is matched to your sector, your canton and the standard you are judged against. These are profiles in the shape a real one takes.",
         "note": "Example profiles, in the shape a real one takes. The network is being onboarded now.",
         "listLabel": "Example expert profiles",
-        "experienceLabel": "Experience",
         "standardsLabel": "Standards",
         "languagesLabel": "Works in",
         "manufacturing": {
           "name": "M. Muster",
-          "experience": "22 years, ASA specialist"
+          "years": "22 years",
+          "role": "ASA specialist, manufacturing"
         },
         "construction": {
           "name": "A. Beispiel",
-          "experience": "18 years, site safety lead"
+          "years": "18 years",
+          "role": "Site safety lead, construction"
         },
         "chemical": {
           "name": "R. Muster",
-          "experience": "25 years, EHS director"
+          "years": "25 years",
+          "role": "EHS director, chemical processing"
         },
         "energy": {
           "name": "C. Beispiel",
-          "experience": "19 years, plant operations"
+          "years": "19 years",
+          "role": "Plant operations, energy supply"
         },
         "logistics": {
           "name": "L. Muster",
-          "experience": "16 years, fleet and warehouse safety"
+          "years": "16 years",
+          "role": "Fleet and warehouse safety"
         },
         "food": {
           "name": "S. Beispiel",
-          "experience": "21 years, quality and hygiene"
+          "years": "21 years",
+          "role": "Quality and hygiene, food production"
         }
       },
       "matching": {
