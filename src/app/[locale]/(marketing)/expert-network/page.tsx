@@ -81,10 +81,9 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
           {/*
             One control under the opener, centred on the same axis as the stack above it. The
             register is the only thing this page can offer a reader at the top: it is the one place
-            the claim above can be checked against a public list rather than taken on trust, which
-            is why it sits here and not only in the coverage column further down. That inline link
-            stays -- it belongs to the sentence it sits in, and it names the register in full where
-            there is room for it.
+            the claim above can be checked against a public list rather than taken on trust. Since
+            the coverage column went (2026-09-14) this is the page's only link into the register,
+            and `e2e/marketing.spec.ts` clicks it by this label.
 
             Outline rather than the filled default. The filled button is the page's closing ask
             ("Get started" on the jet anchor), and a hero that opens with the same weight competes
