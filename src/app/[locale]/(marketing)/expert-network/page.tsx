@@ -210,35 +210,21 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
       </RuledField>
 
       {/*
-        Matching alone, where this band carried "Where we go." beside it until 2026-09-14. Three
-        things went with that column and all three were reasons to drop it rather than reword it:
-        it was the page's most Swiss bound copy ("all of German and French speaking Switzerland",
-        "Ticino by arrangement") two bands below cells that now say the expert knows the regime
-        wherever the site sits; it repeated the hero's own link to the SGAS register, so one page
-        offered the same destination twice; and it was the second heading on a landmark that named
-        itself with two ids at once.
+        The matching and coverage band stood here until 2026-09-14 and is gone entirely (owner
+        decision). Coverage went first, for being the page's most Swiss bound copy, for repeating
+        the hero's link to the SGAS register and for being the second heading on a landmark that
+        named itself with two ids; matching followed on the same day.
 
-        What is left is the half that carries a commitment: we assign, and if the fit is wrong you
-        get another expert and we absorb the cost. That is the page's only risk reversal and the
-        answer to the obvious objection to a curated network, so it reads stronger alone than it
-        did sharing a row with a coverage note.
+        The page now runs hero, profiles, standard, vetting, closing: who they are, what senior
+        means, how someone gets in, and the ask. "How you get yours." described the assignment
+        mechanic, which is a question a reader has after deciding they want an expert rather than
+        while deciding whether these people are any good, and the vetting ladder above already ends
+        on how the bar is held. The fit guarantee it carried -- another expert at our cost -- is a
+        commitment worth keeping somewhere, and the place for it is the package terms or the FAQ
+        rather than a band of its own on this page.
 
-        One column rather than the two the band had, so the section is a plain minor again and the
-        landmark takes one heading. The `coverage.*` keys leave both catalogs in the same commit
-        rather than staying behind as dead copy.
+        Both key groups leave both catalogs with it, so nothing dead is left behind.
       */}
-      <section aria-labelledby="matching-heading">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-12 sm:px-6 md:py-20">
-          <SectionHeader
-            tier="minor"
-            id="matching-heading"
-            title={t("matching.title")}
-            className="md:grid-cols-1 md:gap-4"
-          />
-          <p className="max-w-prose text-base leading-relaxed">{t("matching.lead")}</p>
-        </div>
-      </section>
-
       <ClosingCta title={t("closing.title")}>
         <Button asChild size="lg">
           <Link href="/sign-up">{t("closing.cta")}</Link>
