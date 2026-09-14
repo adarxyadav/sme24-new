@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { Badge } from "@/components/ui/badge";
 import type {
   CompetencyCode,
   ExpertLanguageCode,
@@ -6,7 +7,7 @@ import type {
   RegionCode,
   StandardCode,
 } from "@/features/experts/catalogue";
-import { initials } from "@/features/experts/ui/expert-avatar";
+import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 
 /**
@@ -128,17 +129,19 @@ export function ExpertProfiles() {
           {PROFILES.map((profile) => (
             <li key={profile.key} className="flex min-w-0 flex-col bg-background p-6">
               <div className="flex items-start gap-4">
-                {/* Examples use initials; a portrait would imply a real member. Set solid in the
-                    foreground colour rather than as type inside a hairline box: the box read as an
-                    empty form field, and this is the one mark of ink on an otherwise white card --
-                    the single place it spends any weight. `aria-hidden` because the initials only
-                    restate the name beside them. */}
-                <div
-                  aria-hidden="true"
-                  className="flex size-14 shrink-0 items-center justify-center bg-foreground text-background text-label-20"
-                >
-                  {initials(t(`${profile.key}.name`))}
-                </div>
+                {/* `ExpertAvatar`, the primitive the expert pages and the gallery already use
+                    (spec 0013, AC-6), rather than a monogram of this section's own. An earlier
+                    pass drew a solid square here for the weight it gave the card; the gallery
+                    shows the avatar is circular and grey, so that square was a second expert mark
+                    on the site and the build mandate's first rule is not to invent a control that
+                    exists. A real profile swaps the initials for a photo and nothing moves.
+                    Larger than the default 12 because this is a marketing card rather than a list
+                    row, which the primitive takes as a `className`. */}
+                <ExpertAvatar
+                  fullName={t(`${profile.key}.name`)}
+                  photoUrl={null}
+                  className="size-14 shrink-0"
+                />
                 <div className="min-w-0">
                   <h3 className="break-words text-heading-20">{t(`${profile.key}.name`)}</h3>
                   <p className="mt-1 text-pretty text-copy-14 text-muted-foreground">
@@ -175,14 +178,19 @@ export function ExpertProfiles() {
                 These are areas of practice, not verified certifications (owner, 2026-09-14), which
                 is why the heading above them says "works to" rather than naming them credentials.
               */}
-              <ul className="mt-5 flex flex-col">
+              <ul className="mt-5 flex flex-wrap gap-1.5">
                 <li className="sr-only">{t("standardsLabel")}</li>
                 {profile.standards.map((standard) => (
-                  <li
-                    key={standard}
-                    className="border-t py-2 text-pretty text-copy-14 last:border-b"
-                  >
-                    {catalogue(`standards.${standard}`)}
+                  <li key={standard}>
+                    {/* `Badge variant="outline"`, the primitive the gallery's Buttons and badges
+                        row already shows, rather than hairline rows of this section's own. Outline
+                        and not a status or severity variant: those carry meaning next to a label
+                        and must keep it, while a standard is a plain tag. The badge is square at
+                        the 0.125rem radius like everything else, so a row of them reads as tags on
+                        a document rather than pills. */}
+                    <Badge variant="outline" className="text-pretty font-normal">
+                      {catalogue(`standards.${standard}`)}
+                    </Badge>
                   </li>
                 ))}
               </ul>

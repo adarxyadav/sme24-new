@@ -5,6 +5,7 @@ import { CostIceberg } from "@/components/cost-iceberg";
 import { Example } from "@/components/gallery/gallery-section";
 import { PACKAGES } from "@/features/marketing/packages";
 import { EnquiryForm } from "@/features/marketing/ui/enquiry-form";
+import { ExpertProfiles } from "@/features/marketing/ui/expert-profiles";
 import { Faq } from "@/features/marketing/ui/faq";
 import { HeroResearch } from "@/features/marketing/ui/hero-research";
 import { PackageCard } from "@/features/marketing/ui/package-card";
@@ -87,6 +88,12 @@ export function MarketingSection() {
       </Example>
       <Example label={t("registerDirectory")}>
         <RegisterDirectory />
+      </Example>
+      {/* The expert network's example profiles. The whole band rather than one card, because the
+          grid's hairlines and the cards' shared baseline are the part worth scanning: a single
+          card would show neither. */}
+      <Example label={t("expertProfiles")}>
+        <ExpertProfiles />
       </Example>
       <Example label={t("faq")}>
         <div className="w-full max-w-2xl">
