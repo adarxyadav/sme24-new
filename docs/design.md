@@ -154,7 +154,9 @@ The opener follows from the tier, so there is nothing extra to decide per sectio
 
 `SectionHeader` in `src/features/marketing/ui/` renders all three from a `tier` prop; a page composes it rather than hand rolling the markup. A section that is deliberately different (the campaign wall, the packages grid) may still open with its own markup, but it picks one of the three shapes.
 
-One band is deliberately openerless: the landing page's worked figure, the passage between the hero and the steps (2026-09-10). It is one sentence with the figure set inside it and nothing else -- no opener, no footnote and no link -- and it carries an `sr-only` `h2` so the landmark is still named. A minor opener above one sentence re-created the stack -- heading, lead, figure, footnote -- that three passes had already been spent removing, on a band a reader crosses rather than stops at. A section may drop its opener only when it is a single sentence long; anything with two blocks takes one of the three shapes above.
+The pricing page's packages band is openerless for a second reason (owner decision of 2026-09-14): its content is the four package cards, each with its own `h3`, price and promise, and the centred `h1` directly above already says what they are. It carried a major opener from 2026-09-10, added when the `h1` shared the band and the cards had no heading of their own; once the opener moved into its own band and went centred, the display heading in between was a third statement between two things that already spoke, and it pushed the prices most of a screen down. The heading survives as `sr-only`, so the landmark keeps its name and the `h3` cards keep a level above them. A band that drops its opener this way also drops the padding that opener needed -- the tier's top padding exists to clear its own content, and with nothing there it stacks with the band above into dead white.
+
+One band is deliberately openerless for a different reason: the landing page's worked figure, the passage between the hero and the steps (2026-09-10). It is one sentence with the figure set inside it and nothing else -- no opener, no footnote and no link -- and it carries an `sr-only` `h2` so the landmark is still named. A minor opener above one sentence re-created the stack -- heading, lead, figure, footnote -- that three passes had already been spent removing, on a band a reader crosses rather than stops at. A section may drop its opener in exactly two cases: it is a single sentence long, or its content is a set of cards that each carry their own heading and the band directly above it has already named them (the pricing packages, above). Anything else takes one of the three shapes above, and both cases still carry an `sr-only` heading so the landmark keeps its name.
 
 ### The steps rail
 
@@ -180,6 +182,22 @@ On `/how-it-works` the panel takes its own eyebrow and title (`marketing.howItWo
 
 One trap worth remembering if this section ever goes back onto a ruled ground: `RuledField` carries `overflow-hidden`, which gives the element a scrolling mechanism, and a `position: sticky` descendant anchors to that nearest scrolling ancestor instead of the viewport, so the rail silently never moves. `overflow-clip` is deliberately excluded from that list and clips identically (MDN, `position`).
 
+### Centred openers
+
+_Owner decision of 2026-09-14, from a reference brought that day._
+
+`SectionHeader` takes `align="center"`, which centres an anchor's whole stack -- eyebrow, heading and lead on one axis rather than one left edge. It is opt in, anchors only, and left stays the default: the site reads left everywhere, which is exactly what lets a centred section mean something. There are two on the site and there should not be a third without a reason: the landing page's trust band and the pricing page's opener.
+
+The pricing opener earns it by being the shortest `h1` on any marketing page -- "Fixed price. No surprises." -- over a one line lead. Left aligned, four words of display type left most of a `py-24 md:py-40` band empty to the right; centred, they sit as a plate over the prices below.
+
+A centred anchor also flows its heading rather than breaking at every sentence, and caps its lead at `max-w-136` instead of `max-w-prose`. Both follow from the shape: the plate wants a wide short heading over a narrower lead, and `max-w-prose` (~65ch) is wide enough that a wrapping lead turns too far from the centre to read as one block. The cap is a ceiling and not a break point -- the pricing lead is one sentence and sits on one line at desktop widths, wrapping only on a phone.
+
+The heading's cap widens to `max-w-5xl` with it, and the width is measured rather than chosen. Flowed at `display-lg` the English opener is 833px on one line: `max-w-4xl` (896px) holds that, but only just, and a cap that close to the text wraps on the first longer translation. The German opener is 1060px on one line -- wider than the 1104px band's usable width once the gutters are off it -- so it can never be one line here and the only question is whether it wraps cleanly or overflows. `max-w-5xl` (1024px) clears English and wraps German to two balanced lines. The heading is one component serving both catalogs, so the cap has to be a width neither language fights; check both when this copy changes.
+
+A centred anchor's eyebrow is the accent pill (the gallery's Accents row, `Badge variant="brand-accent"` at the caps scale) rather than the bare caps line every left aligned opener uses. Centred, a bare caps line has no left edge to sit on and reads as a stray word floating above the heading; the pill gives it an object's shape. It is the same `EYEBROW_PILL` the emphasis shape uses, so there is one pill on the site and not two that drift, and `--brand-accent on --brand-accent-subtle` is already in the contrast gate in both themes.
+
+The reference also set its heading as the two tone `emphasis` shape. The pricing opener deliberately does not take that half: "Fixed price. No surprises." is already the landing page's emphasis heading (`marketing.landing.packages.title`), and a reader crossing to `/pricing` would meet what looks like the same block twice. `emphasis` also absorbs the lead into the heading's muted sentences, and this page's lead carries the 8.1% VAT note, which has to stay a sentence of its own. `emphasis` remains majors only.
+
 ### Hero object
 
 The hero is the statement, one lead, one control and one utility line, on the page ground (white in light, jet in dark) behind the ruled field, so the header never inverts on it; the headline is a `Statement` in `layout="flow"`. The hero's own controls take the `xl` button size and an `h-11` input (`CompanyLookupField size="hero"`); nothing else on the site uses that size.
@@ -192,12 +210,14 @@ Under it, outside the ruled field, sits the hero object: `HeroResearch` (`src/fe
 
 The tier of every section that exists today. A new section joins this table.
 
+Pricing is the one page with no closing call to action (owner decision of 2026-09-14). Every other page ends on the jet anchor, which is what gives a page the same weight at its close that it opened with. Pricing is the page where the action is the content: four cards each carrying their own call to action, above a comparison table and an FAQ that exist to answer the question those cards raise. A fifth ask under the FAQ repeated on one page what the cards already offer four times.
+
 | Page | Sections in order |
 |---|---|
 | Landing | anchor hero on the page ground, centred, with the hero object under it · minor worked figure beside the cost iceberg (the walkthrough photograph until 2026-09-12) · **major steps** · major packages · major experts · major trust, centred rather than split · minor FAQ · anchor jet closing |
 | How it works | anchor opener · **major steps** · major split of labour · minor timing · anchor jet closing |
 | Expert network | anchor opener · major the standard · **major ruled vetting** · minor matching and coverage · anchor jet closing |
-| Pricing | anchor opener · **major packages** · minor included · minor FAQ · anchor jet closing |
+| Pricing | anchor opener, centred · **major packages, openerless** · minor compare · minor FAQ (no closing) |
 | About | anchor opener · major story · **major ruled campaign grid** · minor how we work · anchor jet closing |
 | Contact | anchor opener · major facts and form · anchor jet closing |
 

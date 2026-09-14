@@ -514,7 +514,7 @@
           },
           "price": {
             "question": "Was kostet ein Paket?",
-            "answer": "Ab CHF 2 000 exklusive MwSt. Drei Pakete, jedes zu einem Fixpreis, vereinbart vor dem ersten Besuch, und ein Umsetzungspartner auf Anfrage. Der Preis auf der Seite ist der Preis, den Sie zahlen. Zeigt der Besuch, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere Paket."
+            "answer": "Ab CHF 2 000 exklusive MwSt. Drei Pakete, jedes zu einem Fixpreis, vereinbart vor dem ersten Besuch, und ein Transformationspartner auf Anfrage. Der Preis auf der Seite ist der Preis, den Sie zahlen. Zeigt der Besuch, dass Sie weniger brauchen als gedacht, nehmen Sie das kleinere Paket."
           }
         }
       },
@@ -529,19 +529,17 @@
     "pricing": {
       "meta": {
         "title": "Preise",
-        "description": "Drei EHS-Snapshots zum Fixpreis in CHF und ein Umsetzungspartner auf Anfrage. Jedes Paket enthält einen Senior-Experten und einen schriftlichen Bericht."
+        "description": "Drei EHS-Snapshots zum Fixpreis in CHF und ein Transformationspartner auf Anfrage. Jedes Paket enthält einen Senior-Experten und einen schriftlichen Bericht."
       },
       "og": {
         "statement": "Fixpreis. Keine Überraschungen."
       },
       "eyebrow": "Preise",
       "title": "Fixpreis. Keine Überraschungen.",
-      "lead": "Jedes Paket ist ein Preis, ein Senior-Experte, ein Bericht. Preise exkl. 8.1% MWST.",
+      "lead": "Jedes Paket ist ein Preis, ein Senior-Experte, ein Bericht.",
       "packagesLabel": "Die Pakete",
       "packagesHeading": {
-        "eyebrow": "Die Pakete",
-        "title": "Drei Snapshots, die aufeinander aufbauen.",
-        "lead": "Starten Sie dort, wo Ihre Fragen sind. Eine Stufe höher ist ein Schritt, kein Neuanfang — und der Partner übernimmt die Umsetzung danach."
+        "title": "Drei Snapshots, die aufeinander aufbauen."
       },
       "vatNote": "exkl. 8.1% MWST",
       "onDemand": "Auf Anfrage",
@@ -552,17 +550,8 @@
       "retainerCta": "Sprechen wir",
       "overviewLink": "Leistungen ansehen",
       "overviewLinkFor": "Leistungen ansehen: {name}",
-      "included": {
-        "title": "Was jedes Paket enthält.",
-        "items": {
-          "expert": "Ein Senior-Experte, kein Junior mit Vorlage.",
-          "fixedPrice": "Ein Fixpreis, vereinbart vor dem ersten Besuch.",
-          "onSite": "Vor Ort ab dem System-Snapshot; der Kultur-Snapshot läuft remote an einem Tag.",
-          "report": "Ein schriftlicher Bericht mit priorisierten Massnahmen."
-        }
-      },
       "faq": {
-        "title": "Fragen.",
+        "title": "Häufige Fragen.",
         "items": {
           "vat": {
             "question": "Ist die MWST inbegriffen?",
@@ -582,9 +571,29 @@
           }
         }
       },
-      "closing": {
-        "title": "Nicht sicher, welches? Starten Sie mit der kostenlosen Zahl.",
-        "cta": "Sehen, was Ihr Risiko kostet"
+      "compare": {
+        "heading": "Die Pakete im Vergleich",
+        "lead": "Jede Stufe nebeneinander — Umfang, Ergebnis und Preis.",
+        "packageLabel": "Paket",
+        "formatLabel": "Format",
+        "coreValueLabel": "Kernnutzen",
+        "scopeLabel": "Umfang",
+        "priceLabel": "Preis",
+        "output": {
+          "culture": "Top-5-Risiken",
+          "sms": "Top-20-Risiken",
+          "compliance": "Massnahmenplan & Zeitplan",
+          "retainer": "Gemessene Risikoreduktion"
+        },
+        "retainerPrice": "Auf Anfrage — kontaktieren Sie uns",
+        "outputLabel": "Ergebnis",
+        "outcomeLabel": "Wirkung",
+        "bestFor": {
+          "culture": "Schnelle Sichtbarkeit",
+          "sms": "Echte Risiken validieren",
+          "compliance": "Systematisch beheben",
+          "retainer": "Resultate liefern"
+        }
       }
     },
     "about": {
@@ -769,7 +778,7 @@
         "outcome": "Ihre Kulturstufe, bewertet"
       },
       "retainer": {
-        "name": "EHS-Umsetzungspartner",
+        "name": "EHS-Transformationspartner",
         "shortName": "Partner",
         "promise": "Risiken beheben lassen",
         "bestFor": "Resultate liefern",
@@ -1362,6 +1371,7 @@
       "formEmpty": "Anfrageformular, leer",
       "formInvalid": "Anfrageformular, alle Fehler angezeigt",
       "sectionAnchor": "Abschnittskopf, Anker-Stufe",
+      "sectionAnchorCentred": "Abschnittskopf, Anker-Stufe, zentriert",
       "sectionMajor": "Abschnittskopf, Haupt-Stufe",
       "sectionMinor": "Abschnittskopf, Neben-Stufe",
       "sectionTitle": "Erfahrene Experten. Keine Folien.",
@@ -1369,7 +1379,8 @@
       "sectionLead": "Ein Fixpreis, ein erfahrener Experte vor Ort, ein schriftlicher Bericht, mit dem Sie arbeiten können.",
       "heroResearch": "Hero-Objekt der Startseite: Standbild des Kundenbereichs",
       "registerDirectory": "Expertenverzeichnis",
-      "costIceberg": "Kosten-Eisberg: der Zahlen-Abschnitt der Startseite"
+      "costIceberg": "Kosten-Eisberg: der Zahlen-Abschnitt der Startseite",
+      "packagesCompare": "Pakete im Vergleich: die Tabelle der Preisseite"
     },
     "expertAvatar": "Expertenbild",
     "avatarInitials": "Mit Initialen",

@@ -5,6 +5,13 @@ import { cn } from "@/lib/utils";
 /** The rhythm tier of a marketing section (docs/design.md, marketing section vocabulary). */
 export type SectionTier = "anchor" | "major" | "minor";
 
+/**
+ * The accent pill an eyebrow takes when it is not a bare caps line: the gallery's Accents badge at
+ * the caps scale. Shared by the emphasis shape and the centred anchor so the site has one pill
+ * rather than two that drift.
+ */
+const EYEBROW_PILL = "eyebrow h-auto px-2.5 py-1";
+
 export type SectionHeaderProps = {
   readonly tier: SectionTier;
   /** Caps label above the heading. Anchors and majors only; a minor never carries one. */
@@ -20,6 +27,14 @@ export type SectionHeaderProps = {
   readonly emphasis?: { readonly leadSentences: number };
   /** `h1` on the page opener, `h2` everywhere else. */
   readonly as?: "h1" | "h2";
+  /**
+   * Centres the opener instead of stacking it left. Anchors only, and opt in: the whole site reads
+   * left, so a centred section is a deliberate exception that has to earn itself (docs/design.md,
+   * `### Centred openers`). Left is the default and every existing call site keeps it. A centred
+   * anchor also flows its heading rather than breaking at every sentence, and pulls its lead in
+   * off `max-w-prose`, so the block reads as a plate rather than a column.
+   */
+  readonly align?: "left" | "center";
   /** The id an owning `section` points at with `aria-labelledby`. */
   readonly id?: string;
   readonly className?: string;
@@ -29,8 +44,8 @@ export type SectionHeaderProps = {
  * The opener of a marketing section (docs/design.md, marketing section vocabulary): the tier
  * picks the shape, so a page decides weight once and the heading size, the layout and the eyebrow
  * all follow. Anchor stacks left, major splits the heading from the lead, minor runs inline under
- * a hairline. `emphasis` overrides the tier's layout with the pill and two tone heading shape.
- * Server component.
+ * a hairline. `emphasis` overrides the tier's layout with the pill and two tone heading shape, and
+ * `align="center"` centres an anchor's stack. Server component.
  */
 export function SectionHeader({
   tier,
@@ -39,17 +54,20 @@ export function SectionHeader({
   lead,
   emphasis,
   as = "h2",
+  align = "left",
   id,
   className,
 }: SectionHeaderProps) {
+  const centred = align === "center" && tier === "anchor" && !emphasis;
   const heading = (
     <Statement
       as={as}
       id={id}
       text={title}
       // The emphasis heading runs on as prose rather than breaking at every sentence: its whole
-      // point is that the claim and its answer read as one paragraph of display type.
-      layout={emphasis ? "flow" : "line"}
+      // point is that the claim and its answer read as one paragraph of display type. A centred
+      // anchor flows for a different reason -- see the measure note below.
+      layout={emphasis || centred ? "flow" : "line"}
       leadSentences={emphasis?.leadSentences}
       className={cn(
         // The page opener carries the ceiling weight (600), so the one h1 on a marketing page
@@ -57,6 +75,17 @@ export function SectionHeader({
         // tokens' own 450. Owner decision of 2026-09-10.
         as === "h1" && "font-semibold",
         tier === "anchor" && "max-w-4xl text-display-sm md:text-display-lg",
+        /*
+          The measure cap is a left edge plus a width, so centring it leaves the block itself
+          hugging the left of the band. Centred anchors re-centre the cap and widen it: flowed at
+          `display-lg` the English opener is 833px on one line, which `max-w-4xl` (896px) holds but
+          only just, and a cap that close to the text wraps it on the first longer translation.
+          `max-w-5xl` (1024px) clears the English line and still sits inside the band, so the
+          German opener -- 1060px on one line, wider than the container itself -- wraps to two
+          balanced lines here rather than overflowing. The heading is one component serving both
+          catalogs, so the cap has to be a width neither language fights.
+        */
+        centred && "mx-auto max-w-5xl",
         tier === "major" && "text-display-sm md:text-display",
         tier === "minor" && "font-semibold text-2xl tracking-headline md:text-display-sm",
         // A measure the two tone heading needs and the split major does not: the heading is the
@@ -83,7 +112,7 @@ export function SectionHeader({
     return (
       <div className={cn("flex flex-col items-start gap-5", className)}>
         {eyebrow ? (
-          <Badge variant="brand-accent" className="eyebrow h-auto px-2.5 py-1">
+          <Badge variant="brand-accent" className={EYEBROW_PILL}>
             {eyebrow}
           </Badge>
         ) : null}
@@ -117,11 +146,46 @@ export function SectionHeader({
     );
   }
 
+  /*
+    The anchor. `align="center"` centres the whole stack: the eyebrow, the heading and the lead
+    share one axis rather than one left edge. Each part needs its own centring -- `items-center`
+    puts the boxes on the axis, `text-center` centres the lines inside them, and the lead's
+    `max-w-prose` needs `mx-auto` for the same reason the heading's cap does.
+  */
   return (
-    <div className={cn("flex flex-col gap-6", className)}>
-      {eyebrow ? <p className="eyebrow text-brand-accent">{eyebrow}</p> : null}
+    <div className={cn("flex flex-col gap-6", centred && "items-center text-center", className)}>
+      {/*
+        The centred anchor takes the accent pill (owner decision of 2026-09-14) rather than the
+        bare caps line every left aligned opener uses. Centred, a bare caps line has no left edge
+        to sit on and reads as a stray word floating above the heading; the pill gives it an
+        object's shape, which is what the reference and the gallery's Accents row both show. It is
+        the same pill the emphasis shape uses, so the site has one and not two.
+      */}
+      {eyebrow ? (
+        centred ? (
+          <Badge variant="brand-accent" className={EYEBROW_PILL}>
+            {eyebrow}
+          </Badge>
+        ) : (
+          <p className="eyebrow text-brand-accent">{eyebrow}</p>
+        )
+      ) : null}
       {heading}
-      {lead ? <p className="max-w-prose text-lg text-muted-foreground">{lead}</p> : null}
+      {lead ? (
+        <p
+          className={cn(
+            "max-w-prose text-lg text-muted-foreground",
+            // Pulled in off `max-w-prose` (~65ch): a centred lead reads as a plate under the
+            // heading rather than a column, and a measure that wide puts the turn too far from
+            // the centre when the copy does wrap. A short lead still sits on one line -- the cap
+            // is a ceiling, not a break point -- and where a longer one turns is left to
+            // `text-pretty` per language, since the two catalogs are different lengths.
+            centred && "mx-auto max-w-136 text-pretty",
+          )}
+        >
+          {lead}
+        </p>
+      ) : null}
     </div>
   );
 }
