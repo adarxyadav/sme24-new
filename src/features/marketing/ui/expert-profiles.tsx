@@ -122,12 +122,26 @@ export function ExpertProfiles() {
           people on a public page.
         */}
         <p className="-mt-6 max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
+        {/*
+          Separate cards rather than the `gap-px border bg-border` hairline grid the standard and
+          vetting bands above use. That technique fuses its cells into one ruled block, which is
+          right for four facets of a single claim or four steps of one ladder -- the cells are parts
+          of a whole there. Six people are not parts of a whole: each is a separate object a reader
+          weighs on its own, and fused into a table they read as rows of a directory. This band is
+          deliberately the one on the page that does not use the shared grid.
+        */}
         <ul
           aria-label={t("listLabel")}
-          className="grid gap-px border bg-border sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3"
         >
           {PROFILES.map((profile) => (
-            <li key={profile.key} className="flex min-w-0 flex-col bg-background p-6">
+            <li
+              key={profile.key}
+              // The `Card` treatment rather than the primitive itself: this is an `li`, and the
+              // component renders its own `div`. Same ring hairline and flat ground, so a card
+              // here and a card in the signed in areas are the same object.
+              className="flex min-w-0 flex-col rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
+            >
               <div className="flex items-start gap-4">
                 {/* `ExpertAvatar`, the primitive the expert pages and the gallery already use
                     (spec 0013, AC-6), rather than a monogram of this section's own. An earlier
