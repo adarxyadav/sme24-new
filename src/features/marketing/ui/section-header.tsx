@@ -173,6 +173,10 @@ export function SectionHeader({
       {heading}
       {lead ? (
         <p
+          // Named so a section can retune its own measure without the tier changing for everyone,
+          // the way `Statement` is already addressable. The expert network opener does exactly
+          // that: its lead is two sentences where the centred default was measured against one.
+          data-slot="lead"
           className={cn(
             "max-w-prose text-lg text-muted-foreground",
             // Pulled in off `max-w-prose` (~65ch): a centred lead reads as a plate under the

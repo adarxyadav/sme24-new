@@ -52,12 +52,31 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
 
       <section>
         <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 md:py-40">
+          {/*
+            The third centred opener on the site (owner decision of 2026-09-14), after the landing
+            trust band and the pricing opener. It earns the exception the way pricing does and for
+            that reason only: "Senior people. No juniors." is four words of display type, so left
+            aligned it left most of a `py-24 md:py-40` band empty to the right. Unlike pricing the
+            plate does not sit over cards -- the band under it is "the standard", which opens with
+            a major of its own -- so the centring is justified by the heading's own length here,
+            not by what follows it.
+
+            The lead widens off the centred default of `max-w-136`, which was measured against the
+            pricing lead: one sentence of 467px that sits on one line at desktop widths. This lead
+            is two sentences (EN 1049px, DE 1128px unwrapped), so at 544px it turned twice and
+            stranded a two word orphan on a third line in both catalogs. `max-w-2xl` (672px) is the
+            widest step that still reads as a plate and the first that holds both languages to two
+            balanced lines (second line 382px of 672 in English, 494px in German). Re-measure both
+            catalogs if this copy changes.
+          */}
           <SectionHeader
             tier="anchor"
             as="h1"
+            align="center"
             eyebrow={t("eyebrow")}
             title={t("title")}
             lead={t("lead")}
+            className="**:data-[slot=lead]:max-w-2xl"
           />
         </div>
       </section>
