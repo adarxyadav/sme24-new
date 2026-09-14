@@ -7,11 +7,20 @@ import { cn } from "@/lib/utils";
  */
 const BRACKET = "pointer-events-none absolute size-5 border-foreground/40";
 
+/*
+  The brackets sit ON the framed element's border box, not one pixel outside it. They were at
+  `-top-px -left-px` until 2026-09-14, which put a 1px line one pixel clear of the 1px hairline it
+  is meant to cover: wherever the block's own top or left landed on a fractional CSS pixel -- which
+  a centred `max-w-*` column inside a `px-4 sm:px-6` gutter does at plenty of viewport widths --
+  the two rounded to different device pixel rows and the corner read as two parallel hairlines
+  rather than one darker stroke. At `top-0 left-0` the bracket occupies the same row as the border
+  whatever the rounding, and because it is the darker value it simply wins there.
+*/
 const CORNERS = [
-  "-top-px -left-px border-t border-l",
-  "-top-px -right-px border-t border-r",
-  "-bottom-px -left-px border-b border-l",
-  "-bottom-px -right-px border-b border-r",
+  "top-0 left-0 border-t border-l",
+  "top-0 right-0 border-t border-r",
+  "bottom-0 left-0 border-b border-l",
+  "bottom-0 right-0 border-b border-r",
 ] as const;
 
 export type CornerBracketsProps = {
