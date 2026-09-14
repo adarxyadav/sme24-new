@@ -74,11 +74,17 @@ export default async function DirectoryPage({
         <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-24 sm:px-6 md:py-40">
           {/*
             The expert network opener's composition, left aligned (owner decision of 2026-09-14):
-            the accent pill and the flowed heading, without the centring. This page is a register
-            -- a ledger of figures over a filterable table, every one of them left edged -- so a
-            centred plate would be the one block on it not sitting on that edge. The pill and the
-            flow carry over because they are about the opener's own shape rather than its axis, and
-            the sibling page a reader arrives from wears both.
+            the accent pill, without the centring. This page is a register -- a ledger of figures
+            over a filterable table, every one of them left edged -- so a centred plate would be
+            the one block on it not sitting on that edge. The pill carries over because it is
+            about the opener's own shape rather than its axis, and the sibling page a reader
+            arrives from wears it.
+
+            No lead (owner decision of 2026-09-14). The anchor tier's stack is eyebrow, heading and
+            lead, and this one drops the third: what the lead said -- that these are the public
+            SGAS register's specialists -- the four figure notes immediately below say in more
+            detail, and the source line at the foot of the page credits the register itself.
+            `marketing.directory.lead` stays in both catalogs so restoring it is one prop.
 
             The heading keeps the campaign shape of one sentence per line. It flowed while the
             title was "The whole register. Open.", which set on one line in both catalogs (866.8px
@@ -98,7 +104,6 @@ export default async function DirectoryPage({
             eyebrow={t("eyebrow")}
             eyebrowVariant="pill"
             title={t("title")}
-            lead={t("lead")}
           />
           {/*
             The figures are a ledger rather than four cards: a caps label, the number as the
