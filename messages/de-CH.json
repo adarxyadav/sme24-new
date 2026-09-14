@@ -229,6 +229,40 @@
           }
         }
       },
+      "profiles": {
+        "eyebrow": "Das Netzwerk",
+        "title": "Wer vorbeikommt. Sechs Beispiele.",
+        "lead": "Jede Fachperson wird auf Ihre Branche, Ihren Kanton und die Norm abgestimmt, an der Sie gemessen werden. Das sind Profile in der Form, die ein echtes Profil hat.",
+        "note": "Beispielprofile in der Form, die ein echtes Profil hat. Das Netzwerk wird derzeit aufgebaut.",
+        "listLabel": "Beispielprofile von Fachpersonen",
+        "experienceLabel": "Erfahrung",
+        "standardsLabel": "Normen",
+        "languagesLabel": "Arbeitssprachen",
+        "manufacturing": {
+          "name": "M. Muster",
+          "experience": "22 Jahre, ASA-Spezialist"
+        },
+        "construction": {
+          "name": "A. Beispiel",
+          "experience": "18 Jahre, Sicherheitsleitung Bau"
+        },
+        "chemical": {
+          "name": "R. Muster",
+          "experience": "25 Jahre, EHS-Leitung"
+        },
+        "energy": {
+          "name": "C. Beispiel",
+          "experience": "19 Jahre, Anlagenbetrieb"
+        },
+        "logistics": {
+          "name": "L. Muster",
+          "experience": "16 Jahre, Flotten- und Lagersicherheit"
+        },
+        "food": {
+          "name": "S. Beispiel",
+          "experience": "21 Jahre, Qualität und Hygiene"
+        }
+      },
       "matching": {
         "eyebrow": "Zuteilung",
         "title": "Wie Sie Ihren bekommen.",

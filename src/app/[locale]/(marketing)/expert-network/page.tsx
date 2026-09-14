@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { collectionPageJsonLd } from "@/features/marketing/json-ld";
 import { marketingMetadata } from "@/features/marketing/metadata";
 import { ClosingCta } from "@/features/marketing/ui/closing-cta";
+import { ExpertProfiles } from "@/features/marketing/ui/expert-profiles";
 import { JsonLd } from "@/features/marketing/ui/json-ld";
 import { SectionHeader } from "@/features/marketing/ui/section-header";
 import { absoluteUrl } from "@/i18n/metadata";
@@ -136,6 +137,14 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
           </div>
         </section>
       </RuledField>
+
+      {/*
+        The example profiles sit after the vetting ladder: the page has said what "senior" has to
+        mean and how someone is vetted in, so the reader's next question is who that produces. Put
+        before the ladder they would be six strangers; after it they are the output of an argument
+        the reader has just been walked through.
+      */}
+      <ExpertProfiles />
 
       <section aria-labelledby="matching-heading coverage-heading">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-2">

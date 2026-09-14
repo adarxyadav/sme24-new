@@ -229,6 +229,40 @@
           }
         }
       },
+      "profiles": {
+        "eyebrow": "The network",
+        "title": "Who turns up. Six examples.",
+        "lead": "Every expert is matched to your sector, your canton and the standard you are judged against. These are profiles in the shape a real one takes.",
+        "note": "Example profiles, in the shape a real one takes. The network is being onboarded now.",
+        "listLabel": "Example expert profiles",
+        "experienceLabel": "Experience",
+        "standardsLabel": "Standards",
+        "languagesLabel": "Works in",
+        "manufacturing": {
+          "name": "M. Muster",
+          "experience": "22 years, ASA specialist"
+        },
+        "construction": {
+          "name": "A. Beispiel",
+          "experience": "18 years, site safety lead"
+        },
+        "chemical": {
+          "name": "R. Muster",
+          "experience": "25 years, EHS director"
+        },
+        "energy": {
+          "name": "C. Beispiel",
+          "experience": "19 years, plant operations"
+        },
+        "logistics": {
+          "name": "L. Muster",
+          "experience": "16 years, fleet and warehouse safety"
+        },
+        "food": {
+          "name": "S. Beispiel",
+          "experience": "21 years, quality and hygiene"
+        }
+      },
       "matching": {
         "eyebrow": "Matching",
         "title": "How you get yours.",
