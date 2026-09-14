@@ -9,7 +9,6 @@ import type {
   StandardCode,
 } from "@/features/experts/catalogue";
 import { ExpertAvatar } from "@/features/experts/ui/expert-avatar";
-import { SectionHeader } from "@/features/marketing/ui/section-header";
 
 /**
  * The six example profiles. Every coded field is a real code from `EXPERT_CATALOGUE`, so the
@@ -102,10 +101,12 @@ function standardName(label: string): string {
 }
 
 /**
- * The example profiles band of the expert network page (docs/design.md, tier map: major): six
- * profiles in the shape a real one takes, so a reader who has just been told what "senior" has to
- * mean and how someone is vetted can see who that produces. It sits after the vetting ladder,
- * where the argument has been made and the next question is who it is about.
+ * The example profiles band of the expert network page (docs/design.md, tier map: major,
+ * openerless): six profiles in the shape a real one takes, directly under the hero, so the claim
+ * the page opens with -- "Senior people. No juniors." -- is answered by the people it is about
+ * before the standard and the vetting ladder explain how such a person is found. It needs no
+ * visible heading of its own, only the `sr-only` one that names the landmark and keeps a level
+ * above the cards' `h3`: the hero above it and the disclosure note below name what the cards are.
  *
  * The card is built from the design system rather than from the usual directory pattern: flat with
  * a hairline and no shadow, square cornered, in the `gap-px border bg-border` grid the standard and
@@ -123,21 +124,32 @@ export function ExpertProfiles() {
 
   return (
     <section aria-labelledby="profiles-heading">
-      <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:gap-14 md:py-28">
-        <SectionHeader
-          tier="major"
-          id="profiles-heading"
-          eyebrow={t("eyebrow")}
-          title={t("title")}
-          lead={t("lead")}
-        />
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-16 sm:px-6 md:py-28">
+        {/*
+          The band carries no visible opener (owner decision of 2026-09-14), the third case on the
+          site after the landing page's worked figure and the pricing packages. It had a major one
+          -- eyebrow, "Who turns up. Six examples." and a lead -- until then. What it announced the
+          hero above already says and the disclosure note below repeats: these are example experts.
+          The heading stays as `sr-only`, so the landmark keeps its name and the cards keep an `h2`
+          above their `h3`.
+
+          The band keeps both its tier's paddings, unlike the pricing packages, which dropped their
+          top one so the cards would clear the anchor above. That does not transfer here even though
+          the band above is also an anchor: the hero's own control sits at the bottom of it, so the
+          space under it is what separates a button from a grid of cards rather than dead white
+          between a lead and a card.
+        */}
+        <h2 id="profiles-heading" className="sr-only">
+          {t("title")}
+        </h2>
         {/*
           The disclosure sits once above the grid rather than as a badge on each of the six cards:
           it is read before the cards rather than repeated six times inside them, which is the same
           placement the landing band settled on. It has to stay somewhere -- these are invented
-          people on a public page.
+          people on a public page. With the opener gone it is the first thing the band shows, so it
+          loses the negative margin that pulled it up against the lead.
         */}
-        <p className="-mt-6 max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
+        <p className="max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
         {/*
           Separate cards rather than the `gap-px border bg-border` hairline grid the standard and
           vetting bands above use. That technique fuses its cells into one ruled block, which is

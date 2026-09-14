@@ -79,8 +79,43 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
             lead={t("lead")}
             className="**:data-[slot=lead]:max-w-2xl"
           />
+          {/*
+            One control under the opener, centred on the same axis as the stack above it. The
+            register is the only thing this page can offer a reader at the top: it is the one place
+            the claim above can be checked against a public list rather than taken on trust, which
+            is why it sits here and not only in the coverage column further down. That inline link
+            stays -- it belongs to the sentence it sits in, and it names the register in full where
+            there is room for it.
+
+            Outline rather than the filled default. The filled button is the page's closing ask
+            ("Get started" on the jet anchor), and a hero that opens with the same weight competes
+            with it: this one hands the reader a way to verify the claim, not the page's action.
+
+            `size="lg"`, the marketing call to action size (docs/design.md, spacing and layout).
+            The hero's `xl` belongs to the landing page's lookup field alone.
+          */}
+          <div className="mt-10 flex justify-center">
+            <Button asChild size="lg" variant="outline">
+              <Link href="/expert-network/directory">{t("cta")}</Link>
+            </Button>
+          </div>
         </div>
       </section>
+
+      {/*
+        The example profiles open the page under the hero (owner decision of 2026-09-14). They sat
+        after the vetting ladder until then, on the reading that the cards are the output of an
+        argument and would be six strangers before it. What that reading undervalued is that the
+        hero's own claim -- "Senior people. No juniors." -- is the thing a reader arrives doubting,
+        and the six cards are the evidence for it: shown first they answer the claim while it is
+        still being made, and the standard and the ladder below then explain how such a person is
+        found. The page argues from the evidence rather than towards it.
+
+        The band stays openerless here (owner decision of 2026-09-14). It carries no argument above
+        it now, so what names the cards is the hero itself plus the band's own disclosure note; the
+        `sr-only` heading keeps the landmark named and the cards' `h3` a level to sit under.
+      */}
+      <ExpertProfiles />
 
       <section aria-labelledby="standard-heading">
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-16 sm:px-6 md:py-28">
@@ -137,14 +172,6 @@ export default async function ExpertNetworkPage({ params }: PageProps<"/[locale]
           </div>
         </section>
       </RuledField>
-
-      {/*
-        The example profiles sit after the vetting ladder: the page has said what "senior" has to
-        mean and how someone is vetted in, so the reader's next question is who that produces. Put
-        before the ladder they would be six strangers; after it they are the output of an argument
-        the reader has just been walked through.
-      */}
-      <ExpertProfiles />
 
       <section aria-labelledby="matching-heading coverage-heading">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:py-20 lg:grid-cols-2">
