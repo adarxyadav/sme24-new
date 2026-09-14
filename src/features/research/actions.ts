@@ -68,12 +68,13 @@ function localeOf(input: unknown): Locale {
 }
 
 /**
- * Starts the first research (AC-3): answers `company_exists` with the id when the organization
- * already has a non archived company, else inserts the company (`name`, `website`, the selected
- * `country` with the currency it implies, `created_by`) and its queued run, triggers the task and
- * stores the run id (spec 0022, AC-1). Two concurrent
- * submits can both pass the check, so the insert is reconciled against the earliest company
- * afterwards and the loser is archived before it can start a run. Server action, client member.
+ * Starts a research (AC-3): inserts the company (`name`, `website`, the selected `country` with
+ * the currency it implies, `created_by`) and its queued run, triggers the task and stores the run
+ * id (spec 0022, AC-1). An organization may hold as many companies as it likes (a group and its
+ * subsidiaries), so a company already existing is no longer a refusal; the daily run quota, which
+ * counts per organization, is what bounds the cost. A double submit of the same name is still
+ * reconciled afterwards and the duplicate archived before it can spend a second run.
+ * Server action, client member.
  */
 export async function requestResearch(
   _previous: ResearchActionResult<RequestResearchData> | null,
@@ -84,19 +85,6 @@ export async function requestResearch(
   const parsed = parseWith(lookupSchema, input, localeOf(input));
   if (!parsed.success) return { ok: false, error: "validation" };
   const { supabase, organizationId, userId } = actor;
-
-  const { data: existing, error: existingError } = await supabase
-    .from("companies")
-    .select("id")
-    .eq("organization_id", organizationId)
-    .is("archived_at", null)
-    // The same order `getCompanyDashboard` uses, id breaking a tie.
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (existingError) return unexpected("request-research", existingError, organizationId);
-  if (existing) return { ok: false, error: "company_exists", companyId: existing.id };
 
   const { data: company, error: companyError } = await supabase
     .from("companies")
@@ -113,7 +101,7 @@ export async function requestResearch(
     .single();
   if (companyError) return unexpected("request-research", companyError, organizationId);
 
-  const settled = await settleConcurrentCompany(actor, company.id);
+  const settled = await settleConcurrentCompany(actor, company.id, parsed.data.name);
   if (settled) return settled;
 
   const run = await startRun(actor, company.id);
@@ -172,20 +160,23 @@ export async function rerunResearch(
 }
 
 /**
- * Guards the double submit the `company_exists` check alone cannot catch (AC-3): a second insert
- * that raced the check would sit behind the earliest company, which is the only one
- * `getCompanyDashboard` ever shows, while still spending a run against the daily quota. Re-reads
- * the earliest non archived company; when it is not the row just inserted, archives that row and
- * answers `company_exists` with the winner instead of starting a run.
+ * Guards the double submit (AC-3): two clicks on the lookup form would otherwise insert the same
+ * company twice and spend two of the day's runs on one question. Now that an organization may hold
+ * several companies, only a row with the *same name* is a duplicate, so this re-reads the earliest
+ * non archived company of that name; when it is not the row just inserted, archives that row and
+ * answers `company_exists` with the winner instead of starting a run. A genuinely different
+ * company shares no name and so never reaches this.
  */
 async function settleConcurrentCompany(
   { supabase, organizationId }: Actor,
   companyId: string,
+  name: string,
 ): Promise<ResearchActionResult<RequestResearchData> | null> {
   const { data: earliest, error } = await supabase
     .from("companies")
     .select("id")
     .eq("organization_id", organizationId)
+    .eq("name", name)
     .is("archived_at", null)
     .order("created_at", { ascending: true })
     .order("id", { ascending: true })

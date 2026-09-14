@@ -58,6 +58,71 @@ export type CompanyDashboard = {
   readonly clientKpiUpdatedAt: string | null;
 };
 
+/** One row of the client's own companies list, with the state of its newest run. */
+export type CompanyListRow = {
+  readonly id: string;
+  readonly name: string;
+  readonly country: string;
+  readonly canton: string | null;
+  readonly employeesCount: number | null;
+  readonly createdAt: string;
+  readonly latestRunStatus: RunRow["status"] | null;
+  readonly latestRunAt: string | null;
+};
+
+/**
+ * Every non archived company of the organization, newest first, each with the status of its newest
+ * research run (the client's own list, the counterpart of the ops one). Two queries rather than one
+ * per company: the runs of all of them are read at once and reduced to the newest per company, so
+ * the list costs the same at one company as at twenty. Throws on a database error. Server component.
+ */
+export async function listClientCompanies(
+  supabase: Client,
+  organizationId: string,
+): Promise<readonly CompanyListRow[]> {
+  const { data: companies, error } = await supabase
+    .from("companies")
+    .select("id, name, country, canton, employees_count, created_at")
+    .eq("organization_id", organizationId)
+    .is("archived_at", null)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false });
+  if (error) throw queryError(error);
+  if (companies.length === 0) return [];
+
+  const { data: runs, error: runsError } = await supabase
+    .from("research_runs")
+    .select("company_id, status, created_at")
+    .in(
+      "company_id",
+      companies.map((company) => company.id),
+    )
+    .order("created_at", { ascending: false });
+  if (runsError) throw queryError(runsError);
+
+  // Descending by `created_at`, so the first row seen for a company is its newest run.
+  const newest = new Map<string, { status: RunRow["status"]; createdAt: string }>();
+  for (const run of runs) {
+    if (!newest.has(run.company_id)) {
+      newest.set(run.company_id, { status: run.status, createdAt: run.created_at });
+    }
+  }
+
+  return companies.map((company) => {
+    const run = newest.get(company.id);
+    return {
+      id: company.id,
+      name: company.name,
+      country: company.country,
+      canton: company.canton,
+      employeesCount: company.employees_count,
+      createdAt: company.created_at,
+      latestRunStatus: run?.status ?? null,
+      latestRunAt: run?.createdAt ?? null,
+    };
+  });
+}
+
 /** The reporting years the table shows: the three highest present, newest first. Pure. */
 export function newestYears(
   rows: ReadonlyArray<{ period_year: number | null }>,
@@ -118,14 +183,20 @@ export function newestClientMoment(rows: readonly KpiRow[]): string | null {
  * benchmark snapshot and the derived benchmark state (spec 0008, AC-9), plus the narrowed rows
  * the self assessment form prefills from (spec 0010, AC-10). Throws on a database error. Server
  * component.
+ *
+ * `companyId` names which of the organization's companies to render; without it the earliest non
+ * archived one answers, which is what the expert's read only mirror and the bare `/app` redirect
+ * want. An id belonging to another organization reads as no company at all, because RLS scopes
+ * the row and the query filters the organization again besides.
  */
 export async function getCompanyDashboard(
   supabase: Client,
   organizationId: string,
   now: Date = new Date(),
+  companyId?: string,
 ): Promise<CompanyDashboard> {
   const [company, catalogue, quota] = await Promise.all([
-    loadCompany(supabase, organizationId),
+    loadCompany(supabase, organizationId, companyId),
     loadCatalogue(supabase),
     loadQuota(supabase, organizationId, now),
   ]);
@@ -181,20 +252,35 @@ export async function getCompanyDashboard(
   };
 }
 
-async function loadCompany(supabase: Client, organizationId: string): Promise<Company | null> {
-  const { data, error } = await supabase
+async function loadCompany(
+  supabase: Client,
+  organizationId: string,
+  companyId?: string,
+): Promise<Company | null> {
+  // A malformed id would make Postgres raise on the uuid cast rather than answer no rows, and a
+  // page reached with a typed URL is a not found, not a 500.
+  if (companyId !== undefined && !UUID.test(companyId)) return null;
+  const scoped = supabase
     .from("companies")
     .select("*")
     .eq("organization_id", organizationId)
-    .is("archived_at", null)
-    // The same order the actions use to settle a concurrent insert, id breaking a tie.
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true })
+    .is("archived_at", null);
+  const { data, error } = await (companyId === undefined
+    ? scoped
+        // The oldest company answers when none is named: the organization's first, which is what
+        // the expert mirror shows and where a bare `/app` sends the client.
+        .order("created_at", { ascending: true })
+        .order("id", { ascending: true })
+    : scoped.eq("id", companyId)
+  )
     .limit(1)
     .maybeSingle();
   if (error) throw queryError(error);
   return data;
 }
+
+/** A company id has to be a uuid before it reaches Postgres; see `loadCompany`. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function loadCatalogue(supabase: Client): Promise<readonly KpiDefinitionRow[]> {
   const { data, error } = await supabase

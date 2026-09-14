@@ -48,6 +48,7 @@
     "label": "Navigation",
     "app": {
       "overview": "Overview",
+      "companies": "Companies",
       "orders": "Orders"
     },
     "expert": {
@@ -1866,6 +1867,26 @@
       "countryRequired": "Select the country the company is registered in.",
       "websiteInvalid": "Please enter a valid website, for example example.ch."
     }
+  },
+  "clientCompanies": {
+    "title": "Companies",
+    "description": "Every company you have analysed. Open one to see its research and benchmark.",
+    "newAnalysis": "New analysis",
+    "emptyTitle": "No companies yet",
+    "emptyBody": "Start a new analysis and we will research the company's safety record for you.",
+    "columns": {
+      "name": "Company",
+      "location": "Location",
+      "employees": "Employees",
+      "research": "Research",
+      "created": "Added"
+    },
+    "none": "—",
+    "noRun": "Not started",
+    "newTitle": "New analysis",
+    "newDescription": "Name the company you want analysed. We research it and build its benchmark.",
+    "backToCompanies": "All companies",
+    "formDescription": "Give the company name and where it is registered. A website helps us find the right reports."
   },
   "benchmark": {
     "heading": "Benchmark and opportunity",
