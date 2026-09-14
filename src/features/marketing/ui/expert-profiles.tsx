@@ -197,8 +197,24 @@ export function ExpertProfiles() {
                 it never appears without the discipline's own words beside it. Colour is not the
                 carrier: remove it and the line still reads.
               */}
-              <p className="mt-6 text-balance text-brand-accent text-heading-20">
+              {/*
+                Body size, not a heading. The accent already marks this as the card's claim, and
+                size on top of colour was two devices doing one job -- at `heading-20` it also read
+                as a second headline under the name. `font-medium` is all the weight it needs once
+                the colour is carrying.
+              */}
+              <p className="mt-6 text-balance font-medium text-brand-accent text-copy-14">
                 {catalogue(`competencies.${profile.competency}`)}
+              </p>
+              {/*
+                What the name means, in the client's own words. "Management system" and "Safety
+                culture" are the product's competency codes (`COMPETENCY_CODES`) -- a safety
+                manager parses them, the CFO who signs the order does not, and both read this page.
+                The line is written in the register the packages' own promises use ("Know where you
+                stand"), so the site says one thing in one voice.
+              */}
+              <p className="mt-1 text-pretty text-copy-13 text-muted-foreground">
+                {t(`plain.${profile.competency}`)}
               </p>
               {/*
                 Icons on the three reference fields only, never on the name or the discipline:

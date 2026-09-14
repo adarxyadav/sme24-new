@@ -238,6 +238,11 @@
         "experienceLabel": "Experience",
         "standardsLabel": "Works to",
         "languagesLabel": "Works in",
+        "plain": {
+          "management_system": "Sets up the system that keeps you compliant year after year.",
+          "safety_culture": "Gets people working safely when nobody is watching.",
+          "compliance": "Finds the gaps before an inspector or an accident does."
+        },
         "manufacturing": {
           "name": "M. Muster",
           "years": "22 years",
