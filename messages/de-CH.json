@@ -204,8 +204,8 @@
             "body": "Produktion, Chemie, Bau, Logistik, Lebensmittel. Wir gleichen die Branche ab, nicht nur die Norm."
           },
           "swiss": {
-            "title": "Schweizer Praxis.",
-            "body": "Sattelfest in SUVA, EKAS und der kantonalen Realität, in der Sprache, die Ihre Leute im Betrieb sprechen."
+            "title": "Praxis vor Ort.",
+            "body": "Sattelfest in der Aufsichtsbehörde, im Kontrollregime und in der Rechtspraxis am Standort Ihres Betriebs, in der Sprache, die Ihre Leute im Betrieb sprechen."
           }
         }
       },
@@ -214,20 +214,20 @@
         "title": "Wie jemand aufgenommen wird.",
         "steps": {
           "record": {
-            "title": "Werdegang.",
-            "body": "Rollen, Betriebe, Normen, Referenzen von Leuten, die ihnen unterstellt waren."
+            "title": "Wir prüfen den Werdegang.",
+            "body": "Die Rollen, die Betriebe, die Normen. Dann rufen wir die Leute an, die für sie gearbeitet haben."
           },
           "shadow": {
-            "title": "Ein begleiteter Besuch.",
-            "body": "Die erste Beurteilung läuft neben einem etablierten Experten, beide schreiben."
+            "title": "Sie werden begleitet.",
+            "body": "Beim ersten Besuch kommt ein erfahrener Experte mit. Beide schreiben einen Bericht, und wir vergleichen sie."
           },
           "review": {
-            "title": "Schriftliche Prüfung.",
-            "body": "Wir lesen den Bericht wie ein Kunde. Vage Befunde bestehen nicht."
+            "title": "Wir lesen den Bericht.",
+            "body": "Wir lesen ihn so, wie Sie ihn lesen würden. Ist ein Befund vage, kommt die Person nicht rein."
           },
           "ongoing": {
-            "title": "Und danach jeder Bericht.",
-            "body": "Jede Arbeit wird von den Kunden bewertet. Die Latte sinkt nach der Aufnahme nicht."
+            "title": "Die Prüfung hört nicht auf.",
+            "body": "Sie bewerten jeden Auftrag. Wer die Latte nicht mehr hält, bekommt keine Arbeit mehr."
           }
         }
       },
@@ -274,18 +274,6 @@
           "years": "21 Jahre",
           "role": "Qualität und Hygiene"
         }
-      },
-      "matching": {
-        "eyebrow": "Zuteilung",
-        "title": "Wie Sie Ihren bekommen.",
-        "lead": "Sie wählen nicht aus einem Verzeichnis. Wir teilen den Experten zu, dessen Branche und Normen zur Firma passen und der Ihren Standort erreicht. Passt es nicht, bekommen Sie einen anderen, und wir tragen die Kosten."
-      },
-      "coverage": {
-        "eyebrow": "Abdeckung",
-        "title": "Wohin wir kommen.",
-        "lead": "Das Netzwerk deckt die ganze Deutsch- und Westschweiz ab; Besuche übernimmt jeweils der nächstgelegene Experte, das hält die Anfahrt kurz.",
-        "note": "Tessin auf Anfrage.",
-        "directory": "Das ganze SGAS-Register ansehen"
       },
       "closing": {
         "title": "Sehen Sie, was Ihr Risiko kostet. Dann Ihr Experte.",
@@ -556,7 +544,7 @@
           },
           "experts": {
             "question": "Wer sind die Fachpersonen?",
-            "answer": "Fachpersonen, die EHS in der Schweizer Industrie verantwortet haben, keine Junior-Kraft mit Checkliste. Wer bei Ihnen vor Ort ist, schreibt auch den Bericht und schliesst die Lücken mit Ihnen – Erfahrung aus der Industrie, nicht Theorie."
+            "answer": "Fachpersonen, die EHS in der Industrie verantwortet haben, keine Junior-Kraft mit Checkliste. Wer bei Ihnen vor Ort ist, schreibt auch den Bericht und schliesst die Lücken mit Ihnen – Erfahrung aus der Industrie, nicht Theorie."
           },
           "price": {
             "question": "Was kostet ein Paket?",

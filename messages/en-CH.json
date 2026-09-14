@@ -204,8 +204,8 @@
             "body": "Manufacturing, chemicals, construction, logistics, food. We match the sector, not just the standard."
           },
           "swiss": {
-            "title": "Swiss practice.",
-            "body": "Fluent in SUVA, EKAS and the cantonal reality, in the language your team actually speaks on site."
+            "title": "Local practice.",
+            "body": "Fluent in the regulator, the inspection regime and the case law where your site actually sits, in the language your team speaks on the floor."
           }
         }
       },
@@ -214,20 +214,20 @@
         "title": "How someone gets in.",
         "steps": {
           "record": {
-            "title": "Record check.",
-            "body": "Roles, sites, standards, references from people who reported to them."
+            "title": "We check the record.",
+            "body": "The roles they held, the sites they ran, the standards they know. Then we call the people who worked for them."
           },
           "shadow": {
-            "title": "A shadowed visit.",
-            "body": "Their first assessment runs alongside an established expert, both writing."
+            "title": "They are shadowed.",
+            "body": "An experienced expert joins their first site visit. Both write a report, and we compare them."
           },
           "review": {
-            "title": "Written review.",
-            "body": "We read the report as a client would. Vague findings do not pass."
+            "title": "We read the report.",
+            "body": "We read it the way you would. If a finding is vague, they do not get in."
           },
           "ongoing": {
-            "title": "Every report after.",
-            "body": "Client feedback is scored on each assignment. The bar does not drop after entry."
+            "title": "The checks continue.",
+            "body": "You rate every job. Anyone who stops meeting the bar stops getting work."
           }
         }
       },
@@ -274,18 +274,6 @@
           "years": "21 years",
           "role": "Quality and hygiene"
         }
-      },
-      "matching": {
-        "eyebrow": "Matching",
-        "title": "How you get yours.",
-        "lead": "You do not pick from a directory. We assign the expert whose sector and standards match the company, and who can reach your site. If the fit is wrong, you get another one and we absorb the cost."
-      },
-      "coverage": {
-        "eyebrow": "Coverage",
-        "title": "Where we go.",
-        "lead": "The network covers all of German and French speaking Switzerland, with visits arranged from the nearest expert to reduce travel.",
-        "note": "Ticino by arrangement.",
-        "directory": "Browse the whole SGAS register"
       },
       "closing": {
         "title": "See what your risk costs. Then meet your expert.",
@@ -556,7 +544,7 @@
           },
           "experts": {
             "question": "Who are the experts?",
-            "answer": "Subject matter experts who have run EHS in Swiss industry, not a junior with a checklist. The person who walks your site is the person who writes the report and closes the gaps with you – industry experience, not theory."
+            "answer": "Subject matter experts who have run EHS in industry, not a junior with a checklist. The person who walks your site is the person who writes the report and closes the gaps with you – industry experience, not theory."
           },
           "price": {
             "question": "What does a package cost?",

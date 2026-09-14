@@ -156,18 +156,22 @@ export function ExpertProfiles() {
           {t("title")}
         </h2>
         {/*
-          KNOWN GAP (owner decision of 2026-09-14): the visible disclosure is gone. It read
-          "Example profiles, in the shape a real one takes. The network is being onboarded now."
-          and sat here, above the grid.
+          KNOWN GAP, reopened 2026-09-14 (owner decision): the visible disclosure is off the page
+          again. It read "Example profiles, in the shape a real one takes. The network is being
+          onboarded now." and sat here, above the filter.
 
           What is left is `sr-only`: this band's heading ("Who turns up. Six examples.") and the
-          list's own `aria-label`. So a screen reader is still told these are examples and a
-          sighted reader is not -- six invented people (`M. Muster`, `A. Beispiel`) are shown with
-          years, cantons and standards and nothing on the page says they are illustrations.
+          list's `aria-label`. So a screen reader is told these are examples and a sighted reader
+          is not -- six invented people (`M. Muster`, `A. Beispiel`) are shown with years, cantons,
+          standards and working languages, and nothing on the page says they are illustrations.
+          That is a claim about people who have not been hired, on a public page, and it is the
+          same gap `docs/design.md` recorded as owed back before launch.
 
-          The `note` key stays in both catalogs, unused, so restoring the line is one JSX element
-          rather than a copy round trip. Put it back before launch, or when real experts replace
-          `PROFILES`, whichever comes first.
+          The `note` key stays in both catalogs, unused, so restoring the line is one JSX element:
+
+            <p className="mb-6 max-w-prose text-copy-14 text-muted-foreground">{t("note")}</p>
+
+          Put it back before launch, or when real experts replace `PROFILES`, whichever is first.
         */}
         {/*
           Separate cards rather than the `gap-px border bg-border` hairline grid the standard and
@@ -231,9 +235,32 @@ export function ExpertProfiles() {
               // The `Card` treatment rather than the primitive itself: this is an `li`, and the
               // component renders its own `div`. Same ring hairline and flat ground, so a card
               // here and a card in the signed in areas are the same object.
-              className="flex min-w-0 flex-col gap-5 rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
+              // `gap-6` rather than `gap-5`, so the card's one structural break is its largest
+              // (2026-09-14). The head and the specification are the card's two halves, and at
+              // `gap-5` (20px) that break was only 4px wider than the 16px between two ordinary
+              // rows inside the block below it -- four levels of spacing compressed into 4px, so
+              // the card read as one undifferentiated column. The scale is now 4px inside a pair
+              // (name and seniority), 6px inside the discipline pair, 16px between fields, 24px
+              // between the halves: each level is visibly its own.
+              className="flex min-w-0 flex-col gap-6 rounded-xl bg-card p-6 text-card-foreground ring-1 ring-foreground/10"
             >
-              <div className="flex items-center gap-4">
+              {/*
+                Aligned to the top of the type, not the centre of the block (2026-09-14). The
+                seniority line reserves two lines (`min-h-10.5`, 42px) so that one long role cannot
+                make its card taller than the row, but five of the six roles occupy one line, so
+                the block is 74px of which the last 21px are deliberately empty. Centred against
+                that box, the avatar sat about 13px below the middle of the ink a reader actually
+                sees -- the name's cap height started above the circle and the whole head read as
+                two things that had drifted apart.
+
+                `items-start` alone fixes it, and the offset it looked like it would need turns out
+                to be nothing: the 56px circle is taller than the 28px name, so started at the same
+                top it spans the name and most of the first role line on its own. Measured, its
+                centre lands 3px from the centre of the visible ink where centring put it 13px
+                below. Reserved space below stays reserved and no longer drags the circle down with
+                it.
+              */}
+              <div className="flex items-start gap-4">
                 {/* `ExpertAvatar`, the primitive the expert pages and the gallery already use
                     (spec 0013, AC-6), rather than a monogram of this section's own. An earlier
                     pass drew a solid square here for the weight it gave the card; the gallery
@@ -303,7 +330,13 @@ export function ExpertProfiles() {
                 `w-full` on the three full width pairs forces the break, and the two that share a
                 line are simply the two that do not carry it.
               */}
-              <dl className="mt-auto flex flex-wrap gap-x-5 gap-y-2.5 border-t pt-4">
+              {/*
+                `pt-6` matches the card's own `gap-6` above the rule, so the divider sits with
+                equal air on both sides (2026-09-14). It was `pt-4`: 24px above the hairline
+                against 16px below it, which made the rule look pushed down toward the block it
+                introduces rather than set between the card's two halves.
+              */}
+              <dl className="mt-auto flex flex-wrap gap-x-5 gap-y-2.5 border-t pt-6">
                 {/*
                   An icon in place of the caps label (owner, 2026-09-14). Each field was a label
                   over its value, two lines of which one was a heading the reader does not need

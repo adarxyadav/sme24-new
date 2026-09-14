@@ -298,7 +298,9 @@ test("the expert network page links into the directory in both languages (direct
   page,
 }) => {
   await page.goto("/de/expertennetzwerk");
-  await page.getByRole("link", { name: "Das ganze SGAS-Register ansehen" }).click();
+  // The hero's outline control is the page's one link into the register: the coverage column that
+  // used to carry a second one was dropped with the "Where we go." band (2026-09-14).
+  await page.getByRole("link", { name: "Öffentliches Register ansehen" }).click();
   await expect(page).toHaveURL(/\/de\/expertennetzwerk\/verzeichnis$/);
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
 });
