@@ -142,8 +142,10 @@ describe("the peer chart (spec 0022, the D-chart)", () => {
         },
       ),
     });
-    // One point (the client alone) is not a comparison, so the table stands on its own.
+    // One point (the client alone) is not a comparison, so the whole card goes and the table
+    // stands on its own rather than leaving an empty card behind.
     expect(container.querySelector("[data-peer-chart]")).not.toBeInTheDocument();
+    expect(container.querySelector("[data-chart-card]")).not.toBeInTheDocument();
     expect(container.querySelector('[data-peer="Delta AG"]')).toBeInTheDocument();
   });
 

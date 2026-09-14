@@ -89,9 +89,10 @@ type ClientRow = {
 /**
  * The benchmark segment of the dashboard (spec 0008, AC-9; spec 0022, AC-18, AC-20 to AC-24): the
  * waiting states, the `outdated` sentence for a snapshot written by a model version this code no
- * longer reads, then on a readable snapshot the four sections in the order AC-20 to AC-23 fix —
- * the one peer table, the estimated loss, the suggested experts, the recommended package — and the
- * company facts card last. Nothing from an unreadable row is ever shown. Server component.
+ * longer reads, then on a readable snapshot the sections in the order AC-20 to AC-23 fix — the one
+ * peer table, the chart of that same ranking, the estimated loss, the suggested experts, the
+ * recommended package — and the company facts card last. Nothing from an unreadable row is ever
+ * shown. Server component.
  */
 export async function BenchmarkSegment({
   snapshot,
@@ -150,6 +151,13 @@ export async function BenchmarkSegment({
       {blocks ? (
         <>
           <PeersSection
+            blocks={blocks}
+            companyName={companyName ?? t("peers.table.yourCompany")}
+            locale={locale}
+            t={t}
+            format={format}
+          />
+          <ChartSection
             blocks={blocks}
             companyName={companyName ?? t("peers.table.yourCompany")}
             locale={locale}
@@ -324,10 +332,108 @@ function chartLabels({
 }
 
 /**
+ * The peers and the client as one ranking, sorted by TRIFR ascending with the companies that
+ * published no TRIFR last (AC-20). The client sits among the peers by its own rate, so the list
+ * reads as one ranking rather than a list with the reader appended; without a TRIFR there is no
+ * place to put them and the row is left out, which is the same condition that empties the rank
+ * sentence.
+ *
+ * TRIFR and not LTIFR because the chart ranks by TRIFR (the owner's sketch of 14 Sep 2026), and a
+ * table ordered differently from the chart would give one reader two rankings. The stored
+ * `peers.rows` stay sorted by LTIFR: changing that is a model change and a version bump for an
+ * ordering only the page cares about, so the re-sort belongs here.
+ *
+ * The table card and the chart card both read this, so the two can never disagree. Pure.
+ */
+function rankedRows(
+  blocks: SnapshotBlocks,
+  companyName: string,
+): readonly (SnapshotPeerRow | ClientRow)[] {
+  const { peers, inputs, loss } = blocks;
+  if (!peers) return [];
+  const clientRate = (key: "ltifr" | "trifr") =>
+    inputs.kpis.find((kpi) => kpi.key === key)?.value ?? null;
+  const clientTrifr = clientRate("trifr");
+  const clientRow: ClientRow = {
+    name: companyName,
+    headcount: inputs.fte,
+    ltifr: clientRate("ltifr"),
+    trifr: clientTrifr,
+    loss: loss?.loss ?? null,
+  };
+  const sorted = [...peers.rows].sort((a, b) => {
+    if (a.trifr === null && b.trifr === null) return a.peerName < b.peerName ? -1 : 1;
+    if (a.trifr === null) return 1;
+    if (b.trifr === null) return -1;
+    if (a.trifr !== b.trifr) return a.trifr - b.trifr;
+    return a.peerName < b.peerName ? -1 : 1;
+  });
+  if (clientTrifr === null) return sorted;
+  return [
+    ...sorted.filter((row) => row.trifr !== null && row.trifr < clientTrifr),
+    clientRow,
+    ...sorted.filter((row) => row.trifr === null || row.trifr >= clientTrifr),
+  ];
+}
+
+/**
+ * The peer chart, its own card under the peer table (spec 0022, the D-chart): the rank across,
+ * TRIFR up, each company's own estimated yearly loss as the bubble's area, and the client as an
+ * unfilled outline. It draws the same ranking the table lists, so it needs two points to be a
+ * comparison at all; below that the card does not render and the table stands alone. Server
+ * component: every string the drawing shows is formatted here.
+ */
+function ChartSection({
+  blocks,
+  companyName,
+  locale,
+  t,
+  format,
+}: {
+  readonly blocks: SnapshotBlocks;
+  readonly companyName: string;
+  readonly locale: LocaleCode;
+  readonly t: Translator;
+  readonly format: Formatter;
+}) {
+  const { peers, inputs } = blocks;
+  if (!peers) return null;
+  const points = chartPoints({
+    rows: rankedRows(blocks, companyName),
+    country: inputs.country,
+    currency: inputs.currency,
+    locale,
+    t,
+    format,
+  });
+  if (points.length < 2) return null;
+
+  return (
+    <Card data-chart-card>
+      <CardHeader>
+        <CardTitle>
+          <h3>{t("chart.heading")}</h3>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">
+        <PeerChart
+          points={points}
+          yDomain={chartDomain(points.map((point) => point.trifr))}
+          labels={chartLabels({ points, t, format })}
+        />
+        <p className="max-w-prose text-muted-foreground text-xs" data-chart-caption>
+          {t("chart.caption")}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
  * The peer benchmark, first (AC-20): the badge with the peer count and the rung, one rank sentence
  * from `peers.rates` (replaced by the thin sentence when the run rested on fewer than three peers),
- * then one table in the order of `peers.rows` with the client's own row highlighted in place by its
- * LTIFR, and the one footnote. Never the word verified. Server component.
+ * then one table of `rankedRows` with the client's own row highlighted in place by its TRIFR, and
+ * the one footnote. Never the word verified. Server component.
  */
 function PeersSection({
   blocks,
@@ -342,7 +448,7 @@ function PeersSection({
   readonly t: Translator;
   readonly format: Formatter;
 }) {
-  const { peers, inputs, loss } = blocks;
+  const { peers, inputs } = blocks;
   if (!peers) {
     return (
       <Card data-peers-card>
@@ -361,49 +467,7 @@ function PeersSection({
   const scope = scopeOf(peers, inputs.country, locale, t);
   const section = inputs.section ?? sectionOfDivision(inputs.industryCode);
   const industry = section ? t(`noga.sections.${section as "C"}`) : "";
-  const clientRate = (key: "ltifr" | "trifr") =>
-    inputs.kpis.find((kpi) => kpi.key === key)?.value ?? null;
-  const clientTrifr = clientRate("trifr");
-  const clientRow: ClientRow = {
-    name: companyName,
-    headcount: inputs.fte,
-    ltifr: clientRate("ltifr"),
-    trifr: clientTrifr,
-    loss: loss?.loss ?? null,
-  };
-  // The client sits among the peers by its own TRIFR, so the table reads as one ranking rather than
-  // a list with the reader appended. Without a TRIFR there is no place to put them and the row is
-  // left out, which is the same condition that empties the rank sentence.
-  //
-  // TRIFR and not LTIFR because the chart above ranks by TRIFR (the owner's sketch of 14 Sep 2026),
-  // and a table ordered differently from the chart it sits under would give one reader two rankings.
-  // The stored `peers.rows` stay sorted by LTIFR: changing that is a model change and a version bump
-  // for an ordering only the page cares about, so the re-sort belongs here.
-  const byTrifr = (a: SnapshotPeerRow, b: SnapshotPeerRow) => {
-    if (a.trifr === null && b.trifr === null) return a.peerName < b.peerName ? -1 : 1;
-    if (a.trifr === null) return 1;
-    if (b.trifr === null) return -1;
-    if (a.trifr !== b.trifr) return a.trifr - b.trifr;
-    return a.peerName < b.peerName ? -1 : 1;
-  };
-  const sortedPeers = [...peers.rows].sort(byTrifr);
-  const rows: readonly (SnapshotPeerRow | ClientRow)[] =
-    clientTrifr === null
-      ? sortedPeers
-      : [
-          ...sortedPeers.filter((row) => row.trifr !== null && row.trifr < clientTrifr),
-          clientRow,
-          ...sortedPeers.filter((row) => row.trifr === null || row.trifr >= clientTrifr),
-        ];
-  const points = chartPoints({
-    rows,
-    country: inputs.country,
-    currency: inputs.currency,
-    locale,
-    t,
-    format,
-  });
-
+  const rows = rankedRows(blocks, companyName);
   return (
     <Card data-peers-card>
       <CardHeader>
@@ -420,20 +484,6 @@ function PeersSection({
         <p className="max-w-prose text-sm" data-rank-sentence>
           {rankSentence({ peers, industry, scope, t })}
         </p>
-        {/* The chart draws the same ranking the table lists, so it needs two points to be a
-            comparison at all; below that the table alone stands. */}
-        {points.length >= 2 ? (
-          <figure className="flex flex-col gap-2">
-            <PeerChart
-              points={points}
-              yDomain={chartDomain(points.map((point) => point.trifr))}
-              labels={chartLabels({ points, t, format })}
-            />
-            <figcaption className="max-w-prose text-muted-foreground text-xs" data-chart-caption>
-              {t("chart.caption")}
-            </figcaption>
-          </figure>
-        ) : null}
         <div className="overflow-x-auto rounded-lg border">
           <Table>
             <TableCaption className="sr-only">

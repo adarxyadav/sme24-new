@@ -2003,6 +2003,7 @@
       "empty": "The research found no published peer for your sector yet."
     },
     "chart": {
+      "heading": "Where you sit",
       "title": "Published peers ranked by TRIFR, with each company's estimated yearly loss as the bubble area",
       "caption": "Ranked by TRIFR, best on the left. Bubble area is that company's own estimated yearly loss. Your own figures are drawn as an outline.",
       "xAxis": "Rank by TRIFR, best on the left",

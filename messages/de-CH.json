@@ -2003,6 +2003,7 @@
       "empty": "Die Recherche hat noch kein publiziertes Vergleichsunternehmen für Ihre Branche gefunden."
     },
     "chart": {
+      "heading": "Ihre Position",
       "title": "Publizierte Vergleichsunternehmen nach TRIFR, die Blasenfläche ist der geschätzte Jahresverlust des jeweiligen Unternehmens",
       "caption": "Nach TRIFR geordnet, der beste Wert links. Die Blasenfläche ist der geschätzte Jahresverlust des jeweiligen Unternehmens. Ihre eigenen Zahlen sind als Umriss gezeichnet.",
       "xAxis": "Rang nach TRIFR, der beste Wert links",
