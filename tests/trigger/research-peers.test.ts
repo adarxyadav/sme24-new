@@ -287,7 +287,7 @@ describe("research-peers (AC-5, AC-7, AC-10)", () => {
     }
   });
 
-  it("triggers the benchmark once under benchmark/run/<runId> and raises no alert", async () => {
+  it("triggers the benchmark once under benchmark/peers/<triggerRunId> and raises no alert", async () => {
     seed();
     const task = await loadTask();
     await task.run({ runId: RUN }, { ctx });
@@ -295,9 +295,55 @@ describe("research-peers (AC-5, AC-7, AC-10)", () => {
     expect(state.triggers[0]).toMatchObject({
       id: "benchmark-company",
       payload: { companyId: COMPANY, triggerKind: "research", researchRunId: RUN },
-      options: { idempotencyKey: `benchmark/run/${RUN}`, idempotencyKeyTTL: "24h" },
+      options: { idempotencyKey: `benchmark/peers/${ctx.run.id}`, idempotencyKeyTTL: "24h" },
     });
     expect(state.alerts).toHaveLength(0);
+  });
+
+  it("keys the benchmark on the peer search, so a re-search of one run is not deduplicated", async () => {
+    // The regression: the key was `benchmark/run/<runId>` with a 24 hour TTL, which is one value
+    // for every peer search of a run. A second search that day — a re-search after the company's
+    // `industry_code` was corrected — stored its new peer rows and was then silently deduplicated,
+    // so no snapshot was inserted and the page kept rendering the old peers. Keying on this task's
+    // own run id keeps the two searches apart while holding the per-search dedupe below.
+    seed();
+    const task = await loadTask();
+    await task.run({ runId: RUN }, { ctx });
+
+    // The re-search: the same research run, a new peer search, so a new Trigger.dev run id. What
+    // `repeer.local.mts` clears before re-triggering is cleared here too, or the task would resume
+    // the stored provider run and keep the old rows.
+    const reSearch = { ...ctx, run: { id: "run_trigger_2" } };
+    state.tables.research_peers = [];
+    runRow().peer_provider_run_id = null;
+    await task.run({ runId: RUN }, { ctx: reSearch });
+
+    const keys = state.triggers.map((trigger) => (trigger.options as Row).idempotencyKey);
+    expect(keys).toEqual([`benchmark/peers/${ctx.run.id}`, `benchmark/peers/${reSearch.run.id}`]);
+    // Distinct keys are the whole point: identical ones are what the live trigger deduplicated.
+    expect(new Set(keys).size).toBe(2);
+    // Both computations are asked for against the same research run, so `benchmark-company` reads
+    // the peer rows this second search wrote (AC-17 takes the rows of `researchRunId`).
+    for (const trigger of state.triggers) {
+      expect(trigger.payload).toMatchObject({ companyId: COMPANY, researchRunId: RUN });
+    }
+  });
+
+  it("keeps one benchmark per peer search across a retry and its failure hook (AC-5, AC-7)", async () => {
+    // The other half of the key's contract: `ctx.run.id` is one value for every attempt of one
+    // logical search and for the `onFailure` hook that follows them, so the deliberate dedupe of
+    // AC-5 and AC-7 still collapses a retried search to a single computation.
+    seed();
+    const task = await loadTask();
+    await task.run({ runId: RUN }, { ctx });
+    state.tables.research_peers = [];
+    await task.run({ runId: RUN }, { ctx: { ...ctx, attempt: { number: 2 } } });
+    await task.onFailure({ payload: { runId: RUN }, error: new Error("boom"), ctx });
+
+    const keys = state.triggers.map((trigger) => (trigger.options as Row).idempotencyKey);
+    expect(keys).toHaveLength(3);
+    // One key for all three, so Trigger.dev runs one benchmark for this one search.
+    expect(new Set(keys)).toEqual(new Set([`benchmark/peers/${ctx.run.id}`]));
   });
 
   it("skips the search when the company carries no industry section and still triggers", async () => {
@@ -434,7 +480,7 @@ describe("research-peers onFailure (AC-7)", () => {
     expect(state.triggers).toHaveLength(1);
     expect(state.triggers[0]).toMatchObject({
       id: "benchmark-company",
-      options: { idempotencyKey: `benchmark/run/${RUN}` },
+      options: { idempotencyKey: `benchmark/peers/${ctx.run.id}` },
     });
   });
 

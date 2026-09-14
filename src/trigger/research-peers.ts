@@ -62,7 +62,8 @@ export const researchPeersPayloadSchema = z.object({ runId: z.uuid() });
  * code, one structured call checks each against its cited page, a peer that is the client under
  * another name is dropped, the rung is climbed in code, and the kept rates land in `research_peers`
  * in one insert. Whatever the outcome, the last step triggers `benchmark-company` under
- * `benchmark/run/<runId>` so the loss still computes. Runs in the Trigger.dev EU environment.
+ * `benchmark/peers/<this task's run id>` so the loss still computes, and so that a genuine
+ * re-search of the same run writes its own snapshot. Runs in the Trigger.dev EU environment.
  */
 export const researchPeersTask = schemaTask({
   id: "research-peers",
@@ -193,8 +194,9 @@ export const researchPeersTask = schemaTask({
   },
   onFailure: async ({ payload, error, ctx }) => {
     // After the last attempt: the peer search reports through the summary alone and raises no alert
-    // (AC-7). The benchmark is still triggered, under the same key the happy path uses, so the loss
-    // computes from the client's own figures.
+    // (AC-7). The benchmark is still triggered, under the same key the happy path uses — this
+    // hook shares `ctx.run.id` with the attempts it follows — so the loss computes from the
+    // client's own figures and one search still queues one computation.
     const env = taskEnv();
     const supabase = createServiceClient(env.SUPABASE_SECRET_KEY, env.NEXT_PUBLIC_SUPABASE_URL);
     const { data: run } = await supabase
@@ -245,13 +247,23 @@ export function peerStatusOf(error: unknown): PeerStatus {
 }
 
 /**
- * Queues the benchmark computation (AC-7): the key `benchmark/run/<runId>` is the one
- * `research-company` uses too, so however many of the three paths fire, one computation runs. A
- * trigger failure is logged and reported and changes nothing about the run.
+ * Queues the benchmark computation (AC-7), keyed by this peer search's own Trigger.dev run id
+ * rather than by the research run: `benchmark/peers/<triggerRunId>`. That id is one value across
+ * every attempt of one logical peer search and across its `onFailure` hook, so the dedupe AC-7
+ * asks for still holds — the last step and the failure hook of one search queue one computation.
+ * It is a different value for a genuine re-search, which is the point: keying on `<runId>` meant a
+ * second peer search for the same run inside the 24 hour TTL was silently deduplicated, so the new
+ * `research_peers` rows were stored but no snapshot was ever inserted and the page kept rendering
+ * the old peers (found on staging on 14 Sep 2026 re-running a corrected `industry_code`).
+ *
+ * `research-company` still keys its own fallback on `benchmark/run/<runId>`: that path fires only
+ * when this task could not be queued at all, so the two keys never race for one search.
+ *
+ * A trigger failure is logged and reported and changes nothing about the run.
  */
 async function triggerBenchmark(ids: RunIds, triggerRunId: string): Promise<void> {
   try {
-    const idempotencyKey = await idempotencyKeys.create(`benchmark/run/${ids.runId}`, {
+    const idempotencyKey = await idempotencyKeys.create(`benchmark/peers/${triggerRunId}`, {
       scope: "global",
     });
     const handle = await tasks.trigger<typeof benchmarkCompanyTask>(
