@@ -26,6 +26,29 @@ export const CREDIT_PACKS: readonly CreditPack[] = [
   { key: "directory_50", credits: 50, priceRappen: 50 * CREDIT_PRICE_RAPPEN, sortOrder: 10 },
 ] as const;
 
+/**
+ * The size of the directory as the cards above the search form state it, rounded down to a round
+ * thousand and shown with a "+". Static by owner decision of 2026-09-14, because the loaded tables
+ * hold fewer rows than the purchased source: the import collapses many contacts onto one company
+ * and skips rows for four recorded reasons, so a live `count(*)` understates the reach the figures
+ * are meant to claim. `directory_size()` and `getDirectorySize` stay in place and still answer the
+ * true counts; swap the card back to them once the loaded data matches the source.
+ *
+ * Both figures are floors under the purchased source, measured from the import run of 12 Sep 2026
+ * (`directory_imports`, batch "20260902 Global Account Lists"):
+ *
+ * - contacts: `rows_read` was 79,916. 67,092 loaded; the rest were skipped for a recorded reason,
+ *   12,257 of them carrying no country at all. So 79,000+ states the source, not the loaded table.
+ * - companies: the source records no company count, only contact rows. The loaded tables run at
+ *   1.905 contacts per company (67,092 over 35,225), which puts the source near 41,958. 40,000 is
+ *   the round thousand below that estimate, so the figure is a floor on an estimate rather than a
+ *   counted number, and is the softer of the two claims.
+ */
+export const DIRECTORY_CLAIMED_SIZE = {
+  companies: 40_000,
+  contacts: 79_000,
+} as const;
+
 /** Rows per search page and per unlocks page (AC-4, AC-13). */
 export const DIRECTORY_PAGE_SIZE = 25;
 /** The deepest page a search cursor may name (AC-4): 40 pages of 25 is 1,000 rows. */
